@@ -1,24 +1,19 @@
+// Supabase client — safe for both SSR and client-side
+import type { SupabaseClient } from '@supabase/supabase-js'
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co'
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6ImpXVCJ9.placeholder.placeholder'
 
-// Create client - if keys are empty it won't crash but won't work either
-// This is needed for build time on Vercel when env vars aren't set yet
-let _client: ReturnType<typeof createClient> | null = null
+export const supabase: SupabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    persistSession: typeof window !== 'undefined',
+    autoRefreshToken: typeof window !== 'undefined',
+    detectSessionInUrl: typeof window !== 'undefined',
+  },
+})
 
-export function getSupabase() {
-  if (!_client) {
-    _client = createClient(supabaseUrl, supabaseAnonKey, {
-      auth: {
-        persistSession: typeof window !== 'undefined',
-        autoRefreshToken: typeof window !== 'undefined',
-        detectSessionInUrl: typeof window !== 'undefined',
-      },
-    })
-  }
-  return _client
+export function isSupabaseConfigured(): boolean {
+  return process.env.NEXT_PUBLIC_SUPABASE_URL?.startsWith('https://') === true &&
+         process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.startsWith('eyJ') === true
 }
-
-// For convenience, export the function result directly
-export const supabase = getSupabase()
