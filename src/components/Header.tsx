@@ -1,24 +1,25 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
-import { supabase } from '@/lib/supabase'
+import { useState, useEffect } from 'react'
 import { Menu, X, Search, User, PlusCircle, MessageCircle, Shield, Star } from 'lucide-react'
+
+const hasSupabase = process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
 export function Header() {
   const [mobileOpen, setMobileOpen] = useState(false)
   const [user, setUser] = useState<unknown>(null)
-  const [searchOpen, setSearchOpen] = useState(false)
-  const searchRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      setUser(data.session?.user ?? null)
+    if (!hasSupabase) return
+    import('@/lib/supabase').then(({ supabase }) => {
+      supabase.auth.getSession().then(({ data }) => {
+        setUser(data.session?.user ?? null)
+      })
+      supabase.auth.onAuthStateChange((_event, session) => {
+        setUser(session?.user ?? null)
+      })
     })
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null)
-    })
-    return () => subscription.unsubscribe()
   }, [])
 
   return (
@@ -58,51 +59,30 @@ export function Header() {
               </span>
             </Link>
 
-            {/* Search bar (desktop) */}
-            <div ref={searchRef} className="hidden md:flex flex-1 max-w-xl mx-8 relative">
-              <form action="/buscar" method="GET" className="w-full">
-                <input
-                  type="text"
-                  name="q"
-                  placeholder="¿Qué estás buscando?"
-                  className="w-full py-2.5 px-4 pr-12 rounded-lg text-gray-800 bg-white focus:outline-none focus:ring-2 focus:ring-brand-yellow"
-                />
-                <button
-                  type="submit"
-                  className="absolute right-2 top-1/2 -translate-y-1/2 bg-brand-yellow p-1.5 rounded-full hover:bg-yellow-400 transition"
-                >
-                  <Search size={18} className="text-brand-blue" />
-                </button>
-              </form>
-            </div>
-
-            {/* Mobile search */}
-            <button
-              className="md:hidden p-2 hover:bg-white/10 rounded-lg transition"
-              onClick={() => setSearchOpen(!searchOpen)}
-            >
-              <Search size={20} />
-            </button>
+            {/* Search (desktop) */}
+            <form action="/buscar" method="GET" className="hidden md:flex flex-1 max-w-xl mx-8 relative">
+              <input
+                type="text"
+                name="q"
+                placeholder="¿Qué estás buscando?"
+                className="w-full py-2.5 px-4 pr-12 rounded-lg text-gray-800 bg-white focus:outline-none focus:ring-2 focus:ring-brand-yellow"
+              />
+              <button type="submit" className="absolute right-2 top-1/2 -translate-y-1/2 bg-brand-yellow p-1.5 rounded-full hover:bg-yellow-400 transition">
+                <Search size={18} className="text-brand-blue" />
+              </button>
+            </form>
 
             {/* Actions (desktop) */}
             <div className="hidden md:flex items-center gap-3">
               {!user ? (
                 <>
-                  <Link href="/auth/login" className="px-4 py-2 text-sm font-medium hover:text-brand-yellow transition">
-                    Iniciar sesión
-                  </Link>
-                  <Link
-                    href="/auth/register"
-                    className="bg-brand-yellow text-brand-blue px-4 py-2 rounded-lg text-sm font-bold hover:bg-yellow-400 transition"
-                  >
-                    Regístrate
-                  </Link>
+                  <Link href="/auth/login" className="px-4 py-2 text-sm font-medium hover:text-brand-yellow transition">Iniciar sesión</Link>
+                  <Link href="/auth/register" className="bg-brand-yellow text-brand-blue px-4 py-2 rounded-lg text-sm font-bold hover:bg-yellow-400 transition">Regístrate</Link>
                 </>
               ) : (
                 <>
                   <Link href="/publicar" className="flex items-center gap-1 bg-brand-yellow text-brand-blue px-3 py-2 rounded-lg text-sm font-bold hover:bg-yellow-400 transition">
-                    <PlusCircle size={16} />
-                    Publicar
+                    <PlusCircle size={16} /> Publicar
                   </Link>
                   <Link href="/chat" className="relative p-2 hover:bg-white/10 rounded-lg transition" title="Mensajes">
                     <MessageCircle size={20} />
@@ -116,34 +96,17 @@ export function Header() {
             </div>
 
             {/* Mobile menu button */}
-            <button
-              className="md:hidden p-2 hover:bg-white/10 rounded-lg transition"
-              onClick={() => setMobileOpen(!mobileOpen)}
-            >
+            <button className="md:hidden p-2 hover:bg-white/10 rounded-lg transition" onClick={() => setMobileOpen(!mobileOpen)}>
               {mobileOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
           </div>
 
-          {/* Mobile search expanded */}
-          {searchOpen && (
-            <div className="md:hidden pb-3 animate-fadeIn">
-              <form action="/buscar" method="GET" className="relative">
-                <input
-                  type="text"
-                  name="q"
-                  placeholder="¿Qué estás buscando?"
-                  className="w-full py-2.5 px-4 pr-12 rounded-lg text-gray-800 bg-white"
-                />
-                <button type="submit" className="absolute right-2 top-1/2 -translate-y-1/2 bg-brand-yellow p-1.5 rounded-full">
-                  <Search size={18} className="text-brand-blue" />
-                </button>
-              </form>
-            </div>
-          )}
-
           {/* Mobile menu */}
           {mobileOpen && (
             <div className="md:hidden pb-4 animate-fadeIn">
+              <form action="/buscar" method="GET" className="mb-3">
+                <input type="text" name="q" placeholder="¿Qué estás buscando?" className="w-full py-2.5 px-4 rounded-lg text-gray-800 bg-white" />
+              </form>
               <nav className="flex flex-col gap-1">
                 {!user ? (
                   <>

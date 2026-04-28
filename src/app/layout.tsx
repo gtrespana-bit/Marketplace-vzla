@@ -5,8 +5,9 @@ import { Header } from '@/components/Header'
 import { Footer } from '@/components/Footer'
 import { AuthProvider } from '@/components/AuthProvider'
 import { FloatingChat } from '@/components/FloatingChat'
+import type { Viewport } from 'next'
 
-const inter = Inter({ 
+const inter = Inter({
   subsets: ['latin'],
   variable: '--font-inter',
   display: 'swap',
@@ -27,16 +28,12 @@ export const metadata: Metadata = {
     icon: '/favicon.ico',
   },
   manifest: '/manifest.json',
+}
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
   themeColor: '#003DA5',
-  appleWebApp: {
-    capable: true,
-    statusBarStyle: 'default',
-    title: 'Todo Anuncios',
-  },
-  viewport: {
-    width: 'device-width',
-    initialScale: 1,
-  },
 }
 
 export default function RootLayout({
@@ -46,9 +43,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="es">
-      <body className={`${inter.variable} font-sans antialiased`}>
+      <body className={`${inter.variable} font-sans antialiased`} style={{ background: '#F5F5F5' }}>
         <AuthProvider>
-          <div className="min-h-screen flex flex-col bg-brand-gray">
+          <div className="min-h-screen flex flex-col">
             <Header />
             <main className="flex-1">
               {children}
