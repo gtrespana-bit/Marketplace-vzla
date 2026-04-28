@@ -31,7 +31,7 @@ export default function BuscarPage({
 
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Estado</label>
+                <label className="block text-sm font-semibold text-gray-900 font-bold mb-1.5">Estado</label>
                 {['Nuevo', 'Como nuevo', 'Bueno', 'Usado', 'Para repuestos'].map((e) => (
                   <label key={e} className="flex items-center gap-2 text-sm mt-1.5">
                     <input type="checkbox" defaultChecked={searchParams.estado === e} className="rounded text-brand-blue" />
@@ -41,7 +41,7 @@ export default function BuscarPage({
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Ubicación</label>
+                <label className="block text-sm font-semibold text-gray-900 font-bold mb-1.5">Ubicación</label>
                 <select className="w-full border rounded-lg px-3 py-2 text-sm" id="bus-ubicacion">
                   <option value="">Todo Venezuela</option>
                   <option>Distrito Capital</option>
@@ -58,7 +58,7 @@ export default function BuscarPage({
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Precio (USD)</label>
+                <label className="block text-sm font-semibold text-gray-900 font-bold mb-1.5">Precio (USD)</label>
                 <div className="flex gap-2">
                   <input type="number" placeholder="Mín" className="w-full border rounded-lg px-3 py-2 text-sm" />
                   <input type="number" placeholder="Máx" className="w-full border rounded-lg px-3 py-2 text-sm" />
@@ -66,7 +66,7 @@ export default function BuscarPage({
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Ordenar</label>
+                <label className="block text-sm font-semibold text-gray-900 font-bold mb-1.5">Ordenar</label>
                 <select className="w-full border rounded-lg px-3 py-2 text-sm" id="bus-orden">
                   <option>Relevancia</option>
                   <option>Más recientes</option>
