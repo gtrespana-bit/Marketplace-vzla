@@ -33,9 +33,13 @@ export default function BuscarClient() {
 
   const setParam = (key: string, value: string) => {
     const params = new URLSearchParams(searchParams.toString())
-    if (value) params.set(key, value) else params.delete(key)
+    if (value) {
+      params.set(key, value)
+    } else {
+      params.delete(key)
+    }
     if (key === 'categoria') params.delete('subcategoria')
-    router.push(`/buscar?${params.toString()}`)
+    router.push("/buscar?" + params.toString())
   }
 
   const clearAll = () => router.push('/buscar')

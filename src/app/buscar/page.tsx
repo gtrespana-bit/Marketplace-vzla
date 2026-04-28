@@ -8,10 +8,6 @@ export const metadata: Metadata = {
 
 const BuscarClient = dynamic(() => import('./BuscarPage'), { ssr: false })
 
-export default function BuscarPage({
-  searchParams,
-}: {
-  searchParams: { q?: string }
-}) {
-  return <BuscarClient q={searchParams.q || ''} />
+export default function BuscarPage() {
+  return <BuscarClient />
 }
