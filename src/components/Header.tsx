@@ -1,26 +1,28 @@
 'use client'
 
 import Link from 'next/link'
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Menu, X, Search, User, PlusCircle, MessageCircle, Shield, Star } from 'lucide-react'
-
-const hasSupabase = process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+import { useAuth } from '@/components/AuthProvider'
 
 export function Header() {
+  const { user, loading } = useAuth()
   const [mobileOpen, setMobileOpen] = useState(false)
-  const [user, setUser] = useState<unknown>(null)
 
-  useEffect(() => {
-    if (!hasSupabase) return
-    import('@/lib/supabase').then(({ supabase }) => {
-      supabase.auth.getSession().then(({ data }) => {
-        setUser(data.session?.user ?? null)
-      })
-      supabase.auth.onAuthStateChange((_event, session) => {
-        setUser(session?.user ?? null)
-      })
-    })
-  }, [])
+  if (loading) return (
+    <header className="bg-brand-blue text-white sticky top-0 z-50 shadow-lg">
+      <div className="max-w-7xl mx-auto px-4">
+        <div className="flex items-center justify-between h-16">
+          <div className="w-9 h-9 bg-brand-yellow/50 rounded-lg" />
+          <div className="w-64 h-8 bg-white/10 rounded-lg" />
+          <div className="flex gap-2">
+            <div className="w-20 h-8 bg-white/10 rounded-lg" />
+            <div className="w-20 h-8 bg-white/10 rounded-lg" />
+          </div>
+        </div>
+      </div>
+    </header>
+  )
 
   return (
     <>
