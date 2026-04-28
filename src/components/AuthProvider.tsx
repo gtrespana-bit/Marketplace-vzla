@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext, useEffect, useState } from 'react'
+import { createContext, useContext, useState, useEffect, useRef } from 'react'
 import type { Session, User } from '@supabase/supabase-js'
 
 type AuthContextType = {
@@ -15,46 +15,53 @@ const AuthContext = createContext<AuthContextType>({
   loading: true,
 })
 
-// Lazy init — solo carga Supabase si está configurado
-const isConfig = typeof window !== 'undefined' &&
-  process.env.NEXT_PUBLIC_SUPABASE_URL &&
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY &&
-  process.env.NEXT_PUBLIC_SUPABASE_URL.startsWith('https://')
-
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null)
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
+  const initialized = useRef(false)
 
   useEffect(() => {
-    if (!isConfig) {
+    if (initialized.current) return
+    initialized.current = true
+
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+    if (!url || !key || url.includes('placeholder')) {
+      // No Supabase configured — skip entirely, don't crash
+      setSession(null)
+      setUser(null)
       setLoading(false)
       return
     }
 
-    import('@supabase/supabase-js').then(async ({ createClient }) => {
-      const client = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-        { auth: { persistSession: true, detectSessionInUrl: true } }
-      )
+    let unsub: (() => void) | null = null
+    import('@supabase/supabase-js')
+      .then(({ createClient }) => {
+        const client = createClient(url, key, {
+          auth: { persistSession: true, detectSessionInUrl: true, autoRefreshToken: true },
+        })
 
-      try {
-        const { data } = await client.auth.getSession()
-        setSession(data.session)
-        setUser(data.session?.user ?? null)
-      } catch {
-        // noop
-      }
-      setLoading(false)
+        client.auth.getSession()
+          .then(({ data, error }) => {
+            if (!error) {
+              setSession(data.session)
+              setUser(data.session?.user ?? null)
+            }
+            setLoading(false)
+          })
+          .catch(() => setLoading(false))
 
-      const { data: { subscription } } = client.auth.onAuthStateChange((_e, s) => {
-        setSession(s)
-        setUser(s?.user ?? null)
+        const { data } = client.auth.onAuthStateChange((_e, s) => {
+          setSession(s)
+          setUser(s?.user ?? null)
+        })
+        unsub = data.subscription.unsubscribe
       })
+      .catch(() => setLoading(false))
 
-      return () => subscription.unsubscribe()
-    }).catch(() => setLoading(false))
+    return () => unsub?.()
   }, [])
 
   return (
