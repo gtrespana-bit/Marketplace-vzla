@@ -76,8 +76,8 @@ export function Header() {
             <div className="hidden md:flex items-center gap-3">
               {!user ? (
                 <>
-                  <Link href="/auth/login" className="px-4 py-2 text-sm font-medium hover:text-brand-yellow transition">Iniciar sesión</Link>
-                  <Link href="/auth/register" className="bg-brand-yellow text-brand-blue px-4 py-2 rounded-lg text-sm font-bold hover:bg-yellow-400 transition">Regístrate</Link>
+                  <Link href="/login" className="px-4 py-2 text-sm font-medium hover:text-brand-yellow transition">Iniciar sesión</Link>
+                  <Link href="/register" className="bg-brand-yellow text-brand-blue px-4 py-2 rounded-lg text-sm font-bold hover:bg-yellow-400 transition">Regístrate</Link>
                 </>
               ) : (
                 <>
@@ -110,8 +110,8 @@ export function Header() {
               <nav className="flex flex-col gap-1">
                 {!user ? (
                   <>
-                    <Link href="/auth/login" className="px-3 py-2 rounded-lg hover:bg-white/10 transition">Iniciar sesión</Link>
-                    <Link href="/auth/register" className="px-3 py-2 rounded-lg bg-brand-yellow text-brand-blue font-bold text-center transition">Regístrate gratis</Link>
+                    <Link href="/login" className="px-3 py-2 rounded-lg hover:bg-white/10 transition">Iniciar sesión</Link>
+                    <Link href="/register" className="px-3 py-2 rounded-lg bg-brand-yellow text-brand-blue font-bold text-center transition">Regístrate gratis</Link>
                   </>
                 ) : (
                   <>

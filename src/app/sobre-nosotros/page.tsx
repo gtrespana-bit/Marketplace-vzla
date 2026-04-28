@@ -59,7 +59,7 @@ export default function SobreNosotrosPage() {
             Estamos construyendo algo grande. Únete como usuario early adopter o escríbenos si quieres colaborar.
           </p>
           <div className="flex flex-wrap justify-center gap-3">
-            <a href="/auth/register" className="bg-brand-blue text-white px-8 py-3 rounded-lg font-bold hover:bg-blue-900 transition">
+            <a href="/register" className="bg-brand-blue text-white px-8 py-3 rounded-lg font-bold hover:bg-blue-900 transition">
               Regístrate
             </a>
             <a href="/contacto" className="border border-brand-blue text-brand-blue px-8 py-3 rounded-lg font-bold hover:bg-brand-yellow/50 transition">

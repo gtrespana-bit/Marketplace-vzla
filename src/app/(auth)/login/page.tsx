@@ -88,7 +88,7 @@ export default function LoginPage() {
 
           <p className="text-center text-sm text-gray-500 mt-6">
             ¿No tienes cuenta?{' '}
-            <Link href="/auth/register" className="text-brand-blue font-semibold hover:underline">
+            <Link href="/register" className="text-brand-blue font-semibold hover:underline">
               Regístrate gratis
             </Link>
           </p>

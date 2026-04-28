@@ -21,7 +21,7 @@ export default function MiPerfilPage() {
   })
 
   if (!session) {
-    router.push('/auth/login')
+    router.push('/login')
     return null
   }
 
