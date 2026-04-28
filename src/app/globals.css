@@ -178,23 +178,10 @@ body {
   transform: scale(1.1);
 }
 
-/* ===== DARK MODE ===== */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --foreground: #f5f5f5;
-    --background: #111118;
-  }
-  body {
-    background: #111118 !important;
-  }
-  input, textarea, select {
-    background: white !important;
-    color: #111118 !important;
-  }
-  input::placeholder, textarea::placeholder {
-    color: #666 !important;
-  }
-}
+/* ===== DARK MODE — DISABLED ===== */
+/* Deshabilitado porque el sitio es light-mode y prefers-color-scheme dark
+   rompía todos los textos (Tailwind text-gray-* no se adapta automáticamente).
+   Si se quiere dark mode real, usar estrategia Tailwind darkMode: 'class'. */
 
 /* ===== FEATURED CARD ===== */
 .featured-card {
