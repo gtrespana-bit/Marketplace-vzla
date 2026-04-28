@@ -15,34 +15,46 @@ const AuthContext = createContext<AuthContextType>({
   loading: true,
 })
 
+// Lazy init — solo carga Supabase si está configurado
+const isConfig = typeof window !== 'undefined' &&
+  process.env.NEXT_PUBLIC_SUPABASE_URL &&
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY &&
+  process.env.NEXT_PUBLIC_SUPABASE_URL.startsWith('https://')
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null)
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+    if (!isConfig) {
       setLoading(false)
       return
     }
 
-    let unsub: (() => void) | undefined
+    import('@supabase/supabase-js').then(async ({ createClient }) => {
+      const client = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        { auth: { persistSession: true, detectSessionInUrl: true } }
+      )
 
-    import('@/lib/supabase').then(({ supabase }) => {
-      supabase.auth.getSession().then(({ data }) => {
+      try {
+        const { data } = await client.auth.getSession()
         setSession(data.session)
         setUser(data.session?.user ?? null)
-        setLoading(false)
+      } catch {
+        // noop
+      }
+      setLoading(false)
+
+      const { data: { subscription } } = client.auth.onAuthStateChange((_e, s) => {
+        setSession(s)
+        setUser(s?.user ?? null)
       })
 
-      const { data } = supabase.auth.onAuthStateChange((_event, session) => {
-        setSession(session)
-        setUser(session?.user ?? null)
-      })
-      unsub = data.subscription.unsubscribe
+      return () => subscription.unsubscribe()
     }).catch(() => setLoading(false))
-
-    return () => unsub?.()
   }, [])
 
   return (
@@ -53,7 +65,5 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 }
 
 export function useAuth() {
-  const context = useContext(AuthContext)
-  if (!context) throw new Error('useAuth must be used within AuthProvider')
-  return context
+  return useContext(AuthContext)
 }
