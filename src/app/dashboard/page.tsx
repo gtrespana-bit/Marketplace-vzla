@@ -20,7 +20,7 @@ export default function DashboardPage() {
         .from('productos')
         .select('*')
         .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
+        .order('creado_en', { ascending: false })
         .then(({ data }) => {
           if (data) setProductos(data)
         })
