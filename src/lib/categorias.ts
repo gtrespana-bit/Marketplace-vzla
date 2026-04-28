@@ -1,221 +1,127 @@
-'use client'
-
-// ============================================================
-// Categorías, tipos y subtipos — pensados como busca un comprador
-// ============================================================
-
-export interface CatConfig {
-  icon: string
-  tipos: string[]
-  marcasPorTipo: Record<string, string[]>
-  camposEspeciales: Record<string, { label: string; type: string; placeholder: string; options?: string[] }[]>
+export interface CatField {
+  label: string
+  type: 'text' | 'number' | 'select'
+  placeholder: string
+  options?: string[]
 }
 
-export const categoriasConfig: Record<string, CatConfig> = {
+export interface CatSub {
+  label: string
+  icon: string
+  marcas: string[]
+  campos: CatField[]
+}
+
+let _anos: string[] | undefined
+function aniosSelect(): string[] {
+  if (!_anos) {
+    const c = new Date().getFullYear()
+    _anos = Array.from({ length: 30 }, (_, i) => String(c - i))
+  }
+  return _anos
+}
+
+const campoAnio = { label: 'Año', type: 'select' as const, placeholder: 'Selecciona...' }
+const campoColor = { label: 'Color', type: 'text' as const, placeholder: 'Ej: Blanco' }
+
+export const categoriasData: Record<string, { label: string; icon: string; subs: CatSub[] }> = {
   vehiculos: {
+    label: 'Vehículos',
     icon: '🚗',
-    tipos: ['Carros', 'Camionetas/SUV', 'Motos', 'Camiones', 'Furgonetas', 'Autobuses', 'Repuestos y Accesorios'],
-    marcasPorTipo: {
-      'Carros': ['Toyota', 'Ford', 'Chevrolet', 'Honda', 'Nissan', 'Hyundai', 'Kia', 'BMW', 'Mercedes-Benz', 'Mazda', 'Renault', 'Peugeot', 'Suzuki', 'Volkswagen', 'Audi', 'Seat', 'Fiat', 'Skoda'],
-      'Camionetas/SUV': ['Toyota', 'Ford', 'Chevrolet', 'Jeep', 'Nissan', 'Hyundai', 'Kia', 'Mitsubishi', 'Honda', 'Volkswagen', 'BMW', 'Mercedes-Benz', 'Mazda', 'Land Rover', 'Great Wall'],
-      'Motos': ['Yamaha', 'Bera', 'Empire', 'Venom', 'Honda', 'Suzuki', 'Bajaj', 'Keeway', 'Haolue', 'Italika', 'Vento', 'KTM', 'Hero', 'Zongshen', 'Benelli'],
-      'Camiones': ['Chevrolet', 'Ford', 'Toyota', 'Hino', 'Isuzu', 'International', 'Freightliner', 'Hyundai', 'Mitsubishi', 'Foton'],
-      'Furgonetas': ['Ford', 'Chevrolet', 'Dodge', 'Volkswagen', 'Renault', 'Iveco', 'Hyundai', 'Foton'],
-      'Autobuses': ['Yutong', 'King Long', 'Volkswagen', 'Chevrolet', 'Ford', 'International'],
-      'Repuestos y Accesorios': ['OEM', 'Genérico'],
-    },
-    camposEspeciales: {
-      'Carros': [
-        { label: 'Año', type: 'select', placeholder: 'Selecciona...', options: [] },
-        { label: 'Kilometraje (km)', type: 'number', placeholder: 'Ej: 45000' },
-        { label: 'Transmisión', type: 'select', placeholder: 'Selecciona...', options: ['Automática', 'Manual', 'CVT', 'Semi-automática'] },
-        { label: 'Combustible', type: 'select', placeholder: 'Selecciona...', options: ['Gasolina', 'Diésel', 'Eléctrico', 'Híbrido', 'GPL'] },
-        { label: 'Color', type: 'text', placeholder: 'Ej: Blanco' },
-      ],
-      'Camionetas/SUV': [
-        { label: 'Año', type: 'select', placeholder: 'Selecciona...', options: [] },
-        { label: 'Kilometraje (km)', type: 'number', placeholder: 'Ej: 60000' },
-        { label: 'Tracción', type: 'select', placeholder: 'Selecciona...', options: ['4x2', '4x4', 'AWD'] },
-        { label: 'Transmisión', type: 'select', placeholder: 'Selecciona...', options: ['Automática', 'Manual'] },
-        { label: 'Motor', type: 'text', placeholder: 'Ej: 2.7L V6' },
-        { label: 'Color', type: 'text', placeholder: 'Ej: Negro' },
-      ],
-      'Motos': [
-        { label: 'Año', type: 'select', placeholder: 'Selecciona...', options: [] },
-        { label: 'Cilindraje', type: 'select', placeholder: 'Selecciona...', options: ['50cc', '110cc', '125cc', '150cc', '200cc', '250cc', '300cc', '400cc+', 'Eléctrica'] },
-        { label: 'Tipo de moto', type: 'select', placeholder: 'Selecciona...', options: ['Calletera', 'Deportiva', 'Cross/Enduro', 'Scooter', 'Cuatrimoto', 'Triciclo', 'De trabajo'] },
-        { label: 'Color', type: 'text', placeholder: 'Ej: Rojo' },
-      ],
-      'Camiones': [
-        { label: 'Año', type: 'select', placeholder: 'Selecciona...', options: [] },
-        { label: 'Capacidad de carga (ton)', type: 'number', placeholder: 'Ej: 5' },
-        { label: 'Tipo', type: 'select', placeholder: 'Selecciona...', options: ['Furgón', 'Plataforma', 'Volteo', 'Cisterna', 'Grúa', 'Refrigerado'] },
-      ],
-      'Furgonetas': [
-        { label: 'Año', type: 'select', placeholder: 'Selecciona...', options: [] },
-        { label: 'Capacidad (m³)', type: 'text', placeholder: 'Ej: 10' },
-        { label: 'Color', type: 'text', placeholder: 'Ej: Blanco' },
-      ],
-      'Autobuses': [
-        { label: 'Año', type: 'select', placeholder: 'Selecciona...', options: [] },
-        { label: 'Pasajeros', type: 'number', placeholder: 'Ej: 40' },
-      ],
-      'Repuestos y Accesorios': [
-        { label: 'Compatible con marca/modelo', type: 'text', placeholder: 'Ej: Toyota Corolla 2015' },
-      ],
-    },
+    subs: [
+      { label: 'Carros', icon: '🚗', marcas: ['Toyota', 'Ford', 'Chevrolet', 'Honda', 'Nissan', 'Hyundai', 'Kia', 'BMW', 'Mercedes-Benz', 'Mazda', 'Renault', 'Peugeot', 'Suzuki', 'Volkswagen', 'Audi', 'Seat', 'Fiat', 'Skoda', 'Volvo', 'Subaru', 'Chery', 'Great Wall'], campos: [campoAnio, { label: 'Kilometraje (km)', type: 'number' as const, placeholder: 'Ej: 45000' }, { label: 'Transmisión', type: 'select' as const, placeholder: 'Selecciona...', options: ['Automática', 'Manual', 'CVT'] }, { label: 'Combustible', type: 'select' as const, placeholder: 'Selecciona...', options: ['Gasolina', 'Diésel', 'Eléctrico', 'Híbrido'] }, campoColor] },
+      { label: 'Camionetas/SUV', icon: '🚙', marcas: ['Toyota', 'Ford', 'Chevrolet', 'Jeep', 'Nissan', 'Hyundai', 'Kia', 'Mitsubishi', 'Honda', 'VW', 'BMW', 'Mercedes-Benz', 'Mazda', 'Land Rover', 'Great Wall', 'Chery', 'Haval'], campos: [campoAnio, { label: 'Tracción', type: 'select' as const, placeholder: 'Selecciona...', options: ['4x2', '4x4', 'AWD'] }, { label: 'Transmisión', type: 'select' as const, placeholder: 'Selecciona...', options: ['Automática', 'Manual'] }, campoColor] },
+      { label: 'Motos', icon: '🏍️', marcas: ['Yamaha', 'Bera', 'Empire', 'Venom', 'Honda', 'Suzuki', 'Bajaj', 'Keeway', 'Haolue', 'Italika', 'Vento', 'KTM', 'Hero', 'Zongshen', 'Benelli', 'TVS', 'AKT'], campos: [campoAnio, { label: 'Cilindraje', type: 'select' as const, placeholder: 'Selecciona...', options: ['50cc', '110cc', '125cc', '150cc', '200cc', '250cc', '300cc+', 'Eléctrica'] }, { label: 'Tipo', type: 'select' as const, placeholder: 'Selecciona...', options: ['Calletera', 'Deportiva', 'Cross/Enduro', 'Scooter', 'Triciclo', 'De trabajo'] }, campoColor] },
+      { label: 'Camiones', icon: '🚛', marcas: ['Hino', 'Isuzu', 'Freightliner', 'Hyundai', 'Foton', 'Ford', 'Toyota', 'International'], campos: [{ label: 'Capacidad de carga (ton)', type: 'number' as const, placeholder: 'Ej: 5' }, { label: 'Tipo', type: 'select' as const, placeholder: 'Selecciona...', options: ['Furgón', 'Plataforma', 'Volteo', 'Cisterna', 'Refrigerado'] }] },
+      { label: 'Furgonetas', icon: '🚐', marcas: ['Ford', 'Chevrolet', 'VW', 'Renault', 'Iveco', 'Hyundai', 'Foton'], campos: [campoAnio, campoColor] },
+      { label: 'Autobuses/Buses', icon: '🚌', marcas: ['Yutong', 'King Long', 'VW', 'Chevrolet'], campos: [{ label: 'Pasajeros', type: 'number' as const, placeholder: 'Ej: 40' }, campoAnio] },
+      { label: 'Repuestos y Accesorios', icon: '⚙️', marcas: ['OEM', 'Genérico', 'Original'], campos: [{ label: 'Compatible con', type: 'text' as const, placeholder: 'Ej: Toyota Corolla 2015' }] },
+    ],
   },
   tecnologia: {
+    label: 'Tecnología',
     icon: '💻',
-    tipos: ['Celulares', 'Laptops', 'Tablets', 'PC de Escritorio', 'Consolas', 'Monitores', 'Accesorios', 'Audio', 'Cámaras', 'Redes e Internet', 'Impresoras', 'Smartwatches'],
-    marcasPorTipo: {
-      'Celulares': ['Apple', 'Samsung', 'Xiaomi', 'Huawei', 'Motorola', 'LG', 'Sony', 'Oppo', 'Realme', 'OnePlus', 'Nokia', 'ZTE', 'Infinix', 'Tecno', 'Google Pixel', 'TCL'],
-      'Laptops': ['Apple', 'HP', 'Lenovo', 'Dell', 'Asus', 'Acer', 'Microsoft', 'MSI', 'Razer', 'Samsung', 'Huawei', 'Toshiba'],
-      'Tablets': ['Apple', 'Samsung', 'Huawei', 'Lenovo', 'Xiaomi', 'Amazon', 'Teclast', 'Alcatel'],
-      'PC de Escritorio': ['Apple', 'HP', 'Dell', 'Lenovo', 'Asus', 'Acer', 'MSI', 'Armado'],
-      'Consolas': ['PlayStation', 'Xbox', 'Nintendo', 'Steam Deck'],
-      'Monitores': ['Samsung', 'LG', 'AOC', 'Asus', 'Dell', 'BenQ', 'MSI', 'Gigabyte', 'HP'],
-      'Accesorios': ['Logitech', 'Razer', 'Corsair', 'HyperX', 'SteelSeries', 'Anker', 'Xiaomi'],
-      'Audio': ['JBL', 'Bose', 'Sony', 'Samsung', 'Apple', 'Xiaomi', 'Anker', 'Skullcandy'],
-      'Cámaras': ['Canon', 'Nikon', 'Sony', 'GoPro', 'DJI', 'Fujifilm', 'Panasonic'],
-      'Redes e Internet': ['TP-Link', 'Netgear', 'Mercusys', 'D-Link', 'Huawei', 'Tenda'],
-      'Impresoras': ['HP', 'Epson', 'Canon', 'Brother', 'Xerox'],
-      'Smartwatches': ['Apple', 'Samsung', 'Xiaomi', 'Huawei', 'Garmin', 'Amazfit'],
-    },
-    camposEspeciales: {
-      'Celulares': [
-        { label: 'Modelo', type: 'text', placeholder: 'Ej: iPhone 15 Pro Max' },
-        { label: 'Almacenamiento', type: 'select', placeholder: 'Selecciona...', options: ['16GB', '32GB', '64GB', '128GB', '256GB', '512GB', '1TB'] },
-        { label: 'RAM', type: 'select', placeholder: 'Selecciona...', options: ['2GB', '3GB', '4GB', '6GB', '8GB', '12GB', '16GB'] },
-        { label: 'Color', type: 'text', placeholder: 'Ej: Space Black' },
-      ],
-      'Laptops': [
-        { label: 'Modelo', type: 'text', placeholder: 'Ej: MacBook Air M2' },
-        { label: 'Procesador', type: 'text', placeholder: 'Ej: Apple M2, Intel i7...' },
-        { label: 'RAM', type: 'select', placeholder: 'Selecciona...', options: ['4GB', '8GB', '16GB', '32GB', '64GB'] },
-        { label: 'Almacenamiento', type: 'select', placeholder: 'Selecciona...', options: ['128GB SSD', '256GB SSD', '512GB SSD', '1TB SSD', '1TB+'] },
-        { label: 'Uso', type: 'select', placeholder: 'Selecciona...', options: ['Gaming', 'Diseño', 'Oficina', 'Estudiante', 'Programación'] },
-      ],
-      'Tablets': [
-        { label: 'Modelo', type: 'text', placeholder: 'Ej: iPad Air 5' },
-        { label: 'Almacenamiento', type: 'select', placeholder: 'Selecciona...', options: ['32GB', '64GB', '128GB', '256GB', '512GB', '1TB'] },
-      ],
-      'PC de Escritorio': [
-        { label: 'Procesador', type: 'text', placeholder: 'Ej: Intel i5-12400, Ryzen 5 5600X' },
-        { label: 'RAM', type: 'select', placeholder: 'Selecciona...', options: ['8GB', '16GB', '32GB', '64GB'] },
-        { label: 'GPU', type: 'text', placeholder: 'Ej: RTX 3060, RX 6600...' },
-        { label: 'Almacenamiento', type: 'text', placeholder: 'Ej: 512GB SSD + 1TB HDD' },
-      ],
-      'Consolas': [
-        { label: 'Modelo', type: 'select', placeholder: 'Selecciona...', options: ['PS5', 'PS5 Digital', 'PS4', 'PS4 Pro', 'Xbox Series X', 'Xbox Series S', 'Xbox One', 'Nintendo Switch', 'Switch OLED', 'Steam Deck'] },
-        { label: 'Almacenamiento', type: 'select', placeholder: 'Selecciona...', options: ['256GB', '512GB', '1TB', '2TB'] },
-      ],
-      'Audio': [
-        { label: 'Tipo', type: 'select', placeholder: 'Selecciona...', options: ['Audífonos', 'Audífonos Bluetooth', 'Bocina', 'Barra de sonido', 'Parlantes', 'Micrófono', 'Amplificador'] },
-      ],
-      'default': [
-        { label: 'Modelo', type: 'text', placeholder: 'Ej: modelo...' },
-      ],
-    },
+    subs: [
+      { label: 'Celulares', icon: '📱', marcas: ['Apple', 'Samsung', 'Xiaomi', 'Huawei', 'Motorola', 'Oppo', 'Realme', 'Nokia', 'Infinix', 'Tecno', 'ZTE', 'OnePlus'], campos: [{ label: 'Modelo', type: 'text' as const, placeholder: 'Ej: iPhone 15 Pro Max' }, { label: 'Almacenamiento', type: 'select' as const, placeholder: 'Selecciona...', options: ['32GB', '64GB', '128GB', '256GB', '512GB', '1TB'] }, { label: 'RAM', type: 'select' as const, placeholder: 'Selecciona...', options: ['2GB', '3GB', '4GB', '6GB', '8GB', '12GB'] }, campoColor] },
+      { label: 'Laptops', icon: '💻', marcas: ['Apple', 'HP', 'Lenovo', 'Dell', 'Asus', 'Acer', 'MSI', 'Samsung', 'Huawei'], campos: [{ label: 'Procesador', type: 'text' as const, placeholder: 'Ej: M2, i7-12700H' }, { label: 'RAM', type: 'select' as const, placeholder: 'Selecciona...', options: ['8GB', '16GB', '32GB'] }, { label: 'Almacenamiento', type: 'select' as const, placeholder: 'Selecciona...', options: ['256GB SSD', '512GB SSD', '1TB SSD', '1TB+'] }] },
+      { label: 'Tablets', icon: '📲', marcas: ['Apple', 'Samsung', 'Huawei', 'Lenovo', 'Xiaomi', 'Amazon'], campos: [{ label: 'Modelo', type: 'text' as const, placeholder: 'Ej: iPad Air 5' }, { label: 'Pantalla', type: 'text' as const, placeholder: 'Ej: 10.9"' }] },
+      { label: 'PC de Escritorio', icon: '🖥️', marcas: ['HP', 'Dell', 'Lenovo', 'Asus', 'Acer', 'MSI', 'Armado', 'Genérico'], campos: [{ label: 'Procesador', type: 'text' as const, placeholder: 'Ej: R5 5600X' }, { label: 'RAM', type: 'select' as const, placeholder: 'Selecciona...', options: ['8GB', '16GB', '32GB', '64GB'] }, { label: 'GPU', type: 'text' as const, placeholder: 'Ej: RTX 3060' }] },
+      { label: 'Monitores', icon: '🖥️', marcas: ['Samsung', 'LG', 'AOC', 'Asus', 'Dell', 'BenQ', 'MSI'], campos: [{ label: 'Tamaño', type: 'select' as const, placeholder: 'Selecciona...', options: ['21"', '23-24"', '27"', '32"', '34"+'] }, { label: 'Resolución', type: 'select' as const, placeholder: 'Selecciona...', options: ['1080p', '1440p', '4K'] }] },
+      { label: 'Consolas', icon: '🎮', marcas: ['PlayStation', 'Xbox', 'Nintendo'], campos: [{ label: 'Modelo', type: 'select' as const, placeholder: 'Selecciona...', options: ['PS5', 'PS5 Digital', 'PS4 Pro', 'Xbox Series X', 'Xbox Series S', 'Nintendo Switch', 'Switch OLED', 'Steam Deck'] }] },
+      { label: 'Audio', icon: '🎧', marcas: ['JBL', 'Bose', 'Sony', 'Apple', 'Xiaomi', 'Anker', 'Sennheiser'], campos: [{ label: 'Tipo', type: 'select' as const, placeholder: 'Selecciona...', options: ['Audífonos cable', 'Audífonos BT', 'Bocina', 'Barra de sonido', 'Parlantes', 'Micrófono'] }] },
+      { label: 'Cámaras', icon: '📷', marcas: ['Canon', 'Nikon', 'Sony', 'GoPro', 'DJI', 'Fujifilm'], campos: [{ label: 'Tipo', type: 'select' as const, placeholder: 'Selecciona...', options: ['DSLR', 'Mirrorless', 'Acción', 'Drone', 'IPC'] }] },
+      { label: 'Impresoras', icon: '🖨️', marcas: ['HP', 'Epson', 'Canon', 'Brother'], campos: [{ label: 'Tipo', type: 'select' as const, placeholder: 'Selecciona...', options: ['Inyección tinta', 'Láser', 'Multifuncional', '3D'] }] },
+      { label: 'Redes', icon: '📡', marcas: ['TP-Link', 'Mercusys', 'Tenda', 'Netgear', 'D-Link', 'Huawei'], campos: [{ label: 'Tipo', type: 'select' as const, placeholder: 'Selecciona...', options: ['Router', 'Mesh', 'Repetidor', 'Switch', 'Access Point'] }] },
+      { label: 'Accesorios y Periféricos', icon: '🖱️', marcas: ['Logitech', 'Razer', 'Corsair', 'Redragon', 'Anker'], campos: [{ label: 'Tipo', type: 'text' as const, placeholder: 'Ej: Teclado mecánico, mouse...' }] },
+      { label: 'Smartwatches', icon: '⌚', marcas: ['Apple', 'Samsung', 'Xiaomi', 'Huawei', 'Garmin', 'Amazfit'], campos: [{ label: 'Tipo', type: 'select' as const, placeholder: 'Selecciona...', options: ['Smartwatch', 'Banda fitness', 'Deportivo'] }] },
+    ],
   },
   moda: {
+    label: 'Moda',
     icon: '👗',
-    tipos: ['Ropa Hombre', 'Ropa Mujer', 'Calzado Hombre', 'Calzado Mujer', 'Calzado Niños', 'Relojes', 'Accesorios', 'Bolsos y Mochilas', 'Ropa Niños', 'Joyería'],
-    marcasPorTipo: {
-      'Ropa Hombre': ['Zara', 'H&M', 'Nike', 'Adidas', 'Calvin Klein', 'Tommy Hilfiger', 'Levi\'s', 'Ralph Lauren', 'Puma', 'Under Armour', 'Lacoste', 'The North Face', 'Gucci'],
-      'Ropa Mujer': ['Zara', 'H&M', 'Mango', 'Shein', 'Nike', 'Adidas', 'Calvin Klein', 'Victoria\'s Secret', 'Guess', 'Bershka', 'Pull&Bear', 'Massimo Dutti'],
-      'Calzado Hombre': ['Nike', 'Adidas', 'New Balance', 'Puma', 'Converse', 'Vans', 'Nike Jordan', 'Timberland', 'Skechers', 'Clarks', 'Reebok'],
-      'Calzado Mujer': ['Nike', 'Adidas', 'New Balance', 'Puma', 'Converse', 'Vans', 'Steve Madden', 'Zara', 'Skechers', 'Birkenstock'],
-      'Relojes': ['Casio', 'Citizen', 'Seiko', 'Rolex', 'Omega', 'Tag Heuer', 'Michael Kors', 'Fossil', 'G-Shock', 'Apple', 'Samsung', 'Garmin'],
-      'Accesorios': ['Ray-Ban', 'Oakley', 'Gucci', 'Louis Vuitton', 'Coach'],
-      'Bolsos y Mochilas': ['Nike', 'Adidas', 'Coach', 'Michael Kors', 'Kipling', 'JanSport', 'Vans', 'Zara'],
-      'default': ['Genérico', 'Artesanal', 'Otra'],
-    },
-    camposEspeciales: {
-      'default': [
-        { label: 'Talla', type: 'select', placeholder: 'Selecciona...', options: ['XS', 'S', 'M', 'L', 'XL', 'XXL', '28', '29', '30', '31', '32', '34', '36', '38', '40', '42', '44'] },
-        { label: 'Color', type: 'text', placeholder: 'Ej: Negro' },
-      ],
-    },
+    subs: [
+      { label: 'Ropa Hombre', icon: '👔', marcas: ['Zara', 'H&M', 'Nike', 'Adidas', 'Calvin Klein', 'Tommy Hilfiger', 'Levi\'s', 'Ralph Lauren', 'Under Armour', 'Puma'], campos: [{ label: 'Talla', type: 'select' as const, placeholder: 'Selecciona...', options: ['XS', 'S', 'M', 'L', 'XL', 'XXL'] }, campoColor] },
+      { label: 'Ropa Mujer', icon: '👗', marcas: ['Zara', 'H&M', 'Mango', 'Shein', 'Nike', 'Adidas', 'Guess', 'Victoria\'s Secret'], campos: [{ label: 'Talla', type: 'select' as const, placeholder: 'Selecciona...', options: ['XS', 'S', 'M', 'L', 'XL'] }, campoColor] },
+      { label: 'Calzado Hombre', icon: '👞', marcas: ['Nike', 'Adidas', 'New Balance', 'Puma', 'Converse', 'Vans', 'Timberland', 'Skechers', 'Crocs'], campos: [{ label: 'Talla', type: 'select' as const, placeholder: 'Selecciona...', options: ['38', '39', '40', '41', '42', '43', '44', '45'] }, { label: 'Tipo', type: 'select' as const, placeholder: 'Selecciona...', options: ['Deportivo', 'Casual', 'Formal', 'Botas', 'Sandalias'] }, campoColor] },
+      { label: 'Calzado Mujer', icon: '👠', marcas: ['Nike', 'Adidas', 'New Balance', 'Steve Madden', 'Zara', 'Birkenstock', 'Skechers', 'Crocs'], campos: [{ label: 'Talla', type: 'select' as const, placeholder: 'Selecciona...', options: ['34', '35', '36', '37', '38', '39', '40'] }, { label: 'Tipo', type: 'select' as const, placeholder: 'Selecciona...', options: ['Deportivo', 'Tacón', 'Sandalia', 'Bota', 'Plataforma', 'Flat'] }, campoColor] },
+      { label: 'Relojes', icon: '⌚', marcas: ['Casio', 'Citizen', 'Seiko', 'Rolex', 'G-Shock', 'Michael Kors', 'Fossil', 'Apple', 'Samsung'], campos: [{ label: 'Tipo', type: 'select' as const, placeholder: 'Selecciona...', options: ['Analógico', 'Digital', 'Smartwatch', 'Deportivo'] }] },
+      { label: 'Bolsos y Mochilas', icon: '🎒', marcas: ['Coach', 'Michael Kors', 'Nike', 'Adidas', 'JanSport', 'Samsonite'], campos: [{ label: 'Tipo', type: 'select' as const, placeholder: 'Selecciona...', options: ['Mochila', 'Bolso', 'Bandolera', 'Maleta', 'Cartera'] }] },
+      { label: 'Accesorios', icon: '🧣', marcas: ['Ray-Ban', 'Oakley', 'Gucci'], campos: [{ label: 'Tipo', type: 'text' as const, placeholder: 'Ej: Gafas, gorra, cinturón...' }] },
+      { label: 'Ropa Niños', icon: '👶', marcas: ['Zara Kids', 'H&M Kids', 'Carters'], campos: [{ label: 'Edad/Talla', type: 'text' as const, placeholder: 'Ej: 4 años' }] },
+      { label: 'Joyería', icon: '💍', marcas: ['Pandora', 'Swarovski', 'Artesanal', 'Genérico'], campos: [{ label: 'Tipo', type: 'text' as const, placeholder: 'Ej: Anillo, collar...' }] },
+    ],
   },
   hogar: {
+    label: 'Hogar',
     icon: '🏠',
-    tipos: ['Muebles', 'Electrodomésticos', 'Decoración', 'Jardín', 'Cocina', 'Baño', 'Iluminación', 'Electrónica del Hogar', 'Lencería de Cama'],
-    marcasPorTipo: {
-      'Muebles': ['IKEA', 'Genérico', 'Artesanal', 'A medida'],
-      'Electrodomésticos': ['Samsung', 'LG', 'Mabe', 'Daewoo', 'Whirlpool', 'Indurama', ' Oster', 'Philips', 'Electrolux', 'Bosch', 'Taurus'],
-      'Cocina': ['Tramontina', 'Oster', 'Philips', 'T-fal', 'Artesanal'],
-      'Iluminación': ['Philips', 'IKEA', 'Genérica', 'LED', 'Sylvania'],
-      'default': ['Genérico', 'Artesanal', 'Otra'],
-    },
-    camposEspeciales: {
-      'Muebles': [
-        { label: 'Tipo', type: 'select', placeholder: 'Selecciona...', options: ['Sofá', 'Mesa', 'Silla', 'Cama', 'Cómoda', 'Estante', 'Escritorio', 'Closet', 'Repisa', 'Otro'] },
-        { label: 'Dimensiones (cm)', type: 'text', placeholder: 'Ej: 180x90x60' },
-        { label: 'Material', type: 'text', placeholder: 'Ej: Madera, tela, cuero...' },
-      ],
-      'Electrodomésticos': [
-        { label: 'Tipo', type: 'select', placeholder: 'Selecciona...', options: ['Lavadora', 'Secadora', 'Nevera', 'Cocina', 'Horno', 'Microondas', 'Aire acondicionado', 'Ventilador', 'Licuadora', 'Aspiradora'] },
-        { label: 'Capacidad', type: 'text', placeholder: 'Ej: 18kg, 400L...' },
-      ],
-      'default': [
-        { label: 'Dimensiones', type: 'text', placeholder: 'Ej: 30x20 cm' },
-      ],
-    },
+    subs: [
+      { label: 'Muebles', icon: '🛋️', marcas: ['Genérico', 'Artesanal', 'IKEA'], campos: [{ label: 'Tipo', type: 'select' as const, placeholder: 'Selecciona...', options: ['Sofá/Cama', 'Mesa', 'Silla', 'Closet', 'Escritorio', 'Repisa', 'Mesa de noche'] }, { label: 'Material', type: 'text' as const, placeholder: 'Ej: Madera, cuero...' }] },
+      { label: 'Electrodomésticos', icon: '📺', marcas: ['Samsung', 'LG', 'Mabe', 'Daewoo', 'Whirlpool', 'Indurama', 'Philips', 'Oster'], campos: [{ label: 'Tipo', type: 'select' as const, placeholder: 'Selecciona...', options: ['Lavadora', 'Secadora', 'Nevera', 'Cocina', 'Horno', 'Microondas', 'Aire acondicionado', 'Licuadora', 'Aspiradora'] }, { label: 'Capacidad', type: 'text' as const, placeholder: 'Ej: 18kg, 400L' }] },
+      { label: 'Decoración', icon: '🖼️', marcas: ['Genérico', 'Artesanal'], campos: [{ label: 'Tipo', type: 'text' as const, placeholder: 'Ej: Cuadro, lámpara, jarrón...' }] },
+      { label: 'Cocina', icon: '🍳', marcas: ['Tramontina', 'Oster', 'T-fal', 'Imusa'], campos: [{ label: 'Tipo', type: 'text' as const, placeholder: 'Ej: Olla, sartén, cuchillo...' }] },
+      { label: 'Electrónica del Hogar', icon: '💡', marcas: ['Philips', 'Samsung', 'LG', 'Xiaomi', 'TP-Link'], campos: [{ label: 'Tipo', type: 'select' as const, placeholder: 'Selecciona...', options: ['TV', 'Bombillo inteligente', 'Cámara seguridad', 'Router', 'Aspirador robot'] }] },
+      { label: 'Jardín', icon: '🌿', marcas: ['Genérico'], campos: [{ label: 'Tipo', type: 'text' as const, placeholder: 'Ej: Manguera, maceta...' }] },
+    ],
   },
   herramientas: {
+    label: 'Herramientas',
     icon: '🔧',
-    tipos: ['Herramientas Manuales', 'Herramientas Eléctricas', 'Equipos de Construcción', 'Herramientas de Jardín'],
-    marcasPorTipo: {
-      'Herramientas Manuales': ['Stanley', 'Truper', 'Black+Decker', 'DeWalt', 'Bosch', 'Makita', 'Craftsman', 'Vorel'],
-      'Herramientas Eléctricas': ['DeWalt', 'Makita', 'Bosch', 'Milwaukee', 'Black+Decker', 'Hitachi', 'Metabo', 'Festool'],
-      'Equipos de Construcción': ['DeWalt', 'Bosch', 'Makita', 'Hilti', 'Genérico'],
-      'Herramientas de Jardín': ['Stihl', 'Husqvarna', 'Truper', 'Black+Decker', 'Bosch'],
-    },
-    camposEspeciales: {
-      'Herramientas Eléctricas': [
-        { label: 'Voltaje', type: 'text', placeholder: 'Ej: 18V, 110V, 220V' },
-        { label: 'Potencia', type: 'text', placeholder: 'Ej: 1500W, 2HP...' },
-        { label: 'Tipo', type: 'text', placeholder: 'Ej: Taladro, sierra, amoladora...' },
-      ],
-      'default': [
-        { label: 'Tipo específico', type: 'text', placeholder: 'Ej: llave inglesa, sierra...' },
-      ],
-    },
+    subs: [
+      { label: 'Manuales', icon: '🔧', marcas: ['Stanley', 'Truper', 'Craftsman', 'Vorel', 'DeWalt'], campos: [{ label: 'Tipo', type: 'text' as const, placeholder: 'Ej: Llave, destornillador...' }] },
+      { label: 'Eléctricas', icon: '⚡', marcas: ['DeWalt', 'Makita', 'Bosch', 'Milwaukee', 'Black+Decker'], campos: [{ label: 'Voltaje', type: 'text' as const, placeholder: 'Ej: 18V, 110V' }, { label: 'Tipo', type: 'text' as const, placeholder: 'Ej: Taladro, sierra...' }] },
+      { label: 'De Jardín', icon: '🌱', marcas: ['Stihl', 'Husqvarna', 'Truper'], campos: [{ label: 'Tipo', type: 'text' as const, placeholder: 'Ej: Cortacésped, motosierra...' }] },
+    ],
   },
   otros: {
+    label: 'Otros',
     icon: '📦',
-    tipos: ['Deportes y Fitness', 'Música', 'Libros', 'Juguetes', 'Mascotas', 'Inmuebles', 'Servicios', 'Empleos', 'Vehículos Especializados', 'Coleccionables', 'Otro'],
-    marcasPorTipo: {
-      'Deportes y Fitness': ['Nike', 'Adidas', 'Under Armour', 'Puma', 'Reebok', 'Wilson', 'Spalding'],
-      'Inmuebles': [],
-      'Servicios': [],
-      'Música': ['Yamaha', 'Fender', 'Gibson', 'Roland', 'Korg'],
-      'default': [],
-    },
-    camposEspeciales: {
-      'Inmuebles': [
-        { label: 'Tipo', type: 'select', placeholder: 'Selecciona...', options: ['Apartamento', 'Casa', 'Local comercial', 'Terreno', 'Oficina', 'Galpón'] },
-        { label: 'm²', type: 'number', placeholder: 'Ej: 120' },
-        { label: 'Habitaciones', type: 'number', placeholder: 'Ej: 3' },
-        { label: 'Baños', type: 'number', placeholder: 'Ej: 2' },
-      ],
-      'default': [],
-    },
+    subs: [
+      { label: 'Deportes y Fitness', icon: '🏋️', marcas: ['Nike', 'Adidas', 'Under Armour', 'Reebok'], campos: [{ label: 'Tipo', type: 'text' as const, placeholder: 'Ej: Mancuerna, bicicleta, pelota...' }] },
+      { label: 'Música', icon: '🎸', marcas: ['Yamaha', 'Fender', 'Roland', 'Korg'], campos: [{ label: 'Tipo', type: 'text' as const, placeholder: 'Ej: Guitarra, sintetizador...' }] },
+      { label: 'Libros', icon: '📚', marcas: ['Editorial'], campos: [{ label: 'Género', type: 'text' as const, placeholder: 'Ej: Ficción, técnica...' }] },
+      { label: 'Juguetes', icon: '🧸', marcas: ['Lego', 'Hasbro', 'Funko'], campos: [{ label: 'Tipo', type: 'text' as const, placeholder: 'Ej: LEGO, muñeco, juego de mesa...' }] },
+      { label: 'Mascotas', icon: '🐶', marcas: ['Genérico'], campos: [{ label: 'Tipo', type: 'text' as const, placeholder: 'Ej: Correa, juguete, cama...' }] },
+      { label: 'Inmuebles', icon: '🏢', marcas: [], campos: [{ label: 'Tipo', type: 'select' as const, placeholder: 'Selecciona...', options: ['Apartamento', 'Casa', 'Local', 'Terreno', 'Oficina'] }, { label: 'm²', type: 'number' as const, placeholder: 'Ej: 120' }] },
+      { label: 'Servicios', icon: '🔨', marcas: [], campos: [{ label: 'Tipo', type: 'text' as const, placeholder: 'Ej: Plomería, electricidad...' }] },
+      { label: 'Coleccionables', icon: '🏆', marcas: ['Funko'], campos: [{ label: 'Tipo', type: 'text' as const, placeholder: 'Ej: Funko Pop, moneda antigua...' }] },
+      { label: 'Otro', icon: '📦', marcas: [], campos: [] },
+    ],
   },
 }
 
-// Generar años para el selector
-export const anos = Array.from({ length: 30 }, (_, i) => String(2026 - i))
+// Flat list of all subcategories by category key for quick lookup
+export function getSubByCategory(catKey: string): { label: string; icon: string }[] {
+  const cat = categoriasData[catKey]
+  return cat ? cat.subs.map(s => ({ label: s.label, icon: s.icon })) : []
+}
 
-export const estadosProducto = ['Nuevo', 'Como nuevo', 'Bueno', 'Usado', 'Para repuestos']
+export function getSubConfig(catKey: string, subLabel: string): CatSub | undefined {
+  const cat = categoriasData[catKey]
+  if (!cat) return undefined
+  return cat.subs.find(s => s.label === subLabel)
+}
 
-export const estadosVenezuela = [
-  'Distrito Capital', 'Miranda', 'Carabobo', 'Lara', 'Zulia',
-  'Aragua', 'Anzoátegui', 'Bolívar', 'Mérida', 'Táchira',
-  'Trujillo', 'Portuguesa', 'Barinas', 'Apure', 'Guárico',
-  'Cojedes', 'Yaracuy', 'Sucre', 'Monagas', 'Nueva Esparta',
-  'Amazonas', 'Delta Amacuro', 'Vargas',
-]
-
-export default categoriasConfig
+export function getMarcaOptions(catKey: string, subLabel: string): string[] {
+  const sub = getSubConfig(catKey, subLabel)
+  return sub ? sub.marcas : []
+}
