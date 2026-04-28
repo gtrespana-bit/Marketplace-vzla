@@ -4,6 +4,7 @@ import './globals.css'
 import { Header } from '@/components/Header'
 import { Footer } from '@/components/Footer'
 import { AuthProvider } from '@/components/AuthProvider'
+import { FloatingChat } from '@/components/FloatingChat'
 
 const inter = Inter({ 
   subsets: ['latin'],
@@ -25,6 +26,17 @@ export const metadata: Metadata = {
   icons: {
     icon: '/favicon.ico',
   },
+  manifest: '/manifest.json',
+  themeColor: '#003DA5',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'Todo Anuncios',
+  },
+  viewport: {
+    width: 'device-width',
+    initialScale: 1,
+  },
 }
 
 export default function RootLayout({
@@ -43,6 +55,7 @@ export default function RootLayout({
             </main>
             <Footer />
           </div>
+          <FloatingChat />
         </AuthProvider>
       </body>
     </html>

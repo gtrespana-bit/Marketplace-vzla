@@ -1,60 +1,49 @@
+import type { Metadata } from 'next'
 import Link from 'next/link'
+
+export const metadata: Metadata = {
+  title: 'Footer — Todo Anuncios',
+}
 
 export function Footer() {
   return (
     <footer className="bg-brand-dark text-gray-400 mt-auto">
       <div className="max-w-7xl mx-auto px-4 py-12">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-          {/* Logo y descripción */}
           <div>
-            <span className="text-brand-yellow font-black text-xl">
-              Todo<span className="text-white">Anuncios</span>
-            </span>
-            <p className="mt-3 text-sm leading-relaxed">
-              El marketplace hecho para Venezuela. Compra y vende lo que quieras, contacta directo. Sin complicaciones.
-            </p>
+            <Link href="/" className="inline-flex items-center gap-2 mb-3">
+              <div className="w-8 h-8 bg-brand-yellow rounded-lg flex items-center justify-center font-black text-brand-blue text-sm">TA</div>
+              <span className="text-brand-yellow font-black text-lg">Todo<span className="text-white">Anuncios</span></span>
+            </Link>
+            <p className="text-sm leading-relaxed">El marketplace hecho para Venezuela. Compra y vende lo que quieras, contacta directo. Sin complicaciones.</p>
           </div>
-
-          {/* Categorías */}
           <div>
             <h3 className="text-white font-bold mb-3">Categorías</h3>
             <ul className="space-y-2 text-sm">
-              <li><Link href="/catalogo?categoria=vehiculos" className="hover:text-brand-yellow transition">🚗 Vehículos</Link></li>
-              <li><Link href="/catalogo?categoria=tecnologia" className="hover:text-brand-yellow transition">💻 Tecnología</Link></li>
-              <li><Link href="/catalogo?categoria=moda" className="hover:text-brand-yellow transition">👗 Moda</Link></li>
-              <li><Link href="/catalogo?categoria=hogar" className="hover:text-brand-yellow transition">🏠 Hogar</Link></li>
-              <li><Link href="/catalogo?categoria=herramientas" className="hover:text-brand-yellow transition">🔧 Herramientas</Link></li>
+              {['Vehículos', 'Tecnología', 'Moda', 'Hogar', 'Herramientas'].map(c => (
+                <li key={c}><Link href="/catalogo" className="hover:text-brand-yellow transition">{c}</Link></li>
+              ))}
             </ul>
           </div>
-
-          {/* Información */}
           <div>
             <h3 className="text-white font-bold mb-3">Información</h3>
             <ul className="space-y-2 text-sm">
-              <li><Link href="/como-funciona" className="hover:text-brand-yellow transition">¿Cómo funciona?</Link></li>
-              <li><Link href="/creditos" className="hover:text-brand-yellow transition">Sistema de créditos</Link></li>
-              <li><Link href="/faq" className="hover:text-brand-yellow transition">Preguntas frecuentes</Link></li>
-              <li><Link href="/contacto" className="hover:text-brand-yellow transition">Contacto</Link></li>
+              {[['Cómo funciona', '/como-funciona'], ['Créditos', '/creditos'], ['FAQ', '/faq'], ['Contacto', '/contacto']].map(([l, p]) => (
+                <li key={p}><Link href={p} className="hover:text-brand-yellow transition">{l}</Link></li>
+              ))}
             </ul>
           </div>
-
-          {/* Legal */}
           <div>
             <h3 className="text-white font-bold mb-3">Legal</h3>
             <ul className="space-y-2 text-sm">
-              <li><Link href="/terminos-y-condiciones" className="hover:text-brand-yellow transition">Términos y condiciones</Link></li>
-              <li><Link href="/politica-de-privacidad" className="hover:text-brand-yellow transition">Política de privacidad</Link></li>
+              <li><Link href="/terminos-y-condiciones" className="hover:text-brand-yellow transition">Términos</Link></li>
+              <li><Link href="/politica-de-privacidad" className="hover:text-brand-yellow transition">Privacidad</Link></li>
             </ul>
-            <div className="mt-4">
-              <p className="text-xs text-gray-500">
-                Hecho con ❤️ en Venezuela 🇻🇪
-              </p>
-            </div>
+            <p className="text-xs text-gray-500 mt-4">Hecho con ❤️ en Venezuela 🇻🇪</p>
           </div>
         </div>
-
         <div className="border-t border-gray-700 mt-8 pt-6 text-center text-sm">
-          <p>&copy; {new Date().getFullYear()} Todo Anuncios. Todos los derechos reservados.</p>
+          <p>© {new Date().getFullYear()} Todo Anuncios. Todos los derechos reservados.</p>
         </div>
       </div>
     </footer>
