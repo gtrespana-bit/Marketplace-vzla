@@ -121,7 +121,7 @@ export default function HomePage() {
                   suggestions.map((s, i) => (
                     <button
                       key={i}
-                      onClick={() => { setSearch(s.text); addHistory(s.text); setSearchFocused(false); window.location.href = `/buscar?q=${encodeURIComponent(s.text)}` }}
+                      onClick={() => { setSearch(s.text); addToHistory(s.text); setSearchFocused(false); window.location.href = `/buscar?q=${encodeURIComponent(s.text)}` }}
                       className="w-full flex items-center gap-3 px-5 py-3 hover:bg-gray-50 text-left text-gray-800 transition"
                     >
                       <span>{s.emoji}</span>
@@ -135,7 +135,7 @@ export default function HomePage() {
                     {searchHistory.map((h, i) => (
                       <button
                         key={i}
-                        onClick={() => { setSearch(h); addHistory(h); setSearchFocused(false); window.location.href = `/buscar?q=${encodeURIComponent(h)}` }}
+                        onClick={() => { setSearch(h); addToHistory(h); setSearchFocused(false); window.location.href = `/buscar?q=${encodeURIComponent(h)}` }}
                         className="w-full flex items-center gap-3 px-5 py-2.5 hover:bg-gray-50 text-left text-gray-700 text-sm transition"
                       >
                         <Search size={14} className="text-gray-400" />
