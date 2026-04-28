@@ -5,7 +5,7 @@ import {
 } from 'lucide-react'
 
 export const metadata: Metadata = {
-  title: 'Comprar Créditos — Destaca tus publicaciones | TuCambalo',
+  title: 'Comprar Créditos — Destaca tus publicaciones | Todo Anuncios',
   description: 'Compra créditos para que tus publicaciones aparezcan primero. Pago Móvil, transferencia, Zelle y más.',
 }
 

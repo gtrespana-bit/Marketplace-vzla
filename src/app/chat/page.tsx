@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { MessageSquare } from 'lucide-react'
 
 export const metadata: Metadata = {
-  title: 'Chat — Mensajes | TuCambalo',
+  title: 'Chat — Mensajes | Todo Anuncios',
   description: 'Chatea con compradores y vendedores en tiempo real',
 }
 

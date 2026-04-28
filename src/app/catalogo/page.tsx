@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { Search, ChevronRight } from 'lucide-react'
 
 export const metadata: Metadata = {
-  title: 'Catálogo — Compra y Venta en Venezuela | TuCambalo',
+  title: 'Catálogo — Compra y Venta en Venezuela | Todo Anuncios',
   description: 'Explora miles de productos disponibles. Carros, tecnología, moda, hogar y más.',
 }
 

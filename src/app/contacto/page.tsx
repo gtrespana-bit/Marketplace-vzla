@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { Mail, MessageCircle, Phone } from 'lucide-react'
 
 export const metadata: Metadata = {
-  title: 'Contacto — TuCambalo',
+  title: 'Contacto — Todo Anuncios',
   description: '¿Tienes dudas o sugerencias? Contáctanos',
 }
 
@@ -58,7 +58,7 @@ export default function ContactPage() {
                 </div>
                 <div>
                   <p className="font-medium text-gray-800">Email</p>
-                  <p className="text-sm text-gray-500">soporte@tucambalo.com</p>
+                  <p className="text-sm text-gray-500">soporte@todo-anuncios.com</p>
                 </div>
               </div>
               <div className="flex items-center gap-3">
@@ -67,7 +67,7 @@ export default function ContactPage() {
                 </div>
                 <div>
                   <p className="font-medium text-gray-800">WhatsApp / Telegram</p>
-                  <p className="text-sm text-gray-500">@TuCambalo</p>
+                  <p className="text-sm text-gray-500">@Todo Anuncios</p>
                 </div>
               </div>
               <div className="flex items-center gap-3">

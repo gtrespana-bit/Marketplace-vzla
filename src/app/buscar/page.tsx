@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { Search, ChevronRight } from 'lucide-react'
 
 export const metadata: Metadata = {
-  title: 'Buscar — TuCambalo',
+  title: 'Buscar — Todo Anuncios',
   description: 'Busca productos en el marketplace venezolano',
 }
 

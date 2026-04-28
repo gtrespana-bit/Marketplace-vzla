@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Términos y Condiciones — TuCambalo',
+  title: 'Términos y Condiciones — Todo Anuncios',
 }
 
 export default function TerminosPage() {
@@ -13,12 +13,12 @@ export default function TerminosPage() {
       <div className="prose prose-sm text-gray-600 space-y-6">
         <section>
           <h2 className="text-xl font-bold text-gray-800 mb-3">1. Introducción</h2>
-          <p>Bienvenido a TuCambalo. Al usar nuestra plataforma, aceptas estos términos y condiciones. Si no estás de acuerdo con alguno de estos términos, no utilices nuestros servicios.</p>
+          <p>Bienvenido a Todo Anuncios. Al usar nuestra plataforma, aceptas estos términos y condiciones. Si no estás de acuerdo con alguno de estos términos, no utilices nuestros servicios.</p>
         </section>
 
         <section>
           <h2 className="text-xl font-bold text-gray-800 mb-3">2. Descripción del servicio</h2>
-          <p>TuCambalo es una plataforma de publicación de anuncios que conecta compradores y vendedores. No somos parte de las transacciones: no manejamos pagos ni entregas, y no nos hacemos responsables de los productos publicados.</p>
+          <p>Todo Anuncios es una plataforma de publicación de anuncios que conecta compradores y vendedores. No somos parte de las transacciones: no manejamos pagos ni entregas, y no nos hacemos responsables de los productos publicados.</p>
         </section>
 
         <section>
@@ -44,7 +44,7 @@ export default function TerminosPage() {
 
         <section>
           <h2 className="text-xl font-bold text-gray-800 mb-3">6. Responsabilidad</h2>
-          <p>TuCambalo no garantiza la veracidad de los anuncios ni la calidad de las transacciones. Los usuarios actúan bajo su propio riesgo. Recomendamos tomar precauciones durante las transacciones.</p>
+          <p>Todo Anuncios no garantiza la veracidad de los anuncios ni la calidad de las transacciones. Los usuarios actúan bajo su propio riesgo. Recomendamos tomar precauciones durante las transacciones.</p>
         </section>
 
         <section>
@@ -54,7 +54,7 @@ export default function TerminosPage() {
 
         <section>
           <h2 className="text-xl font-bold text-gray-800 mb-3">8. Contacto</h2>
-          <p>Para dudas sobre estos términos: <a href="mailto:legal@tucambalo.com" className="text-brand-blue underline">legal@tucambalo.com</a></p>
+          <p>Para dudas sobre estos términos: <a href="mailto:legal@todo-anuncios.com" className="text-brand-blue underline">legal@todo-anuncios.com</a></p>
         </section>
       </div>
     </div>

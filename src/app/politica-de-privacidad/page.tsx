@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Política de Privacidad — TuCambalo',
+  title: 'Política de Privacidad — Todo Anuncios',
 }
 
 export default function PrivacidadPage() {
@@ -39,7 +39,7 @@ export default function PrivacidadPage() {
 
         <section>
           <h2 className="text-xl font-bold text-gray-800 mb-3">5. Tus derechos</h2>
-          <p>Puedes solicitar la eliminación de tu cuenta y todos tus datos en cualquier momento desde la configuración de tu perfil o escribiéndonos a <a href="mailto:privacidad@tucambalo.com" className="text-brand-blue underline">privacidad@tucambalo.com</a>.</p>
+          <p>Puedes solicitar la eliminación de tu cuenta y todos tus datos en cualquier momento desde la configuración de tu perfil o escribiéndonos a <a href="mailto:privacidad@todo-anuncios.com" className="text-brand-blue underline">privacidad@todo-anuncios.com</a>.</p>
         </section>
 
         <section>
@@ -49,7 +49,7 @@ export default function PrivacidadPage() {
 
         <section>
           <h2 className="text-xl font-bold text-gray-800 mb-3">7. Contacto</h2>
-          <p>Para preguntas sobre privacidad: <a href="mailto:privacidad@tucambalo.com" className="text-brand-blue underline">privacidad@tucambalo.com</a></p>
+          <p>Para preguntas sobre privacidad: <a href="mailto:privacidad@todo-anuncios.com" className="text-brand-blue underline">privacidad@todo-anuncios.com</a></p>
         </section>
       </div>
     </div>

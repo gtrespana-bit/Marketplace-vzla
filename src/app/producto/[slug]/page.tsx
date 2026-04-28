@@ -3,7 +3,7 @@ import type { Metadata } from 'next'
 import { MapPin, Tag, MessageCircle, Phone, Mail, Share2, Heart, ChevronRight } from 'lucide-react'
 
 export const metadata: Metadata = {
-  title: 'Detalle del Producto — TuCambalo',
+  title: 'Detalle del Producto — Todo Anuncios',
   description: 'Ver detalles del producto y contactar al vendedor',
 }
 

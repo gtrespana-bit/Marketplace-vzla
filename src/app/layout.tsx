@@ -12,11 +12,11 @@ const inter = Inter({
 })
 
 export const metadata: Metadata = {
-  title: 'TuCambalo — Compra y Venta en Venezuela',
+  title: 'Todo Anuncios — Compra y Venta en Venezuela',
   description: 'El marketplace venezolano. Compra y vende carros, tecnología, moda, hogar y más. Publica gratis, contacta directo. 🇻🇪',
   keywords: 'comprar vender venezuela, mercado venezuela, carros venezuela, tecnologia venezuela, compra venta',
   openGraph: {
-    title: 'TuCambalo — Compra y Venta en Venezuela',
+    title: 'Todo Anuncios — Compra y Venta en Venezuela',
     description: 'Publica gratis. Contacta directo. El marketplace hecho para Venezuela.',
     type: 'website',
     locale: 'es_VE',

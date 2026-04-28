@@ -2,8 +2,8 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 
 export const metadata: Metadata = {
-  title: '¿Cómo funciona? — TuCambalo',
-  description: 'Guía rápida de cómo comprar, vender y destacar productos en TuCambalo',
+  title: '¿Cómo funciona? — Todo Anuncios',
+  description: 'Guía rápida de cómo comprar, vender y destacar productos en Todo Anuncios',
 }
 
 export default function ComoFuncionaPage() {
@@ -68,8 +68,8 @@ export default function ComoFuncionaPage() {
             <p className="text-gray-600 mt-1">Sí, siempre. Puedes publicar todos los productos que quieras sin costo. Si quieres destacar alguna publicación, puedes comprar créditos (opcional).</p>
           </div>
           <div>
-            <h3 className="font-bold text-gray-800">¿TuCambalo cobra comisión?</h3>
-            <p className="text-gray-600 mt-1">No. TuCambalo no cobra comisión por las transacciones. Los compradores y vendedores cierran el trato directamente entre ellos.</p>
+            <h3 className="font-bold text-gray-800">¿Todo Anuncios cobra comisión?</h3>
+            <p className="text-gray-600 mt-1">No. Todo Anuncios no cobra comisión por las transacciones. Los compradores y vendedores cierran el trato directamente entre ellos.</p>
           </div>
           <div>
             <h3 className="font-bold text-gray-800">¿Cómo pago los créditos?</h3>
