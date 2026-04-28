@@ -37,7 +37,7 @@ export function Header() {
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 flex-shrink-0">
             <span className="text-brand-yellow font-black text-2xl tracking-tight">
-              Tu<span className="text-white">Cambalo</span>
+              Todo<span className="text-white">Anuncios</span>
             </span>
             <span className="text-xs bg-brand-red px-1.5 py-0.5 rounded font-bold hidden sm:inline">
               🇻🇪

@@ -8,7 +8,7 @@ export function Footer() {
           {/* Logo y descripción */}
           <div>
             <span className="text-brand-yellow font-black text-xl">
-              Tu<span className="text-white">Cambalo</span>
+              Todo<span className="text-white">Anuncios</span>
             </span>
             <p className="mt-3 text-sm leading-relaxed">
               El marketplace hecho para Venezuela. Compra y vende lo que quieras, contacta directo. Sin complicaciones.
