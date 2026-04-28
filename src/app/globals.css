@@ -187,6 +187,13 @@ body {
   body {
     background: #111118 !important;
   }
+  input, textarea, select {
+    background: white !important;
+    color: #111118 !important;
+  }
+  input::placeholder, textarea::placeholder {
+    color: #666 !important;
+  }
 }
 
 /* ===== FEATURED CARD ===== */

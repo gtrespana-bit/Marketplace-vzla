@@ -117,7 +117,7 @@ export default function RegisterPage() {
                 onChange={(e) => setNombre(e.target.value)}
                 placeholder="Tu nombre"
                 required
-                className="w-full border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-yellow"
+                className="w-full border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-yellow bg-white text-gray-900"
               />
             </div>
 
@@ -129,7 +129,7 @@ export default function RegisterPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="tu@email.com"
                 required
-                className="w-full border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-yellow"
+                className="w-full border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-yellow bg-white text-gray-900"
               />
             </div>
 
@@ -140,7 +140,7 @@ export default function RegisterPage() {
                 value={telefono}
                 onChange={(e) => setTelefono(e.target.value)}
                 placeholder="+58 412 1234567"
-                className="w-full border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-yellow"
+                className="w-full border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-yellow bg-white text-gray-900"
               />
             </div>
 
@@ -183,7 +183,7 @@ export default function RegisterPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Mínimo 8 caracteres"
                 required
-                className="w-full border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-yellow"
+                className="w-full border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-yellow bg-white text-gray-900"
               />
             </div>
 
@@ -195,7 +195,7 @@ export default function RegisterPage() {
                 onChange={(e) => setRepeatPassword(e.target.value)}
                 placeholder="Repite tu contraseña"
                 required
-                className="w-full border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-yellow"
+                className="w-full border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-yellow bg-white text-gray-900"
               />
             </div>
 
