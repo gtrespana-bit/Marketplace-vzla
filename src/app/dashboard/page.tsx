@@ -7,8 +7,10 @@ import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/components/AuthProvider'
 import {
   Plus, Package, MessageSquare, CreditCard, Settings,
-  Eye, Heart, LogOut, ChevronRight, X, Pause, Play, Edit, User, Zap, Star
+  Eye, Heart, LogOut, ChevronRight, X, Pause, Play, Edit, User, Zap, Star, ShieldCheck
 } from 'lucide-react'
+import SolicitarVerificacion from '@/components/SolicitarVerificacion'
+import BadgeVerificado from '@/components/BadgeVerificado'
 
 export default function DashboardPage() {
   const { user, session, loading: authLoading } = useAuth()
@@ -230,7 +232,8 @@ export default function DashboardPage() {
               { id: 'mensajes', label: 'Mensajes', icon: MessageSquare },
               { id: 'creditos', label: 'Comprar créditos', icon: CreditCard },
               { id: 'favoritos', label: 'Mis favoritos', icon: Heart },
-              { id: 'configuracion', label: 'Configuración', icon: Settings },
+              { id: 'verificacion', label: 'Verificacion', icon: ShieldCheck },
+              { id: 'configuracion', label: 'Configuracion', icon: Settings },
             ].map((item) => (
               <button
                 key={item.id}
@@ -259,6 +262,7 @@ export default function DashboardPage() {
             />
           )}
           {activeTab === 'favoritos' && <FavoritosPlaceholder favoritos={favoritos} />}
+          {activeTab === 'verificacion' && <SolicitarVerificacion />}
           {activeTab === 'configuracion' && <ConfiguracionPlaceholder />}
         </div>
       </div>

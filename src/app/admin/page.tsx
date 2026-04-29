@@ -9,8 +9,9 @@ import {
   Check, X, CreditCard, Eye, ExternalLink, Loader2, RefreshCw,
   Shield, Users, BarChart3, Megaphone, Settings, Tag, Download,
   Package, Star, Zap, Pause, Play, Trash2, ChevronDown, ChevronUp,
-  Search
+  Search, ShieldCheck
 } from 'lucide-react'
+import VerificacionTab from './VerificacionTab'
 
 // ← TU EMAIL
 const ADMIN_EMAILS = ['gtrespana@gmail.com']
@@ -19,6 +20,7 @@ const TABS = [
   { id: 'transacciones', label: 'Transacciones', icon: CreditCard },
   { id: 'publicaciones', label: 'Publicaciones', icon: Shield },
   { id: 'moderacion', label: 'Moderación', icon: Shield },
+  { id: 'verificacion', label: 'Verificacion', icon: ShieldCheck },
   { id: 'usuarios', label: 'Usuarios', icon: Users },
   { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
   { id: 'anuncios', label: 'Anuncios', icon: Megaphone },
@@ -258,6 +260,7 @@ export default function AdminPage() {
       {tab === 'transacciones' && <TabTransacciones perfiles={perfiles} notify={notify} />}
       {tab === 'publicaciones' && <TabPublicaciones perfiles={perfiles} notify={notify} />}
       {tab === 'moderacion' && <ModeracionTab notify={notify} />}
+      {tab === 'verificacion' && <VerificacionTab notify={notify} />}
       {tab === 'usuarios' && <TabUsuarios perfiles={perfiles} notify={notify} />}
       {tab === 'dashboard' && <TabDashboard perfiles={perfiles} />}
       {tab === 'anuncios' && <TabAnuncios notify={notify} />}

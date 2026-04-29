@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Link from 'next/link'
+import BadgeVerificado from '@/components/BadgeVerificado'
 import Avatar from '@/components/Avatar'
 import { MapPin, Phone, Mail, MessageSquare, Star, ArrowLeft, ShoppingBag, Calendar } from 'lucide-react'
 
@@ -104,7 +105,10 @@ export default function VendedorPage() {
           <Avatar nombre={vendedor.nombre || 'Vendedor'} fotoUrl={vendedor.foto_perfil_url} size="xl" />
 
           <div className="flex-1">
-            <h1 className="text-2xl font-bold text-gray-900">{vendedor.nombre || 'Vendedor'}</h1>
+            <h1 className="text-2xl font-bold text-gray-900">
+              {vendedor.nombre || 'Vendedor'}
+              {vendedor.verificado && <BadgeVerificado size="md" />}
+            </h1>
 
             {(vendedor.ciudad || vendedor.estado) && (
               <p className="text-gray-500 text-sm flex items-center gap-1 mt-1">
