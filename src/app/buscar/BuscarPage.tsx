@@ -107,7 +107,7 @@ export default function BuscarClient() {
     setLoading(true)
 
     async function buscar() {
-      let sq = supabase.from('productos').select('*', { count: 'exact' }).eq('activo', true)
+      let sq = supabase.from('productos').select('*', { count: 'exact' }).eq('activo', true).or('estado_moderacion.is.null,estado_moderacion.eq.aprobado')
 
       // Text search
       if (query) sq = sq.ilike('titulo', `%${query}%`)

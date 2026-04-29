@@ -90,6 +90,7 @@ export default function CatalogoClient() {
         .from('productos')
         .select('*', { count: 'exact' })
         .eq('activo', true)
+        .or('estado_moderacion.is.null,estado_moderacion.eq.aprobado')
 
       // Categoria filter
       if (categoria) {

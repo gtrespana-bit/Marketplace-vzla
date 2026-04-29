@@ -13,6 +13,7 @@ async function getDestacados(limit = 8) {
       .from('productos')
       .select('id, titulo, precio_usd, estado, imagen_url, ubicacion_ciudad, destacado, destacado_hasta')
       .eq('activo', true)
+      .or('estado_moderacion.is.null,estado_moderacion.eq.aprobado,estado_moderacion.eq.pendiente')
       .eq('destacado', true)
       .gt('destacado_hasta', new Date().toISOString())
       .order('destacado_hasta', { ascending: false })
@@ -29,6 +30,7 @@ async function getRecentProducts(limit = 8) {
     .from('productos')
     .select('id, titulo, precio_usd, estado, imagen_url, ubicacion_ciudad, creado_en, boosteado_en, destacado, destacado_hasta')
     .eq('activo', true)
+    .or('estado_moderacion.is.null,estado_moderacion.eq.aprobado')
     .limit(50)
   
   if (error) return []

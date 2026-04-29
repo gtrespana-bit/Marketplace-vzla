@@ -7,6 +7,7 @@ import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/components/AuthProvider'
 import { MapPin, Tag, MessageCircle, Phone, Mail, Share2, Heart, ChevronRight, Shield, Clock, Star, X, Send } from 'lucide-react'
 import Avatar from '@/components/Avatar'
+import ReportarButton from '@/components/ReportarButton'
 
 // Helper component for star rating
 function StarRating({ value, onChange, size = 24, readonly = false }: { value: number; onChange?: (v: number) => void; size?: number; readonly?: boolean }) {
@@ -57,6 +58,7 @@ export default function ProductoPage() {
         .select('*')
         .eq('id', slug)
         .eq('activo', true)
+        .or('estado_moderacion.is.null,estado_moderacion.eq.aprobado')
         .single()
 
       if (prodErr || !prod) {
@@ -339,6 +341,7 @@ export default function ProductoPage() {
               >
                 <Share2 size={16} /> Compartir
               </button>
+              <ReportarButton productoId={producto.id} />
             </div>
           </div>
         </div>

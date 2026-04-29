@@ -7,6 +7,7 @@ import { supabase, isSupabaseConfigured } from '@/lib/supabase'
 import { useAuth } from '@/components/AuthProvider'
 import { categoriasData } from '@/lib/categorias'
 import { Camera, X, UploadCloud, AlertCircle, Phone, Mail, MapPin, MessageSquare } from 'lucide-react'
+import { verificarContenido, formatearAlertaModeracion } from '@/lib/moderacion'
 
 const currentYear = new Date().getFullYear()
 const years = Array.from({ length: 30 }, (_, i) => String(currentYear - i))
@@ -50,6 +51,7 @@ export default function PublicarPage() {
   const [contactPhone, setContactPhone] = useState('')
   const [contactWhatsApp, setContactWhatsApp] = useState('')
   const [contactMessenger, setContactMessenger] = useState('')
+  const [moderacionResultado, setModeracionResultado] = useState<{ nivel: string; palabras: string[] } | null>(null)
 
   // Redirect if not logged in
   useEffect(() => {
@@ -149,12 +151,28 @@ export default function PublicarPage() {
   const handleSubmit = async () => {
     setLoading(true)
     setError('')
+    setModeracionResultado(null)
 
     if (!isSupabaseConfigured()) {
       setError('Supabase no esta configurado. Agrega las variables de entorno.')
       setLoading(false)
       return
     }
+
+    // MODERACIÓN: verificar contenido antes de publicar
+    const textoCompleto = `${titulo} ${descripcion}`
+    const resultado = verificarContenido(textoCompleto)
+    setModeracionResultado(resultado)
+
+    if (resultado.nivel === 'prohibido') {
+      setError(`Tu publicación contiene contenido que viola nuestras normas. No se permite: ${resultado.palabras.join(', ')}. Si crees que es un error, contacta soporte.`)
+      setLoading(false)
+      return
+    }
+
+    // Si es sospechoso, se publica pero marcado como pendiente y se alerta admin
+    const estadoModeracion = resultado.nivel === 'sospechoso' ? 'pendiente' : 'aprobado'
+    const motivoModeracion = resultado.nivel === 'sospechoso' ? `Contenido sospechoso: ${resultado.palabras.join(', ')}` : null
 
     try {
       // Upload images first
@@ -183,12 +201,34 @@ export default function PublicarPage() {
       if (contactWhatsApp) metodosContacto.whatsapp = contactWhatsApp
       if (contactMessenger) metodosContacto.messenger = contactMessenger
 
+      // Alerta al admin si contenido sospechoso (envía notificación Telegram)
+      if (estadoModeracion === 'pendiente') {
+        try {
+          const ALERTA_URL = `${process.env.NEXT_PUBLIC_BASE_URL || 'https://marketplacevzla.vercel.app'}`
+          await fetch('/api/moderacion-alerta', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              nivel: 'sospechoso',
+              titulo,
+              palabras: resultado.palabras,
+              userId: user?.id,
+              userName: user?.email || 'Desconocido',
+            }),
+          })
+        } catch (e) {
+          console.error('No se pudo enviar alerta de moderación:', e)
+        }
+      }
+
       // Insert product
       const { error: dbError, data: producto } = await supabase
         .from('productos')
         .insert({
           user_id: user?.id,
           titulo,
+          estado_moderacion: estadoModeracion,
+          motivo_moderacion: motivoModeracion,
           descripcion,
           categoria_id: catData?.id || null,
           subcategoria,
@@ -449,6 +489,19 @@ export default function PublicarPage() {
               )}
             </div>
 
+            {/* Moderación feedback */}
+            {moderacionResultado && moderacionResultado.nivel === 'sospechoso' && (
+              <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 animate-fadeIn">
+                <div className="flex gap-2">
+                  <AlertCircle size={18} className="text-yellow-600 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-sm font-semibold text-yellow-800">Revisión automática activada</p>
+                    <p className="text-xs text-yellow-600 mt-1">Tu publicación se publicará pero pasará por revisión. Recibirás confirmación.</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {loading && imagenes.length > 0 && (
               <div>
                 <p className="text-sm text-gray-500 mb-2">Subiendo imagenes: {uploadProgress}%</p>
@@ -497,6 +550,27 @@ export default function PublicarPage() {
 
               <div className="mt-4 p-4 bg-gray-50 rounded-lg"><p className="text-sm text-gray-600"><strong>Descripcion:</strong></p><p className="text-sm text-gray-700 mt-1">{descripcion}</p></div>
             </div>
+
+            {moderacionResultado && moderacionResultado.nivel === 'sospechoso' && (
+              <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 animate-fadeIn">
+                <div className="flex gap-2">
+                  <AlertCircle size={18} className="text-yellow-600 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-sm font-semibold text-yellow-800">Revisión automática activada</p>
+                    <p className="text-xs text-yellow-600 mt-1">Tu publicación se publicará pero pasará por revisión. Recibirás confirmación.</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {error && (
+              <div className="bg-red-50 border border-red-200 rounded-xl p-4 animate-fadeIn">
+                <div className="flex gap-2">
+                  <AlertCircle size={18} className="text-red-600 flex-shrink-0 mt-0.5" />
+                  <p className="text-sm text-red-700">{error}</p>
+                </div>
+              </div>
+            )}
 
             {loading && (
               <div>

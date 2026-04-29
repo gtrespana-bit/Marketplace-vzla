@@ -18,12 +18,150 @@ const ADMIN_EMAILS = ['gtrespana@gmail.com']
 const TABS = [
   { id: 'transacciones', label: 'Transacciones', icon: CreditCard },
   { id: 'publicaciones', label: 'Publicaciones', icon: Shield },
+  { id: 'moderacion', label: 'Moderación', icon: Shield },
   { id: 'usuarios', label: 'Usuarios', icon: Users },
   { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
   { id: 'anuncios', label: 'Anuncios', icon: Megaphone },
   { id: 'categorias', label: 'Categorías', icon: Tag },
   { id: 'exportar', label: 'Exportar', icon: Download },
 ] as const
+
+// ============================ MODERACIÓN TAB ============================
+function ModeracionTab({ notify }: { notify: (msg: string) => void }) {
+  const [denuncias, setDenuncias] = useState<any[]>([])
+  const [productosPendientes, setProductosPendientes] = useState<any[]>([])
+  const [tabM, setTabM] = useState<'denuncias' | 'pendientes'>('denuncias')
+  const [cargando, setCargando] = useState(false)
+
+  useEffect(() => {
+    cargar()
+  }, [])
+
+  async function cargar() {
+    setCargando(true)
+    const [{ data: denies }, { data: pends }] = await Promise.all([
+      supabase
+        .from('denuncias')
+        .select(`*, producto:productos(titulo, user_id, precio_usd, imagen_url), reportante:perfiles!denuncias_reportante_id_fkey(nombre)`)
+        .eq('estado', 'activa')
+        .order('creada_en', { ascending: false }),
+      supabase
+        .from('productos')
+        .select('*')
+        .eq('estado_moderacion', 'pendiente')
+        .order('creado_en', { ascending: false }),
+    ])
+    setDenuncias(denies || [])
+    setProductosPendientes(pends || [])
+    setCargando(false)
+  }
+
+  async function invalidarDenuncia(id: string) {
+    const { error } = await supabase.from('denuncias').update({ estado: 'invalidada' }).eq('id', id)
+    if (error) notify('Error: ' + error.message)
+    else { notify('Denuncia invalidada'); cargar() }
+  }
+
+  async function aprobarDenuncia(id: string, productoId: string) {
+    await supabase.from('denuncias').update({ estado: 'resuelta' }).eq('id', id)
+    await supabase.from('productos').update({ estado_moderacion: 'rechazado', motivo_moderacion: 'Bloqueado por admin', activo: false }).eq('id', productoId)
+    notify('Producto bloqueado'); cargar()
+  }
+
+  async function aprobarProducto(id: string) {
+    const { error } = await supabase.from('productos').update({ estado_moderacion: 'aprobado', motivo_moderacion: null }).eq('id', id)
+    if (error) notify('Error: ' + error.message)
+    else { notify('Producto aprobado'); cargar() }
+  }
+
+  async function rechazarProducto(id: string) {
+    const { error } = await supabase.from('productos').update({ estado_moderacion: 'rechazado', motivo_moderacion: 'Bloqueado por admin', activo: false }).eq('id', id)
+    if (error) notify('Error: ' + error.message)
+    else { notify('Producto rechazado'); cargar() }
+  }
+
+  if (cargando) return <div className="flex justify-center py-12"><Loader2 className="animate-spin text-brand-blue" /></div>
+
+  return (
+    <div className="space-y-6">
+      <div className="flex gap-2">
+        <button onClick={() => setTabM('denuncias')} className={`px-4 py-2 rounded-lg text-sm font-medium transition ${tabM === 'denuncias' ? 'bg-brand-blue text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}>
+          🚨 Denuncias ({denuncias.length})
+        </button>
+        <button onClick={() => setTabM('pendientes')} className={`px-4 py-2 rounded-lg text-sm font-medium transition ${tabM === 'pendientes' ? 'bg-brand-blue text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}>
+          ⏳ Pendientes ({productosPendientes.length})
+        </button>
+      </div>
+
+      {tabM === 'denuncias' && (
+        <div className="bg-white rounded-xl border border-gray-100">
+          {denuncias.length === 0 ? (
+            <div className="text-center py-12 text-gray-400">
+              <p className="text-4xl mb-2">✅</p>
+              <p className="font-medium">Sin denuncias activas</p>
+            </div>
+          ) : (
+            <div className="divide-y">
+              {denuncias.map(d => (
+                <div key={d.id} className="p-4 hover:bg-gray-50">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <p className="font-semibold text-sm">{d.producto?.titulo || 'N/A'}</p>
+                      <div className="flex gap-2 mt-1">
+                        <span className="text-xs bg-gray-100 px-2 py-0.5 rounded">{d.motivo}</span>
+                        <span className="text-xs text-gray-400">{new Date(d.creada_en).toLocaleDateString('es-ES')} — {d.reportante?.nombre || 'Desconocido'}</span>
+                      </div>
+                      {d.descripcion && <p className="text-xs text-gray-500 mt-1">{d.descripcion}</p>}
+                    </div>
+                    <div className="flex gap-1.5">
+                      <button onClick={() => { window.open(`/producto/${d.producto_id}`, '_blank') }} className="text-xs px-2 py-1 border rounded hover:bg-gray-100">Ver</button>
+                      <button onClick={() => invalidarDenuncia(d.id)} className="text-xs px-2 py-1 bg-gray-200 rounded hover:bg-gray-300">Ignorar</button>
+                      <button onClick={() => aprobarDenuncia(d.id, d.producto_id)} className="text-xs px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600">Bloquear</button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {tabM === 'pendientes' && (
+        <div className="bg-white rounded-xl border border-gray-100">
+          {productosPendientes.length === 0 ? (
+            <div className="text-center py-12 text-gray-400">
+              <p className="text-4xl mb-2">✅</p>
+              <p className="font-medium">Sin productos pendientes</p>
+            </div>
+          ) : (
+            <div className="divide-y">
+              {productosPendientes.map(p => (
+                <div key={p.id} className="p-4 hover:bg-gray-50">
+                  <div className="flex items-start justify-between">
+                    <div className="flex gap-3">
+                      {p.imagen_url && <img src={p.imagen_url} alt="" className="w-16 h-16 rounded-lg object-cover" />}
+                      <div>
+                        <p className="font-semibold">{p.titulo}</p>
+                        {p.precio_usd && <p className="text-brand-blue font-bold">${Number(p.precio_usd).toLocaleString()}</p>}
+                        {p.motivo_moderacion && <p className="text-xs text-orange-600 mt-1">⚠️ {p.motivo_moderacion}</p>}
+                        <span className="text-xs text-gray-400">{new Date(p.creado_en).toLocaleDateString('es-ES')}</span>
+                      </div>
+                    </div>
+                    <div className="flex gap-1.5">
+                      <button onClick={() => { window.open(`/producto/${p.id}`, '_blank') }} className="text-xs px-2 py-1 border rounded hover:bg-gray-100">Ver</button>
+                      <button onClick={() => aprobarProducto(p.id)} className="text-xs px-2 py-1 bg-green-500 text-white rounded hover:bg-green-600">Aprobar</button>
+                      <button onClick={() => rechazarProducto(p.id)} className="text-xs px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600">Rechazar</button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
 
 export default function AdminPage() {
   const { user, session } = useAuth()
@@ -119,6 +257,7 @@ export default function AdminPage() {
       {/* Content */}
       {tab === 'transacciones' && <TabTransacciones perfiles={perfiles} notify={notify} />}
       {tab === 'publicaciones' && <TabPublicaciones perfiles={perfiles} notify={notify} />}
+      {tab === 'moderacion' && <ModeracionTab notify={notify} />}
       {tab === 'usuarios' && <TabUsuarios perfiles={perfiles} notify={notify} />}
       {tab === 'dashboard' && <TabDashboard perfiles={perfiles} />}
       {tab === 'anuncios' && <TabAnuncios notify={notify} />}
