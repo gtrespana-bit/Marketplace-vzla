@@ -157,7 +157,7 @@ export default function ProductoPage() {
             )}
 
             <div className="space-y-2">
-              <button className="w-full bg-brand-blue text-white py-3 rounded-xl font-bold hover:bg-blue-900 transition flex items-center justify-center gap-2"><MessageCircle size={18} /> Enviar mensaje</button>
+              <Link href={`/chat?producto_id=${producto.id}&vendedor_id=${producto.user_id}`} className="w-full bg-brand-blue text-white py-3 rounded-xl font-bold hover:bg-blue-900 transition flex items-center justify-center gap-2"><MessageCircle size={18} /> Enviar mensaje</Link>
               {vendedor?.whatsapp_disponible && vendedor?.telefono && (
                 <a href={`https://wa.me/${vendedor.telefono.replace(/[^0-9]/g, '')}`} target="_blank" rel="noopener noreferrer" className="w-full bg-green-500 text-white py-3 rounded-xl font-bold hover:bg-green-600 transition text-center">WhatsApp directo</a>
               )}
