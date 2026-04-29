@@ -6,7 +6,7 @@ import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/components/AuthProvider'
 import {
   Plus, Package, MessageSquare, CreditCard, Settings,
-  Eye, Heart, TrendingUp, LogOut, ChevronRight, X, Pause, Play
+  Eye, Heart, TrendingUp, LogOut, ChevronRight, X, Pause, Play, Edit, Star
 } from 'lucide-react'
 
 export default function DashboardPage() {
@@ -171,6 +171,15 @@ function MisProductos({ productos }: { productos: any[] }) {
             </Link>
             {/* Action buttons */}
             <div className="flex gap-1 flex-shrink-0">
+              {/* Editar */}
+              <Link
+                href={`/producto/editar/${p.id}`}
+                className="p-2 hover:bg-blue-50 rounded-lg transition text-brand-blue"
+                title="Editar"
+              >
+                <Edit size={16} />
+              </Link>
+              {/* Pausar / Activar */}
               <button
                 onClick={async () => {
                   const newState = !p.activo
@@ -180,11 +189,20 @@ function MisProductos({ productos }: { productos: any[] }) {
                 className="p-2 hover:bg-gray-100 rounded-lg transition"
                 title={p.activo ? 'Pausar' : 'Activar'}
               >
-                {p.activo ? <Package size={16} /> : <TrendingUp size={16} />}
+                {p.activo ? <Pause size={16} /> : <Play size={16} />}
               </button>
+              {/* Promocionar */}
+              <button
+                onClick={() => alert('Promocionar: Proximamente podras usar creditos para destacar este producto.')}
+                className="p-2 hover:bg-yellow-50 rounded-lg transition text-yellow-600"
+                title="Promocionar"
+              >
+                <Star size={16} />
+              </button>
+              {/* Eliminar */}
               <button
                 onClick={async () => {
-                  if (confirm('¿Eliminar esta publicación permanentemente?')) {
+                  if (confirm('¿Eliminar esta publicacion permanentemente?')) {
                     await supabase.from('productos').delete().eq('id', p.id)
                     window.location.reload()
                   }
