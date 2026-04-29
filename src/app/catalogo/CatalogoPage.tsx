@@ -1,9 +1,42 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import { useSearchParams, usePathname, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Search, ChevronRight, XCircle } from 'lucide-react'
+import { supabase } from '@/lib/supabase'
 import { categoriasData } from '@/lib/categorias'
+
+type Producto = {
+  id: string
+  titulo: string
+  precio_usd: number
+  estado: string
+  imagen_url: string | null
+  ubicacion_ciudad: string | null
+  ubicacion_estado: string | null
+  creado_en: string
+  subcategoria: string | null
+}
+
+function ProductCard({ p }: { p: Producto }) {
+  return (
+    <Link href={`/producto/${p.id}`} className="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition group block border border-gray-100">
+      <div className="aspect-square bg-gray-100 relative overflow-hidden">
+        {p.imagen_url ? (
+          <img src={p.imagen_url} alt={p.titulo} className="w-full h-full object-cover group-hover:scale-105 transition-transform" loading="lazy" />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center text-gray-300 text-5xl">📦</div>
+        )}
+      </div>
+      <div className="p-4">
+        <h3 className="font-semibold text-gray-900 truncate">{p.titulo}</h3>
+        <p className="text-xl font-black text-brand-blue mt-1">${Number(p.precio_usd || 0).toLocaleString()}</p>
+        <p className="text-xs text-gray-500 mt-1">{p.estado} · {p.ubicacion_ciudad || p.ubicacion_estado || 'Venezuela'}</p>
+      </div>
+    </Link>
+  )
+}
 
 export default function CatalogoClient() {
   const searchParams = useSearchParams()
@@ -15,10 +48,12 @@ export default function CatalogoClient() {
   const marca = searchParams.get('marca') || ''
   const q = searchParams.get('q') || ''
 
+  const [productos, setProductos] = useState<Producto[]>([])
+  const [loading, setLoading] = useState(false)
+  const [totalCount, setTotalCount] = useState(0)
+
   const cat = categoriasData[categoria]
   const subs = cat ? cat.subs : []
-
-  // Collect all marcas from current category
   const allMarcas = subs.flatMap(s => s.marcas || []).filter((v, i, a) => a.indexOf(v) === i).sort()
 
   const setParam = (key: string, value: string) => {
@@ -27,6 +62,72 @@ export default function CatalogoClient() {
     if (key === 'categoria') params.delete('subcategoria')
     router.push(`${pathname}?${params.toString()}`)
   }
+
+  // Query Supabase
+  useEffect(() => {
+    let cancelled = false
+    setLoading(true)
+
+    async function fetchProductos() {
+      let query = supabase
+        .from('productos')
+        .select('*', { count: 'exact' })
+        .eq('activo', true)
+
+      // Categoria filter
+      if (categoria) {
+        const { data: catRow } = await supabase
+          .from('categorias')
+          .select('id')
+          .eq('nombre', categoria)
+          .single()
+        if (catRow) {
+          query = query.eq('categoria_id', catRow.id)
+        }
+      }
+
+      // Subcategoria
+      if (subcategoria) {
+        query = query.eq('subcategoria', subcategoria)
+      }
+
+      // Marca
+      if (marca) {
+        query = query.eq('marca', marca)
+      }
+
+      // Text search
+      if (q) {
+        query = query.ilike('titulo', `%${q}%`)
+      }
+
+      query = query.order('creado_en', { ascending: false })
+
+      const { data, count, error } = await query
+      if (!cancelled) {
+        if (!error) {
+          setProductos(data as Producto[])
+          setTotalCount(count ?? 0)
+        } else {
+          console.error('Error fetching:', error)
+          setProductos([])
+          setTotalCount(0)
+        }
+        setLoading(false)
+      }
+    }
+
+    fetchProductos()
+    return () => { cancelled = true }
+  }, [categoria, subcategoria, marca, q])
+
+  const tituloMostrar = q
+    ? `Resultados para "${q}"`
+    : subcategoria
+      ? subcategoria
+      : cat
+        ? cat.label
+        : 'Todos los productos'
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
@@ -69,7 +170,7 @@ export default function CatalogoClient() {
               </div>
             )}
 
-            {/* Marca — ahora es select, no input */}
+            {/* Marca */}
             {allMarcas.length > 0 && (
               <div className="mb-4">
                 <div className="flex items-center justify-between">
@@ -88,6 +189,13 @@ export default function CatalogoClient() {
                 </select>
               </div>
             )}
+
+            {/* Clear filters */}
+            {(categoria || subcategoria || marca || q) && (
+              <button onClick={() => router.push(pathname)} className="w-full text-sm text-red-500 hover:text-red-700 py-2 border border-red-200 rounded-lg hover:bg-red-50 transition flex items-center justify-center gap-1">
+                <XCircle size={14} /> Limpiar filtros
+              </button>
+            )}
           </div>
         </aside>
 
@@ -96,10 +204,10 @@ export default function CatalogoClient() {
           <div className="bg-white rounded-xl p-4 mb-4 shadow-sm">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
               <div>
-                <h1 className="text-xl font-bold text-gray-900">
-                  {q ? `Resultados para "${q}"` : subcategoria || (cat ? cat.label : 'Todos los productos')}
-                </h1>
-                <p className="text-sm text-gray-500 mt-1">Mostrando resultados de todo Venezuela</p>
+                <h1 className="text-xl font-bold text-gray-900">{tituloMostrar}</h1>
+                <p className="text-sm text-gray-500 mt-1">
+                  {loading ? 'Buscando...' : `${totalCount} resultado${totalCount !== 1 ? 's' : ''}`}
+                </p>
               </div>
               <form action="/buscar" method="GET" className="flex gap-2 w-full sm:w-auto">
                 <input name="q" defaultValue={q} placeholder="Buscar..." className="w-full sm:w-60 border rounded-lg px-4 py-2 text-sm" />
@@ -108,31 +216,33 @@ export default function CatalogoClient() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
-            {[
-              { t: 'iPhone 15 Pro Max 256GB', p: 850, e: 'Como nuevo', c: 'Caracas', i: 'https://picsum.photos/seed/iphone/400/400' },
-              { t: 'Toyota Corolla 2020', p: 15000, e: 'Usado', c: 'Valencia', i: 'https://picsum.photos/seed/car/400/400' },
-              { t: 'Sala Modular 3 puestos', p: 350, e: 'Nuevo', c: 'Maracaibo', i: 'https://picsum.photos/seed/sofa/400/400' },
-              { t: 'Nike Air Max 270', p: 80, e: 'Nuevo', c: 'Caracas', i: 'https://picsum.photos/seed/shoes/400/400' },
-              { t: 'PS5 Digital Edition', p: 400, e: 'Como nuevo', c: 'Barquisimeto', i: 'https://picsum.photos/seed/ps5/400/400' },
-              { t: 'Lavadora Samsung 18kg', p: 280, e: 'Bueno', c: 'Mérida', i: 'https://picsum.photos/seed/washer/400/400' },
-              { t: 'MacBook Air M2', p: 900, e: 'Nuevo', c: 'Caracas', i: 'https://picsum.photos/seed/mac/400/400' },
-              { t: 'Bicicleta R29', p: 150, e: 'Usado', c: 'Maracay', i: 'https://picsum.photos/seed/bike/400/400' },
-              { t: 'TV Samsung 55"', p: 350, e: 'Como nuevo', c: 'San Cristóbal', i: 'https://picsum.photos/seed/tv/400/400' },
-            ].map((item, idx) => (
-              <a key={idx} href={`/producto/${idx}`} className={`bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition group block ${idx === 0 ? 'featured-card' : 'border border-gray-100'}`}>
-                <div className="aspect-square bg-gray-100 relative overflow-hidden">
-                  <img src={item.i} alt={item.t} className="w-full h-full object-cover group-hover:scale-105 transition-transform" loading="lazy" />
-                  {idx === 0 && <span className="absolute top-2 left-2 bg-brand-yellow text-brand-blue text-xs font-bold px-2 py-1 rounded">⭐</span>}
+          {loading ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="bg-white rounded-xl overflow-hidden shadow-sm border animate-pulse">
+                  <div className="aspect-square bg-gray-200" />
+                  <div className="p-4 space-y-2">
+                    <div className="h-4 bg-gray-200 rounded w-3/4" />
+                    <div className="h-6 bg-gray-200 rounded w-1/2" />
+                    <div className="h-3 bg-gray-200 rounded w-1/3" />
+                  </div>
                 </div>
-                <div className="p-4">
-                  <h3 className="font-semibold text-gray-900 truncate">{item.t}</h3>
-                  <p className="text-xl font-black text-brand-blue mt-1">${item.p.toLocaleString()}</p>
-                  <p className="text-xs text-gray-500 mt-1">{item.e} · {item.c}</p>
-                </div>
-              </a>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : productos.length === 0 ? (
+            <div className="bg-white rounded-xl p-16 text-center shadow-sm border">
+              <Search size={48} className="text-gray-300 mx-auto mb-4" />
+              <h3 className="text-xl font-bold text-gray-800 mb-2">No hay productos en esta categoría</h3>
+              <p className="text-gray-500 mb-4">Sé el primero en publicar aquí</p>
+              <Link href="/publicar" className="inline-block bg-brand-yellow text-brand-blue px-6 py-3 rounded-lg font-bold hover:bg-yellow-400 transition">
+                Publicar gratis
+              </Link>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+              {productos.map((p) => <ProductCard key={p.id} p={p} />)}
+            </div>
+          )}
         </div>
       </div>
     </div>

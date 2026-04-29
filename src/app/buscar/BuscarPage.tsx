@@ -1,8 +1,10 @@
 'use client'
 
-import { useSearchParams, useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
+import { useSearchParams, usePathname, useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Search, ChevronRight, XCircle } from 'lucide-react'
+import { Search, ChevronRight, XCircle, Loader2 } from 'lucide-react'
+import { supabase } from '@/lib/supabase'
 import { categoriasData } from '@/lib/categorias'
 
 const estadosVenezuela = [
@@ -12,6 +14,38 @@ const estadosVenezuela = [
   'Cojedes', 'Yaracuy', 'Sucre', 'Monagas', 'Nueva Esparta',
   'Amazonas', 'Delta Amacuro', 'Vargas',
 ]
+
+type Producto = {
+  id: string
+  titulo: string
+  precio_usd: number
+  estado: string
+  imagen_url: string | null
+  ubicacion_ciudad: string | null
+  ubicacion_estado: string | null
+  creado_en: string
+  visitas: number
+  subcategoria: string | null
+}
+
+function ProductCard({ p }: { p: Producto }) {
+  return (
+    <Link href={`/producto/${p.id}`} className="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition group block border border-gray-100">
+      <div className="aspect-square bg-gray-100 relative overflow-hidden">
+        {p.imagen_url ? (
+          <img src={p.imagen_url} alt={p.titulo} className="w-full h-full object-cover group-hover:scale-105 transition-transform" loading="lazy" />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center text-gray-300 text-5xl">📦</div>
+        )}
+      </div>
+      <div className="p-4">
+        <h3 className="font-semibold text-gray-900 truncate">{p.titulo}</h3>
+        <p className="text-xl font-black text-brand-blue mt-1">${Number(p.precio_usd || 0).toLocaleString()}</p>
+        <p className="text-xs text-gray-500 mt-1">{p.estado} · {p.ubicacion_ciudad || 'Venezuela'}</p>
+      </div>
+    </Link>
+  )
+}
 
 export default function BuscarClient() {
   const searchParams = useSearchParams()
@@ -27,22 +61,85 @@ export default function BuscarClient() {
   const precioMax = searchParams.get('precio_max') || ''
   const orden = searchParams.get('orden') || ''
 
+  const [productos, setProductos] = useState<Producto[]>([])
+  const [loading, setLoading] = useState(false)
+  const [resultCount, setResultCount] = useState(0)
+
   const cat = categoriasData[categoria]
   const subs = cat ? cat.subs : []
   const allMarcas = subs.flatMap((s) => s.marcas || []).filter((v, i, a) => a.indexOf(v) === i).sort()
 
   const setParam = (key: string, value: string) => {
     const params = new URLSearchParams(searchParams.toString())
-    if (value) {
-      params.set(key, value)
-    } else {
-      params.delete(key)
-    }
+    if (value) params.set(key, value); else params.delete(key)
     if (key === 'categoria') params.delete('subcategoria')
-    router.push("/buscar?" + params.toString())
+    router.push('/buscar?' + params.toString())
   }
 
   const clearAll = () => router.push('/buscar')
+
+  // Query Supabase when query or filters change
+  useEffect(() => {
+    if (!query && !categoria && !subcategoria && !marca && !estadoProd && !ubicacion && !precioMin && !precioMax) {
+      setProductos([])
+      setResultCount(0)
+      return
+    }
+
+    let cancelled = false
+    setLoading(true)
+
+    async function buscar() {
+      let sq = supabase.from('productos').select('*', { count: 'exact' }).eq('activo', true)
+
+      // Text search
+      if (query) sq = sq.ilike('titulo', `%${query}%`)
+
+      // Categoria
+      if (categoria) {
+        const { data: catRow } = await supabase.from('categorias').select('id').eq('nombre', categoria).single()
+        if (catRow) sq = sq.eq('categoria_id', catRow.id)
+      }
+
+      // Subcategoria
+      if (subcategoria) sq = sq.eq('subcategoria', subcategoria)
+
+      // Marca
+      if (marca) sq = sq.eq('marca', marca)
+
+      // Estado
+      if (estadoProd) sq = sq.eq('estado', estadoProd)
+
+      // Ubicacion
+      if (ubicacion) sq = sq.eq('ubicacion_estado', ubicacion)
+
+      // Precio
+      if (precioMin) sq = sq.gte('precio_usd', parseFloat(precioMin))
+      if (precioMax) sq = sq.lte('precio_usd', parseFloat(precioMax))
+
+      // Orden
+      if (orden === 'reciente') sq = sq.order('creado_en', { ascending: false })
+      else if (orden === 'precio_asc') sq = sq.order('precio_usd', { ascending: true })
+      else if (orden === 'precio_desc') sq = sq.order('precio_usd', { ascending: false })
+      else sq = sq.order('creado_en', { ascending: false })
+
+      const { data, count, error } = await sq
+      if (!cancelled) {
+        if (!error) {
+          setResultCount(count ?? 0)
+          setProductos(data as Producto[])
+        } else {
+          console.error('Error buscando:', error)
+          setResultCount(0)
+          setProductos([])
+        }
+        setLoading(false)
+      }
+    }
+
+    buscar()
+    return () => { cancelled = true }
+  }, [query, categoria, subcategoria, marca, estadoProd, ubicacion, precioMin, precioMax, orden])
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
@@ -196,28 +293,40 @@ export default function BuscarClient() {
           {query && (
             <>
               <p className="text-sm text-gray-500 mb-4">
-                Resultados para &ldquo;<strong>{query}</strong>&rdquo; (datos de ejemplo)
+                {loading ? 'Buscando...' : `${resultCount} resultado${resultCount !== 1 ? 's' : ''} para &ldquo;<strong>${query}</strong>&rdquo;`}
               </p>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
-                {Array.from({ length: 6 }).map((_, i) => (
-                  <div key={i} className="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition group block border border-gray-100">
-                    <div className="aspect-square bg-gray-100">
-                      <img src={`https://picsum.photos/seed/s${i}/400/400`} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform" loading="lazy" />
+              {loading ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+                  {Array.from({ length: 6 }).map((_, i) => (
+                    <div key={i} className="bg-white rounded-xl overflow-hidden shadow-sm border animate-pulse">
+                      <div className="aspect-square bg-gray-200" />
+                      <div className="p-4 space-y-2">
+                        <div className="h-4 bg-gray-200 rounded w-3/4" />
+                        <div className="h-6 bg-gray-200 rounded w-1/2" />
+                        <div className="h-3 bg-gray-200 rounded w-1/3" />
+                      </div>
                     </div>
-                    <div className="p-4">
-                      <h3 className="font-semibold text-gray-800 truncate">Resultado para &ldquo;{query}&rdquo; #{i + 1}</h3>
-                      <p className="text-xl font-black text-brand-blue mt-1">${(50 + i * 100).toLocaleString()}</p>
-                      <p className="text-xs text-gray-500 mt-2">Resultado de ejemplo</p>
-                    </div>
+                  ))}
+                </div>
+              ) : (
+                productos.length === 0 ? (
+                  <div className="bg-white rounded-xl p-16 text-center shadow-sm border">
+                    <Search size={48} className="text-gray-300 mx-auto mb-4" />
+                    <h3 className="text-xl font-bold text-gray-800 mb-2">No se encontraron resultados</h3>
+                    <p className="text-gray-500">Intenta con otros filtros o una busqueda mas amplia</p>
                   </div>
-                ))}
-              </div>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+                    {productos.map((p) => <ProductCard key={p.id} p={p} />)}
+                  </div>
+                )
+              )}
             </>
           )}
 
-          {!query && (
-            <div className="bg-white rounded-xl p-16 text-center shadow-sm">
+          {!query && !categoria && !subcategoria && !marca && !estadoProd && !ubicacion && !precioMin && !precioMax && (
+            <div className="bg-white rounded-xl p-16 text-center shadow-sm border">
               <Search size={48} className="text-gray-300 mx-auto mb-4" />
               <h3 className="text-xl font-bold text-gray-800 mb-2">Que quieres encontrar?</h3>
               <p className="text-gray-500">Escribe algo en la barra de busqueda para empezar</p>
