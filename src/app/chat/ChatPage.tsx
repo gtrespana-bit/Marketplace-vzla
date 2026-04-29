@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/components/AuthProvider'
 import Avatar from '@/components/Avatar'
-import { Send, ArrowLeft, Search, User } from 'lucide-react'
+import { Send, ArrowLeft, Search, User, AlertCircle, RotateCcw } from 'lucide-react'
 
 type Conversacion = {
   id: string
@@ -50,13 +50,21 @@ function formatHora(iso: string): string {
   return new Date(iso).toLocaleTimeString('es-VE', { hour: '2-digit', minute: '2-digit' })
 }
 
-/** Debounce helper */
-function debounce<T extends (...args: any[]) => void>(fn: T, ms: number) {
-  let t: ReturnType<typeof setTimeout>
-  return ((...args: any[]) => {
-    clearTimeout(t)
-    t = setTimeout(() => fn(...args), ms)
-  }) as T
+function deduplicate(convs: Conversacion[]): Conversacion[] {
+  // Group by (user_pair, producto_id) — keep the most recent one
+  const keyOf = (c: Conversacion) => {
+    const sorted = [c.user1_id, c.user2_id].sort().join('|')
+    return `${sorted}|${c.producto_id ?? 'null'}`
+  }
+  const map = new Map<string, Conversacion>()
+  for (const c of convs) {
+    const k = keyOf(c)
+    const existing = map.get(k)
+    if (!existing || (c.ultimo_mensaje_en || '') >= (existing.ultimo_mensaje_en || '')) {
+      map.set(k, c)
+    }
+  }
+  return Array.from(map.values())
 }
 
 export default function ChatPageClient() {
@@ -72,47 +80,51 @@ export default function ChatPageClient() {
   const [texto, setTexto] = useState('')
   const [loading, setLoading] = useState(true)
   const [enviando, setEnviando] = useState(false)
+  const [sendError, setSendError] = useState<string | null>(null)
   const [busqueda, setBusqueda] = useState('')
   const [showMobileChat, setShowMobileChat] = useState(false)
 
   const mensajesEndRef = useRef<HTMLDivElement>(null)
-  const convLoadedRef = useRef(false)
+  const userRef = useRef(user)
+  userRef.current = user
 
   // ─── Auth guard ───
   useEffect(() => {
-    if (authLoading) return // esperar a que cargue la sesión
+    if (authLoading) return
     if (!user) router.push('/login')
   }, [user, authLoading, router])
 
   // ─── Scroll al final ───
   useEffect(() => {
     mensajesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [mensajes])
+  }, [mensajes.length])
 
-  // ─── Cargar conversaciones (BATCH, no N+1) ───
-  const cargarConversaciones = useCallback(async () => {
-    if (!user) return
+  // ─── Cargar conversaciones (una sola vez, no se re-ejecuta) ───
+  const loadConversaciones = useCallback(async () => {
+    const uid = userRef.current
+    if (!uid) return
 
-    const { data: convs } = await supabase
+    const { data: convs, error } = await supabase
       .from('conversaciones')
       .select('*')
-      .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`)
+      .or(`user1_id.eq.${uid.id},user2_id.eq.${uid.id}`)
       .order('ultimo_mensaje_en', { ascending: false })
+
+    if (error) {
+      console.error('Error loading convs:', error)
+      setLoading(false)
+      return
+    }
 
     if (!convs || convs.length === 0) {
       setConversaciones([])
       setLoading(false)
-      convLoadedRef.current = true
-      return []
+      return
     }
 
-    // Collect all IDs
-    const otroIds = [...new Set(convs.map(c =>
-      c.user1_id === user.id ? c.user2_id : c.user1_id
-    ))]
-    const prodIds = [...new Set(convs.filter(c => c.producto_id).map(c => c.producto_id))]
+    const otroIds = [...new Set(convs.map(c => c.user1_id === uid.id ? c.user2_id : c.user1_id))]
+    const prodIds = [...new Set(convs.filter(c => c.producto_id).map(c => c.producto_id as string))]
 
-    // 3 queries en paralelo
     const [perfilesRes, productosRes, unreadRes] = await Promise.all([
       supabase.from('perfiles').select('id, nombre, foto_perfil_url').in('id', otroIds),
       prodIds.length > 0
@@ -121,7 +133,7 @@ export default function ChatPageClient() {
       supabase
         .from('mensajes')
         .select('conversacion_id')
-        .eq('destinatario_id', user.id)
+        .eq('destinatario_id', uid.id)
         .eq('leido', false)
         .in('conversacion_id', convs.map(c => c.id)),
     ])
@@ -138,7 +150,7 @@ export default function ChatPageClient() {
     })
 
     const enriched: Conversacion[] = convs.map(c => {
-      const otroId = c.user1_id === user.id ? c.user2_id : c.user1_id
+      const otroId = c.user1_id === uid.id ? c.user2_id : c.user1_id
       const p = perfilMap.get(otroId)
       return {
         ...c,
@@ -149,155 +161,248 @@ export default function ChatPageClient() {
       }
     })
 
-    setConversaciones(enriched)
+    // Deduplicate in case DB has dups
+    const deduped = deduplicate(enriched)
+    setConversaciones(deduped)
     setLoading(false)
-    convLoadedRef.current = true
-    return enriched
-  }, [user])
 
-  useEffect(() => { cargarConversaciones() }, [cargarConversaciones])
+    // If URL has productoId/vendedorId, try to find or create the conv
+    if (productoId && vendedorId && vendedorId !== uid.id) {
+      const match = deduped.find(c =>
+        c.producto_id === productoId &&
+        ((c.user1_id === uid.id && c.user2_id === vendedorId) ||
+         (c.user1_id === vendedorId && c.user2_id === uid.id))
+      )
+      if (match) {
+        setConvId(match.id)
+        setShowMobileChat(true)
+        loadMensajesSilent(match.id)
+      } else {
+        // No conv exists — create one by sending a placeholder message through the trigger
+        const { data: newConv, error: insErr } = await supabase
+          .from('conversaciones')
+          .insert({
+            user1_id: uid.id < vendedorId ? uid.id : vendedorId,
+            user2_id: uid.id < vendedorId ? vendedorId : uid.id,
+            producto_id: productoId,
+          })
+          .select()
+          .single()
 
-  // ─── Realtime: conversaciones (debounced para evitar spam) ───
+        if (insErr?.code === '23505') {
+          // Constraint violation — refetch to get existing
+          await loadConversaciones()
+          return
+        }
+        if (newConv) {
+          setConvId(newConv.id)
+          setShowMobileChat(true)
+          const refreshed = deduped.map(c => ({
+            ...c,
+            otro_nombre: newConv.user1_id === uid.id
+              ? (perfilMap.get(newConv.user2_id)?.nombre || 'Usuario')
+              : (perfilMap.get(newConv.user1_id)?.nombre || 'Usuario'),
+          }))
+          setConversaciones([
+            {
+              id: newConv.id,
+              user1_id: newConv.user1_id,
+              user2_id: newConv.user2_id,
+              producto_id: newConv.producto_id,
+              ultimo_mensaje: null,
+              ultimo_mensaje_en: new Date().toISOString(),
+              creado_en: newConv.creado_en,
+              otro_nombre: newConv.user1_id === uid.id
+                ? (perfilMap.get(newConv.user2_id)?.nombre || 'Usuario')
+                : (perfilMap.get(newConv.user1_id)?.nombre || 'Usuario'),
+              otro_foto: null,
+              producto_titulo: prodMap.get(productoId) || null,
+              no_leidos: 0,
+            },
+            ...refreshed,
+          ])
+          loadMensajesSilent(newConv.id)
+        }
+      }
+    }
+  }, [])
+
+  // Load once on mount
+  useEffect(() => {
+    if (authLoading || !user) return
+    loadConversaciones()
+  }, [user, authLoading, loadConversaciones])
+
+  // ─── Realtime sidebar update ───
   useEffect(() => {
     if (!user) return
-    const debounced = debounce(() => cargarConversaciones(), 500)
     const sub = supabase
       .channel('conv-rt')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'conversaciones' }, () => debounced())
-      .subscribe()
-    return () => { supabase.removeChannel(sub) }
-  }, [user, cargarConversaciones])
-
-  // ─── Realtime: mensajes de la conversación actual ───
-  useEffect(() => {
-    if (!convId || !user) return
-    const userId = user.id
-    const sub = supabase
-      .channel(`msg-rt-${convId}`)
       .on(
         'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'mensajes', filter: `conversacion_id=eq.${convId}` },
+        { event: 'UPDATE', schema: 'public', table: 'conversaciones' },
         (payload) => {
-          const nuevo = payload.new as Mensaje
-          // Si es de otro usuario, aparece; si es mio, reemplaza el temp si existe
-          setMensajes(prev => {
-            const yaExiste = prev.some(m => m.id === nuevo.id)
-            if (yaExiste) return prev
-            // Si viene de otro usuario
-            if (nuevo.remitente_id !== userId) {
-              // Marcar como leido
-              supabase.from('mensajes').update({ leido: true }).eq('id', nuevo.id)
-              // Sidebar refresh
-              cargarConversaciones()
-              return [...prev, nuevo]
+          const updated = payload.new as any
+          // Enrich and update sidebar
+          setConversaciones(prev => {
+            // Check if this conv affects current user
+            if (updated.user1_id !== user.id && updated.user2_id !== user.id) return prev
+
+            const otherId = updated.user1_id === user.id ? updated.user2_id : updated.user1_id
+            // Find existing
+            const idx = prev.findIndex(c => c.id === updated.id)
+            if (idx >= 0) {
+              const newConvs = [...prev]
+              newConvs[idx] = { ...newConvs[idx], ultimo_mensaje: updated.ultimo_mensaje, ultimo_mensaje_en: updated.ultimo_mensaje_en }
+              // Move to top if updated
+              const [item] = newConvs.splice(idx, 1)
+              newConvs.unshift(item)
+              return newConvs
             }
-            // Es mio → reemplazar temp
-            const sinTemp = prev.filter(m => !m.id.startsWith('t-'))
-            return [...sinTemp, nuevo]
+            return prev
+          })
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'conversaciones' },
+        (payload) => {
+          const newConv = payload.new as any
+          if (newConv.user1_id !== user.id && newConv.user2_id !== user.id) return
+          // Add to sidebar without full refetch
+          setConversaciones(prev => {
+            const exists = prev.some(c => c.id === newConv.id)
+            if (exists) return prev
+            return [{
+              ...newConv,
+              otro_nombre: 'Nuevo',
+              otro_foto: null,
+              producto_titulo: null,
+              no_leidos: 0,
+            }, ...prev]
           })
         }
       )
       .subscribe()
     return () => { supabase.removeChannel(sub) }
-  }, [convId, cargarConversaciones])
-
-  // ─── Auto-iniciar conv desde URL (producto → escribir al vendedor) ───
-  useEffect(() => {
-    if (!user || !productoId || !vendedorId || vendedorId === user.id) return
-    // Esperar a que convLoadedRef esté true
-    if (!convLoadedRef.current) return
-
-    const ya = conversaciones.find(c =>
-      c.producto_id === productoId &&
-      (
-        (c.user1_id === user.id && c.user2_id === vendedorId) ||
-        (c.user1_id === vendedorId && c.user2_id === user.id)
-      )
-    )
-    if (ya) {
-      setConvId(ya.id)
-      setShowMobileChat(true)
-      cargarMensajes(ya.id)
-      return
-    }
-
-    // No existe → crear
-    const crear = async () => {
-      // Try to insert; if constraint conflict, refetch
-      const { data, error } = await supabase
-        .from('conversaciones')
-        .insert({ user1_id: user.id, user2_id: vendedorId, producto_id: productoId })
-        .select()
-        .single()
-      if (error?.code === '23505') {
-        // Unique constraint violation — another one was created in parallel
-        // Refetch to pick it up
-        await cargarConversaciones()
-        const nueva = conversaciones.find(c =>
-          c.producto_id === productoId &&
-          (
-            (c.user1_id === user.id && c.user2_id === vendedorId) ||
-            (c.user1_id === vendedorId && c.user2_id === user.id)
-          )
-        )
-        if (nueva) {
-          setConvId(nueva.id)
-          setShowMobileChat(true)
-          cargarMensajes(nueva.id)
-        }
-        return
-      }
-      if (data) {
-        setConvId(data.id)
-        setShowMobileChat(true)
-        await cargarConversaciones()
-        cargarMensajes(data.id)
-      }
-    }
-    crear()
-  }, [user, productoId, vendedorId, conversaciones])
+  }, [user])
 
   // ─── Cargar mensajes ───
-  const cargarMensajes = useCallback(async (id: string) => {
-    if (!user) return
-    const { data } = await supabase
+  const loadMensajesSilent = useCallback(async (id: string) => {
+    const uid = userRef.current
+    if (!uid) return
+
+    const { data, error } = await supabase
       .from('mensajes')
       .select('*')
       .eq('conversacion_id', id)
       .order('creado_en', { ascending: true })
 
+    if (error) {
+      console.error('Error loading messages:', error)
+      return
+    }
+
     if (data) {
       setMensajes(data)
-      // Marcar leidos
-      const noLeidos = data.filter(m => m.remitente_id !== user.id && !m.leido)
-      if (noLeidos.length > 0) {
-        supabase
-          .from('mensajes')
-          .update({ leido: true })
-          .in('id', noLeidos.map(m => m.id))
+      // Mark as read
+      const unread = data.filter(m => m.remitente_id !== uid.id && !m.leido)
+      if (unread.length > 0) {
+        supabase.from('mensajes').update({ leido: true }).in('id', unread.map(m => m.id))
       }
     }
-  }, [user])
+  }, [])
+
+  // ─── Realtime mensajes (canal separado que persiste) ───
+  useEffect(() => {
+    if (!user) return
+
+    // Subscribe to ALL message inserts for user's conversations
+    const sub = supabase
+      .channel('all-msg-rt')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'mensajes' },
+        async (payload) => {
+          const nuevo = payload.new as Mensaje
+          const uid = userRef.current
+          if (!uid) return
+
+          // Get the conversation for this message
+          const { data: conv } = await supabase
+            .from('conversaciones')
+            .select('*')
+            .eq('id', nuevo.conversacion_id)
+            .single()
+
+          if (!conv || (conv.user1_id !== uid.id && conv.user2_id !== uid.id)) return
+
+          // If this is from the other user, mark as read
+          if (nuevo.remitente_id !== uid.id) {
+            supabase.from('mensajes').update({ leido: true }).eq('id', nuevo.id)
+          }
+
+          // If this is for the currently open conversation, add to messages
+          if (nuevo.conversacion_id === convId) {
+            setMensajes(prev => {
+              // Avoid duplicates
+              if (prev.some(m => m.id === nuevo.id)) return prev
+              // If it's our own message, remove any temp messages (optimistic)
+              const withoutTemp = nuevo.remitente_id === uid.id
+                ? prev.filter(m => !m.id.startsWith('t-'))
+                : prev
+              return [...withoutTemp, nuevo]
+            })
+          }
+
+          // Update sidebar
+          setConversaciones(prev => {
+            const idx = prev.findIndex(c => c.id === nuevo.conversacion_id)
+            if (idx < 0) return prev
+            const updated = [...prev]
+            const item = { ...updated[idx] }
+            item.ultimo_mensaje = nuevo.contenido
+            item.ultimo_mensaje_en = nuevo.creado_en
+            // Increment unread if from other user
+            if (nuevo.remitente_id !== uid.id && nuevo.conversacion_id !== convId) {
+              item.no_leidos = (item.no_leidos || 0) + 1
+            }
+            // Move to top
+            updated.splice(idx, 1)
+            updated.unshift(item)
+            return updated
+          })
+        }
+      )
+      .subscribe()
+
+    return () => { supabase.removeChannel(sub) }
+  }, [convId])
 
   // ─── Seleccionar conversacion ───
   const seleccionarConv = async (id: string) => {
+    // Clear unread
+    setConversaciones(prev =>
+      prev.map(c => c.id === id ? { ...c, no_leidos: 0 } : c)
+    )
     setConvId(id)
     setShowMobileChat(true)
-    await cargarMensajes(id)
+    setSendError(null)
+    await loadMensajesSilent(id)
   }
 
-  // ─── Enviar mensaje ───
-  const enviarMensaje = async () => {
-    if (!texto.trim() || !convId || !user || enviando) return
+  // ─── Reintentar envio fallido ───
+  const retrySend = useCallback(async (contenido: string) => {
+    if (!convId || !user || enviando) return
+    setSendError(null)
     setEnviando(true)
 
-    const contenido = texto.trim()
     const conv = conversaciones.find(c => c.id === convId)
     if (!conv) { setEnviando(false); return }
 
     const destinatarioId = conv.user1_id === user.id ? conv.user2_id : conv.user1_id
 
-    // Optimistic: aparece inmediatamente
+    // Optimistic
     const tempMsg: Mensaje = {
       id: `t-${Date.now()}`,
       conversacion_id: convId,
@@ -307,31 +412,59 @@ export default function ChatPageClient() {
       leido: true,
       creado_en: new Date().toISOString(),
     }
-    setMensajes(prev => [...prev, tempMsg])
+    setMensajes(prev => [...prev.filter(m => m.id !== tempMsg.id), tempMsg])
     setTexto('')
 
-    const { error } = await supabase.from('mensajes').insert({
-      conversacion_id: convId,
-      remitente_id: user.id,
-      destinatario_id: destinatarioId,
-      contenido,
-    })
+    const startTime = Date.now()
+    const { data, error } = await supabase
+      .from('mensajes')
+      .insert({
+        conversacion_id: convId,
+        remitente_id: user.id,
+        destinatario_id: destinatarioId,
+        contenido,
+      })
+      .select()
+      .single()
+
+    // Minimum delay so user sees the transition
+    const elapsed = Date.now() - startTime
+    if (elapsed < 300) await new Promise(r => setTimeout(r, 300 - elapsed))
 
     if (error) {
-      // Rollback el mensaje temp
+      setSendError(error.message)
       setMensajes(prev => prev.filter(m => m.id !== tempMsg.id))
-      console.error('Error enviando mensaje:', error)
-    } else {
-      // Refresh sidebar para actualizar ultimo_mensaje
-      setConversaciones(prev => prev.map(c =>
-        c.id === convId ? { ...c, ultimo_mensaje: contenido, ultimo_mensaje_en: new Date().toISOString() } : c
-      ))
+      console.error('Error sending message:', error)
+    } else if (data) {
+      // Realtime will add the confirmed message, remove temp
+      setSendError(null)
     }
-
     setEnviando(false)
+  }, [convId, user, conversaciones, enviando])
+
+  // ─── Enviar mensaje ───
+  const enviarMensaje = async () => {
+    const msg = texto.trim()
+    if (!msg || !convId || !user || enviando) return
+    setSendError(null)
+    await retrySend(msg)
   }
 
-  // ─── Render ───
+  // ─── Loading ───
+  if (authLoading || loading) {
+    return (
+      <div className="max-w-6xl mx-auto px-4 py-8">
+        <h1 className="text-3xl font-bold text-gray-800 mb-6">💬 Mensajes</h1>
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 h-[600px] flex items-center justify-center">
+          <div className="text-center text-gray-400">
+            <div className="w-12 h-12 border-4 border-brand-yellow border-t-brand-blue rounded-full animate-spin mx-auto mb-3" />
+            <p>Cargando mensajes...</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   if (!user) return null
 
   const filtradas = conversaciones.filter(c =>
@@ -366,8 +499,8 @@ export default function ChatPageClient() {
               {filtradas.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full px-6 text-center">
                   <User size={48} className="text-gray-300 mb-3" />
-                  <p className="text-gray-500 font-medium">No hay conversaciones</p>
-                  <p className="text-sm text-gray-400 mt-1">Envia un mensaje a un vendedor</p>
+                  <p className="text-gray-500 font-medium">{conversaciones.length === 0 ? 'No hay conversaciones' : 'Sin resultados'}</p>
+                  <p className="text-sm text-gray-400 mt-1">Envia un mensaje a un vendedor desde cualquier producto</p>
                 </div>
               ) : (
                 filtradas.map(c => (
@@ -433,21 +566,47 @@ export default function ChatPageClient() {
                 <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50">
                   {mensajes.map(m => {
                     const esMio = m.remitente_id === user?.id
+                    const isTemp = m.id.startsWith('t-')
                     return (
                       <div key={m.id} className={`flex ${esMio ? 'justify-end' : 'justify-start'}`}>
                         <div className={`max-w-[75%] px-4 py-2.5 rounded-2xl ${
                           esMio
-                            ? 'bg-brand-blue text-white rounded-br-sm'
+                            ? isTemp
+                              ? 'bg-blue-400 text-white rounded-br-sm'
+                              : 'bg-brand-blue text-white rounded-br-sm'
                             : 'bg-white text-gray-800 border border-gray-100 rounded-bl-sm'
                         }`}>
                           <p className="text-sm break-words">{m.contenido}</p>
                           <p className={`text-[10px] mt-1 ${esMio ? 'text-blue-200' : 'text-gray-400'}`}>
-                            {formatHora(m.creado_en)}
+                            {isTemp ? 'Enviando...' : formatHora(m.creado_en)}
                           </p>
                         </div>
                       </div>
                     )
                   })}
+
+                  {/* Error de envio */}
+                  {sendError && (
+                    <div className="flex items-center justify-center gap-2 py-3">
+                      <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-2 flex items-center gap-2 text-sm text-red-700">
+                        <AlertCircle size={16} />
+                        <span>Error al enviar</span>
+                        <button
+                          onClick={() => {
+                            // Re-enviar el ultimo mensaje fallido
+                            const lastMsg = mensajes[mensajes.length - 1]
+                            if (lastMsg && lastMsg.remitente_id === user?.id) {
+                              retrySend(lastMsg.contenido)
+                            }
+                          }}
+                          className="ml-2 flex items-center gap-1 text-brand-blue font-medium hover:underline"
+                        >
+                          <RotateCcw size={14} /> Reintentar
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
                   <div ref={mensajesEndRef} />
                 </div>
 
@@ -456,7 +615,10 @@ export default function ChatPageClient() {
                   <input
                     type="text"
                     value={texto}
-                    onChange={e => setTexto(e.target.value)}
+                    onChange={e => {
+                      setTexto(e.target.value)
+                      setSendError(null)
+                    }}
                     onKeyDown={e => {
                       if (e.key === 'Enter' && !e.shiftKey) {
                         e.preventDefault()
@@ -464,7 +626,7 @@ export default function ChatPageClient() {
                       }
                     }}
                     placeholder="Escribe un mensaje..."
-                    className="flex-1 border rounded-full px-4 py-2.5 text-sm outline-none focus:border-brand-yellow transition"
+                    className="flex-1 border rounded-full px-4 py-2.5 text-sm outline-none focus:border-brand-yellow transition disabled:opacity-50"
                     disabled={enviando}
                   />
                   <button
@@ -472,7 +634,11 @@ export default function ChatPageClient() {
                     disabled={!texto.trim() || enviando}
                     className="w-10 h-10 bg-brand-blue text-white rounded-full flex items-center justify-center hover:bg-blue-900 transition disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    <Send size={18} />
+                    {enviando ? (
+                      <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                    ) : (
+                      <Send size={18} />
+                    )}
                   </button>
                 </div>
               </>
