@@ -13,18 +13,36 @@ export default function DashboardPage() {
   const { user, session } = useAuth()
   const [activeTab, setActiveTab] = useState('productos')
   const [productos, setProductos] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const [visitasTotales, setVisitasTotales] = useState(0)
+  const [favoritosCount, setFavoritosCount] = useState(0)
 
   useEffect(() => {
-    if (user) {
+    if (!user) return
+    Promise.all([
+      // Productos
       supabase
         .from('productos')
         .select('*')
         .eq('user_id', user.id)
         .order('creado_en', { ascending: false })
+        .then(({ data }) => setProductos(data || [])),
+      // Visitas totales
+      supabase
+        .from('productos')
+        .select('visitas')
+        .eq('user_id', user.id)
         .then(({ data }) => {
-          if (data) setProductos(data)
-        })
-    }
+          const total = data?.reduce((sum: number, p: any) => sum + (p.visitas || 0), 0) || 0
+          setVisitasTotales(total)
+        }),
+      // Favoritos
+      supabase
+        .from('favoritos')
+        .select('id', { count: 'exact', head: true })
+        .eq('user_id', user.id)
+        .then(({ count }) => setFavoritosCount(count || 0)),
+    ]).finally(() => setLoading(false))
   }, [user])
 
   if (!session) {
@@ -67,8 +85,8 @@ export default function DashboardPage() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
         {[
           { label: 'Publicaciones', value: productos.length, icon: Package, color: 'bg-blue-50 text-brand-blue' },
-          { label: 'Visitas totales', value: '1,240', icon: Eye, color: 'bg-green-50 text-green-700' },
-          { label: 'Favoritos', value: '89', icon: Heart, color: 'bg-red-50 text-red-600' },
+          { label: 'Visitas totales', value: visitasTotales, icon: Eye, color: 'bg-green-50 text-green-700' },
+          { label: 'Favoritos', value: favoritosCount, icon: Heart, color: 'bg-red-50 text-red-600' },
           { label: 'Créditos', value: '0', icon: CreditCard, color: 'bg-yellow-50 text-brand-yellow' },
         ].map((stat) => (
           <div key={stat.label} className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
