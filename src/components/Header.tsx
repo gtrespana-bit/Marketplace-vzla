@@ -91,7 +91,7 @@ export function Header() {
                     <MessageCircle size={20} />
                     <span className="absolute top-1 right-1 bg-brand-red w-2 h-2 rounded-full"></span>
                   </Link>
-                  <Link href="/mi-perfil" className="p-1 hover:bg-white/10 rounded-lg transition" title="Mi perfil">
+                  <Link href="/dashboard" className="p-1 hover:bg-white/10 rounded-lg transition" title="Mi panel">
                     <Avatar nombre={user?.user_metadata?.nombre || user?.email || 'U'} fotoUrl={user?.user_metadata?.foto_perfil_url || null} size="sm" />
                   </Link>
                 </>

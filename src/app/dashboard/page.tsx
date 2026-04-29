@@ -74,6 +74,12 @@ export default function DashboardPage() {
         </div>
         <div className="flex gap-2">
           <Link
+            href="/mi-perfil"
+            className="flex items-center gap-2 border px-4 py-2.5 rounded-lg font-medium hover:bg-gray-50 transition text-sm"
+          >
+            <User size={16} /> Ver Mi Perfil
+          </Link>
+          <Link
             href="/publicar"
             className="flex items-center gap-2 bg-brand-yellow text-brand-blue px-5 py-2.5 rounded-lg font-bold hover:bg-yellow-400 transition"
           >
