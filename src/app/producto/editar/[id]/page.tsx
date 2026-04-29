@@ -48,6 +48,10 @@ export default function EditarPage() {
   const [contactPhone, setContactPhone] = useState('')
   const [contactWhatsApp, setContactWhatsApp] = useState('')
   const [contactMessenger, setContactMessenger] = useState('')
+  const [showEmail, setShowEmail] = useState(false)
+  const [showPhone, setShowPhone] = useState(false)
+  const [showWhatsApp, setShowWhatsApp] = useState(false)
+  const [showMessenger, setShowMessenger] = useState(false)
 
   // Images
   const [currentImages, setCurrentImages] = useState<string[]>([])
@@ -88,6 +92,10 @@ export default function EditarPage() {
       setContactPhone(mc.telefono || '')
       setContactWhatsApp(mc.whatsapp || '')
       setContactMessenger(mc.messenger || '')
+      setShowEmail(!!mc.email)
+      setShowPhone(!!mc.telefono)
+      setShowWhatsApp(!!mc.whatsapp)
+      setShowMessenger(!!mc.messenger)
 
       // Load specs from categoria
       const catData = categoriasData[cat?.nombre]
@@ -132,10 +140,10 @@ export default function EditarPage() {
 
       // Build contact methods
       const metodosContacto: Record<string, any> = {}
-      if (contactEmail) metodosContacto.email = contactEmail
-      if (contactPhone) metodosContacto.telefono = contactPhone
-      if (contactWhatsApp) metodosContacto.whatsapp = contactWhatsApp
-      if (contactMessenger) metodosContacto.messenger = contactMessenger
+      if (showEmail && contactEmail) metodosContacto.email = contactEmail
+      if (showPhone && contactPhone) metodosContacto.telefono = contactPhone
+      if (showWhatsApp && contactWhatsApp) metodosContacto.whatsapp = contactWhatsApp
+      if (showMessenger && contactMessenger) metodosContacto.messenger = contactMessenger
 
       // Get category id
       const { data: catData } = await supabase.from('categorias').select('id').eq('nombre', categoria).single()
@@ -299,30 +307,66 @@ export default function EditarPage() {
         {/* Métodos de contacto */}
         <div className="bg-blue-50/60 border border-blue-200 rounded-xl p-5 space-y-3">
           <h3 className="font-bold text-gray-900">Métodos de contacto</h3>
-          <div className="flex items-start gap-3 bg-white border rounded-lg p-3">
-            <input type="checkbox" checked={!!contactWhatsApp} onChange={e => !e.target.checked ? setContactWhatsApp('') : setContactWhatsApp('+58 ')} className="mt-1 rounded" />
-            <label className="flex-1 text-sm">{contactWhatsApp !== '' && <span className="font-medium">💚 WhatsApp</span>}
-              {contactWhatsApp !== '' && <input type="tel" value={contactWhatsApp} onChange={e => setContactWhatsApp(e.target.value)} placeholder="+58 412 1234567" className="mt-1 w-full border rounded px-2 py-1.5 text-sm" />}
+
+          {showWhatsApp ? (
+            <div className="bg-white border rounded-lg p-3">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium">💚 WhatsApp</span>
+                <button type="button" onClick={() => setShowWhatsApp(false)} className="text-red-500 text-xs hover:underline">Quitar</button>
+              </div>
+              <input type="tel" value={contactWhatsApp} onChange={e => setContactWhatsApp(e.target.value)} placeholder="+58 412 1234567" className="mt-2 w-full border rounded px-2 py-1.5 text-sm" />
+            </div>
+          ) : (
+            <label className="flex items-center gap-3 bg-white border rounded-lg p-3 cursor-pointer hover:bg-gray-50">
+              <input type="checkbox" onChange={() => { setShowWhatsApp(true); setContactWhatsApp('+58 ') }} className="rounded" />
+              <span className="text-sm">💚 WhatsApp</span>
             </label>
-          </div>
-          <div className="flex items-start gap-3 bg-white border rounded-lg p-3">
-            <input type="checkbox" checked={!!contactPhone} onChange={e => !e.target.checked ? setContactPhone('') : setContactPhone('+58 ')} className="mt-1 rounded" />
-            <label className="flex-1 text-sm">{contactPhone !== '' && <span className="font-medium">📞 Teléfono</span>}
-              {contactPhone !== '' && <input type="tel" value={contactPhone} onChange={e => setContactPhone(e.target.value)} placeholder="+58 412 1234567" className="mt-1 w-full border rounded px-2 py-1.5 text-sm" />}
+          )}
+
+          {showPhone ? (
+            <div className="bg-white border rounded-lg p-3">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium">📞 Teléfono</span>
+                <button type="button" onClick={() => setShowPhone(false)} className="text-red-500 text-xs hover:underline">Quitar</button>
+              </div>
+              <input type="tel" value={contactPhone} onChange={e => setContactPhone(e.target.value)} placeholder="+58 412 1234567" className="mt-2 w-full border rounded px-2 py-1.5 text-sm" />
+            </div>
+          ) : (
+            <label className="flex items-center gap-3 bg-white border rounded-lg p-3 cursor-pointer hover:bg-gray-50">
+              <input type="checkbox" onChange={() => { setShowPhone(true); setContactPhone('+58 ') }} className="rounded" />
+              <span className="text-sm">📞 Teléfono</span>
             </label>
-          </div>
-          <div className="flex items-start gap-3 bg-white border rounded-lg p-3">
-            <input type="checkbox" checked={!!contactEmail} onChange={e => !e.target.checked ? setContactEmail('') : setContactEmail('')} className="mt-1 rounded" />
-            <label className="flex-1 text-sm">{contactEmail !== '' && <span className="font-medium">📧 Email</span>}
-              {contactEmail !== '' && <input type="email" value={contactEmail} onChange={e => setContactEmail(e.target.value)} placeholder="tu@email.com" className="mt-1 w-full border rounded px-2 py-1.5 text-sm" />}
+          )}
+
+          {showEmail ? (
+            <div className="bg-white border rounded-lg p-3">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium">📧 Email</span>
+                <button type="button" onClick={() => setShowEmail(false)} className="text-red-500 text-xs hover:underline">Quitar</button>
+              </div>
+              <input type="email" value={contactEmail} onChange={e => setContactEmail(e.target.value)} placeholder="tu@email.com" className="mt-2 w-full border rounded px-2 py-1.5 text-sm" />
+            </div>
+          ) : (
+            <label className="flex items-center gap-3 bg-white border rounded-lg p-3 cursor-pointer hover:bg-gray-50">
+              <input type="checkbox" onChange={() => setShowEmail(true)} className="rounded" />
+              <span className="text-sm">📧 Email</span>
             </label>
-          </div>
-          <div className="flex items-start gap-3 bg-white border rounded-lg p-3">
-            <input type="checkbox" checked={!!contactMessenger} onChange={e => !e.target.checked ? setContactMessenger('') : setContactMessenger('https://m.me/')} className="mt-1 rounded" />
-            <label className="flex-1 text-sm">{contactMessenger !== '' && <span className="font-medium">💬 Messenger</span>}
-              {contactMessenger !== '' && <input type="url" value={contactMessenger} onChange={e => setContactMessenger(e.target.value)} placeholder="https://m.me/tuusuario" className="mt-1 w-full border rounded px-2 py-1.5 text-sm" />}
+          )}
+
+          {showMessenger ? (
+            <div className="bg-white border rounded-lg p-3">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium">💬 Messenger</span>
+                <button type="button" onClick={() => setShowMessenger(false)} className="text-red-500 text-xs hover:underline">Quitar</button>
+              </div>
+              <input type="url" value={contactMessenger} onChange={e => setContactMessenger(e.target.value)} placeholder="https://m.me/tuusuario" className="mt-2 w-full border rounded px-2 py-1.5 text-sm" />
+            </div>
+          ) : (
+            <label className="flex items-center gap-3 bg-white border rounded-lg p-3 cursor-pointer hover:bg-gray-50">
+              <input type="checkbox" onChange={() => { setShowMessenger(true); setContactMessenger('https://m.me/') }} className="rounded" />
+              <span className="text-sm">💬 Facebook Messenger</span>
             </label>
-          </div>
+          )}
         </div>
 
         {/* Imágenes actuales */}
