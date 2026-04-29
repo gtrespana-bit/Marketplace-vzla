@@ -19,30 +19,49 @@ export default function VerificacionTab({ notify }: { notify: (msg: string) => v
 
   async function cargar() {
     setCargando(true)
+
+    // 1. Obtener solicitudes
     let query = supabase
       .from('solicitudes_verificacion')
-      .select(
-        '*, ' +
-        'perfil:perfiles!solicitudes_verificacion_user_id_fkey(nombre, telefono, cedula_numero, pago_movil_telefono, pago_movil_cedula, pago_movil_banco)'
-      )
+      .select('*')
       .order('creada_en', { ascending: false })
 
     if (filtro !== 'todas') {
       query = query.eq('estado', filtro)
     }
 
-    const { data, error } = await query
+    const { data: sols, error } = await query
     setCargando(false)
     if (error) {
       notify('Error: ' + error.message)
       return
     }
-    setSolicitudes(data || [])
+
+    // 2. Obtener perfiles de esos users
+    const userIds = (sols || []).map((s: any) => s.user_id).filter(Boolean)
+    let perfilesMap: Record<string, any> = {}
+    if (userIds.length > 0) {
+      const { data: perfiles } = await supabase
+        .from('perfiles')
+        .select('id, nombre, telefono, cedula_numero, pago_movil_telefono, pago_movil_cedula, pago_movil_banco')
+        .in('id', userIds)
+      if (perfiles) {
+        perfiles.forEach((p: any) => { perfilesMap[p.id] = p })
+      }
+    }
+
+    // 3. Combinar
+    const combinado = (sols || []).map((s: any) => ({
+      ...s,
+      perfil: perfilesMap[s.user_id] || {},
+    }))
+
+    setSolicitudes(combinado)
     setStats({
-      pendientes: data?.filter((s: any) => s.estado === 'pendiente').length || 0,
-      aprobadas: data?.filter((s: any) => s.estado === 'aprobada').length || 0,
-      rechazadas: data?.filter((s: any) => s.estado === 'rechazada').length || 0,
-      total: data?.length || 0,
+      pendientes: combinado.filter((s: any) => s.estado === 'pendiente').length,
+      aprobadas: combinado.filter((s: any) => s.estado === 'aprobada').length,
+      rechazadas: combinado.filter((s: any) => s.estado === 'rechazada').length,
+      total: combinado.length,
     })
   }
 
