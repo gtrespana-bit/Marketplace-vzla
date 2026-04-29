@@ -17,12 +17,29 @@ type Producto = {
   ubicacion_estado: string | null
   creado_en: string
   subcategoria: string | null
+  boosteado_en: string | null
+  destacado: boolean
+  destacado_hasta: string | null
 }
 
 function ProductCard({ p }: { p: Producto }) {
+  const isBoosted = p.boosteado_en != null
+  const isFeatured = p.destacado && p.destacado_hasta && new Date(p.destacado_hasta) > new Date()
+  const isPromoted = isBoosted || isFeatured
+
   return (
-    <Link href={`/producto/${p.id}`} className="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition group block border border-gray-100">
+    <Link href={`/producto/${p.id}`} className={`bg-white rounded-xl overflow-hidden hover:shadow-lg transition group block border ${isPromoted ? 'border-2 border-brand-yellow shadow-sm' : 'border-gray-100 shadow-sm'}`}>
       <div className="aspect-square bg-gray-100 relative overflow-hidden">
+        {isFeatured && (
+          <div className="absolute top-2 left-2 z-10 bg-brand-yellow text-brand-blue text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 shadow-sm">
+            ⭐ Destacado
+          </div>
+        )}
+        {isBoosted && !isFeatured && (
+          <div className="absolute top-2 left-2 z-10 bg-green-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 shadow-sm">
+            ⚡ Boost
+          </div>
+        )}
         {p.imagen_url ? (
           <img src={p.imagen_url} alt={p.titulo} className="w-full h-full object-cover group-hover:scale-105 transition-transform" loading="lazy" />
         ) : (
@@ -98,15 +115,30 @@ export default function CatalogoClient() {
 
       // Text search
       if (q) {
-        query = query.ilike('titulo', `%${q}%`)
+        query = query.ilike('titulo', `%${ q}%`)
       }
 
-      query = query.order('creado_en', { ascending: false })
+      query = query.order('creado_en', { ascending: false }).limit(200)
 
       const { data, count, error } = await query
       if (!cancelled) {
         if (!error) {
-          setProductos(data as Producto[])
+          // Sort: boost > destacado vigente > por fecha
+          const now = new Date().toISOString()
+          const sorted = (data as Producto[]).sort((a, b) => {
+            const aBoost = a.boosteado_en || null
+            const bBoost = b.boosteado_en || null
+            if (aBoost && !bBoost) return -1
+            if (!aBoost && bBoost) return 1
+            if (aBoost && bBoost) return bBoost.localeCompare(aBoost)
+            const aDest = a.destacado && a.destacado_hasta && a.destacado_hasta > now
+            const bDest = b.destacado && b.destacado_hasta && b.destacado_hasta > now
+            if (aDest && !bDest) return -1
+            if (!aDest && bDest) return 1
+            if (aDest && bDest) return b.destacado_hasta!.localeCompare(a.destacado_hasta!)
+            return b.creado_en.localeCompare(a.creado_en)
+          })
+          setProductos(sorted)
           setTotalCount(count ?? 0)
         } else {
           console.error('Error fetching:', error)

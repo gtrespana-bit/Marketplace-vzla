@@ -1,19 +1,97 @@
 import Link from 'next/link'
-import { Search, ArrowRight } from 'lucide-react'
+import { Search, ArrowRight, Star } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
+
+async function getDestacados(limit = 8) {
+  try {
+    // Try the RPC function first
+    const { data, error } = await supabase
+      .rpc('obtener_destacados_home', { p_limite: limit })
+    
+    if (!error && data) return data as any[]
+
+    // Fallback to direct query if RPC not available yet
+    const { data: data2 } = await supabase
+      .from('productos')
+      .select('id, titulo, precio_usd, estado, imagen_url, ubicacion_ciudad, destacado, destacado_hasta')
+      .eq('activo', true)
+      .eq('destacado', true)
+      .gt('destacado_hasta', new Date().toISOString())
+      .order('destacado_hasta', { ascending: false })
+      .limit(limit)
+    
+    return data2 || []
+  } catch {
+    return []
+  }
+}
 
 async function getRecentProducts(limit = 8) {
   const { data, error } = await supabase
     .from('productos')
-    .select('id, titulo, precio_usd, estado, imagen_url, ubicacion_ciudad, creado_en')
+    .select('id, titulo, precio_usd, estado, imagen_url, ubicacion_ciudad, creado_en, boosteado_en, destacado, destacado_hasta')
     .eq('activo', true)
-    .order('creado_en', { ascending: false })
-    .limit(limit)
+    .limit(50)
+  
   if (error) return []
-  return data
+  
+  // Sort client-side: boost > destacado vigente > normal by date
+  const now = new Date().toISOString()
+  return (data || [])
+    .sort((a, b) => {
+      // 1. Boost activos (más reciente primero)
+      const aBoost = a.boosteado_en || null
+      const bBoost = b.boosteado_en || null
+      if (aBoost && !bBoost) return -1
+      if (!aBoost && bBoost) return 1
+      if (aBoost && bBoost) return bBoost.localeCompare(aBoost)
+      
+      // 2. Destacados vigentes
+      const aDest = a.destacado && a.destacado_hasta > now
+      const bDest = b.destacado && b.destacado_hasta > now
+      if (aDest && !bDest) return -1
+      if (!aDest && bDest) return 1
+      if (aDest && bDest) return b.destacado_hasta.localeCompare(a.destacado_hasta)
+      
+      // 3. Por fecha (más nuevo primero)
+      return (b.creado_en || '').localeCompare(a.creado_en || '')
+    })
+    .slice(0, limit)
+}
+
+function ProductCard({ p, highlighted = false }: { p: any; highlighted?: boolean }) {
+  return (
+    <Link
+      href={`/producto/${p.id}`}
+      className={`bg-white rounded-xl overflow-hidden transition group block border ${
+        highlighted
+          ? 'border-2 border-brand-yellow shadow-lg shadow-yellow-50 hover:shadow-brand-yellow/20'
+          : 'shadow-sm border-gray-100 hover:shadow-lg'
+      }`}
+    >
+      <div className="aspect-square bg-gray-100 relative overflow-hidden">
+        {highlighted && (
+          <div className="absolute top-2 left-2 z-10 bg-brand-yellow text-brand-blue text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 shadow-sm">
+            <Star size={10} /> Destacado
+          </div>
+        )}
+        {p.imagen_url ? (
+          <img src={p.imagen_url} alt={p.titulo} className="w-full h-full object-cover group-hover:scale-105 transition-transform" loading="lazy" />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center text-gray-300 text-4xl">📦</div>
+        )}
+      </div>
+      <div className="p-4">
+        <h3 className="font-semibold text-gray-900 truncate">{p.titulo}</h3>
+        <p className="text-xl font-black text-brand-blue mt-1">${Number(p.precio_usd || 0).toLocaleString()}</p>
+        <p className="text-xs text-gray-500 mt-1">{p.estado} · {p.ubicacion_ciudad || 'Venezuela'}</p>
+      </div>
+    </Link>
+  )
 }
 
 export default async function HomePage() {
+  const destacados = await getDestacados()
   const productos = await getRecentProducts()
 
   return (
@@ -87,6 +165,24 @@ export default async function HomePage() {
         </div>
       </section>
 
+      {/* ============ DESTACADOS ============ */}
+      {destacados.length > 0 && (
+        <section className="max-w-7xl mx-auto px-4 py-8">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold text-gray-900">⭐ Destacados</h2>
+            <Link href="/creditos" className="text-brand-blue font-semibold text-sm hover:underline flex items-center gap-1">
+              ¿Quieres aparecer aquí? <ArrowRight size={14} />
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {destacados.map((p) => (
+              <ProductCard key={p.id} p={p} highlighted />
+            ))}
+          </div>
+        </section>
+      )}
+
       {/* ============ PRODUCTOS RECIENTES ============ */}
       <section className="max-w-7xl mx-auto px-4 py-8">
         <div className="flex items-center justify-between mb-6">
@@ -106,22 +202,12 @@ export default async function HomePage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {productos.map((p) => (
-              <Link key={p.id} href={`/producto/${p.id}`} className="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition group block border">
-                <div className="aspect-square bg-gray-100 relative overflow-hidden">
-                  {p.imagen_url ? (
-                    <img src={p.imagen_url} alt={p.titulo} className="w-full h-full object-cover group-hover:scale-105 transition-transform" loading="lazy" />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-gray-300 text-4xl">📦</div>
-                  )}
-                </div>
-                <div className="p-4">
-                  <h3 className="font-semibold text-gray-900 truncate">{p.titulo}</h3>
-                  <p className="text-xl font-black text-brand-blue mt-1">${Number(p.precio_usd || 0).toLocaleString()}</p>
-                  <p className="text-xs text-gray-500 mt-1">{p.estado} · {p.ubicacion_ciudad || 'Venezuela'}</p>
-                </div>
-              </Link>
-            ))}
+            {productos.map((p) => {
+              const isHighlighted = (p.destacado && p.destacado_hasta > new Date().toISOString()) || p.boosteado_en
+              return (
+                <ProductCard key={p.id} p={p} highlighted={isHighlighted} />
+              )
+            })}
           </div>
         )}
       </section>
