@@ -1,12 +1,11 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { useParams, useRouter } from 'next/navigation'
-import Link from 'next/link'
-import { supabase } from '@/lib/supabase'
+import { useState, useEffect } from 'react'
+import { useRouter, useParams } from 'next/navigation'
+import { supabase, isSupabaseConfigured } from '@/lib/supabase'
 import { useAuth } from '@/components/AuthProvider'
 import { categoriasData } from '@/lib/categorias'
-import { Camera, X, ArrowLeft, AlertCircle, UploadCloud } from 'lucide-react'
+import { Camera, X, ArrowLeft, Save, AlertCircle, Trash2 } from 'lucide-react'
 
 const currentYear = new Date().getFullYear()
 const years = Array.from({ length: 30 }, (_, i) => String(currentYear - i))
@@ -19,15 +18,19 @@ const estadosVenezuela = [
   'Amazonas', 'Delta Amacuro', 'Vargas',
 ]
 
-export default function EditarProductoPage() {
-  const { user, session, loading: authLoading } = useAuth()
+export default function EditarPage() {
   const params = useParams()
   const router = useRouter()
-  const productId = params?.id as string
+  const { user, session } = useAuth()
+  const productoId = params?.id as string
 
   const [loading, setLoading] = useState(true)
-  const [saving, setSaving] = useState(false)
+  const [guardando, setGuardando] = useState(false)
+  const [eliminando, setEliminando] = useState(false)
   const [error, setError] = useState('')
+  const [success, setSuccess] = useState('')
+
+  // Form
   const [titulo, setTitulo] = useState('')
   const [descripcion, setDescripcion] = useState('')
   const [categoria, setCategoria] = useState('')
@@ -37,127 +40,108 @@ export default function EditarProductoPage() {
   const [precioUsd, setPrecioUsd] = useState('')
   const [ubicacionEstado, setUbicacionEstado] = useState('')
   const [ubicacionCiudad, setUbicacionCiudad] = useState('')
+  const [activo, setActivo] = useState(true)
   const [specs, setSpecs] = useState<Record<string, string>>({})
-  const [imagenes, setImagenes] = useState<Array<{ preview: string; file?: File; uploadedUrl?: string; uploading?: boolean }>>([])
-  const [uploadProgress, setUploadProgress] = useState(0)
+
+  // Contact methods
+  const [contactEmail, setContactEmail] = useState('')
+  const [contactPhone, setContactPhone] = useState('')
+  const [contactWhatsApp, setContactWhatsApp] = useState('')
+  const [contactMessenger, setContactMessenger] = useState('')
+
+  // Images
+  const [currentImages, setCurrentImages] = useState<string[]>([])
+  const [newImages, setNewImages] = useState<{ file: File; preview: string }[]>([])
 
   useEffect(() => {
-    if (!authLoading && !session) router.push('/login')
-  }, [authLoading, session, router])
+    if (!user) { router.push('/login'); return }
+    if (!productoId) return
 
-  useEffect(() => {
-    if (!productId || !user) return
     async function load() {
-      const { data, error } = await supabase
+      const { data: prod } = await supabase
         .from('productos')
         .select('*')
-        .eq('id', productId)
-        .eq('user_id', user!.id)
+        .eq('id', productoId)
         .single()
 
-      if (error || !data) {
-        setError(data ? 'No encontrado' : 'Error al cargar el producto')
-        setLoading(false)
-        return
-      }
+      if (!prod) { setError('No encontrado'); setLoading(false); return }
+      if (user && prod.user_id !== user.id) { setError('No tienes permiso'); setLoading(false); return }
 
-      setTitulo(data.titulo || '')
-      setDescripcion(data.descripcion || '')
-      setCategoria(data.categoria || '')
-      setSubcategoria(data.subcategoria || '')
-      setMarca(data.marca || '')
-      setEstadoProd(data.estado || '')
-      setPrecioUsd(String(data.precio_usd || ''))
-      setUbicacionEstado(data.ubicacion_estado || '')
-      setUbicacionCiudad(data.ubicacion_ciudad || '')
-      if (data.imagen_url) {
-        setImagenes([{ preview: data.imagen_url, uploadedUrl: data.imagen_url }])
-      }
+      // Find category name
+      const { data: cat } = await supabase.from('categorias').select('nombre').eq('id', prod.categoria_id).single()
+
+      setTitulo(prod.titulo)
+      setDescripcion(prod.descripcion || '')
+      setCategoria(cat?.nombre || '')
+      setSubcategoria(prod.subcategoria || '')
+      setMarca(prod.marca || '')
+      setEstadoProd(prod.estado || '')
+      setPrecioUsd(prod.precio_usd?.toString() || '')
+      setUbicacionEstado(prod.ubicacion_estado || '')
+      setUbicacionCiudad(prod.ubicacion_ciudad || '')
+      setActivo(prod.activo)
+      setCurrentImages(prod.imagenes?.length ? prod.imagenes : (prod.imagen_url ? [prod.imagen_url] : []))
+
+      // Load contact methods
+      const mc = prod.metodos_contacto || {}
+      setContactEmail(mc.email || '')
+      setContactPhone(mc.telefono || '')
+      setContactWhatsApp(mc.whatsapp || '')
+      setContactMessenger(mc.messenger || '')
+
+      // Load specs from categoria
+      const catData = categoriasData[cat?.nombre]
+      const sub = catData?.subs.find(s => s.label === prod.subcategoria)
+      const campos = sub?.campos?.map((c: any) => ({ ...c, options: c.label === 'Ano' ? years : (c.options || []) })) || []
+
+      const existingSpecs: Record<string, string> = {}
+      campos.forEach((campo: any) => {
+        existingSpecs[campo.label] = prod.especificaciones?.[campo.label] || ''
+      })
+      setSpecs(existingSpecs)
+
       setLoading(false)
     }
     load()
-  }, [productId, user])
+  }, [productoId, user])
 
-  if (authLoading || !session) return null
-  if (loading) return <div className="min-h-[60vh] flex items-center justify-center"><p>Cargando...</p></div>
-  if (error) return (
-    <div className="max-w-3xl mx-auto px-4 py-20 text-center">
-      <AlertCircle size={48} className="text-red-500 mx-auto mb-4" />
-      <h1 className="text-2xl font-bold text-gray-800 mb-4">{error}</h1>
-      <Link href="/dashboard" className="text-brand-blue font-semibold">Volver al panel</Link>
-    </div>
-  )
+  if (!session) return null
 
-  const cat = categoriasData[categoria]
-  const sub = cat?.subs.find((s: { label: string }) => s.label === subcategoria)
+  const handleSubmit = async () => {
+    setGuardando(true)
+    setError('')
+    setSuccess('')
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files
-    if (!files) return
-    const maxFiles = 10 - imagenes.length
-    if (maxFiles <= 0) return
+    if (!isSupabaseConfigured()) { setError('Supabase no configurado'); setGuardando(false); return }
 
-    const newImages: { file: File; preview: string }[] = []
-    for (let i = 0; i < Math.min(files.length, maxFiles); i++) {
-      const file = files[i]
-      if (!file.type.startsWith('image/')) continue
-      newImages.push({ file, preview: URL.createObjectURL(file) })
-    }
-    setImagenes(prev => [...prev, ...newImages])
-  }
-
-  const removeImage = (i: number) => {
-    const img = imagenes[i]
-    if (img.preview.startsWith('blob:')) URL.revokeObjectURL(img.preview)
-    setImagenes(prev => prev.filter((_, idx) => idx !== i))
-  }
-
-  const uploadNewImages = async (): Promise<string[]> => {
-    const existingUrls = imagenes.filter(i => i.uploadedUrl).map(i => i.uploadedUrl!)
-    const newFiles = imagenes.filter(i => i.file && !i.uploadedUrl)
-
-    if (newFiles.length === 0) return existingUrls
-
-    const urls = [...existingUrls]
-    for (let i = 0; i < newFiles.length; i++) {
-      const img = newFiles[i]
-      const fileName = `${user?.id}/${Date.now()}_${i}_${img.file!.name}`.replace(/\s+/g, '_')
-      setImagenes(prev => prev.map(p => (p.file === img.file ? { ...p, uploading: true } : p)))
-
-      const { data, error: uploadError } = await supabase.storage
-        .from('productos')
-        .upload(fileName, img.file!, { cacheControl: '3600' })
-
-      if (uploadError) {
-        setImagenes(prev => prev.map(p => (p.file === img.file ? { ...p, uploading: false } : p)))
-        continue
+    try {
+      // Upload new images
+      let uploadedUrls = [...currentImages]
+      if (newImages.length > 0) {
+        for (const img of newImages) {
+          const fileName = `${user?.id}/${Date.now()}_${img.file.name}`.replace(/\s+/g, '_')
+          const { data, error: uploadError } = await supabase.storage
+            .from('productos')
+            .upload(fileName, img.file, { cacheControl: '3600' })
+          if (!uploadError) {
+            const { data: urlData } = supabase.storage.from('productos').getPublicUrl(data.path)
+            uploadedUrls.push(urlData.publicUrl)
+          }
+        }
       }
 
-      const { data: urlData } = supabase.storage.from('productos').getPublicUrl(data.path)
-      urls.push(urlData.publicUrl)
-      setUploadProgress(Math.round(((i + 1) / newFiles.length) * 100))
-    }
-    return urls
-  }
+      // Build contact methods
+      const metodosContacto: Record<string, any> = {}
+      if (contactEmail) metodosContacto.email = contactEmail
+      if (contactPhone) metodosContacto.telefono = contactPhone
+      if (contactWhatsApp) metodosContacto.whatsapp = contactWhatsApp
+      if (contactMessenger) metodosContacto.messenger = contactMessenger
 
-  const handleSave = async () => {
-    setSaving(true)
-    setError('')
+      // Get category id
+      const { data: catData } = await supabase.from('categorias').select('id').eq('nombre', categoria).single()
 
-    let imagenesArr: string[] = []
-    const newImgs = await uploadNewImages()
-    imagenesArr = newImgs
-
-    // Get categoria_id
-    const { data: catData } = await supabase
-      .from('categorias')
-      .select('id')
-      .eq('nombre', categoria)
-      .single()
-
-    const { error: dbError } = await supabase
-      .from('productos')
-      .update({
+      // Build updates
+      const updates: Record<string, any> = {
         titulo,
         descripcion,
         categoria_id: catData?.id || null,
@@ -167,116 +151,231 @@ export default function EditarProductoPage() {
         precio_usd: parseFloat(precioUsd) || null,
         ubicacion_estado: ubicacionEstado,
         ubicacion_ciudad: ubicacionCiudad,
-        imagen_url: imagenesArr.length > 0 ? imagenesArr[0] : null,
-        imagenes: imagenesArr,
-      })
-      .eq('id', productId)
+        activo,
+        imagen_url: uploadedUrls[0] || null,
+        imagenes: uploadedUrls,
+        especificaciones: Object.keys(specs).length > 0 ? specs : null,
+        metodos_contacto: Object.keys(metodosContacto).length > 0 ? metodosContacto : null,
+      }
 
-    if (dbError) {
-      setError('Error al guardar: ' + dbError.message)
-    } else {
-      router.push(`/producto/${productId}`)
+      const { error: dbError } = await supabase.from('productos').update(updates).eq('id', productoId)
+
+      if (dbError) {
+        setError('Error al guardar: ' + dbError.message)
+      } else {
+        setSuccess('Guardado correctamente')
+        setTimeout(() => router.push(`/producto/${productoId}`), 1500)
+      }
+    } catch (err) {
+      setError('Error inesperado')
     }
-    setSaving(false)
+    setGuardando(false)
   }
+
+  const handleEliminar = async () => {
+    if (!confirm('¿Eliminar permanentemente?')) return
+    setEliminando(true)
+    await supabase.from('productos').delete().eq('id', productoId)
+    router.push('/dashboard')
+  }
+
+  const cat = categoriasData[categoria]
+  const sub = cat?.subs.find(s => s.label === subcategoria)
+  const camposEspeciales = sub?.campos?.map((c: any) => ({ ...c, options: c.label === 'Ano' ? years : (c.options || []) })) || []
+
+  const handleNewImages = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files
+    if (!files) return
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i]
+      if (file.type.startsWith('image/')) {
+        setNewImages(prev => [...prev, { file, preview: URL.createObjectURL(file) }])
+      }
+    }
+  }
+
+  const removeNewImage = (i: number) => setNewImages(prev => prev.filter((_, idx) => idx !== i))
+  const removeCurrentImage = (i: number) => setCurrentImages(prev => prev.filter((_, idx) => idx !== i))
+
+  if (loading) return <div className="max-w-3xl mx-auto px-4 py-12 text-center"><p>Cargando...</p></div>
+  if (error && !titulo) return <div className="max-w-3xl mx-auto px-4 py-12 text-center"><h2 className="text-2xl font-bold mb-4">{error}</h2><button onClick={() => router.push('/dashboard')} className="bg-brand-blue text-white px-6 py-2 rounded-lg">Volver</button></div>
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-8">
-      <Link href="/dashboard" className="inline-flex items-center gap-2 text-gray-500 hover:text-brand-blue transition mb-6">
-        <ArrowLeft size={18} /> Volver al panel
-      </Link>
+      <button onClick={() => router.back()} className="flex items-center gap-2 text-gray-500 hover:text-gray-800 mb-6 text-sm">
+        <ArrowLeft size={16} /> Volver
+      </button>
 
-      <h1 className="text-3xl font-bold text-gray-900 mb-2">Editar publicacion</h1>
-      <p className="text-gray-500 mb-8">Modifica los datos de tu producto</p>
+      <h1 className="text-3xl font-bold text-gray-900 mb-2">Editar publicación</h1>
+      <p className="text-gray-500 mb-6">Modifica los campos que necesites</p>
 
-      {error && (
-        <div className="flex items-center gap-2 bg-red-50 text-red-700 p-3 rounded-lg mb-6 text-sm">
-          <AlertCircle size={18} /> {error}
-        </div>
-      )}
+      {/* Alerts */}
+      {error && <div className="flex items-center gap-2 bg-red-50 text-red-700 p-3 rounded-lg mb-4 text-sm"><AlertCircle size={18} /> {error}</div>}
+      {success && <div className="flex items-center gap-2 bg-green-50 text-green-700 p-3 rounded-lg mb-4 text-sm">✅ {success}</div>}
 
-      <div className="bg-white rounded-2xl shadow-sm p-6 border border-gray-100 space-y-5">
-        {/* Titulo */}
+      <div className="bg-white rounded-2xl shadow-sm p-6 border space-y-5">
+        {/* Título */}
         <div>
-          <label className="block text-sm font-semibold text-gray-900 mb-1.5">Titulo</label>
-          <input type="text" value={titulo} onChange={e => setTitulo(e.target.value)} maxLength={100} className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-800 bg-white" />
+          <label className="block text-sm font-semibold text-gray-900 mb-1.5">Título</label>
+          <input type="text" value={titulo} onChange={e => setTitulo(e.target.value)} maxLength={100} className="w-full border rounded-lg px-4 py-3" />
           <p className="text-xs text-gray-500 mt-1">{titulo.length}/100</p>
         </div>
 
-        {/* Descripcion */}
+        {/* Descripción */}
         <div>
-          <label className="block text-sm font-semibold text-gray-900 mb-1.5">Descripcion</label>
-          <textarea value={descripcion} onChange={e => setDescripcion(e.target.value)} rows={5} maxLength={2000} className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-800 resize-none bg-white" />
+          <label className="block text-sm font-semibold text-gray-900 mb-1.5">Descripción</label>
+          <textarea value={descripcion} onChange={e => setDescripcion(e.target.value)} rows={4} className="w-full border rounded-lg px-4 py-3 resize-none" />
         </div>
 
-        {/* Estado del producto */}
-        <div>
-          <label className="block text-sm font-semibold text-gray-900 mb-1.5">Estado</label>
-          <div className="grid grid-cols-2 gap-2">
-            {estadosProducto.map(e => (
-              <button key={e} onClick={() => setEstadoProd(e)} className={`px-4 py-3 rounded-lg text-sm font-medium border transition ${estadoProd === e ? 'bg-brand-blue text-white border-brand-blue' : 'bg-white text-gray-700 border-gray-200 hover:border-brand-yellow'}`}>{e}</button>
-            ))}
+        {/* Precio + Estado + Categoria/Sub */}
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="block text-sm font-semibold text-gray-900 mb-1.5">Precio (USD)</label>
+            <input type="number" value={precioUsd} onChange={e => setPrecioUsd(e.target.value)} className="w-full border rounded-lg px-4 py-3" />
+          </div>
+          <div>
+            <label className="block text-sm font-semibold text-gray-900 mb-1.5">Condición</label>
+            <select value={estadoProd} onChange={e => setEstadoProd(e.target.value)} className="w-full border rounded-lg px-4 py-3 bg-white">
+              <option value="">Selecciona...</option>
+              {estadosProducto.map(e => <option key={e} value={e}>{e}</option>)}
+            </select>
           </div>
         </div>
 
-        {/* Precio */}
-        <div>
-          <label className="block text-sm font-semibold text-gray-900 mb-1.5">Precio (USD)</label>
-          <input type="number" value={precioUsd} onChange={e => setPrecioUsd(e.target.value)} placeholder="Ej: 250" min="0" step="0.01" className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-800 bg-white" />
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="block text-sm font-semibold text-gray-900 mb-1.5">Categoría</label>
+            <select value={categoria} onChange={e => { setCategoria(e.target.value); setSubcategoria('') }} className="w-full border rounded-lg px-4 py-3 bg-white">
+              <option value="">...</option>
+              {Object.entries(categoriasData).map(([k, v]: any) => <option key={k} value={k}>{v.icon} {v.label}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-semibold text-gray-900 mb-1.5">Subcategoría</label>
+            <select value={subcategoria} onChange={e => setSubcategoria(e.target.value)} disabled={!categoria} className="w-full border rounded-lg px-4 py-3 bg-white disabled:bg-gray-100">
+              <option value="">...</option>
+              {cat?.subs.map((s: any) => <option key={s.label} value={s.label}>{s.icon} {s.label}</option>)}
+            </select>
+          </div>
         </div>
 
-        {/* Ubicacion */}
+        {marca && <div><label className="block text-sm font-semibold text-gray-900 mb-1.5">Marca</label><input type="text" value={marca} onChange={e => setMarca(e.target.value)} className="w-full border rounded-lg px-4 py-3" /></div>}
+
+        {/* Campos especiales */}
+        {camposEspeciales.length > 0 && (
+          <div className="bg-gray-50 rounded-xl p-5 space-y-4">
+            <h3 className="font-bold text-gray-900">Especificaciones</h3>
+            {camposEspeciales.map((campo: any) => (
+              <div key={campo.label}>
+                <label className="block text-sm font-semibold text-gray-900 mb-1.5">{campo.label}</label>
+                {campo.type === 'select' ? (
+                  <select value={specs[campo.label] || ''} onChange={e => setSpecs(p => ({ ...p, [campo.label]: e.target.value }))} className="w-full border rounded-lg px-3 py-2 bg-white">
+                    <option value="">Seleccionar...</option>
+                    {(campo.options || []).map((o: string) => <option key={o} value={o}>{o}</option>)}
+                  </select>
+                ) : (
+                  <input type="text" value={specs[campo.label] || ''} onChange={e => setSpecs(p => ({ ...p, [campo.label]: e.target.value }))} className="w-full border rounded-lg px-3 py-2" />
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Ubicación */}
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label className="block text-sm font-semibold text-gray-900 mb-1.5">Estado</label>
-            <select value={ubicacionEstado} onChange={e => setUbicacionEstado(e.target.value)} className="w-full border border-gray-300 rounded-lg px-3 py-3 bg-white text-gray-800">
+            <select value={ubicacionEstado} onChange={e => setUbicacionEstado(e.target.value)} className="w-full border rounded-lg px-4 py-3 bg-white">
               <option value="">Estado...</option>
               {estadosVenezuela.map(e => <option key={e} value={e}>{e}</option>)}
             </select>
           </div>
           <div>
             <label className="block text-sm font-semibold text-gray-900 mb-1.5">Ciudad</label>
-            <input type="text" value={ubicacionCiudad} onChange={e => setUbicacionCiudad(e.target.value)} className="w-full border border-gray-300 rounded-lg px-3 py-3 text-gray-800 bg-white" />
+            <input type="text" value={ubicacionCiudad} onChange={e => setUbicacionCiudad(e.target.value)} className="w-full border rounded-lg px-4 py-3" />
           </div>
         </div>
 
-        {/* Imagenes */}
-        <div>
-          <label className="block text-sm font-semibold text-gray-900 mb-1.5">Fotos</label>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
-            {imagenes.map((img, i) => (
-              <div key={i} className="aspect-square relative rounded-lg overflow-hidden group border border-gray-200">
-                <img src={img.preview} alt="" className="w-full h-full object-cover" />
-                {i === 0 && <span className="absolute top-1 left-1 bg-brand-yellow text-brand-blue text-[10px] font-bold px-1.5 py-0.5 rounded">Portada</span>}
-                {img.uploading && (
-                  <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                    <div className="w-8 h-8 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  </div>
-                )}
-                {!img.uploading && (
-                  <button onClick={() => removeImage(i)} className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition"><X size={14} /></button>
-                )}
-              </div>
-            ))}
-            {imagenes.length < 10 && (
-              <label className="aspect-square rounded-lg border-2 border-dashed border-gray-300 flex flex-col items-center justify-center cursor-pointer hover:border-brand-yellow hover:bg-yellow-50 transition">
-                <Camera size={24} className="text-gray-400" /><span className="text-xs text-gray-500 mt-1">Añadir</span>
-                <input type="file" accept="image/*" multiple onChange={handleImageUpload} className="hidden" />
-              </label>
-            )}
+        {/* Métodos de contacto */}
+        <div className="bg-blue-50/60 border border-blue-200 rounded-xl p-5 space-y-3">
+          <h3 className="font-bold text-gray-900">Métodos de contacto</h3>
+          <div className="flex items-start gap-3 bg-white border rounded-lg p-3">
+            <input type="checkbox" checked={!!contactWhatsApp} onChange={e => !e.target.checked ? setContactWhatsApp('') : setContactWhatsApp('+58 ')} className="mt-1 rounded" />
+            <label className="flex-1 text-sm">{contactWhatsApp !== '' && <span className="font-medium">💚 WhatsApp</span>}
+              {contactWhatsApp !== '' && <input type="tel" value={contactWhatsApp} onChange={e => setContactWhatsApp(e.target.value)} placeholder="+58 412 1234567" className="mt-1 w-full border rounded px-2 py-1.5 text-sm" />}
+            </label>
           </div>
-          {saving && uploadProgress > 0 && (
-            <div className="mt-2">
-              <div className="w-full bg-gray-200 rounded-full h-2"><div className="bg-brand-blue h-2 rounded-full transition-all" style={{ width: `${uploadProgress}%` }} /></div>
+          <div className="flex items-start gap-3 bg-white border rounded-lg p-3">
+            <input type="checkbox" checked={!!contactPhone} onChange={e => !e.target.checked ? setContactPhone('') : setContactPhone('+58 ')} className="mt-1 rounded" />
+            <label className="flex-1 text-sm">{contactPhone !== '' && <span className="font-medium">📞 Teléfono</span>}
+              {contactPhone !== '' && <input type="tel" value={contactPhone} onChange={e => setContactPhone(e.target.value)} placeholder="+58 412 1234567" className="mt-1 w-full border rounded px-2 py-1.5 text-sm" />}
+            </label>
+          </div>
+          <div className="flex items-start gap-3 bg-white border rounded-lg p-3">
+            <input type="checkbox" checked={!!contactEmail} onChange={e => !e.target.checked ? setContactEmail('') : setContactEmail('')} className="mt-1 rounded" />
+            <label className="flex-1 text-sm">{contactEmail !== '' && <span className="font-medium">📧 Email</span>}
+              {contactEmail !== '' && <input type="email" value={contactEmail} onChange={e => setContactEmail(e.target.value)} placeholder="tu@email.com" className="mt-1 w-full border rounded px-2 py-1.5 text-sm" />}
+            </label>
+          </div>
+          <div className="flex items-start gap-3 bg-white border rounded-lg p-3">
+            <input type="checkbox" checked={!!contactMessenger} onChange={e => !e.target.checked ? setContactMessenger('') : setContactMessenger('https://m.me/')} className="mt-1 rounded" />
+            <label className="flex-1 text-sm">{contactMessenger !== '' && <span className="font-medium">💬 Messenger</span>}
+              {contactMessenger !== '' && <input type="url" value={contactMessenger} onChange={e => setContactMessenger(e.target.value)} placeholder="https://m.me/tuusuario" className="mt-1 w-full border rounded px-2 py-1.5 text-sm" />}
+            </label>
+          </div>
+        </div>
+
+        {/* Imágenes actuales */}
+        {currentImages.length > 0 && (
+          <div>
+            <label className="block text-sm font-semibold text-gray-900 mb-2">Imágenes actuales</label>
+            <div className="grid grid-cols-4 gap-2">
+              {currentImages.map((url, i) => (
+                <div key={i} className="relative aspect-square rounded-lg overflow-hidden group">
+                  <img src={url} alt="" className="w-full h-full object-cover" />
+                  <button onClick={() => removeCurrentImage(i)} className="absolute top-1 right-1 p-1 bg-red-500 rounded-full text-white opacity-0 group-hover:opacity-100 transition"><X size={12} /></button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Agregar nuevas imágenes */}
+        <div>
+          <label className="block text-sm font-semibold text-gray-900 mb-2">Agregar imágenes</label>
+          <label className="flex items-center gap-2 p-4 border-2 border-dashed rounded-lg cursor-pointer hover:border-brand-yellow transition">
+            <Camera size={20} className="text-gray-400" />
+            <span className="text-sm text-gray-500">Seleccionar fotos...</span>
+            <input type="file" accept="image/*" multiple onChange={handleNewImages} className="hidden" />
+          </label>
+          {newImages.length > 0 && (
+            <div className="grid grid-cols-4 gap-2 mt-3">
+              {newImages.map((img, i) => (
+                <div key={i} className="relative aspect-square rounded-lg overflow-hidden">
+                  <img src={img.preview} alt="" className="w-full h-full object-cover" />
+                  <button onClick={() => removeNewImage(i)} className="absolute top-1 right-1 p-1 bg-red-500 rounded-full text-white"><X size={12} /></button>
+                </div>
+              ))}
             </div>
           )}
         </div>
 
-        {/* Botones */}
-        <div className="flex gap-3">
-          <button onClick={() => router.back()} className="px-6 py-3 rounded-lg font-medium border border-gray-200 hover:bg-gray-50">Cancelar</button>
-          <button onClick={handleSave} disabled={saving || !titulo} className="flex-1 bg-brand-yellow text-brand-blue py-3 rounded-lg font-bold hover:bg-yellow-400 transition disabled:opacity-50">
-            {saving ? 'Guardando...' : 'Guardar cambios'}
+        {/* Activo/Pausado */}
+        <div className="flex items-center gap-3">
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" checked={activo} onChange={e => setActivo(e.target.checked)} className="rounded" />
+            <span className="text-sm font-medium">Publicación {activo ? 'activa' : 'pausada'}</span>
+          </label>
+        </div>
+
+        {/* Actions */}
+        <div className="flex items-center gap-3 pt-4 border-t">
+          <button onClick={handleSubmit} disabled={guardando} className="flex items-center gap-2 bg-brand-yellow text-brand-blue px-6 py-3 rounded-lg font-bold hover:bg-yellow-400 transition disabled:opacity-50">
+            <Save size={16} /> {guardando ? 'Guardando...' : 'Guardar cambios'}
+          </button>
+          <button onClick={() => router.push(`/producto/${productoId}`)} className="px-4 py-3 border rounded-lg hover:bg-gray-50">Cancelar</button>
+          <button onClick={handleEliminar} disabled={eliminando} className="flex items-center gap-2 ml-auto text-red-600 hover:bg-red-50 px-4 py-2.5 rounded-lg transition disabled:opacity-50">
+            <Trash2 size={16} /> {eliminando ? 'Eliminando...' : 'Eliminar'}
           </button>
         </div>
       </div>

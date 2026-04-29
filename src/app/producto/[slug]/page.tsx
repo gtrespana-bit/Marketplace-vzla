@@ -45,6 +45,8 @@ export default function ProductoPage() {
   const [rating, setRating] = useState(5)
   const [comentario, setComentario] = useState('')
   const [enviandoResena, setEnviandoResena] = useState(false)
+  const [esFavorito, setEsFavorito] = useState(false)
+  const [toggleandoFav, setToggleandoFav] = useState(false)
 
   useEffect(() => {
     if (!slug) return
@@ -79,6 +81,15 @@ export default function ProductoPage() {
         .eq('vendedor_id', prod.user_id)
       setTotalResenas(rc || 0)
 
+      // Check si es favorito del usuario actual
+      if (user) {
+        const { count } = await supabase
+          .from('favoritos')
+          .select('*', { count: 'exact', head: true })
+          .eq('user_id', user.id)
+          .eq('producto_id', prod.id)
+        setEsFavorito((count || 0) > 0)
+      }
       // Increment views (fire and forget)
       supabase.from('productos').update({ visitas: (prod.visitas || 0) + 1 }).eq('id', prod.id).then(() => {})
 
@@ -89,12 +100,24 @@ export default function ProductoPage() {
 
   const handleContacto = () => {
     if (!user) {
-      // Si no está logueado, redirigir a login y volver aquí después
       router.push(`/login?redirect=/producto/${slug}`)
       return
     }
-    // Ir al chat directo
     window.location.href = `/chat?producto_id=${producto.id}&vendedor_id=${producto.user_id}`
+  }
+
+  const toggleFavorito = async () => {
+    if (!user) { router.push(`/login?redirect=/producto/${slug}`); return }
+    if (toggleandoFav) return
+    setToggleandoFav(true)
+    if (esFavorito) {
+      await supabase.from('favoritos').delete().eq('user_id', user.id).eq('producto_id', producto.id)
+      setEsFavorito(false)
+    } else {
+      await supabase.from('favoritos').insert({ user_id: user.id, producto_id: producto.id })
+      setEsFavorito(true)
+    }
+    setToggleandoFav(false)
   }
 
   if (loading) return (
@@ -296,10 +319,22 @@ export default function ProductoPage() {
             )}
 
             <div className="flex gap-2 mt-3">
-              <button className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50 transition">
-                <Heart size={16} /> Guardar
+              <button
+                onClick={toggleFavorito}
+                disabled={toggleandoFav}
+                className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl border text-sm font-medium transition ${
+                  esFavorito
+                    ? 'border-red-200 bg-red-50 text-red-600'
+                    : 'border-gray-200 text-gray-600 hover:bg-gray-50'
+                }`}
+              >
+                <Heart size={16} className={esFavorito ? 'fill-red-600' : ''} />
+                {esFavorito ? 'Guardado' : 'Guardar'}
               </button>
-              <button className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50 transition">
+              <button
+                onClick={() => navigator.share?.({ title: producto.titulo, url: window.location.href })}
+                className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50 transition"
+              >
                 <Share2 size={16} /> Compartir
               </button>
             </div>

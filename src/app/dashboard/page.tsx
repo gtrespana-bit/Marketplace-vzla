@@ -17,6 +17,7 @@ export default function DashboardPage() {
   const [productos, setProductos] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [visitasTotales, setVisitasTotales] = useState(0)
+  const [favoritos, setFavoritos] = useState<any[]>([])
   const [favoritosCount, setFavoritosCount] = useState(0)
 
   useEffect(() => {
@@ -41,9 +42,13 @@ export default function DashboardPage() {
       // Favoritos
       supabase
         .from('favoritos')
-        .select('id', { count: 'exact', head: true })
+        .select('producto_id, creado_en, productos!inner(id, titulo, precio_usd, imagen_url, activo, user_id, ubicacion_ciudad)')
         .eq('user_id', user.id)
-        .then(({ count }) => setFavoritosCount(count || 0)),
+        .order('creado_en', { ascending: false })
+        .then(({ data }) => {
+          setFavoritos(data || [])
+          setFavoritosCount(data?.length || 0)
+        }),
     ]).finally(() => setLoading(false))
   }, [user])
 
@@ -146,7 +151,7 @@ export default function DashboardPage() {
           {activeTab === 'productos' && <MisProductos productos={productos} />}
           {activeTab === 'mensajes' && <MensajesPlaceholder />}
           {activeTab === 'creditos' && <CreditosPlaceholder />}
-          {activeTab === 'favoritos' && <FavoritosPlaceholder />}
+          {activeTab === 'favoritos' && <FavoritosPlaceholder favoritos={favoritos} />}
           {activeTab === 'configuracion' && <ConfiguracionPlaceholder />}
         </div>
       </div>
@@ -275,12 +280,53 @@ function CreditosPlaceholder() {
   )
 }
 
-function FavoritosPlaceholder() {
+function FavoritosPlaceholder({ favoritos }: { favoritos: any[] }) {
+  if (favoritos.length === 0) {
+    return (
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8 text-center">
+        <Heart size={48} className="text-gray-300 mx-auto mb-4" />
+        <h3 className="text-xl font-bold text-gray-800 mb-2">Tus favoritos</h3>
+        <p className="text-gray-500">Guarda publicaciones que te interesen para verlas después.</p>
+      </div>
+    )
+  }
+
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8 text-center">
-      <Heart size={48} className="text-gray-300 mx-auto mb-4" />
-      <h3 className="text-xl font-bold text-gray-800 mb-2">Tus favoritos</h3>
-      <p className="text-gray-500">Guarda publicaciones que te interesen para verlas después.</p>
+    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+      <h3 className="font-bold text-lg mb-4">Mis favoritos ({favoritos.length})</h3>
+      <div className="space-y-3">
+        {favoritos.map((fav: any) => {
+          const p = fav.productos
+          return (
+            <div key={fav.producto_id} className="flex items-center gap-4 p-3 rounded-lg hover:bg-gray-50 border border-gray-100 transition">
+              <Link href={`/producto/${p.id}`} className="flex items-center gap-4 flex-1 min-w-0">
+                <div className="w-16 h-16 rounded-lg bg-gray-100 flex-shrink-0 overflow-hidden">
+                  {p.imagen_url ? (
+                    <img src={p.imagen_url} alt={p.titulo} className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">Sin foto</div>
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h4 className="font-medium text-gray-800 truncate">{p.titulo}</h4>
+                  <p className="text-sm text-brand-blue font-bold">${p.precio_usd?.toLocaleString()}</p>
+                  {p.ubicacion_ciudad && <p className="text-xs text-gray-500">{p.ubicacion_ciudad}</p>}
+                </div>
+              </Link>
+              <button
+                onClick={async () => {
+                  await supabase.from('favoritos').delete().eq('producto_id', p.id)
+                  window.location.reload()
+                }}
+                className="p-2 hover:bg-red-50 rounded-lg transition text-red-500"
+                title="Quitar de favoritos"
+              >
+                <X size={16} />
+              </button>
+            </div>
+          )
+        })}
+      </div>
     </div>
   )
 }
