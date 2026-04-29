@@ -94,10 +94,17 @@ export default function ChatPageClient() {
     if (!user) router.push('/login')
   }, [user, authLoading, router])
 
-  // ─── Scroll al final ───
+  // ─── Scroll automático inteligente ───
+  // Solo scrollea al final si el usuario ya estaba cerca del final
+  // (no scrollea si el usuario estaba leyendo mensajes antiguos)
   useEffect(() => {
-    mensajesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [mensajes.length])
+    const container = mensajesEndRef.current?.parentElement
+    if (!container) return
+    const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 150
+    if (isNearBottom) {
+      mensajesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+    }
+  }, [mensajes])
 
   // ─── Cargar conversaciones (una sola vez, no se re-ejecuta) ───
   const loadConversaciones = useCallback(async () => {
