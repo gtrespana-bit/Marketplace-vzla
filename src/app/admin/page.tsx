@@ -7,7 +7,7 @@ import { useAuth } from '@/components/AuthProvider'
 import { Check, X, CreditCard, Eye, ExternalLink, Loader2, RefreshCw } from 'lucide-react'
 
 // ← PON TU EMAIL DE SUPABASE AQUI ↑
-const ADMIN_EMAILS = ['tuemail@ejemplo.com']
+const ADMIN_EMAILS = ['gtrespana@gmail.com']
 
 export default function AdminPage() {
   const { user, session } = useAuth()
