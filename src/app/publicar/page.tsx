@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 import { supabase, isSupabaseConfigured } from '@/lib/supabase'
 import { useAuth } from '@/components/AuthProvider'
 import { categoriasData } from '@/lib/categorias'
-import { Camera, X, UploadCloud, AlertCircle } from 'lucide-react'
+import { Camera, X, UploadCloud, AlertCircle, Phone, Mail, MapPin, MessageSquare } from 'lucide-react'
 
 const currentYear = new Date().getFullYear()
 const years = Array.from({ length: 30 }, (_, i) => String(currentYear - i))
@@ -46,6 +46,10 @@ export default function PublicarPage() {
   const [uploadProgress, setUploadProgress] = useState(0)
   const [error, setError] = useState('')
   const [specs, setSpecs] = useState<Record<string, string>>({})
+  const [contactEmail, setContactEmail] = useState('')
+  const [contactPhone, setContactPhone] = useState('')
+  const [contactWhatsApp, setContactWhatsApp] = useState('')
+  const [contactMessenger, setContactMessenger] = useState('')
 
   // Redirect if not logged in
   useEffect(() => {
@@ -172,6 +176,13 @@ export default function PublicarPage() {
         .eq('nombre', categoria)
         .single()
 
+      // Build metodos_contacto JSON
+      const metodosContacto: Record<string, any> = {}
+      if (contactEmail) metodosContacto.email = contactEmail
+      if (contactPhone) metodosContacto.telefono = contactPhone
+      if (contactWhatsApp) metodosContacto.whatsapp = contactWhatsApp
+      if (contactMessenger) metodosContacto.messenger = contactMessenger
+
       // Insert product
       const { error: dbError, data: producto } = await supabase
         .from('productos')
@@ -188,6 +199,7 @@ export default function PublicarPage() {
           ubicacion_ciudad: ubicacionCiudad,
           imagen_url: imagenUrl,
           imagenes: imagenesArray,
+          metodos_contacto: Object.keys(metodosContacto).length > 0 ? metodosContacto : null,
           activo: true,
           destacado: false,
         })
@@ -342,6 +354,67 @@ export default function PublicarPage() {
               </div>
             </div>
 
+            {/* Metodos de contacto por publicacion */}
+            <div className="bg-blue-50/60 border border-blue-200 rounded-xl p-5 space-y-4">
+              <h3 className="font-bold text-gray-900 flex items-center gap-2">
+                <MapPin size={18} />
+                Como te contactan en esta publicacion?
+              </h3>
+              <p className="text-xs text-gray-500">Los metodos de contacto son por publicacion. Elige los que quieras mostrar a los compradores.</p>
+
+              <div className="space-y-3">
+                {/* WhatsApp */}
+                <div className="flex items-start gap-3 bg-white border border-gray-200 rounded-lg p-3">
+                  <input type="checkbox" id="useWhatsApp" checked={!!contactWhatsApp} onChange={e => !e.target.checked ? setContactWhatsApp('') : setContactWhatsApp('')} className="mt-1 rounded text-brand-blue" />
+                  <label htmlFor="useWhatsApp" className="flex-1">
+                    <span className="text-sm font-medium flex items-center gap-1.5">💚 WhatsApp</span>
+                    {contactWhatsApp !== '' && (
+                      <input type="tel" value={contactWhatsApp} onChange={e => setContactWhatsApp(e.target.value)} placeholder="+58 412 1234567" className="mt-1 w-full border border-gray-200 rounded px-2 py-1.5 text-sm" />
+                    )}
+                  </label>
+                </div>
+
+                {/* Telefono */}
+                <div className="flex items-start gap-3 bg-white border border-gray-200 rounded-lg p-3">
+                  <input type="checkbox" id="usePhone" checked={!!contactPhone} onChange={e => !e.target.checked ? setContactPhone('') : setContactPhone('')} className="mt-1 rounded text-brand-blue" />
+                  <label htmlFor="usePhone" className="flex-1">
+                    <span className="text-sm font-medium flex items-center gap-1.5"><Phone size={14} /> Llamadas</span>
+                    {contactPhone !== '' && (
+                      <input type="tel" value={contactPhone} onChange={e => setContactPhone(e.target.value)} placeholder="+58 412 1234567" className="mt-1 w-full border border-gray-200 rounded px-2 py-1.5 text-sm" />
+                    )}
+                  </label>
+                </div>
+
+                {/* Email */}
+                <div className="flex items-start gap-3 bg-white border border-gray-200 rounded-lg p-3">
+                  <input type="checkbox" id="useEmail" checked={!!contactEmail} onChange={e => !e.target.checked ? setContactEmail('') : setContactEmail('')} className="mt-1 rounded text-brand-blue" />
+                  <label htmlFor="useEmail" className="flex-1">
+                    <span className="text-sm font-medium flex items-center gap-1.5"><Mail size={14} /> Email</span>
+                    {contactEmail !== '' && (
+                      <input type="email" value={contactEmail} onChange={e => setContactEmail(e.target.value)} placeholder="tu@email.com" className="mt-1 w-full border border-gray-200 rounded px-2 py-1.5 text-sm" />
+                    )}
+                  </label>
+                </div>
+
+                {/* Messenger */}
+                <div className="flex items-start gap-3 bg-white border border-gray-200 rounded-lg p-3">
+                  <input type="checkbox" id="useMessenger" checked={!!contactMessenger} onChange={e => !e.target.checked ? setContactMessenger('') : setContactMessenger('')} className="mt-1 rounded text-brand-blue" />
+                  <label htmlFor="useMessenger" className="flex-1">
+                    <span className="text-sm font-medium flex items-center gap-1.5"><MessageSquare size={14} /> Facebook Messenger</span>
+                    {contactMessenger !== '' && (
+                      <input type="url" value={contactMessenger} onChange={e => setContactMessenger(e.target.value)} placeholder="https://m.me/tuusuario" className="mt-1 w-full border border-gray-200 rounded px-2 py-1.5 text-sm" />
+                    )}
+                  </label>
+                </div>
+              </div>
+
+              {/* Chat interno siempre activo */}
+              <div className="flex items-center gap-2 text-xs text-gray-500">
+                <MessageSquare size={12} />
+                <span>Chat interno activado automaticamente</span>
+              </div>
+            </div>
+
             <div className="flex gap-3">
               <button onClick={() => setStep(1)} className="px-6 py-3 rounded-lg font-medium border border-gray-200 hover:bg-gray-50"> atras</button>
               <button onClick={() => setStep(3)} disabled={!canGoToStep3} className="flex-1 bg-brand-blue text-white py-3 rounded-lg font-bold hover:bg-blue-900 transition disabled:opacity-50">Siguiente</button>
@@ -415,6 +488,21 @@ export default function PublicarPage() {
                 <p><span className="text-gray-500">Precio:</span> <strong className="text-brand-blue text-lg">${precioUsd}</strong></p>
                 <p><span className="text-gray-500">Ubicacion:</span> {ubicacionCiudad}, {ubicacionEstado}</p>
               </div>
+
+              {/* Metodos contacto resumen */}
+              {(contactEmail || contactPhone || contactWhatsApp || contactMessenger) && (
+                <div className="mt-3 p-3 bg-blue-50 rounded-lg">
+                  <p className="text-xs font-semibold text-gray-500 mb-1">Metodos de contacto:</p>
+                  <div className="flex flex-wrap gap-2 text-xs">
+                    {contactEmail && <span className="bg-white px-2 py-1 rounded border">📧 {contactEmail}</span>}
+                    {contactPhone && <span className="bg-white px-2 py-1 rounded border">📞 {contactPhone}</span>}
+                    {contactWhatsApp && <span className="bg-white px-2 py-1 rounded border">💚 WhatsApp</span>}
+                    {contactMessenger && <span className="bg-white px-2 py-1 rounded border">👤 Messenger</span>}
+                    <span className="bg-white px-2 py-1 rounded border">💬 Chat interno</span>
+                  </div>
+                </div>
+              )}
+
               <div className="mt-4 p-4 bg-gray-50 rounded-lg"><p className="text-sm text-gray-600"><strong>Descripcion:</strong></p><p className="text-sm text-gray-700 mt-1">{descripcion}</p></div>
             </div>
 

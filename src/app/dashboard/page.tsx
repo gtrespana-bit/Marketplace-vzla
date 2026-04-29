@@ -2,11 +2,13 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/components/AuthProvider'
+import Avatar from '@/components/Avatar'
 import {
   Plus, Package, MessageSquare, CreditCard, Settings,
-  Eye, Heart, TrendingUp, LogOut, ChevronRight, X, Pause, Play, Edit, Star
+  Eye, Heart, TrendingUp, LogOut, ChevronRight, X, Pause, Play, Edit, Star, User
 } from 'lucide-react'
 
 export default function DashboardPage() {
@@ -243,8 +245,13 @@ function MensajesPlaceholder() {
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8 text-center">
       <MessageSquare size={48} className="text-gray-300 mx-auto mb-4" />
       <h3 className="text-xl font-bold text-gray-800 mb-2">Chat en tiempo real</h3>
-      <p className="text-gray-500">Aquí aparecerán tus conversaciones con compradores y vendedores.</p>
-      <p className="text-sm text-brand-blue mt-4 font-semibold">Próximamente — Fase 2</p>
+      <p className="text-gray-500">Gestiona tus conversaciones con compradores y vendedores.</p>
+      <Link
+        href="/chat"
+        className="inline-block mt-4 bg-brand-blue text-white px-6 py-2.5 rounded-lg font-medium hover:bg-blue-900 transition"
+      >
+        Abrir Chat
+      </Link>
     </div>
   )
 }
@@ -273,37 +280,44 @@ function FavoritosPlaceholder() {
 }
 
 function ConfiguracionPlaceholder() {
+  const router = useRouter()
+  const { user } = useAuth()
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut()
+    router.push('/')
+  }
+
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8">
-      <h3 className="text-xl font-bold text-gray-800 mb-6">Configuración del perfil</h3>
+      <h3 className="text-xl font-bold text-gray-800 mb-2">Configuración</h3>
+      <p className="text-gray-500 text-sm mb-6">Gestiona tu perfil y preferencias</p>
 
       <div className="space-y-5">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1.5">¿Cómo quieres que te contacten?</label>
-          <div className="space-y-3">
-            <label className="flex items-center gap-2 text-sm">
-              <input type="checkbox" defaultChecked className="rounded text-brand-blue" />
-              💬 Chat interno (siempre activo)
-            </label>
-            <label className="flex items-center gap-2 text-sm">
-              <input type="checkbox" className="rounded text-brand-blue" />
-              📱 Mostrar teléfono en publicaciones
-            </label>
-            <label className="flex items-center gap-2 text-sm">
-              <input type="checkbox" className="rounded text-brand-blue" />
-              💚 Botón de WhatsApp directo
-            </label>
-            <label className="flex items-center gap-2 text-sm">
-              <input type="checkbox" className="rounded text-brand-blue" />
-              📧 Mostrar email
-            </label>
-          </div>
+          <h4 className="text-sm font-semibold text-gray-700 mb-3">📝 Métodos de contacto</h4>
+          <p className="text-sm text-gray-500">Los métodos de contacto se configuran <b>por publicación</b>.</p>
+          <p className="text-sm text-gray-500 mt-1">Al crear o editar una publicación, elige cómo quieres que te contacten.</p>
+          <Link
+            href="/publicar"
+            className="inline-block mt-3 text-brand-blue hover:underline text-sm font-medium"
+          >
+            Crear publicación →
+          </Link>
         </div>
 
-        <div className="pt-4 border-t">
-          <button className="bg-brand-red text-white px-6 py-2.5 rounded-lg font-medium hover:bg-red-700 transition">
-            <LogOut size={16} className="inline mr-2" />
-            Cerrar sesión
+        <div className="pt-4 border-t flex items-center gap-4">
+          <Link
+            href="/mi-perfil"
+            className="flex items-center gap-2 border px-4 py-2.5 rounded-lg font-medium hover:bg-gray-50 transition text-sm"
+          >
+            <User size={16} /> Editar mi perfil
+          </Link>
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-2 text-red-600 hover:bg-red-50 px-4 py-2.5 rounded-lg transition text-sm"
+          >
+            <LogOut size={16} /> Cerrar sesión
           </button>
         </div>
       </div>

@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useState } from 'react'
 import { Menu, X, Search, User, PlusCircle, MessageCircle, Shield, Star } from 'lucide-react'
 import { useAuth } from '@/components/AuthProvider'
+import Avatar from '@/components/Avatar'
 
 export function Header() {
   const { user, loading } = useAuth()
@@ -90,8 +91,8 @@ export function Header() {
                     <MessageCircle size={20} />
                     <span className="absolute top-1 right-1 bg-brand-red w-2 h-2 rounded-full"></span>
                   </Link>
-                  <Link href="/dashboard" className="p-2 hover:bg-white/10 rounded-lg transition" title="Mi panel">
-                    <User size={20} />
+                  <Link href="/mi-perfil" className="p-1 hover:bg-white/10 rounded-lg transition" title="Mi perfil">
+                    <Avatar nombre={user?.user_metadata?.nombre || user?.email || 'U'} fotoUrl={user?.user_metadata?.foto_perfil_url || null} size="sm" />
                   </Link>
                 </>
               )}

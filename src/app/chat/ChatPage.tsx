@@ -2,9 +2,9 @@
 
 import { useEffect, useState, useRef, useCallback } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/components/AuthProvider'
+import Avatar from '@/components/Avatar'
 import { Send, ArrowLeft, Search, User } from 'lucide-react'
 
 type Conversacion = {
@@ -16,6 +16,7 @@ type Conversacion = {
   ultimo_mensaje_en: string | null
   creado_en: string
   otro_nombre: string
+  otro_foto: string | null
   producto_titulo: string | null
   no_leidos: number
 }
@@ -24,6 +25,7 @@ type Mensaje = {
   id: string
   conversacion_id: string
   remitente_id: string
+  destinatario_id: string | null
   contenido: string
   leido: boolean
   creado_en: string
@@ -36,11 +38,11 @@ function formatTime(iso: string | null): string {
   const diffMs = now.getTime() - d.getTime()
   const diffMin = Math.floor(diffMs / 60000)
   if (diffMin < 1) return 'Ahora'
-  if (diffMin < 60) return `hace ${diffMin}min`
+  if (diffMin < 60) return `${diffMin}m`
   const diffH = Math.floor(diffMin / 60)
-  if (diffH < 24) return `hace ${diffH}h`
+  if (diffH < 24) return `${diffH}h`
   const diffD = Math.floor(diffH / 24)
-  if (diffD < 7) return `hace ${diffD}d`
+  if (diffD < 7) return `${diffD}d`
   return d.toLocaleDateString('es-VE', { day: '2-digit', month: 'short' })
 }
 
@@ -48,12 +50,21 @@ function formatHora(iso: string): string {
   return new Date(iso).toLocaleTimeString('es-VE', { hour: '2-digit', minute: '2-digit' })
 }
 
-export default function ChatPage() {
-  const { user, session, loading: authLoading } = useAuth()
+/** Debounce helper */
+function debounce<T extends (...args: any[]) => void>(fn: T, ms: number) {
+  let t: ReturnType<typeof setTimeout>
+  return ((...args: any[]) => {
+    clearTimeout(t)
+    t = setTimeout(() => fn(...args), ms)
+  }) as T
+}
+
+export default function ChatPageClient() {
+  const { user } = useAuth()
   const router = useRouter()
   const searchParams = useSearchParams()
-  const productoId = searchParams?.get('producto_id') ?? null
-  const vendedorId = searchParams?.get('vendedor_id') ?? null
+  const productoId = searchParams?.get('producto_id')
+  const vendedorId = searchParams?.get('vendedor_id')
 
   const [conversaciones, setConversaciones] = useState<Conversacion[]>([])
   const [convId, setConvId] = useState<string | null>(null)
@@ -65,109 +76,182 @@ export default function ChatPage() {
   const [showMobileChat, setShowMobileChat] = useState(false)
 
   const mensajesEndRef = useRef<HTMLDivElement>(null)
+  const convLoadedRef = useRef(false)
 
+  // ─── Auth guard ───
   useEffect(() => {
-    if (!authLoading && !session) router.push('/login')
-  }, [authLoading, session, router])
+    if (!user) router.push('/login')
+  }, [user, router])
 
-  // Scroll al final
+  // ─── Scroll al final ───
   useEffect(() => {
     mensajesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [mensajes])
 
-  // Cargar conversaciones
+  // ─── Cargar conversaciones (BATCH, no N+1) ───
   const cargarConversaciones = useCallback(async () => {
     if (!user) return
-    // Fetch conversaciones where user participates
-    const { data: convs, error } = await supabase
+
+    const { data: convs } = await supabase
       .from('conversaciones')
       .select('*')
       .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`)
       .order('ultimo_mensaje_en', { ascending: false })
 
-    if (error || !convs) { setLoading(false); return }
+    if (!convs || convs.length === 0) {
+      setConversaciones([])
+      setLoading(false)
+      convLoadedRef.current = true
+      return []
+    }
 
-    // For each conv, get other user info and unread count
-    const enriched: Conversacion[] = await Promise.all(convs.map(async (c: any) => {
-      const otroId = c.user1_id === user.id ? c.user2_id : c.user1_id
-      const { data: perfil } = await supabase
-        .from('perfiles')
-        .select('nombre')
-        .eq('id', otroId)
-        .single()
+    // Collect all IDs
+    const otroIds = [...new Set(convs.map(c =>
+      c.user1_id === user.id ? c.user2_id : c.user1_id
+    ))]
+    const prodIds = [...new Set(convs.filter(c => c.producto_id).map(c => c.producto_id))]
 
-      let prodTitulo: string | null = null
-      if (c.producto_id) {
-        const { data: prod } = await supabase
-          .from('productos')
-          .select('titulo')
-          .eq('id', c.producto_id)
-          .single()
-        prodTitulo = prod?.titulo ?? null
-      }
-
-      const { count } = await supabase
+    // 3 queries en paralelo
+    const [perfilesRes, productosRes, unreadRes] = await Promise.all([
+      supabase.from('perfiles').select('id, nombre, foto_perfil_url').in('id', otroIds),
+      prodIds.length > 0
+        ? supabase.from('productos').select('id, titulo').in('id', prodIds)
+        : Promise.resolve({ data: [] }),
+      supabase
         .from('mensajes')
-        .select('*', { count: 'exact', head: true })
-        .eq('conversacion_id', c.id)
+        .select('conversacion_id')
         .eq('destinatario_id', user.id)
         .eq('leido', false)
+        .in('conversacion_id', convs.map(c => c.id)),
+    ])
 
+    const perfilMap = new Map<string, { nombre: string; foto: string | null }>()
+    perfilesRes.data?.forEach(p => perfilMap.set(p.id, { nombre: p.nombre || 'Usuario', foto: p.foto_perfil_url || null }))
+
+    const prodMap = new Map<string, string>()
+    productosRes.data?.forEach(p => prodMap.set(p.id, p.titulo || ''))
+
+    const unreadMap = new Map<string, number>()
+    unreadRes.data?.forEach((m: { conversacion_id: string }) => {
+      unreadMap.set(m.conversacion_id, (unreadMap.get(m.conversacion_id) || 0) + 1)
+    })
+
+    const enriched: Conversacion[] = convs.map(c => {
+      const otroId = c.user1_id === user.id ? c.user2_id : c.user1_id
+      const p = perfilMap.get(otroId)
       return {
         ...c,
-        otro_nombre: perfil?.nombre ?? 'Usuario',
-        producto_titulo: prodTitulo,
-        no_leidos: count ?? 0,
+        otro_nombre: p?.nombre || 'Usuario',
+        otro_foto: p?.foto || null,
+        producto_titulo: c.producto_id ? (prodMap.get(c.producto_id) || null) : null,
+        no_leidos: unreadMap.get(c.id) || 0,
       }
-    }))
+    })
 
     setConversaciones(enriched)
     setLoading(false)
+    convLoadedRef.current = true
+    return enriched
   }, [user])
 
-  // Auto-select conv from URL params
-  useEffect(() => {
-    if (!user || !productoId || !vendedorId) return
-    const existing = conversaciones.find(c =>
-      c.producto_id === productoId &&
-      (c.user1_id === vendedorId || c.user2_id === vendedorId)
-    )
-    if (existing) {
-      setConvId(existing.id)
-      setShowMobileChat(true)
-    }
-  }, [user, productoId, vendedorId, conversaciones])
-
-  // Cargar conversaciones
   useEffect(() => { cargarConversaciones() }, [cargarConversaciones])
 
-  // Realtime conversaciones
+  // ─── Realtime: conversaciones (debounced para evitar spam) ───
   useEffect(() => {
     if (!user) return
-    const subConv = supabase
-      .channel('conv-changes')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'conversaciones' }, () => {
-        cargarConversaciones()
-      })
+    const debounced = debounce(() => cargarConversaciones(), 500)
+    const sub = supabase
+      .channel('conv-rt')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'conversaciones' }, () => debounced())
       .subscribe()
-    return () => { supabase.removeChannel(subConv) }
+    return () => { supabase.removeChannel(sub) }
   }, [user, cargarConversaciones])
 
-  // Cargar mensajes de una conversacion
+  // ─── Realtime: mensajes de la conversación actual ───
+  useEffect(() => {
+    if (!convId || !user) return
+    const userId = user.id
+    const sub = supabase
+      .channel(`msg-rt-${convId}`)
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'mensajes', filter: `conversacion_id=eq.${convId}` },
+        (payload) => {
+          const nuevo = payload.new as Mensaje
+          // Si es de otro usuario, aparece; si es mio, reemplaza el temp si existe
+          setMensajes(prev => {
+            const yaExiste = prev.some(m => m.id === nuevo.id)
+            if (yaExiste) return prev
+            // Si viene de otro usuario
+            if (nuevo.remitente_id !== userId) {
+              // Marcar como leido
+              supabase.from('mensajes').update({ leido: true }).eq('id', nuevo.id)
+              // Sidebar refresh
+              cargarConversaciones()
+              return [...prev, nuevo]
+            }
+            // Es mio → reemplazar temp
+            const sinTemp = prev.filter(m => !m.id.startsWith('t-'))
+            return [...sinTemp, nuevo]
+          })
+        }
+      )
+      .subscribe()
+    return () => { supabase.removeChannel(sub) }
+  }, [convId, cargarConversaciones])
+
+  // ─── Auto-iniciar conv desde URL (producto → escribir al vendedor) ───
+  useEffect(() => {
+    if (!user || !productoId || !vendedorId || vendedorId === user.id) return
+    // Esperar a que convLoadedRef esté true
+    if (!convLoadedRef.current) return
+
+    const ya = conversaciones.find(c =>
+      c.producto_id === productoId &&
+      (
+        (c.user1_id === user.id && c.user2_id === vendedorId) ||
+        (c.user1_id === vendedorId && c.user2_id === user.id)
+      )
+    )
+    if (ya) {
+      setConvId(ya.id)
+      setShowMobileChat(true)
+      cargarMensajes(ya.id)
+      return
+    }
+
+    // No existe → crear
+    const crear = async () => {
+      const { data } = await supabase
+        .from('conversaciones')
+        .insert({ user1_id: user.id, user2_id: vendedorId, producto_id: productoId })
+        .select()
+        .single()
+      if (data) {
+        setConvId(data.id)
+        setShowMobileChat(true)
+        await cargarConversaciones()
+        cargarMensajes(data.id)
+      }
+    }
+    crear()
+  }, [user, productoId, vendedorId, conversaciones])
+
+  // ─── Cargar mensajes ───
   const cargarMensajes = useCallback(async (id: string) => {
     if (!user) return
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from('mensajes')
       .select('*')
       .eq('conversacion_id', id)
       .order('creado_en', { ascending: true })
 
-    if (!error && data) {
+    if (data) {
       setMensajes(data)
-      // Marcar como leidos
-      const noLeidos = data.filter(m => m.destinatario_id === user.id && !m.leido)
+      // Marcar leidos
+      const noLeidos = data.filter(m => m.remitente_id !== user.id && !m.leido)
       if (noLeidos.length > 0) {
-        await supabase
+        supabase
           .from('mensajes')
           .update({ leido: true })
           .in('id', noLeidos.map(m => m.id))
@@ -175,102 +259,67 @@ export default function ChatPage() {
     }
   }, [user])
 
-  // Seleccionar conversacion
+  // ─── Seleccionar conversacion ───
   const seleccionarConv = async (id: string) => {
     setConvId(id)
     setShowMobileChat(true)
     await cargarMensajes(id)
   }
 
-  // Enviar mensaje
+  // ─── Enviar mensaje ───
   const enviarMensaje = async () => {
-    if (!texto.trim() || !convId || !user) return
+    if (!texto.trim() || !convId || !user || enviando) return
     setEnviando(true)
 
-    // Get destinatario from conversacion
+    const contenido = texto.trim()
     const conv = conversaciones.find(c => c.id === convId)
-    if (!conv) return
+    if (!conv) { setEnviando(false); return }
 
     const destinatarioId = conv.user1_id === user.id ? conv.user2_id : conv.user1_id
+
+    // Optimistic: aparece inmediatamente
+    const tempMsg: Mensaje = {
+      id: `t-${Date.now()}`,
+      conversacion_id: convId,
+      remitente_id: user.id,
+      destinatario_id: destinatarioId,
+      contenido,
+      leido: true,
+      creado_en: new Date().toISOString(),
+    }
+    setMensajes(prev => [...prev, tempMsg])
+    setTexto('')
 
     const { error } = await supabase.from('mensajes').insert({
       conversacion_id: convId,
       remitente_id: user.id,
       destinatario_id: destinatarioId,
-      producto_id: conv.producto_id,
-      contenido: texto.trim(),
+      contenido,
     })
 
-    if (!error) {
-      setTexto('')
-      // Mensaje se recarga via realtime
+    if (error) {
+      // Rollback el mensaje temp
+      setMensajes(prev => prev.filter(m => m.id !== tempMsg.id))
+      console.error('Error enviando mensaje:', error)
+    } else {
+      // Refresh sidebar para actualizar ultimo_mensaje
+      setConversaciones(prev => prev.map(c =>
+        c.id === convId ? { ...c, ultimo_mensaje: contenido, ultimo_mensaje_en: new Date().toISOString() } : c
+      ))
     }
+
     setEnviando(false)
   }
 
-  // Realtime mensajes
-  useEffect(() => {
-    if (!convId) return
-    const sub = supabase
-      .channel(`msg-${convId}`)
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'mensajes', filter: `conversacion_id=eq.${convId}` }, (payload) => {
-        const nuevo = payload.new as Mensaje
-        setMensajes(prev => [...prev, nuevo])
-        cargarConversaciones() // refresh unread counts
-      })
-      .subscribe()
-    return () => { supabase.removeChannel(sub) }
-  }, [convId, cargarConversaciones])
+  // ─── Render ───
+  if (!user) return null
 
-  // Nueva conversacion desde producto
-  useEffect(() => {
-    if (!user || !productoId || !vendedorId || vendedorId === user.id) return
-    const yaExiste = conversaciones.some(c =>
-      c.producto_id === productoId &&
-      ((c.user1_id === vendedorId || c.user2_id === vendedorId))
-    )
-    if (!yaExiste) {
-      // Start new conversation
-      const startConv = async () => {
-        const { data: newConv, error } = await supabase
-          .from('conversaciones')
-          .insert({
-            user1_id: user.id,
-            user2_id: vendedorId,
-            producto_id: productoId,
-          })
-          .select()
-          .single()
-
-        if (newConv) {
-          await cargarConversaciones()
-          setConvId(newConv.id)
-          setShowMobileChat(true)
-        }
-      }
-      startConv()
-    }
-  }, [user, productoId, vendedorId, conversaciones])
-
-  if (authLoading || !session) return null
-
-  const convsFiltradas = conversaciones.filter(c =>
+  const filtradas = conversaciones.filter(c =>
     c.otro_nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
     (c.producto_titulo?.toLowerCase() ?? '').includes(busqueda.toLowerCase())
   )
 
   const convActual = conversaciones.find(c => c.id === convId)
-
-  if (loading) {
-    return (
-      <div className="max-w-6xl mx-auto px-4 py-8">
-        <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-gray-200 rounded w-48" />
-          <div className="bg-white rounded-2xl border h-[600px]" />
-        </div>
-      </div>
-    )
-  }
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
@@ -278,7 +327,7 @@ export default function ChatPage() {
 
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
         <div className="flex flex-col md:flex-row h-[600px]">
-          {/* Lista de conversaciones */}
+          {/* ─── Sidebar ─── */}
           <div className={`${showMobileChat ? 'hidden md:flex' : 'flex'} flex-col w-full md:w-80 border-r border-gray-100`}>
             <div className="p-3 border-b">
               <div className="relative">
@@ -287,29 +336,27 @@ export default function ChatPage() {
                   type="text"
                   value={busqueda}
                   onChange={e => setBusqueda(e.target.value)}
-                  placeholder="Buscar..."
+                  placeholder="Buscar conversacion..."
                   className="w-full pl-9 pr-3 py-2 border rounded-lg text-sm bg-gray-50 focus:bg-white focus:border-brand-yellow outline-none transition"
                 />
               </div>
             </div>
 
             <div className="flex-1 overflow-y-auto">
-              {convsFiltradas.length === 0 ? (
+              {filtradas.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full px-6 text-center">
                   <User size={48} className="text-gray-300 mb-3" />
                   <p className="text-gray-500 font-medium">No hay conversaciones</p>
-                  <p className="text-sm text-gray-400 mt-1">Escribe a un vendedor para iniciar una conversacion</p>
+                  <p className="text-sm text-gray-400 mt-1">Envia un mensaje a un vendedor</p>
                 </div>
               ) : (
-                convsFiltradas.map(c => (
+                filtradas.map(c => (
                   <button
                     key={c.id}
                     onClick={() => seleccionarConv(c.id)}
                     className={`w-full flex items-start gap-3 p-4 hover:bg-gray-50 border-b border-gray-50 transition text-left ${convId === c.id ? 'bg-blue-50 border-l-2 border-l-brand-blue' : ''}`}
                   >
-                    <div className="w-12 h-12 rounded-full bg-brand-blue text-white flex-shrink-0 flex items-center justify-center font-bold text-lg">
-                      {c.otro_nombre.charAt(0).toUpperCase()}
-                    </div>
+                    <Avatar nombre={c.otro_nombre} fotoUrl={c.otro_foto} size="md" />
                     <div className="flex-1 min-w-0">
                       <div className="flex justify-between items-center">
                         <p className="font-semibold text-gray-800 text-sm truncate">{c.otro_nombre}</p>
@@ -331,12 +378,14 @@ export default function ChatPage() {
             </div>
           </div>
 
-          {/* Area de mensajes */}
+          {/* ─── Chat area ─── */}
           <div className={`${showMobileChat ? 'flex' : 'hidden md:flex'} flex-col flex-1`}>
             {!convId ? (
               <div className="flex-1 flex flex-col items-center justify-center text-gray-400">
                 <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                  <svg width={40} height={40} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                  <svg width={40} height={40} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                    <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
                 </div>
                 <p className="font-medium">Selecciona una conversacion</p>
                 <p className="text-sm mt-1">O escribe a un vendedor desde un producto</p>
@@ -345,12 +394,13 @@ export default function ChatPage() {
               <>
                 {/* Header */}
                 <div className="flex items-center gap-3 p-4 border-b bg-white">
-                  <button onClick={() => setShowMobileChat(false)} className="md:hidden p-1 hover:bg-gray-100 rounded">
+                  <button
+                    onClick={() => setShowMobileChat(false)}
+                    className="md:hidden p-1 hover:bg-gray-100 rounded"
+                  >
                     <ArrowLeft size={20} />
                   </button>
-                  <div className="w-10 h-10 rounded-full bg-brand-blue text-white flex items-center justify-center font-bold">
-                    {convActual?.otro_nombre.charAt(0).toUpperCase()}
-                  </div>
+                  <Avatar nombre={convActual?.otro_nombre || ''} fotoUrl={convActual?.otro_foto} size="sm" />
                   <div>
                     <p className="font-semibold text-gray-800 text-sm">{convActual?.otro_nombre}</p>
                     {convActual?.producto_titulo && (
@@ -365,9 +415,15 @@ export default function ChatPage() {
                     const esMio = m.remitente_id === user?.id
                     return (
                       <div key={m.id} className={`flex ${esMio ? 'justify-end' : 'justify-start'}`}>
-                        <div className={`max-w-[75%] px-4 py-2.5 rounded-2xl ${esMio ? 'bg-brand-blue text-white rounded-br-sm' : 'bg-white text-gray-800 border border-gray-100 rounded-bl-sm'}`}>
+                        <div className={`max-w-[75%] px-4 py-2.5 rounded-2xl ${
+                          esMio
+                            ? 'bg-brand-blue text-white rounded-br-sm'
+                            : 'bg-white text-gray-800 border border-gray-100 rounded-bl-sm'
+                        }`}>
                           <p className="text-sm break-words">{m.contenido}</p>
-                          <p className={`text-[10px] mt-1 ${esMio ? 'text-blue-200' : 'text-gray-400'}`}>{formatHora(m.creado_en)}</p>
+                          <p className={`text-[10px] mt-1 ${esMio ? 'text-blue-200' : 'text-gray-400'}`}>
+                            {formatHora(m.creado_en)}
+                          </p>
                         </div>
                       </div>
                     )
@@ -381,7 +437,12 @@ export default function ChatPage() {
                     type="text"
                     value={texto}
                     onChange={e => setTexto(e.target.value)}
-                    onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); enviarMensaje() } }}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault()
+                        enviarMensaje()
+                      }
+                    }}
                     placeholder="Escribe un mensaje..."
                     className="flex-1 border rounded-full px-4 py-2.5 text-sm outline-none focus:border-brand-yellow transition"
                     disabled={enviando}
