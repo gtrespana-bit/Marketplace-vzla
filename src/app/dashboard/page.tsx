@@ -6,7 +6,7 @@ import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/components/AuthProvider'
 import {
   Plus, Package, MessageSquare, CreditCard, Settings,
-  Eye, Heart, TrendingUp, LogOut, ChevronRight
+  Eye, Heart, TrendingUp, LogOut, ChevronRight, X, Pause, Play
 } from 'lucide-react'
 
 export default function DashboardPage() {
@@ -150,25 +150,49 @@ function MisProductos({ productos }: { productos: any[] }) {
       <h3 className="font-bold text-lg mb-4">Mis publicaciones ({productos.length})</h3>
       <div className="space-y-3">
         {productos.map((p) => (
-          <div key={p.id} className="flex items-center gap-4 p-3 rounded-lg hover:bg-gray-50 border border-gray-100">
-            <div className="w-16 h-16 rounded-lg bg-gray-100 flex-shrink-0 overflow-hidden">
-              {p.imagen_url ? (
-                <img src={p.imagen_url} alt={p.titulo} className="w-full h-full object-cover" />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">Sin foto</div>
-              )}
-            </div>
-            <div className="flex-1 min-w-0">
-              <h4 className="font-medium text-gray-800 truncate">{p.titulo}</h4>
-              <p className="text-sm text-brand-blue font-bold">${p.precio_usd?.toLocaleString()}</p>
-              <div className="flex items-center gap-3 mt-1 text-xs text-gray-500">
-                <span>👀 {p.visitas || 0} visitas</span>
-                <span>{p.activo ? '✅ Activo' : '⏸️ Pausado'}</span>
+          <div key={p.id} className="group flex items-center gap-4 p-3 rounded-lg hover:bg-gray-50 border border-gray-100 transition">
+            {/* Clickable link to view */}
+            <Link href={`/producto/${p.id}`} className="flex items-center gap-4 flex-1 min-w-0">
+              <div className="w-16 h-16 rounded-lg bg-gray-100 flex-shrink-0 overflow-hidden">
+                {p.imagen_url ? (
+                  <img src={p.imagen_url} alt={p.titulo} className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">Sin foto</div>
+                )}
               </div>
-            </div>
+              <div className="flex-1 min-w-0">
+                <h4 className="font-medium text-gray-800 truncate group-hover:text-brand-blue transition">{p.titulo}</h4>
+                <p className="text-sm text-brand-blue font-bold">${p.precio_usd?.toLocaleString()}</p>
+                <div className="flex items-center gap-3 mt-1 text-xs text-gray-500">
+                  <span>👀 {p.visitas || 0} vistas</span>
+                  <span>{p.activo ? '✅ Activo' : '⏸️ Pausado'}</span>
+                </div>
+              </div>
+            </Link>
+            {/* Action buttons */}
             <div className="flex gap-1 flex-shrink-0">
-              <button className="p-2 hover:bg-gray-100 rounded-lg transition" title="Editar">
-                <Settings size={16} />
+              <button
+                onClick={async () => {
+                  const newState = !p.activo
+                  await supabase.from('productos').update({ activo: newState }).eq('id', p.id)
+                  window.location.reload()
+                }}
+                className="p-2 hover:bg-gray-100 rounded-lg transition"
+                title={p.activo ? 'Pausar' : 'Activar'}
+              >
+                {p.activo ? <Package size={16} /> : <TrendingUp size={16} />}
+              </button>
+              <button
+                onClick={async () => {
+                  if (confirm('¿Eliminar esta publicación permanentemente?')) {
+                    await supabase.from('productos').delete().eq('id', p.id)
+                    window.location.reload()
+                  }
+                }}
+                className="p-2 hover:bg-red-50 rounded-lg transition text-red-500"
+                title="Eliminar"
+              >
+                <X size={16} />
               </button>
             </div>
           </div>
