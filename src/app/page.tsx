@@ -91,18 +91,18 @@ export default async function HomePage() {
   return (
     <div className="bg-gray-50">
       {/* ============ HERO ============ */}
-      <section className="bg-gradient-to-br from-brand-blue via-blue-800 to-[#00247a] py-16 md:py-24 relative overflow-hidden">
+      <section className="bg-gradient-to-br from-brand-blue via-blue-800 to-[#00247a] py-10 md:py-16 relative overflow-hidden">
         {/* Decorative glow */}
         <div className="absolute top-0 right-0 w-96 h-96 bg-brand-yellow/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4" />
         <div className="absolute bottom-0 left-0 w-64 h-64 bg-brand-yellow/5 rounded-full blur-2xl translate-y-1/3 -translate-x-1/4" />
 
         <div className="max-w-7xl mx-auto px-4 text-center relative z-10">
-          <h1 className="text-4xl md:text-6xl font-black text-white mb-3 leading-tight">
+          <h1 className="text-3xl md:text-5xl font-black text-white mb-2 leading-tight">
             Vende rápido
             <br />
             <span className="text-brand-yellow">en Venezuela</span> 🇻🇪
           </h1>
-          <p className="text-lg md:text-xl text-blue-200 mb-3 max-w-2xl mx-auto">
+          <p className="text-base md:text-lg text-blue-200 mb-2 max-w-2xl mx-auto">
             Publica gratis y empieza a recibir mensajes.
             <br />
             <span className="text-white/90 font-medium">
@@ -111,34 +111,34 @@ export default async function HomePage() {
           </p>
 
           {/* Badge de impacto */}
-          <div className="inline-flex items-center gap-2 bg-brand-yellow/15 border border-brand-yellow/30 rounded-full px-5 py-2 mb-8">
-            <Zap size={16} className="text-brand-yellow" />
-            <span className="text-sm font-semibold text-white">
+          <div className="inline-flex items-center gap-2 bg-brand-yellow/15 border border-brand-yellow/30 rounded-full px-4 py-1.5 mb-4">
+            <Zap size={14} className="text-brand-yellow" />
+            <span className="text-xs font-semibold text-white">
               Los anuncios destacados se venden <span className="text-brand-yellow font-black">3x más rápido</span>
             </span>
           </div>
 
-          <div className="flex flex-wrap justify-center gap-4 mb-8">
+          <div className="flex flex-wrap justify-center gap-3 mb-6">
             <Link
               href="/publicar"
-              className="inline-flex items-center gap-2 bg-brand-yellow text-brand-blue px-8 py-4 rounded-xl font-bold text-lg hover:bg-yellow-400 transition shadow-lg shadow-yellow-500/20"
+              className="inline-flex items-center gap-2 bg-brand-yellow text-brand-blue px-6 py-3 rounded-xl font-bold text-base hover:bg-yellow-400 transition shadow-lg shadow-yellow-500/20"
             >
               <span>Publicar Gratis</span>
-              <ArrowRight size={20} />
+              <ArrowRight size={18} />
             </Link>
             <Link
               href="/creditos"
-              className="inline-flex items-center gap-2 bg-white/10 border-2 border-white/20 text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-white/20 transition"
+              className="inline-flex items-center gap-2 bg-white/10 border-2 border-white/20 text-white px-6 py-3 rounded-xl font-bold text-base hover:bg-white/20 transition"
             >
-              <Eye size={20} />
+              <Eye size={18} />
               <span>Ver Cómo Destacar</span>
             </Link>
           </div>
 
-          <div className="grid grid-cols-3 gap-6 max-w-lg mx-auto text-center">
-            <div><p className="text-3xl font-black text-brand-yellow">+130</p><p className="text-xs text-blue-300 mt-1">Productos activos</p></div>
-            <div><p className="text-3xl font-black text-brand-yellow">+5K</p><p className="text-xs text-blue-300 mt-1">Usuarios</p></div>
-            <div><p className="text-3xl font-black text-brand-yellow">$1</p><p className="text-xs text-blue-300 mt-1">Destacarlo desde</p></div>
+          <div className="grid grid-cols-3 gap-4 max-w-xs mx-auto text-center">
+            <div><p className="text-2xl font-black text-brand-yellow">+130</p><p className="text-[10px] text-blue-300 mt-0.5">Productos activos</p></div>
+            <div><p className="text-2xl font-black text-brand-yellow">+5K</p><p className="text-[10px] text-blue-300 mt-0.5">Usuarios</p></div>
+            <div><p className="text-2xl font-black text-brand-yellow">$1</p><p className="text-[10px] text-blue-300 mt-0.5">Destacarlo desde</p></div>
           </div>
         </div>
       </section>
@@ -148,25 +148,25 @@ export default async function HomePage() {
         <section className="relative">
           {/* Banner de incentivo - pegado arriba */}
           <div className="bg-gradient-to-r from-yellow-50 to-amber-50 border-y border-yellow-200">
-            <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between gap-4 flex-wrap">
+            <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between gap-4 flex-wrap">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-brand-yellow rounded-full flex items-center justify-center shrink-0">
-                  <Zap size={20} className="text-brand-blue" />
+                <div className="w-8 h-8 bg-brand-yellow rounded-full flex items-center justify-center shrink-0">
+                  <Zap size={16} className="text-brand-blue" />
                 </div>
                 <div>
                   <p className="font-bold text-gray-900 text-sm">¿Quieres aparecer aquí?</p>
                   <p className="text-xs text-gray-600">Destaca tu publicación desde $1 y multiplica tus ventas</p>
                 </div>
               </div>
-              <Link href="/creditos" className="flex items-center gap-1 bg-brand-yellow text-brand-blue px-5 py-2.5 rounded-lg font-bold text-sm hover:bg-yellow-400 transition shrink-0">
+              <Link href="/creditos" className="flex items-center gap-1 bg-brand-yellow text-brand-blue px-4 py-2 rounded-lg font-bold text-sm hover:bg-yellow-400 transition shrink-0">
                 Ver paquetes <ArrowRight size={14} />
               </Link>
             </div>
           </div>
 
           {/* Grid de destacados */}
-          <div className="max-w-7xl mx-auto px-4 py-8">
-            <div className="flex items-center gap-3 mb-6">
+          <div className="max-w-7xl mx-auto px-4 py-6">
+            <div className="flex items-center justify-between mb-4">
               <h2 className="text-2xl font-black text-gray-900">⚡ Ventas Destacadas</h2>
               <span className="bg-brand-yellow/20 text-brand-blue text-xs font-bold px-2.5 py-1 rounded-full">Los que pagan por visibilidad</span>
             </div>
