@@ -11,7 +11,7 @@ import {
 } from 'lucide-react'
 
 export default function DashboardPage() {
-  const { user, session } = useAuth()
+  const { user, session, loading: authLoading } = useAuth()
   const router = useRouter()
   const [activeTab, setActiveTab] = useState('productos')
   const [productos, setProductos] = useState<any[]>([])
@@ -25,6 +25,7 @@ export default function DashboardPage() {
   const [toast, setToast] = useState<string | null>(null)
 
   useEffect(() => {
+    if (authLoading) return
     if (!user) return
     Promise.all([
       supabase.from('productos').select('*').eq('user_id', user.id).order('creado_en', { ascending: false }).then(({ data }) => setProductos(data || [])),
@@ -38,6 +39,32 @@ export default function DashboardPage() {
       }),
       supabase.from('perfiles').select('credito_balance').eq('id', user.id).single().then(({ data }) => setCreditos(data?.credito_balance ?? 0)),
     ]).finally(() => setLoading(false))
+  }, [user, authLoading])
+
+  // Realtime: notificación cuando el saldo de créditos cambia (admin aprueba compra)
+  useEffect(() => {
+    if (!user) return
+    const sub = supabase
+      .channel('credit-notif')
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'perfiles', filter: `id=eq.${user.id}` },
+        (payload) => {
+          const newBalance = payload.new?.credito_balance
+          const oldBalance = payload.old?.credito_balance
+          if (typeof newBalance === 'number' && typeof oldBalance === 'number' && newBalance > oldBalance) {
+            const diff = newBalance - oldBalance
+            setCreditos(newBalance)
+            setToast(`✅ +${diff} créditos añadidos a tu cuenta`)
+            setTimeout(() => setToast(null), 6000)
+          } else if (typeof newBalance === 'number') {
+            // Para otros casos (boost, destacado), actualizar en silencio
+            setCreditos(newBalance)
+          }
+        }
+      )
+      .subscribe()
+    return () => { supabase.removeChannel(sub) }
   }, [user])
 
   async function handleBoost(productId: string) {

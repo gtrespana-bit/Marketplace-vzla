@@ -223,11 +223,30 @@ export default function ChatPageClient() {
 
     // No existe → crear
     const crear = async () => {
-      const { data } = await supabase
+      // Try to insert; if constraint conflict, refetch
+      const { data, error } = await supabase
         .from('conversaciones')
         .insert({ user1_id: user.id, user2_id: vendedorId, producto_id: productoId })
         .select()
         .single()
+      if (error?.code === '23505') {
+        // Unique constraint violation — another one was created in parallel
+        // Refetch to pick it up
+        await cargarConversaciones()
+        const nueva = conversaciones.find(c =>
+          c.producto_id === productoId &&
+          (
+            (c.user1_id === user.id && c.user2_id === vendedorId) ||
+            (c.user1_id === vendedorId && c.user2_id === user.id)
+          )
+        )
+        if (nueva) {
+          setConvId(nueva.id)
+          setShowMobileChat(true)
+          cargarMensajes(nueva.id)
+        }
+        return
+      }
       if (data) {
         setConvId(data.id)
         setShowMobileChat(true)
