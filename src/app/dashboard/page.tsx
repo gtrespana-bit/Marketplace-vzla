@@ -377,8 +377,8 @@ function CompraCreditos({ creditos, refreshCreditos }: { creditos: number; refre
 
   // Notificar admin por Telegram (fire and forget)
   if (!dbErr) {
-    const mensaje = `🔔 *Nuevo pago pendiente!*\n\n👤 ${nombreUsuario}\n💰 *${paqueteSel.creditos} créditos* por \$${paqueteSel.precio} USD\n💳 Método: ${metodoPago}\n\nRevisa en /admin para aprobar o rechazar.`
-    try { fetch('/api/notify', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ mensaje }) }) } catch {}
+    const mensaje = `🔔 <b>Nuevo pago pendiente</b>\n\n👤 ${nombreUsuario}\n💰 <b>${paqueteSel.creditos} créditos</b> por $${paqueteSel.precio} USD\n💳 Método: ${metodoPago}\n\nRevisa el admin para aprobar o rechazar.`
+    try { await fetch('/api/notify', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ mensaje }) }) } catch (e) { console.error('Error notificando:', e) }
   }
 
   setEnviando(false)
