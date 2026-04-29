@@ -85,6 +85,7 @@ export default function ChatPageClient() {
   const [showMobileChat, setShowMobileChat] = useState(false)
 
   const mensajesEndRef = useRef<HTMLDivElement>(null)
+  const chatContainerRef = useRef<HTMLDivElement>(null)
   const userRef = useRef(user)
   userRef.current = user
 
@@ -94,15 +95,22 @@ export default function ChatPageClient() {
     if (!user) router.push('/login')
   }, [user, authLoading, router])
 
-  // ─── Scroll automático inteligente ───
-  // Solo scrollea al final si el usuario ya estaba cerca del final
-  // (no scrollea si el usuario estaba leyendo mensajes antiguos)
+  // ─── Scroll automático inteligente — SOLO el contenedor del chat ───
+  // Scrollea al final solo si el usuario ya estaba cerca del fondo
+  const scrollToBottom = useCallback(() => {
+    const el = chatContainerRef.current
+    if (!el) return
+    setTimeout(() => {
+      el.scrollTop = el.scrollHeight
+    }, 50)
+  }, [])
+
   useEffect(() => {
-    const container = mensajesEndRef.current?.parentElement
-    if (!container) return
-    const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 150
+    const el = chatContainerRef.current
+    if (!el) return
+    const isNearBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 150
     if (isNearBottom) {
-      mensajesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+      el.scrollTop = el.scrollHeight
     }
   }, [mensajes])
 
@@ -570,7 +578,7 @@ export default function ChatPageClient() {
                 </div>
 
                 {/* Mensajes */}
-                <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50">
+                <div ref={chatContainerRef} className="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50">
                   {mensajes.map(m => {
                     const esMio = m.remitente_id === user?.id
                     const isTemp = m.id.startsWith('t-')
