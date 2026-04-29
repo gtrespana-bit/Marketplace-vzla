@@ -21,7 +21,7 @@ const estadosVenezuela = [
 export default function EditarPage() {
   const params = useParams()
   const router = useRouter()
-  const { user, session, loading } = useAuth()
+  const { user, session, loading: authLoading } = useAuth()
   const productoId = params?.id as string
 
   const [loading, setLoading] = useState(true)
@@ -58,7 +58,7 @@ export default function EditarPage() {
   const [newImages, setNewImages] = useState<{ file: File; preview: string }[]>([])
 
   useEffect(() => {
-    if (loading) return
+    if (authLoading) return
     if (!user) { router.push('/login'); return }
     if (!productoId) return
 
