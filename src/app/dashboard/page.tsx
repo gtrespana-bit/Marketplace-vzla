@@ -359,6 +359,10 @@ function CompraCreditos({ creditos, refreshCreditos }: { creditos: number; refre
     fileUrl = urlData.publicUrl
   }
 
+  // obtener perfil para el nombre
+  const { data: perfilData } = await supabase.from('perfiles').select('nombre').eq('id', (await supabase.auth.getUser()).data.user?.id).single()
+  const nombreUsuario = perfilData?.nombre || 'Usuario'
+
   // crear transaccion
   const { error: dbErr } = await supabase
     .from('transacciones_creditos')
@@ -370,6 +374,12 @@ function CompraCreditos({ creditos, refreshCreditos }: { creditos: number; refre
       comprobante_url: fileUrl || null,
       estado: 'pendiente',
     })
+
+  // Notificar admin por Telegram (fire and forget)
+  if (!dbErr) {
+    const mensaje = `🔔 *Nuevo pago pendiente!*\n\n👤 ${nombreUsuario}\n💰 *${paqueteSel.creditos} créditos* por \$${paqueteSel.precio} USD\n💳 Método: ${metodoPago}\n\nRevisa en /admin para aprobar o rechazar.`
+    try { fetch('/api/notify', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ mensaje }) }) } catch {}
+  }
 
   setEnviando(false)
   if (dbErr) {
