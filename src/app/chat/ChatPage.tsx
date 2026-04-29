@@ -60,7 +60,7 @@ function debounce<T extends (...args: any[]) => void>(fn: T, ms: number) {
 }
 
 export default function ChatPageClient() {
-  const { user } = useAuth()
+  const { user, loading } = useAuth()
   const router = useRouter()
   const searchParams = useSearchParams()
   const productoId = searchParams?.get('producto_id')
@@ -80,8 +80,9 @@ export default function ChatPageClient() {
 
   // ─── Auth guard ───
   useEffect(() => {
+    if (loading) return // esperar a que cargue la sesión
     if (!user) router.push('/login')
-  }, [user, router])
+  }, [user, loading, router])
 
   // ─── Scroll al final ───
   useEffect(() => {

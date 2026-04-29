@@ -33,7 +33,7 @@ function StarRating({ value, onChange, size = 24, readonly = false }: { value: n
 export default function ProductoPage() {
   const params = useParams()
   const router = useRouter()
-  const { user } = useAuth()
+  const { user, loading: authLoading } = useAuth()
   const slug = params?.slug as string
 
   const [producto, setProducto] = useState<any>(null)
@@ -99,6 +99,7 @@ export default function ProductoPage() {
   }, [slug])
 
   const handleContacto = () => {
+    if (authLoading) return // espera a que cargue la sesión
     if (!user) {
       router.push(`/login?redirect=/producto/${slug}`)
       return
@@ -107,6 +108,7 @@ export default function ProductoPage() {
   }
 
   const toggleFavorito = async () => {
+    if (authLoading) return
     if (!user) { router.push(`/login?redirect=/producto/${slug}`); return }
     if (toggleandoFav) return
     setToggleandoFav(true)

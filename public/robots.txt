@@ -1,0 +1,14 @@
+User-agent: *
+Allow: /
+Allow: /catalogo
+Allow: /producto/
+Allow: /buscar
+Allow: /como-funciona
+Allow: /faq
+Disallow: /dashboard
+Disallow: /admin
+Disallow: /chat
+Disallow: /mi-perfil
+Disallow: /api/
+
+Sitemap: https://marketplacevzla.vercel.app/sitemap.xml

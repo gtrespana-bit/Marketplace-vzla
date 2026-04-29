@@ -8,7 +8,7 @@ import Avatar from '@/components/Avatar'
 import { Camera, MapPin, Phone, Mail, Star, LogOut, Edit3, X, Save, ArrowLeft } from 'lucide-react'
 
 export default function MiPerfilPage() {
-  const { user, session } = useAuth()
+  const { user, session, loading } = useAuth()
   const router = useRouter()
 
   const [nombre, setNombre] = useState('')
@@ -32,6 +32,7 @@ export default function MiPerfilPage() {
   const [promDadas, setPromDadas] = useState(0)
 
   useEffect(() => {
+    if (loading) return
     if (!user) { router.push('/login'); return }
     const uid = user.id
 

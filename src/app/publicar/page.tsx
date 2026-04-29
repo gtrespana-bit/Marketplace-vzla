@@ -365,45 +365,37 @@ export default function PublicarPage() {
               <div className="space-y-3">
                 {/* WhatsApp */}
                 <div className="flex items-start gap-3 bg-white border border-gray-200 rounded-lg p-3">
-                  <input type="checkbox" id="useWhatsApp" checked={!!contactWhatsApp} onChange={e => !e.target.checked ? setContactWhatsApp('') : setContactWhatsApp('')} className="mt-1 rounded text-brand-blue" />
+                  <input type="checkbox" id="useWhatsApp" checked={!!contactWhatsApp} onChange={e => setContactWhatsApp(e.target.checked ? '+' : '')} className="mt-1 rounded text-brand-blue" />
                   <label htmlFor="useWhatsApp" className="flex-1">
                     <span className="text-sm font-medium flex items-center gap-1.5">💚 WhatsApp</span>
-                    {contactWhatsApp !== '' && (
-                      <input type="tel" value={contactWhatsApp} onChange={e => setContactWhatsApp(e.target.value)} placeholder="+58 412 1234567" className="mt-1 w-full border border-gray-200 rounded px-2 py-1.5 text-sm" />
-                    )}
+                    {contactWhatsApp && <input type="tel" value={contactWhatsApp} onChange={e => setContactWhatsApp(e.target.value)} placeholder="+58 412 1234567" className="mt-1 w-full border border-gray-200 rounded px-2 py-1.5 text-sm" />}
                   </label>
                 </div>
 
                 {/* Telefono */}
                 <div className="flex items-start gap-3 bg-white border border-gray-200 rounded-lg p-3">
-                  <input type="checkbox" id="usePhone" checked={!!contactPhone} onChange={e => !e.target.checked ? setContactPhone('') : setContactPhone('')} className="mt-1 rounded text-brand-blue" />
+                  <input type="checkbox" id="usePhone" checked={!!contactPhone} onChange={e => setContactPhone(e.target.checked ? '+' : '')} className="mt-1 rounded text-brand-blue" />
                   <label htmlFor="usePhone" className="flex-1">
                     <span className="text-sm font-medium flex items-center gap-1.5"><Phone size={14} /> Llamadas</span>
-                    {contactPhone !== '' && (
-                      <input type="tel" value={contactPhone} onChange={e => setContactPhone(e.target.value)} placeholder="+58 412 1234567" className="mt-1 w-full border border-gray-200 rounded px-2 py-1.5 text-sm" />
-                    )}
+                    {contactPhone && <input type="tel" value={contactPhone} onChange={e => setContactPhone(e.target.value)} placeholder="+58 412 1234567" className="mt-1 w-full border border-gray-200 rounded px-2 py-1.5 text-sm" />}
                   </label>
                 </div>
 
                 {/* Email */}
                 <div className="flex items-start gap-3 bg-white border border-gray-200 rounded-lg p-3">
-                  <input type="checkbox" id="useEmail" checked={!!contactEmail} onChange={e => !e.target.checked ? setContactEmail('') : setContactEmail('')} className="mt-1 rounded text-brand-blue" />
+                  <input type="checkbox" id="useEmail" checked={!!contactEmail} onChange={e => setContactEmail(e.target.checked ? '+' : '')} className="mt-1 rounded text-brand-blue" />
                   <label htmlFor="useEmail" className="flex-1">
                     <span className="text-sm font-medium flex items-center gap-1.5"><Mail size={14} /> Email</span>
-                    {contactEmail !== '' && (
-                      <input type="email" value={contactEmail} onChange={e => setContactEmail(e.target.value)} placeholder="tu@email.com" className="mt-1 w-full border border-gray-200 rounded px-2 py-1.5 text-sm" />
-                    )}
+                    {contactEmail && <input type="email" value={contactEmail} onChange={e => setContactEmail(e.target.value)} placeholder="tu@email.com" className="mt-1 w-full border border-gray-200 rounded px-2 py-1.5 text-sm" />}
                   </label>
                 </div>
 
                 {/* Messenger */}
                 <div className="flex items-start gap-3 bg-white border border-gray-200 rounded-lg p-3">
-                  <input type="checkbox" id="useMessenger" checked={!!contactMessenger} onChange={e => !e.target.checked ? setContactMessenger('') : setContactMessenger('')} className="mt-1 rounded text-brand-blue" />
+                  <input type="checkbox" id="useMessenger" checked={!!contactMessenger} onChange={e => setContactMessenger(e.target.checked ? '+' : '')} className="mt-1 rounded text-brand-blue" />
                   <label htmlFor="useMessenger" className="flex-1">
                     <span className="text-sm font-medium flex items-center gap-1.5"><MessageSquare size={14} /> Facebook Messenger</span>
-                    {contactMessenger !== '' && (
-                      <input type="url" value={contactMessenger} onChange={e => setContactMessenger(e.target.value)} placeholder="https://m.me/tuusuario" className="mt-1 w-full border border-gray-200 rounded px-2 py-1.5 text-sm" />
-                    )}
+                    {contactMessenger && <input type="url" value={contactMessenger} onChange={e => setContactMessenger(e.target.value)} placeholder="https://m.me/tuusuario" className="mt-1 w-full border border-gray-200 rounded px-2 py-1.5 text-sm" />}
                   </label>
                 </div>
               </div>
