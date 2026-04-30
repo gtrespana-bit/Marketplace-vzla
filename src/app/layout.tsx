@@ -4,6 +4,7 @@ import './globals.css'
 import { Header } from '@/components/Header'
 import { Footer } from '@/components/Footer'
 import { AuthProvider } from '@/components/AuthProvider'
+import PWAInstallBanner from '@/components/PWAInstallBanner'
 
 const inter = Inter({
   subsets: ['latin'],
@@ -63,6 +64,8 @@ export default function RootLayout({
         <link rel="dns-prefetch" href="https://jmbkqelkusxjebsdnjoc.supabase.co" />
         <link rel="dns-prefetch" href="https://images.unsplash.com" />
         <link rel="apple-touch-icon" href="/icon-192.png" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
       </head>
       <body className={`${inter.variable} font-sans antialiased`}>
         <AuthProvider>
@@ -71,6 +74,7 @@ export default function RootLayout({
             {children}
           </main>
           <Footer />
+          <PWAInstallBanner />
         </AuthProvider>
         <script src="/sw-register.js" />
       </body>
