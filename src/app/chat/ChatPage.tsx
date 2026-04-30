@@ -5,7 +5,8 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/components/AuthProvider'
 import Avatar from '@/components/Avatar'
-import { Send, ArrowLeft, Search, User, AlertCircle, RotateCcw } from 'lucide-react'
+import { Send, ArrowLeft, Search, User, AlertCircle, RotateCcw, Trash2, ExternalLink } from 'lucide-react'
+import Link from 'next/link'
 
 type Conversacion = {
   id: string
@@ -48,6 +49,10 @@ function formatTime(iso: string | null): string {
 
 function formatHora(iso: string): string {
   return new Date(iso).toLocaleTimeString('es-VE', { hour: '2-digit', minute: '2-digit' })
+}
+
+function slugProducto(titulo: string, id: string): string {
+  return titulo.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') + '-' + id.substring(0, 8)
 }
 
 function deduplicate(convs: Conversacion[]): Conversacion[] {
@@ -401,7 +406,21 @@ export default function ChatPageClient() {
     return () => { supabase.removeChannel(sub) }
   }, [convId])
 
-  // ─── Seleccionar conversacion ───
+  // ─── Eliminar conversación ───
+  const eliminarConv = async (id: string, e: React.MouseEvent) => {
+    e.stopPropagation() // Prevent triggering seleccionarConv
+    if (!confirm('¿Eliminar esta conversación y todos sus mensajes?')) return
+    await supabase.from('mensajes').delete().eq('conversacion_id', id)
+    await supabase.from('conversaciones').delete().eq('id', id)
+    setConversaciones(prev => prev.filter(c => c.id !== id))
+    if (convId === id) {
+      setConvId(null)
+      setShowMobileChat(false)
+      setMensajes([])
+    }
+  }
+
+  // ─── Seleccionar conversación ───
   const seleccionarConv = async (id: string) => {
     // Clear unread
     setConversaciones(prev =>
@@ -534,11 +553,23 @@ export default function ChatPageClient() {
                 </div>
               ) : (
                 filtradas.map(c => (
-                  <button
+                  <div
                     key={c.id}
-                    onClick={() => seleccionarConv(c.id)}
-                    className={`w-full flex items-start gap-3 p-4 hover:bg-gray-50 border-b border-gray-50 transition text-left ${convId === c.id ? 'bg-blue-50 border-l-2 border-l-brand-blue' : ''}`}
+                    className={`group w-full flex items-start gap-3 p-3 border-b transition text-left relative ${convId === c.id ? 'bg-blue-50 border-l-2 border-l-brand-blue' : 'bg-white hover:bg-gray-50'}`}
                   >
+                    {/* Delete button - visible on hover */}
+                    <button
+                      onClick={(e) => eliminarConv(c.id, e)}
+                      className="absolute top-1 right-1 p-1 rounded text-gray-400 opacity-0 group-hover:opacity-100 hover:bg-red-50 hover:text-red-500 transition"
+                      title="Eliminar conversación"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                    {/* Clickable conversation content */}
+                    <button
+                      onClick={() => seleccionarConv(c.id)}
+                      className="flex items-start gap-3 w-full"
+                    >
                     <Avatar nombre={c.otro_nombre} fotoUrl={c.otro_foto} size="md" />
                     <div className="flex-1 min-w-0">
                       <div className="flex justify-between items-center">
@@ -547,15 +578,22 @@ export default function ChatPageClient() {
                           <span className="text-xs text-gray-400 ml-2 flex-shrink-0">{formatTime(c.ultimo_mensaje_en)}</span>
                         )}
                       </div>
-                      {c.producto_titulo && (
-                        <p className="text-xs text-brand-blue truncate">{c.producto_titulo}</p>
+                      {c.producto_titulo && c.producto_id && (
+                        <Link
+                          href={"/producto/" + slugProducto(c.producto_titulo, c.producto_id)}
+                          className="text-xs text-blue-600 truncate hover:underline"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          {c.producto_titulo}
+                        </Link>
                       )}
                       <p className="text-sm text-gray-500 truncate mt-0.5">{c.ultimo_mensaje || 'Sin mensajes'}</p>
                     </div>
                     {c.no_leidos > 0 && (
                       <span className="bg-brand-red text-white text-xs rounded-full w-5 h-5 flex items-center justify-center flex-shrink-0">{c.no_leidos}</span>
                     )}
-                  </button>
+                    </button>
+                  </div>
                 ))
               )}
             </div>
@@ -586,8 +624,13 @@ export default function ChatPageClient() {
                   <Avatar nombre={convActual?.otro_nombre || ''} fotoUrl={convActual?.otro_foto} size="sm" />
                   <div>
                     <p className="font-semibold text-gray-800 text-sm">{convActual?.otro_nombre}</p>
-                    {convActual?.producto_titulo && (
-                      <p className="text-xs text-gray-500 truncate max-w-[200px]">{convActual.producto_titulo}</p>
+                    {convActual?.producto_titulo && convActual?.producto_id && (
+                      <Link
+                        href={"/producto/" + slugProducto(convActual.producto_titulo, convActual.producto_id)}
+                        className="text-xs text-blue-600 max-w-[200px] truncate hover:underline"
+                      >
+                        {convActual.producto_titulo}
+                      </Link>
                     )}
                   </div>
                 </div>
