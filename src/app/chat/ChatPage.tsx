@@ -253,23 +253,12 @@ export default function ChatPageClient() {
     }
   }, [productoId, vendedorId])
 
-  // ─── Keep track of deleted IDs to prevent them from reappearing ───
-  const [deletedIds, setDeletedIds] = useState<string[]>([])
-
-  // ─── Load conversations on mount (once) ───
-  const [loaded, setLoaded] = useState(false)
-  
+  // Load once on mount
   useEffect(() => {
-    if (authLoading || !user || loaded) return
+    if (authLoading || !user) return
     loadConversaciones()
-    setLoaded(true)
-  }, [user, authLoading, loadConversaciones])
-  
-  // ─── Also reload when product/seller params change (for creating new conv) ───
-  useEffect(() => {
-    if (!user || !loaded) return
-    loadConversaciones()
-  }, [user, loaded, loadConversaciones, productoId, vendedorId])
+    // Also reload when product/seller params change
+  }, [user, authLoading, loadConversaciones, productoId, vendedorId])
 
   // ─── Realtime sidebar update ───
   useEffect(() => {
@@ -422,50 +411,25 @@ export default function ChatPageClient() {
     e.stopPropagation()
     if (!confirm('¿Eliminar esta conversación y todos sus mensajes?')) return
 
-    try {
-      // 1. Eliminar mensajes primero
-      const { error: msgErr } = await supabase
-        .from('mensajes')
-        .delete()
-        .eq('conversacion_id', id)
+    const { error: msgErr } = await supabase.from('mensajes').delete().eq('conversacion_id', id)
+    if (msgErr) {
+      console.error('Error eliminando mensajes:', msgErr)
+      alert('Error al eliminar los mensajes. La policy RLS puede faltar.')
+      return
+    }
 
-      if (msgErr) {
-        console.error('Error eliminando mensajes:', msgErr)
-        alert('Error al eliminar los mensajes.')
-        return
-      }
-
-      // 2. Eliminar conversación
-      const { error: convErr } = await supabase
-        .from('conversaciones')
-        .delete()
-        .eq('id', id)
-
-      if (convErr) {
-        console.error('Error eliminando conversación:', convErr)
-        alert('Error al eliminar la conversación.')
-        return
-      }
-
-      // 3. Actually, let's also delete any temp conversations we created client-side
-      // Remove from state immediately
-      setConversaciones(prev => {
-        const filtered = prev.filter(c => c.id !== id && !c.id.startsWith('temp-'))
-        
-        // Also clean up any conversations that were created but never committed to DB
-        // This prevents them from reappearing
-        return filtered
-      })
-
-      // Close if this was the active conversation
-      if (convId === id) {
-        setConvId(null)
-        setShowMobileChat(false)
-        setMensajes([])
-      }
-    } catch (err) {
-      console.error('Error deleting conversation:', err)
+    const { error: convErr } = await supabase.from('conversaciones').delete().eq('id', id)
+    if (convErr) {
+      console.error('Error eliminando conversación:', convErr)
       alert('Error al eliminar la conversación.')
+      return
+    }
+
+    setConversaciones(prev => prev.filter(c => c.id !== id))
+    if (convId === id) {
+      setConvId(null)
+      setShowMobileChat(false)
+      setMensajes([])
     }
   }
 
@@ -557,12 +521,10 @@ export default function ChatPageClient() {
 
   if (!user) return null
 
-  const filtradas = conversaciones
-    .filter(c => !deletedIds.includes(c.id) && !c.id.startsWith('temp-'))
-    .filter(c =>
-      c.otro_nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
-      (c.producto_titulo?.toLowerCase() ?? '').includes(busqueda.toLowerCase())
-    )
+  const filtradas = conversaciones.filter(c =>
+    c.otro_nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
+    (c.producto_titulo?.toLowerCase() ?? '').includes(busqueda.toLowerCase())
+  )
 
   const convActual = conversaciones.find(c => c.id === convId)
 
