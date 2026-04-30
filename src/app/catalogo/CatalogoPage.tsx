@@ -82,6 +82,8 @@ export default function CatalogoClient() {
   const subcategoria = searchParams.get('subcategoria') || ''
   const marca = searchParams.get('marca') || ''
   const q = searchParams.get('q') || ''
+  const precioMin = searchParams.get('precioMin') || ''
+  const precioMax = searchParams.get('precioMax') || ''
 
   const [productos, setProductos] = useState<Producto[]>([])
   const [loading, setLoading] = useState(false)
@@ -137,6 +139,14 @@ export default function CatalogoClient() {
         query = query.ilike('titulo', `%${ q}%`)
       }
 
+      // Rango de precio
+      if (precioMin) {
+        query = query.gte('precio_usd', parseFloat(precioMin))
+      }
+      if (precioMax) {
+        query = query.lte('precio_usd', parseFloat(precioMax))
+      }
+
       query = query.order('creado_en', { ascending: false }).limit(200)
 
       const { data, count, error } = await query
@@ -170,7 +180,7 @@ export default function CatalogoClient() {
 
     fetchProductos()
     return () => { cancelled = true }
-  }, [categoria, subcategoria, marca, q])
+  }, [categoria, subcategoria, marca, q, precioMin, precioMax])
 
   const tituloMostrar = q
     ? `Resultados para "${q}"`
@@ -241,8 +251,31 @@ export default function CatalogoClient() {
               </div>
             )}
 
+            {/* Rango de precio */}
+            <div className="mb-4">
+              <label className="block text-sm font-bold text-gray-900 mb-1.5">💰 Precio (USD)</label>
+              <div className="flex gap-2">
+                <input
+                  type="number"
+                  value={precioMin}
+                  onChange={e => setParam('precioMin', e.target.value)}
+                  placeholder="Min"
+                  min="0"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm text-gray-800 bg-white focus:outline-none focus:ring-2 focus:ring-brand-yellow"
+                />
+                <input
+                  type="number"
+                  value={precioMax}
+                  onChange={e => setParam('precioMax', e.target.value)}
+                  placeholder="Max"
+                  min="0"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm text-gray-800 bg-white focus:outline-none focus:ring-2 focus:ring-brand-yellow"
+                />
+              </div>
+            </div>
+
             {/* Clear filters */}
-            {(categoria || subcategoria || marca || q) && (
+            {(categoria || subcategoria || marca || q || precioMin || precioMax) && (
               <button onClick={() => router.push(pathname)} className="w-full text-sm text-red-500 hover:text-red-700 py-2 border border-red-200 rounded-lg hover:bg-red-50 transition flex items-center justify-center gap-1">
                 <XCircle size={14} /> Limpiar filtros
               </button>
