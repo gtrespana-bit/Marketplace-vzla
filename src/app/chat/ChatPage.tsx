@@ -425,14 +425,16 @@ export default function ChatPageClient() {
   }
 
   // ─── Reintentar envio fallido ───
-  const retrySend = useCallback(async (contenido: string, overrideDestId?: string) => {
+  const retrySend = useCallback(async (contenido: string) => {
     if (!convId || !user || enviando) return
     setSendError(null)
     setEnviando(true)
 
-    // Use directly tracked dest ID instead of array lookup
-    const destinatarioId = overrideDestId || convDestId
-    if (!destinatarioId) { setEnviando(false); setSendError('No se pudo identificar al destinatario'); return }
+    // Look up conversation from ref (avoids stale closure)
+    const convs = conversacionesRef.current
+    const conv = convs.find(c => c.id === convId)
+    if (!conv) { setEnviando(false); return }
+    const destinatarioId = conv.user1_id === user.id ? conv.user2_id : conv.user1_id
 
     // Optimistic
     const tempMsg: Mensaje = {
@@ -472,7 +474,7 @@ export default function ChatPageClient() {
       setSendError(null)
     }
     setEnviando(false)
-  }, [convId, user, enviando])
+  }, [convId, user])
 
   // ─── Enviar mensaje ───
   const enviarMensaje = async () => {
