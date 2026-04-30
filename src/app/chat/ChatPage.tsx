@@ -75,7 +75,6 @@ export default function ChatPageClient() {
   const vendedorId = searchParams?.get('vendedor_id')
 
   const [conversaciones, setConversaciones] = useState<Conversacion[]>([])
-  const conversacionesRef = useRef(conversaciones)
   const [convId, setConvId] = useState<string | null>(null)
   const [convDestId, setConvDestId] = useState<string | null>(null)
   const [mensajes, setMensajes] = useState<Mensaje[]>([])
@@ -426,22 +425,16 @@ export default function ChatPageClient() {
 
   // ─── Reintentar envio fallido ───
   const retrySend = useCallback(async (contenido: string) => {
-    if (!convId || !user || enviando) return
+    if (!convId || !user || !convDestId || enviando) return
     setSendError(null)
     setEnviando(true)
-
-    // Look up conversation from ref (avoids stale closure)
-    const convs = conversacionesRef.current
-    const conv = convs.find(c => c.id === convId)
-    if (!conv) { setEnviando(false); return }
-    const destinatarioId = conv.user1_id === user.id ? conv.user2_id : conv.user1_id
 
     // Optimistic
     const tempMsg: Mensaje = {
       id: `t-${Date.now()}`,
       conversacion_id: convId,
       remitente_id: user.id,
-      destinatario_id: destinatarioId,
+      destinatario_id: convDestId,
       contenido,
       leido: true,
       creado_en: new Date().toISOString(),
@@ -455,8 +448,7 @@ export default function ChatPageClient() {
       .insert({
         conversacion_id: convId,
         remitente_id: user.id,
-        destinatario_id: destinatarioId,
-        contenido,
+        destinatario_id: convDestId,
       })
       .select()
       .single()
@@ -474,7 +466,7 @@ export default function ChatPageClient() {
       setSendError(null)
     }
     setEnviando(false)
-  }, [convId, user])
+  }, [convId, user, convDestId])
 
   // ─── Enviar mensaje ───
   const enviarMensaje = async () => {
