@@ -308,11 +308,38 @@ function MisProductos({ productos, onBoost, onDestacar }: { productos: any[]; on
   }
 
   const now = new Date().toISOString()
+  const totalVisitas = productos.reduce((s, p) => s + (p.visitas || 0), 0)
+  const avgVisitas = productos.length ? Math.round(totalVisitas / productos.length) : 0
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
-      <h3 className="font-bold text-lg mb-4">Mis publicaciones ({productos.length})</h3>
-      <div className="space-y-3">
+    <div className="space-y-4">
+      {/* Resumen de rendimiento */}
+      <div className="bg-gradient-to-r from-brand-blue to-blue-800 rounded-xl p-5 text-white">
+        <h3 className="font-bold text-lg mb-3 flex items-center gap-2">📊 Resumen de rendimiento</h3>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div>
+            <p className="text-3xl font-black">{totalVisitas}</p>
+            <p className="text-xs text-blue-200">Vistas totales</p>
+          </div>
+          <div>
+            <p className="text-3xl font-black">{avgVisitas}</p>
+            <p className="text-xs text-blue-200">Promedio por producto</p>
+          </div>
+          <div>
+            <p className="text-3xl font-black">{productos.length}</p>
+            <p className="text-xs text-blue-200">Productos activos</p>
+          </div>
+          <div>
+            <p className="text-3xl font-black">{productos.filter(p => p.boosteado_en || (p.destacado && p.destacado_hasta > now)).length}</p>
+            <p className="text-xs text-blue-200">Promocionados ahora</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Lista de productos con métricas */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+        <h3 className="font-bold text-lg mb-4">Mis publicaciones ({productos.length})</h3>
+        <div className="space-y-3">
         {productos.map((p) => {
           const isBoosted = p.boosteado_en != null
           const isFeatured = p.destacado && p.destacado_hasta && p.destacado_hasta > now
@@ -333,7 +360,7 @@ function MisProductos({ productos, onBoost, onDestacar }: { productos: any[]; on
                   <p className="text-sm text-brand-blue font-bold">${p.precio_usd?.toLocaleString()}</p>
                   <div className="flex items-center gap-3 mt-1 text-xs text-gray-500">
                     <span>👀 {p.visitas || 0} vistas</span>
-                    <span>{p.activo ? '✅ Activo' : '⏸️ Pausado'}</span>
+                    {p.activo ? '✅ Activo' : '⏸️ Pausado'}
                     {isFeatured && (
                       <span className="text-brand-blue">⭐ Hasta {new Date(p.destacado_hasta).toLocaleDateString('es-VE')}</span>
                     )}
