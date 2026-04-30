@@ -147,22 +147,18 @@ export default function ProductoPage() {
     </div>
   )
 
-  // Contact methods - el vendedor decide por publicacion
-  // Si NO configuro metodos_contacto (es undefined o vacio): usa telefono del perfil
-  // Si SI lo configuro: solo muestra los que habilito
-  const mc = (producto as any).metodos_contacto // undefined si nunca configuro nada
-  const mcConfigured = mc && Object.keys(mc).length > 0
-  // Si no configuro nada: usar el telefono del perfil (default)
-  // Si configuro algo: usar el telefono que puso en metodos_contacto
-  const telefono = mcConfigured ? (mc.telefono || mc.whatsapp || '') : (vendedor?.telefono || '')
+  // Contact methods - el vendedor decide POR PUBLICACION
+  // Por defecto (si no configuro): SOLO chat
+  // Si configuro metodos_contacto al publicar: muestra lo que activo
+  const mc = (producto as any).metodos_contacto || {}
+  const telefono = mc.telefono || mc.whatsapp || ''
   const tieneTelefono = telefono.trim().length > 0
-  // Si configuro metodos_contacto: respetar solo lo que activo
-  // Si no: mostrar chat y si tiene telefono, mostrar whatsapp too
+  const tieneEmail = !!(mc.email)
   const metodos = {
     chat: true,
-    whatsapp: mcConfigured ? tieneTelefono : tieneTelefono,
-    telefono: mcConfigured ? !!(mc.telefono) : false,
-    email: mcConfigured ? !!(mc.email && vendedor?.email) : !!(vendedor?.email),
+    whatsapp: tieneTelefono,
+    telefono: !!(mc.telefono && tieneTelefono),
+    email: tieneEmail && vendedor?.email,
   }
 
   const imagenes = producto.imagenes && producto.imagenes.length > 0
