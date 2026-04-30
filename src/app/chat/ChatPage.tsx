@@ -450,16 +450,20 @@ export default function ChatPageClient() {
     setTexto('')
 
     const startTime = Date.now()
+    const insertData = {
+      conversacion_id: convId,
+      remitente_id: user.id,
+      destinatario_id: destinatarioId,
+      contenido,
+    }
+    console.log('[chat] intentando insertar mensaje:', JSON.stringify(insertData))
     const { data, error } = await supabase
       .from('mensajes')
-      .insert({
-        conversacion_id: convId,
-        remitente_id: user.id,
-        destinatario_id: destinatarioId,
-        contenido,
-      })
+      .insert(insertData)
       .select()
       .single()
+
+    console.log('[chat] resultado insert - data:', JSON.stringify(data), 'error:', JSON.stringify(error))
 
     // Minimum delay so user sees the transition
     const elapsed = Date.now() - startTime
