@@ -131,26 +131,26 @@ export default function ChatPageClient() {
       return
     }
 
-    if (!convs || convs.length === 0) {
-      setConversaciones([])
-      setLoading(false)
-      return
-    }
-
-    const otroIds = [...new Set(convs.map(c => c.user1_id === uid.id ? c.user2_id : c.user1_id))]
-    const prodIds = [...new Set(convs.filter(c => c.producto_id).map(c => c.producto_id as string))]
+    // Gather IDs from existing conversations (if any)
+    const existingOtroIds = convs ? [...new Set(convs.map(c => c.user1_id === uid.id ? c.user2_id : c.user1_id))] : []
+    const existingProdIds = convs ? [...new Set(convs.filter(c => c.producto_id).map(c => c.producto_id as string))] : []
+    // Include URL params for potential new conversation
+    const otroIds = [...new Set(existingOtroIds.concat(vendedorId ? [vendedorId] : []))]
+    const prodIds = [...new Set(existingProdIds.concat(productoId ? [productoId] : []))]
 
     const [perfilesRes, productosRes, unreadRes] = await Promise.all([
       supabase.from('perfiles').select('id, nombre, foto_perfil_url').in('id', otroIds),
       prodIds.length > 0
         ? supabase.from('productos').select('id, titulo').in('id', prodIds)
         : Promise.resolve({ data: [] }),
-      supabase
-        .from('mensajes')
-        .select('conversacion_id')
-        .eq('destinatario_id', uid.id)
-        .eq('leido', false)
-        .in('conversacion_id', convs.map(c => c.id)),
+      (convs && convs.length > 0)
+        ? supabase
+            .from('mensajes')
+            .select('conversacion_id')
+            .eq('destinatario_id', uid.id)
+            .eq('leido', false)
+            .in('conversacion_id', convs.map(c => c.id))
+        : Promise.resolve({ data: [] }),
     ])
 
     const perfilMap = new Map<string, { nombre: string; foto: string | null }>()
