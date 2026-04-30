@@ -387,6 +387,7 @@ function MisProductos({ productos, onBoost, onDestacar }: { productos: any[]; on
             </div>
           )
         })}
+        </div>
       </div>
     </div>
   )
@@ -635,6 +636,7 @@ function FavoritosPlaceholder({ favoritos }: { favoritos: any[] }) {
             </div>
           )
         })}
+        </div>
       </div>
     </div>
   )
