@@ -189,55 +189,59 @@ export default function ChatPageClient() {
          (c.user1_id === vendedorId && c.user2_id === uid.id))
       )
       if (match) {
+        // Found existing conversation - SELECT IT
         setConvId(match.id)
         setShowMobileChat(true)
-        loadMensajesSilent(match.id)
+        setTimeout(() => loadMensajesSilent(match.id), 100)
       } else {
-        // No conv exists — create one by sending a placeholder message through the trigger
-        const { data: newConv, error: insErr } = await supabase
-          .from('conversaciones')
-          .insert({
-            user1_id: uid.id < vendedorId ? uid.id : vendedorId,
-            user2_id: uid.id < vendedorId ? vendedorId : uid.id,
-            producto_id: productoId,
-          })
-          .select()
-          .single()
-
-        if (insErr?.code === '23505') {
-          // Constraint violation — refetch to get existing
-          await loadConversaciones()
-          return
-        }
-        if (newConv) {
-          setConvId(newConv.id)
-          setShowMobileChat(true)
-          const refreshed = deduped.map(c => ({
-            ...c,
-            otro_nombre: newConv.user1_id === uid.id
-              ? (perfilMap.get(newConv.user2_id)?.nombre || 'Usuario')
-              : (perfilMap.get(newConv.user1_id)?.nombre || 'Usuario'),
-          }))
-          setConversaciones([
-            {
-              id: newConv.id,
-              user1_id: newConv.user1_id,
-              user2_id: newConv.user2_id,
-              producto_id: newConv.producto_id,
-              ultimo_mensaje: null,
-              ultimo_mensaje_en: new Date().toISOString(),
-              creado_en: newConv.creado_en,
-              otro_nombre: newConv.user1_id === uid.id
-                ? (perfilMap.get(newConv.user2_id)?.nombre || 'Usuario')
-                : (perfilMap.get(newConv.user1_id)?.nombre || 'Usuario'),
-              otro_foto: null,
-              producto_titulo: prodMap.get(productoId) || null,
-              no_leidos: 0,
-            },
-            ...refreshed,
-          ])
-          loadMensajesSilent(newConv.id)
-        }
+        // No conv exists — create one
+        await new Promise<void>((resolve) => {
+          supabase
+            .from('conversaciones')
+            .insert({
+              user1_id: uid.id < vendedorId ? uid.id : vendedorId,
+              user2_id: uid.id < vendedorId ? vendedorId : uid.id,
+              producto_id: productoId,
+            })
+            .select()
+            .single()
+            .then(async ({ data: newConv, error: err }) => {
+              if (err) {
+                if (err.code === '23505') {
+                  // Constraint violation — refetch to get existing
+                  await loadConversaciones().then(resolve)
+                  return
+                }
+                console.error('Error creating conversation:', err)
+                resolve()
+                return
+              }
+              if (newConv) {
+                setConvId(newConv.id)
+                setShowMobileChat(true)
+                setConversaciones(prev => [
+                  {
+                    id: newConv.id,
+                    user1_id: newConv.user1_id,
+                    user2_id: newConv.user2_id,
+                    producto_id: newConv.producto_id,
+                    ultimo_mensaje: null,
+                    ultimo_mensaje_en: new Date().toISOString(),
+                    creado_en: newConv.creado_en,
+                    otro_nombre: newConv.user1_id === uid.id
+                      ? (perfilMap.get(newConv.user2_id)?.nombre || 'Usuario')
+                      : (perfilMap.get(newConv.user1_id)?.nombre || 'Usuario'),
+                    otro_foto: null,
+                    producto_titulo: prodMap.get(productoId) || null,
+                    no_leidos: 0,
+                  },
+                  ...prev,
+                ])
+                setTimeout(() => loadMensajesSilent(newConv.id), 100)
+              }
+              resolve()
+            })
+        })
       }
     }
   }, [])

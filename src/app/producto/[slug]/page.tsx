@@ -107,7 +107,7 @@ export default function ProductoPage() {
       router.push(`/login?redirect=/producto/${slug}`)
       return
     }
-    window.location.href = `/chat?producto_id=${producto.id}&vendedor_id=${producto.user_id}`
+    router.push(`/chat?producto_id=${producto.id}&vendedor_id=${producto.user_id}`)
   }
 
   const toggleFavorito = async () => {
