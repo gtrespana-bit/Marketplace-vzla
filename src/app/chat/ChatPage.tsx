@@ -75,7 +75,13 @@ export default function ChatPageClient() {
   const vendedorId = searchParams?.get('vendedor_id')
 
   const [conversaciones, setConversaciones] = useState<Conversacion[]>([])
+  const conversacionesRef = useRef(conversaciones)
+  conversacionesRef.current = conversaciones
+  const conversacionesRef = useRef(conversaciones)
+  conversacionesRef.current = conversaciones
   const [convId, setConvId] = useState<string | null>(null)
+  const [convDestId, setConvDestId] = useState<string | null>(null)
+  const [convDestId, setConvDestId] = useState<string | null>(null)
   const [mensajes, setMensajes] = useState<Mensaje[]>([])
   const [texto, setTexto] = useState('')
   const [loading, setLoading] = useState(true)
@@ -191,6 +197,7 @@ export default function ChatPageClient() {
       if (match) {
         // Found existing conversation - SELECT IT
         setConvId(match.id)
+        setConvDestId(match.user1_id === uid?.id ? match.user2_id : match.user1_id)
         setShowMobileChat(true)
         setTimeout(() => loadMensajesSilent(match.id), 100)
       } else {
@@ -241,6 +248,7 @@ export default function ChatPageClient() {
             // Update state with new conversation at top
             setConversaciones(prev => [newConvObj, ...prev])
             setConvId(newConv.id)
+            setConvDestId(newConv.user1_id === uid.id ? newConv.user2_id : newConv.user1_id)
             setShowMobileChat(true)
 
             // Load messages after state is updated
@@ -413,21 +421,22 @@ export default function ChatPageClient() {
       prev.map(c => c.id === id ? { ...c, no_leidos: 0 } : c)
     )
     setConvId(id)
+    setConvDestId(id ? (conversaciones.find(cc => cc.id === id)?.user1_id === user?.id ?
+      conversaciones.find(cc => cc.id === id)?.user2_id : conversaciones.find(cc => cc.id === id)?.user1_id) : null)
     setShowMobileChat(true)
     setSendError(null)
     await loadMensajesSilent(id)
   }
 
   // ─── Reintentar envio fallido ───
-  const retrySend = useCallback(async (contenido: string) => {
+  const retrySend = useCallback(async (contenido: string, overrideDestId?: string) => {
     if (!convId || !user || enviando) return
     setSendError(null)
     setEnviando(true)
 
-    const conv = conversaciones.find(c => c.id === convId)
-    if (!conv) { setEnviando(false); return }
-
-    const destinatarioId = conv.user1_id === user.id ? conv.user2_id : conv.user1_id
+    // Use directly tracked dest ID instead of array lookup
+    const destinatarioId = overrideDestId || convDestId
+    if (!destinatarioId) { setEnviando(false); setSendError('No se pudo identificar al destinatario'); return }
 
     // Optimistic
     const tempMsg: Mensaje = {
@@ -467,7 +476,7 @@ export default function ChatPageClient() {
       setSendError(null)
     }
     setEnviando(false)
-  }, [convId, user, conversaciones, enviando])
+  }, [convId, user, enviando])
 
   // ─── Enviar mensaje ───
   const enviarMensaje = async () => {
