@@ -43,7 +43,7 @@ export default function LoginPage() {
     setResendSuccess(false)
 
     const { error } = await supabase.auth.resend({
-      type: 'email',
+      type: 'signup',
       email,
     })
 
