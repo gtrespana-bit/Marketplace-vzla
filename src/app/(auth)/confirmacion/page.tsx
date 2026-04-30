@@ -1,14 +1,30 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useSearchParams } from 'next/navigation'
 import { CheckCircle, Mail, ExternalLink } from 'lucide-react'
 import Link from 'next/link'
 
 function ConfirmacionContent() {
-  const searchParams = useSearchParams()
-  const email = searchParams.get('email') || 'tu correo electrónico'
   const [countdown, setCountdown] = useState(5)
+
+  useEffect(() => {
+    setEmail(sessionStorage.getItem('tempEmail') || 'tu correo electrónico')
+  }, [])
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer)
+          window.location.href = '/login'
+          return 0
+        }
+        return prev - 1
+      })
+    }, 1000)
+
+    return () => clearInterval(timer)
+  }, [])
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -95,7 +111,7 @@ function ConfirmacionContent() {
           </div>
 
           <p className="text-xs text-gray-400 mt-6 text-center">
-            ¿No recibiste el email? Ve al login y solicita uno nuevo.
+            ¿Recibiste el email? Haz clic en el enlace para confirmar.
           </p>
         </div>
       </div>
@@ -103,11 +119,4 @@ function ConfirmacionContent() {
   )
 }
 
-// Suspense boundary para useSearchParams
-export default function ConfirmacionPage() {
-  return (
-    <div className="min-h-[80vh]">
-      <ConfirmacionContent />
-    </div>
-  )
-}
+export default ConfirmacionContent

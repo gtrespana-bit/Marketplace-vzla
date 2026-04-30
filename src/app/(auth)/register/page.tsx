@@ -83,7 +83,8 @@ export default function RegisterPage() {
         : error.message)
     } else {
       // Mostrar mensaje de confirmación y redirigir a pantalla de confirmación
-      router.push(`/confirmacion?email=${encodeURIComponent(email)}`)
+      sessionStorage.setItem('tempEmail', email)
+      router.push('/confirmacion')
     }
     setLoading(false)
   }
