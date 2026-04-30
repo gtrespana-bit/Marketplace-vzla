@@ -420,16 +420,18 @@ export default function ChatPageClient() {
 
   // ─── Reintentar envio fallido ───
   const retrySend = async (contenido: string) => {
+    console.log('[chat] retrySend start - convId:', convId, 'userId:', user?.id, 'enviando:', enviando)
     if (!convId || !user || enviando) return
     setSendError(null)
     setEnviando(true)
 
     // Always fetch from DB to avoid stale closure issues
-    const { data: conv } = await supabase
+    const { data: conv, error: convError } = await supabase
       .from('conversaciones')
       .select('user1_id, user2_id')
       .eq('id', convId)
       .single()
+    console.log('[chat] conv query result - conv:', conv, 'error:', convError)
     if (!conv) { setEnviando(false); setSendError('Conversaci\u00f3n no encontrada'); return }
 
     const destinatarioId = conv.user1_id === user.id ? conv.user2_id : conv.user1_id
@@ -464,9 +466,9 @@ export default function ChatPageClient() {
     if (elapsed < 300) await new Promise(r => setTimeout(r, 300 - elapsed))
 
     if (error) {
+      console.error('Error sending message:', error)
       setSendError(error.message)
       setMensajes(prev => prev.filter(m => m.id !== tempMsg.id))
-      console.error('Error sending message:', error)
     } else if (data) {
       // Realtime will add the confirmed message, remove temp
       setSendError(null)
