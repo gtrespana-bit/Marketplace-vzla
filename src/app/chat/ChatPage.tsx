@@ -383,7 +383,7 @@ export default function ChatPageClient() {
                         </div>
                         {c.producto_titulo && c.producto_id && (
                           <Link
-                            href={`/producto/${slugProducto(c.producto_titulo, c.producto_id)}`}
+                            href={`/producto/${c.producto_id}`}
                             className="text-xs text-blue-600 truncate hover:underline flex items-center gap-0.5"
                             onClick={(e) => e.stopPropagation()}
                           >
@@ -429,7 +429,7 @@ export default function ChatPageClient() {
                         <p className="font-semibold text-gray-800 text-sm">{convActual.otro_nombre}</p>
                         {convActual.producto_titulo && convActual.producto_id && (
                           <Link
-                            href={`/producto/${slugProducto(convActual.producto_titulo, convActual.producto_id)}`}
+                            href={`/producto/${convActual.producto_id}`}
                             className="text-xs text-blue-600 truncate hover:underline flex items-center gap-0.5"
                           >
                             {convActual.producto_titulo}
