@@ -147,10 +147,11 @@ export default function ProductoPage() {
     </div>
   )
 
-  // Contact methods - debug: si hay datos, se muestra
-  const tieneTelefono = !!(vendedor?.telefono && vendedor.telefono.trim().length > 0)
-  console.log("[producto] vendedor:", JSON.stringify({ nombre: vendedor?.nombre, telefono: vendedor?.telefono, whatsapp: vendedor?.whatsapp_disponible, tieneTelefono }))
+  // Contact methods - debug: el telefono puede estar en el perfil O en el producto
+  const telefono = vendedor?.telefono || producto.seller_telefono || ''
+  const tieneTelefono = telefono.trim().length > 0
   const tieneEmail = !!(vendedor?.email && vendedor.email.trim().length > 0)
+  console.log('[producto] vendedor:', JSON.stringify({ perfilTel: vendedor?.telefono, prodTel: producto.seller_telefono, telefono, tieneTelefono }))
   const metodos = {
     chat: true,
     whatsapp: tieneTelefono,
@@ -164,8 +165,8 @@ export default function ProductoPage() {
 
   // WhatsApp URL
   let whatsappUrl = ''
-  if (vendedor?.telefono) {
-    const limpio = vendedor.telefono.replace(/[^0-9]/g, '')
+  if (telefono) {
+    const limpio = telefono.replace(/[^0-9]/g, '')
     const sinCero = limpio.startsWith('0') ? limpio.slice(1) : limpio
     const telefonoFinal = sinCero.startsWith('58') ? sinCero : '58' + sinCero
     const mensaje = encodeURIComponent('Hola! Vi tu publicacion "' + producto.titulo + '" en Todo Anuncios y me interesa. ¿Esta disponible?')
@@ -307,8 +308,8 @@ export default function ProductoPage() {
               </div>
               {/* Botones secundarios */}
               <div className="grid grid-cols-2 gap-2">
-                {metodos.telefono && vendedor?.telefono && (
-                  <a href={`tel:${vendedor.telefono}`} className="border py-3 rounded-xl font-medium hover:bg-gray-50 transition flex items-center justify-center gap-2 text-sm">
+                {metodos.telefono && (
+                  <a href={`tel:${telefono}`} className="border py-3 rounded-xl font-medium hover:bg-gray-50 transition flex items-center justify-center gap-2 text-sm">
                     <Phone size={16} /> Llamar
                   </a>
                 )}
