@@ -37,7 +37,7 @@ export function Header() {
       const { data: perfil } = await supabase
         .from('perfiles')
         .select('credito_balance')
-        .eq('id', user.id)
+        .eq('id', user!.id)
         .single()
       setCreditoBalance(perfil?.credito_balance ?? 0)
     }
@@ -54,7 +54,7 @@ export function Header() {
       const { data: mensajes } = await supabase
         .from('mensajes')
         .select('id', { count: 'exact', head: true })
-        .eq('receptor_id', user.id)
+        .eq('receptor_id', user!.id)
         .eq('leido', false)
       setUnreadCount(mensajes || 0)
     }
@@ -65,12 +65,12 @@ export function Header() {
       .channel('header-unread')
       .on(
         'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'mensajes', filter: `receptor_id=eq.${user.id}` },
+        { event: 'INSERT', schema: 'public', table: 'mensajes', filter: `receptor_id=eq.${user!.id}` },
         () => fetchUnread()
       )
       .on(
         'postgres_changes',
-        { event: 'UPDATE', schema: 'public', table: 'mensajes', filter: `receptor_id=eq.${user.id}` },
+        { event: 'UPDATE', schema: 'public', table: 'mensajes', filter: `receptor_id=eq.${user!.id}` },
         () => fetchUnread()
       )
       .subscribe()
