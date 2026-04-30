@@ -126,7 +126,6 @@ function ModalPago({ paquete, tasa, onClose }: { paquete: any; tasa: number; onC
           user_id: user.id,
           tipo: 'compra',
           monto: paquete.creditos,
-          precio_usd: paquete.precio,
           metodo_pago: selectedMetodo?.nombre || metodo,
           comprobante_url: publicUrl,
           estado: 'pendiente',
