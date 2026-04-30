@@ -447,83 +447,50 @@ export default function ChatPageClient() {
 
   // ─── Reintentar envio fallido ───
   const retrySend = async (contenido: string) => {
-    console.log('[chat] retrySend start - convId:', convId, 'userId:', user?.id, 'enviando:', enviando)
+    console.log('[chat] retrySend - convId:', convId, 'userId:', user?.id)
     if (!convId || !user || enviando) return
     setSendError(null)
     setEnviando(true)
 
-    // Fetch conversation from DB to get recipient ID
-    const { data: conv } = await supabase
-      .from('conversaciones')
-      .select('user1_id, user2_id')
-      .eq('id', convId)
-      .limit(1)
-      .maybeSingle()
+    // Get recipient ID from state (we know it from sidebar)
+    const convObj = conversaciones.find(c => c.id === convId)
+    if (!convObj) { setEnviando(false); setSendError('Conversación no encontrada'); return }
+    const destinatarioId = convObj.user1_id === user.id ? convObj.user2_id : convObj.user1_id
 
-    let destinatarioId: string
-    if (conv) {
-      destinatarioId = conv.user1_id === user.id ? conv.user2_id : conv.user1_id
-    } else {
-      // Conv not yet in DB (replication lag) — infer recipient from known state
-      // The trigger on mensajes will create the conversation if needed
-      const convObj = conversaciones.find(c => c.id === convId)
-      if (convObj) {
-        destinatarioId = convObj.user1_id === user.id ? convObj.user2_id : convObj.user1_id
-      } else {
-        setEnviando(false)
-        setSendError('Conversación no encontrada')
-        return
-      }
-    }
-
-    // Optimistic
-    const tempMsg: Mensaje = {
-      id: `t-${Date.now()}`,
+    // Optimistic UI
+    const tempId = `t-${Date.now()}`
+    setMensajes(prev => [...prev.filter(m => m.id !== tempId), {
+      id: tempId,
       conversacion_id: convId,
       remitente_id: user.id,
       destinatario_id: destinatarioId,
       contenido,
       leido: true,
       creado_en: new Date().toISOString(),
-    }
-    setMensajes(prev => [...prev.filter(m => m.id !== tempMsg.id), tempMsg])
+    }])
     setTexto('')
 
-    const startTime = Date.now()
-    const insertData = {
+    // Insert message — trigger will create conversation if needed
+    const { error } = await supabase.from('mensajes').insert({
       conversacion_id: convId,
       remitente_id: user.id,
       destinatario_id: destinatarioId,
       contenido,
-    }
-    console.log('[chat] intentando insertar mensaje:', JSON.stringify(insertData))
-    const { error } = await supabase
-      .from('mensajes')
-      .insert(insertData)
-
-
-    // Minimum delay so user sees the transition
-    const elapsed = Date.now() - startTime
-    if (elapsed < 300) await new Promise(r => setTimeout(r, 300 - elapsed))
+    })
 
     if (error) {
-      console.error('Error sending message:', error)
+      console.error('Error:', error)
       setSendError(error.message)
-      setMensajes(prev => prev.filter(m => m.id !== tempMsg.id))
+      setMensajes(prev => prev.filter(m => m.id !== tempId))
     } else {
-      // Reload messages from DB to confirm delivery (realtime may be delayed)
-      const { data: msgs } = await supabase
+      // Reload messages from DB after successful insert
+      await new Promise(r => setTimeout(r, 200))
+      const { data } = await supabase
         .from('mensajes')
         .select('*')
         .eq('conversacion_id', convId)
         .order('creado_en', { ascending: true })
-      if (msgs) {
-        setMensajes(prev => {
-          const realIds = new Set(msgs.map(m => m.id))
-          const nonReal = prev.filter(m => !realIds.has(m.id) && !m.id.startsWith('t-'))
-          return [...nonReal, ...msgs]
-        })
-      }
+      if (data) setMensajes(data)
       setSendError(null)
     }
     setEnviando(false)
