@@ -147,12 +147,14 @@ export default function ProductoPage() {
     </div>
   )
 
-  // Contact methods - siempre mostrar chat y whatsapp si hay datos
+  // Contact methods - simple: si hay datos, se muestra
+  const tieneTelefono = !!(vendedor?.telefono && vendedor.telefono.trim().length > 0)
+  const tieneEmail = !!(vendedor?.email && vendedor.email.trim().length > 0)
   const metodos = {
-    chat: true, // siempre disponible
-    whatsapp: !!(vendedor?.whatsapp_disponible && vendedor?.telefono),
-    telefono: !!(vendedor?.telefono_visible && vendedor?.telefono),
-    email: !!(vendedor?.email_visible && vendedor?.email),
+    chat: true,
+    whatsapp: tieneTelefono,
+    telefono: tieneTelefono,
+    email: tieneEmail,
   }
 
   const imagenes = producto.imagenes && producto.imagenes.length > 0
