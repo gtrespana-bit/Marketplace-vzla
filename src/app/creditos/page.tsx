@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import {
-  CheckCircle, Zap, Star, X, Copy, Upload, Loader2, Sparkles, Clock
+  CheckCircle, Zap, Star, X, Copy, Upload, Loader2, Sparkles
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 
@@ -39,7 +39,6 @@ function ModalPago({ paquete, tasa, onClose }: { paquete: any; tasa: number; onC
   const router = useRouter()
   const [metodo, setMetodo] = useState('')
   const [copiado, setCopiado] = useState('')
-  const [bsPagado, setBsPagado] = useState('')
   const [comprobanteFile, setComprobanteFile] = useState<File | null>(null)
   const [comprobantePreview, setComprobantePreview] = useState('')
   const [enviando, setEnviando] = useState(false)
@@ -66,7 +65,6 @@ function ModalPago({ paquete, tasa, onClose }: { paquete: any; tasa: number; onC
   const procesarCompra = async () => {
     if (!metodo) { alert('Selecciona un método de pago'); return }
     if (!comprobanteFile) { alert('Sube el comprobante'); return }
-    if (!bsPagado || parseFloat(bsPagado) <= 0) { alert('Indica cuánto pagaste en bolívares'); return }
 
     setEnviando(true)
     try {
@@ -83,7 +81,7 @@ function ModalPago({ paquete, tasa, onClose }: { paquete: any; tasa: number; onC
 
       const { data: { publicUrl } } = supabase.storage.from('comprobantes').getPublicUrl(fileName)
 
-      // Enviar al API de auto-aprobación
+      // Enviar al API — el comprobante es la verificación real
       const res = await fetch('/api/comprar-creditos', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -92,8 +90,6 @@ function ModalPago({ paquete, tasa, onClose }: { paquete: any; tasa: number; onC
           creditos: paquete.creditos,
           precioUsd: paquete.precio,
           metodoPago: selectedMetodo?.nombre || metodo,
-          bsPagado: parseFloat(bsPagado),
-          tasaBcv: tasa,
           comprobanteUrl: publicUrl,
         }),
       })
@@ -108,8 +104,8 @@ function ModalPago({ paquete, tasa, onClose }: { paquete: any; tasa: number; onC
       setResultado({
         autoAprobado: data.autoApproved,
         texto: data.autoApproved
-          ? '¡Compra aprobada automáticamente! Tus créditos ya están disponibles.'
-          : 'Comprobante enviado. Será revisado en breve, recibirás tus créditos cuando se confirme.',
+          ? '¡Compra aprobada automáticamente! Tu comprobante fue verificado y los créditos están en tu cuenta.'
+          : 'Comprobante enviado. Un administrador revisará tu pago en breve.',
       })
     } catch (err: any) {
       alert('Error: ' + (err.message || 'Error desconocido'))
@@ -117,7 +113,7 @@ function ModalPago({ paquete, tasa, onClose }: { paquete: any; tasa: number; onC
     setEnviando(false)
   }
 
-  // ---- UI ----
+  // ---- Success / Pending screen ----
   if (resultado) {
     return (
       <div className="fixed inset-0 z-50 bg-black/60 flex items-end md:items-center justify-center">
@@ -135,25 +131,23 @@ function ModalPago({ paquete, tasa, onClose }: { paquete: any; tasa: number; onC
             </>
           ) : (
             <>
-              <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Clock size={32} className="text-amber-600" />
+              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <CheckCircle size={32} className="text-brand-blue" />
               </div>
-              <h3 className="text-xl font-bold text-center text-amber-700 mb-2">Pendiente de revisión</h3>
+              <h3 className="text-xl font-bold text-center text-brand-blue mb-2">Comprobante enviado</h3>
               <p className="text-sm text-gray-600 text-center mb-4">{resultado.texto}</p>
             </>
           )}
-          <button onClick={onClose} className="w-full bg-brand-blue text-white py-3 rounded-xl font-bold hover:bg-blue-900 transition">
-            Cerrar
-          </button>
+          <button onClick={onClose} className="w-full bg-brand-blue text-white py-3 rounded-xl font-bold hover:bg-blue-900 transition">Cerrar</button>
         </div>
       </div>
     )
   }
 
+  // ---- Main modal ----
   return (
     <div className="fixed inset-0 z-50 bg-black/60 flex items-end md:items-center justify-center">
       <div className="bg-white w-full md:max-w-lg md:rounded-2xl rounded-t-2xl max-h-[90vh] overflow-y-auto">
-        {/* Header */}
         <div className="sticky top-0 bg-white border-b px-6 py-4 flex items-center justify-between rounded-t-2xl z-10">
           <div>
             <h3 className="text-lg font-bold text-gray-900">{paquete.creditos} créditos — ${paquete.precio} USD</h3>
@@ -163,7 +157,7 @@ function ModalPago({ paquete, tasa, onClose }: { paquete: any; tasa: number; onC
         </div>
 
         <div className="p-6 space-y-6">
-          {/* Paso 1: Elegir método */}
+          {/* 1. Método de pago */}
           <div>
             <h4 className="font-bold text-gray-800 mb-3">1. Elige cómo vas a pagar</h4>
             <div className="grid grid-cols-2 gap-3">
@@ -177,25 +171,22 @@ function ModalPago({ paquete, tasa, onClose }: { paquete: any; tasa: number; onC
             </div>
           </div>
 
-          {/* Paso 2: Datos de pago */}
+          {/* 2. Datos de pago */}
           {selectedMetodo && (
             <div>
               <h4 className="font-bold text-gray-800 mb-3">2. Datos de pago</h4>
               <div className="bg-gray-50 rounded-xl p-4 space-y-3">
                 {Object.entries(selectedMetodo.instrucciones).map(([key, value]) => {
                   const labelMap: Record<string, string> = { telefono: 'Teléfono', cedula: 'Cédula', banco: 'Banco', id: 'Binance ID' }
-                  const isCopiable = ['telefono', 'cedula', 'id', 'banco'].includes(key)
                   return (
                     <div key={key} className="flex items-center justify-between">
                       <div>
                         <span className="text-xs text-gray-500">{labelMap[key] || key}</span>
                         <p className="text-sm font-medium text-gray-800">{value as string}</p>
                       </div>
-                      {isCopiable && (
-                        <button onClick={() => copyToClipboard(value as string, key)} className="text-xs bg-white border rounded-md px-2 py-1 hover:bg-gray-100 transition ml-2">
-                          {copiado === key ? '✓ Copiado' : 'Copiar'}
-                        </button>
-                      )}
+                      <button onClick={() => copyToClipboard(value as string, key)} className="text-xs bg-white border rounded-md px-2 py-1 hover:bg-gray-100 transition ml-2">
+                        {copiado === key ? '✓ Copiado' : 'Copiar'}
+                      </button>
                     </div>
                   )
                 })}
@@ -203,29 +194,10 @@ function ModalPago({ paquete, tasa, onClose }: { paquete: any; tasa: number; onC
             </div>
           )}
 
-          {/* Paso 3: Indicar Bs pagados */}
+          {/* 3. Comprobante */}
           {selectedMetodo && (
             <div>
-              <h4 className="font-bold text-gray-800 mb-2">3. ¿Cuánto pagaste?</h4>
-              <p className="text-xs text-gray-500 mb-2">Ingresa el monto exacto que transferiste</p>
-              <div className="flex items-center gap-3">
-                <span className="text-lg font-bold text-gray-400">Bs.</span>
-                <input type="number" value={bsPagado} onChange={e => setBsPagado(e.target.value)}
-                  placeholder={precioBs} step="0.01" min="0"
-                  className="flex-1 border border-gray-300 rounded-xl px-4 py-3 text-lg font-bold bg-white focus:outline-none focus:ring-2 focus:ring-brand-blue" />
-              </div>
-              {bsPagado && parseFloat(bsPagado) > 0 && (
-                <p className={`text-xs mt-1 ${Math.abs(parseFloat(bsPagado) - parseFloat(precioBs)) / parseFloat(precioBs) * 100 <= 15 ? 'text-green-600' : 'text-amber-600'}`}>
-                  {parseFloat(bsPagado) > parseFloat(precioBs) ? '✓ Monto correcto' : `Faltan Bs. ${(parseFloat(precioBs) - parseFloat(bsPagado)).toFixed(2)}`}
-                </p>
-              )}
-            </div>
-          )}
-
-          {/* Paso 4: Subir comprobante */}
-          {selectedMetodo && (
-            <div>
-              <h4 className="font-bold text-gray-800 mb-3">4. Sube tu comprobante</h4>
+              <h4 className="font-bold text-gray-800 mb-3">3. Sube tu comprobante de pago</h4>
               <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:border-brand-blue transition cursor-pointer"
                 onClick={() => document.getElementById('comprobante-input')?.click()}>
                 <input type="file" accept="image/*" id="comprobante-input" onChange={handleFileChange} className="hidden" />
@@ -237,17 +209,17 @@ function ModalPago({ paquete, tasa, onClose }: { paquete: any; tasa: number; onC
                 ) : (
                   <>
                     <Upload size={32} className="mx-auto text-gray-400 mb-2" />
-                    <p className="text-sm text-gray-500">Toca aquí para subir tu comprobante</p>
+                    <p className="text-sm text-gray-500">Toca para subir captura del pago</p>
                     <p className="text-xs text-gray-400 mt-1">JPG, PNG — máx 5MB</p>
                   </>
                 )}
               </div>
-              <button onClick={procesarCompra} disabled={enviando || !comprobanteFile || !bsPagado}
+              <button onClick={procesarCompra} disabled={enviando || !comprobanteFile}
                 className="w-full mt-4 bg-brand-blue text-white py-3.5 rounded-xl font-bold hover:bg-blue-900 transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
-                {enviando ? <><Loader2 size={18} className="animate-spin" /> Procesando...</> : <><Upload size={18} /> Enviar comprobante</>}
+                {enviando ? <><Loader2 size={18} className="animate-spin" /> Enviando...</> : <><Upload size={18} /> Enviar comprobante</>}
               </button>
               <p className="text-center text-xs text-gray-400 mt-2">
-                Si el monto coincide con la tasa BCV → créditos automáticos ✨
+                La imagen del comprobante es la verificación del pago ✨
               </p>
             </div>
           )}
@@ -277,7 +249,7 @@ export default function CreditosPage() {
     <div className="max-w-5xl mx-auto px-4 py-12">
       <div className="text-center mb-12">
         <h1 className="text-3xl md:text-4xl font-black text-gray-800 mb-4">Compra créditos y <span className="text-brand-yellow">destaca</span></h1>
-        <p className="text-lg text-gray-500 max-w-2xl mx-auto">Publicar siempre es <strong>gratis</strong>. Los créditos son opcionales para dar visibilidad a tus publicaciones.</p>
+        <p className="text-lg text-gray-500 max-w-2xl mx-auto">Publicar siempre es <strong>gratis</strong>. Los créditos son opcionales para dar visibilidad.</p>
       </div>
 
       {/* Info */}
@@ -348,7 +320,7 @@ export default function CreditosPage() {
         </div>
       </div>
 
-      {/* Métodos de pago */}
+      {/* Métodos */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
         <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">Métodos de pago aceptados</h2>
         <div className="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-5 gap-4">
@@ -370,10 +342,10 @@ export default function CreditosPage() {
         <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mt-6">
           <h3 className="font-bold text-brand-blue text-sm mb-2">ℹ️ Cómo funciona</h3>
           <ol className="text-sm text-blue-800 space-y-1 list-decimal list-inside">
-            <li>Selecciona tu paquete de créditos</li>
-            <li>Realiza el pago por tu método preferido</li>
-            <li>Indica cuánto pagaste en bolívares y sube el comprobante</li>
-            <li>Si el monto coincide → créditos al instante ✨ si no, se revisan manualmente</li>
+            <li>Selecciona tu paquete y realiza el pago</li>
+            <li>Sube la captura del comprobante</li>
+            <li>Se verifica la imagen → créditos al instante ✨</li>
+            <li>Si no se puede verificar → un admin lo aprueba manualmente</li>
           </ol>
         </div>
       </div>
