@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useParams, useRouter } from 'next/navigation'
+import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
 import { supabase } from '@/lib/supabase'
@@ -48,6 +48,19 @@ export default function ProductoPage() {
   const router = useRouter()
   const { user, loading: authLoading } = useAuth()
   const slug = params?.slug as string
+  const searchParams = useSearchParams()
+  const esNuevaPublicacion = searchParams.get('nuevo') === '1'
+  
+  // Auto-remove ?nuevo=1 from URL after showing banner
+  useEffect(() => {
+    if (esNuevaPublicacion && window.location.search.includes('nuevo=1')) {
+      if (window.history.replaceState) {
+        setTimeout(() => {
+          window.history.replaceState({}, '', window.location.pathname)
+        }, 5000)
+      }
+    }
+  }, [esNuevaPublicacion])
 
   const [producto, setProducto] = useState<any>(null)
   const [vendedor, setVendedor] = useState<any>(null)
@@ -158,6 +171,22 @@ export default function ProductoPage() {
     </div>
   )
 
+  // ====== SUCCESS BANNER (primera publicacion) ======
+  const SuccessBanner = () => esNuevaPublicacion ? (
+    <div className="mb-6 bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-300 rounded-2xl p-5 animate-fadeIn">
+      <div className="flex items-start gap-3">
+        <span className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center shrink-0 mt-0.5">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </span>
+        <div>
+          <h3 className="font-bold text-green-800 text-lg">¡Publicado con éxito! 🎉</h3>
+          <p className="text-green-700 text-sm mt-1">Tu anuncio ya es visible para miles de compradores en Venezuela.</p>
+          <p className="text-green-600 text-xs mt-2 font-bold">Publicación 100% GRATIS · 0 comisiones · Siempre</p>
+        </div>
+      </div>
+    </div>
+  ) : null
+
   // Contact methods: per-product settings, or fallback to profile
   const mc = producto.metodos_contacto
   const mcConfigured = mc && Object.keys(mc).length > 0
@@ -187,6 +216,9 @@ export default function ProductoPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
+      {/* Success banner */}
+      <SuccessBanner />
+      
       {/* Breadcrumb */}
       <nav className="flex items-center gap-1.5 text-sm text-gray-500 mb-6 overflow-x-auto hide-scrollbar">
         <Link href="/" className="hover:text-brand-blue flex-shrink-0">Inicio</Link>

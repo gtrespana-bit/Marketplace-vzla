@@ -52,6 +52,7 @@ export default function PublicarPage() {
   const [contactWhatsApp, setContactWhatsApp] = useState('')
   const [contactMessenger, setContactMessenger] = useState('')
   const [moderacionResultado, setModeracionResultado] = useState<{ nivel: string; palabras: string[] } | null>(null)
+  const [showEmprendedor, setShowEmprendedor] = useState(false)
 
   // Redirect if not logged in
   useEffect(() => {
@@ -250,6 +251,26 @@ export default function PublicarPage() {
         console.error('DB error:', dbError)
         setError('Error al guardar: ' + dbError.message)
       } else {
+        // Check Pack Emprendedor (10+ publicaciones = 5 creditos gratis)
+        const { count: pubCount } = await supabase
+          .from('productos')
+          .select('*', { count: 'exact' })
+          .eq('user_id', user?.id)
+          .eq('activo', true)
+        
+        if (pubCount && pubCount >= 10) {
+          const { data: perfil } = await supabase
+            .from('perfiles')
+            .select('emprendedor_dado, credito_balance')
+            .eq('id', user?.id)
+            .single()
+          
+          if (perfil && !perfil.emprendedor_dado) {
+            setShowEmprendedor(true)
+            setTimeout(() => setShowEmprendedor(false), 6000)
+          }
+        }
+        
         router.push(`/producto/${producto.id}?nuevo=1`)
       }
     } catch (err) {
@@ -266,13 +287,39 @@ export default function PublicarPage() {
   return (
     <div className="max-w-3xl mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold text-gray-900 mb-2">Publicar algo</h1>
-      <p className="text-gray-500 mb-8">Completa la informacion. Es gratis.</p>
+
+      {/* Banner: siempre gratis */}
+      <div className="mb-6 bg-green-50 border border-green-200 rounded-xl p-4 flex items-center gap-3">
+        <span className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center shrink-0">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </span>
+        <div>
+          <p className="text-sm font-bold text-green-800">Publicar es 100% gratis</p>
+          <p className="text-xs text-green-600">Sin comisiones, sin letra pequeña. Siempre será así.</p>
+        </div>
+      </div>
+
+      <p className="text-gray-500 text-sm mb-8">Completa la informacion en 4 pasos sencillos.</p>
 
       {/* Error banner */}
       {error && (
         <div className="flex items-center gap-2 bg-red-50 text-red-700 p-3 rounded-lg mb-6 text-sm">
           <AlertCircle size={18} />
           {error}
+        </div>
+      )}
+
+      {/* Emprendedor bonus banner */}
+      {showEmprendedor && (
+        <div className="bg-gradient-to-r from-purple-50 to-pink-50 border-2 border-purple-200 rounded-xl p-5 mb-6 animate-fadeIn">
+          <div className="flex items-start gap-3">
+            <span className="text-3xl">🎉</span>
+            <div>
+              <h3 className="font-bold text-purple-800 text-lg">¡Bonus Emprendedor desbloqueado!</h3>
+              <p className="text-purple-700 text-sm mt-1">Llegaste a 10 publicaciones. Te regalamos <strong>5 créditos gratis</strong>.</p>
+              <p className="text-purple-600 text-xs mt-0.5">Cada 10 publicaciones = 5 créditos más. ¡Sigue así!</p>
+            </div>
+          </div>
         </div>
       )}
 

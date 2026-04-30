@@ -155,6 +155,20 @@ export default async function HomePage() {
         </div>
       </section>
 
+      {/* ============ BANNER: PUBLICAR GRATIS ============ */}
+      <div className="bg-gradient-to-r from-green-50 to-emerald-50 border-y border-green-200">
+        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-center gap-3 flex-wrap">
+          <div className="flex items-center gap-2">
+            <span className="w-7 h-7 bg-green-500 rounded-full flex items-center justify-center shrink-0">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            </span>
+            <p className="font-bold text-gray-900 text-sm">Publicar es 100% GRATIS</p>
+          </div>
+          <p className="text-xs text-gray-600 hidden sm:inline">En MercadoLibre pagas por publicar · Aqui nunca pagas comision</p>
+          <Link href="/como-funciona" className="text-green-700 text-xs font-bold hover:underline">Comparar con otros →</Link>
+        </div>
+      </div>
+
       {/* ============ VENTAS DESTACADAS ============ */}
       {destacados.length > 0 ? (
         <section className="relative">

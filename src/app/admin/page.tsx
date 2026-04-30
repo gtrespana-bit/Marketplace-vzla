@@ -9,6 +9,7 @@ import {
   Check, X, CreditCard, Eye, ExternalLink, Loader2, RefreshCw,
   Shield, Users, BarChart3, Megaphone, Settings, Tag, Download,
   Package, Star, Zap, Pause, Play, Trash2, ChevronDown, ChevronUp,
+  PlusCircle,
   Search, ShieldCheck
 } from 'lucide-react'
 import VerificacionTab from './VerificacionTab'
@@ -26,6 +27,7 @@ const TABS = [
   { id: 'anuncios', label: 'Anuncios', icon: Megaphone },
   { id: 'categorias', label: 'Categorías', icon: Tag },
   { id: 'exportar', label: 'Exportar', icon: Download },
+  { id: 'creditos', label: 'Créditos', icon: PlusCircle },
 ] as const
 
 // ============================ MODERACIÓN TAB ============================
@@ -900,6 +902,234 @@ function TabExportar() {
             <p className="text-xs text-gray-400">Pagos y créditos</p>
           </button>
         </div>
+      </div>
+    </div>
+  )
+}
+
+// ============================================================
+// TAB: CREDITOS (añadir manualmente)
+// ============================================================
+function TabCreditos({ perfiles, notify }: { perfiles: Record<string, any>; notify: (m: string) => void }) {
+  const [busqueda, setBusqueda] = useState('')
+  const [usuarios, setUsuarios] = useState<any[]>([])
+  const [usuarioSel, setUsuarioSel] = useState<string>('')
+  const [cantidad, setCantidad] = useState('')
+  const [motivo, setMotivo] = useState('')
+  const [procesando, setProcesando] = useState(false)
+  const [historial, setHistorial] = useState<any[]>([])
+
+  useEffect(() => {
+    cargar()
+  }, [])
+
+  async function cargar() {
+    // Load users and manual credit history in parallel
+    const [{ data: userData }, { data: histData }] = await Promise.all([
+      supabase.from('perfiles').select('id, nombre, telefono, email, credito_balance, creado_en').order('creado_en', { ascending: false }).limit(500),
+      supabase.from('transacciones_creditos').select('*').in('tipo', ['admin_manual', 'bienvenida', 'referido', 'emprendedor']).order('creado_en', { ascending: false }).limit(200),
+    ])
+    if (userData) setUsuarios(userData)
+    if (histData) setHistorial(histData)
+  }
+
+  const filtrados = busqueda
+    ? usuarios.filter(u =>
+        (u.nombre || '').toLowerCase().includes(busqueda.toLowerCase()) ||
+        (u.telefono || '').includes(busqueda) ||
+        (u.email || '').toLowerCase().includes(busqueda.toLowerCase())
+      )
+    : usuarios
+
+  async function añadirCreditos() {
+    if (!usuarioSel || !cantidad || parseInt(cantidad) < 1) return
+    setProcesando(true)
+
+    try {
+      // 1. Update perfil credit balance
+      const { data: perfilData } = await supabase
+        .from('perfiles')
+        .select('credito_balance')
+        .eq('id', usuarioSel)
+        .single()
+      
+      const nuevoBalance = (perfilData?.credito_balance || 0) + parseInt(cantidad)
+
+      const { error: updateErr } = await supabase
+        .from('perfiles')
+        .update({ credito_balance: nuevoBalance })
+        .eq('id', usuarioSel)
+
+      if (updateErr) throw updateErr
+
+      // 2. Record transaction
+      const { error: transErr } = await supabase
+        .from('transacciones_creditos')
+        .insert({
+          user_id: usuarioSel,
+          tipo: 'admin_manual',
+          monto: parseInt(cantidad),
+          estado: 'aprobado',
+          motivo_registro: motivo || null,
+        })
+
+      if (transErr) throw transErr
+
+      // Success
+      notify(`✅ +${cantidad} créditos añadidos a ${usuarioSel}`)
+      
+      // Notify via Telegram
+      const perfil = perfiles[usuarioSel] || {}
+      try {
+        await fetch('/api/notify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            mensaje: `💰 Creditos Admin\n+${cantidad} créditos añadidos a ${perfil.nombre || 'Usuario'}\nMotivo: ${motivo || 'N/A'}`,
+          }),
+        })
+      } catch {}
+
+      setUsuarioSel('')
+      setCantidad('')
+      setMotivo('')
+      cargar()
+    } catch (err: any) {
+      notify('❌ Error: ' + (err.message || 'desconocido'))
+    }
+
+    setProcesando(false)
+  }
+
+  const tipoLabels: Record<string, string> = {
+    admin_manual: '🔧 Manual',
+    bienvenida: '🎁 Bienvenida',
+    referido: '🤝 Referido',
+    emprendedor: '💼 Emprendedor',
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Añadir créditos */}
+      <div className="bg-white rounded-xl border border-gray-100 p-6">
+        <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
+          <PlusCircle size={20} className="text-brand-blue" /> Añadir créditos manualmente
+        </h3>
+
+        <div className="space-y-4 max-w-lg">
+          {/* Buscador de usuarios */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-1.5">Buscar usuario</label>
+            <div className="relative">
+              <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+              <input
+                type="text"
+                value={busqueda}
+                onChange={e => setBusqueda(e.target.value)}
+                placeholder="Nombre, email o teléfono..."
+                className="w-full border border-gray-300 rounded-lg pl-9 pr-4 py-2.5 text-sm bg-white"
+              />
+            </div>
+
+            {/* Resultados */}
+            {busqueda && filtrados.length > 0 && (
+              <div className="mt-2 max-h-48 overflow-y-auto border rounded-lg bg-gray-50">
+                {filtrados.slice(0, 10).map(u => (
+                  <button
+                    key={u.id}
+                    onClick={() => { setUsuarioSel(u.id); setBusqueda(u.nombre || u.id) }}
+                    className={`w-full text-left px-3 py-2 text-sm hover:bg-white border-b last:border-b-0 flex justify-between items-center ${
+                      usuarioSel === u.id ? 'bg-blue-50 border-l-2 border-l-brand-blue' : ''
+                    }`}
+                  >
+                    <span className="font-medium truncate">{u.nombre || u.id}</span>
+                    <span className="text-xs text-gray-400 ml-2">{u.credito_balance || 0} cr.</span>
+                  </button>
+                ))}
+              </div>
+            )}
+            {usuarioSel && (
+              <div className="mt-2 flex items-center justify-between bg-blue-50 border border-blue-200 rounded-lg px-3 py-2">
+                <span className="text-sm font-medium text-brand-blue">
+                  ✅ {perfiles[usuarioSel]?.nombre || 'Usuario seleccionado'}
+                </span>
+                <button onClick={() => { setUsuarioSel(''); setBusqueda('') }} className="text-gray-400 hover:text-gray-600">
+                  <X size={14} />
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Cantidad */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-1.5">Cantidad de créditos</label>
+            <input
+              type="number"
+              value={cantidad}
+              onChange={e => setCantidad(e.target.value)}
+              placeholder="Ej: 5"
+              min="1"
+              className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm bg-white"
+            />
+          </div>
+
+          {/* Motivo */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-1.5">Motivo (opcional)</label>
+            <input
+              type="text"
+              value={motivo}
+              onChange={e => setMotivo(e.target.value)}
+              placeholder="Ej: Bonus manual, corrección, regalo..."
+              className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm bg-white"
+            />
+          </div>
+
+          <button onClick={añadirCreditos} disabled={!usuarioSel || !cantidad || procesando} className="w-full bg-green-500 text-white py-3 rounded-lg font-bold hover:bg-green-600 transition disabled:opacity-50 flex items-center justify-center gap-2">
+            <PlusCircle size={18} />
+            {procesando ? 'Añadiendo...' : `Añadir ${cantidad || '?'} créditos`}
+          </button>
+        </div>
+      </div>
+
+      {/* Historial de créditos especiales */}
+      <div className="bg-white rounded-xl border border-gray-100 p-6">
+        <h3 className="font-bold text-lg mb-4">📋 Historial de créditos especiales</h3>
+        {historial.length === 0 ? (
+          <p className="text-gray-400 text-center py-8">Sin registros aún</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-gray-50 border-b">
+                <tr>
+                  <th className="text-left py-3 px-4 font-bold">Usuario</th>
+                  <th className="text-left py-3 px-4 font-bold">Tipo</th>
+                  <th className="text-center py-3 px-4 font-bold">Créditos</th>
+                  <th className="text-left py-3 px-4 font-bold hidden sm:table-cell">Motivo</th>
+                  <th className="text-center py-3 px-4 font-bold hidden md:table-cell">Fecha</th>
+                </tr>
+              </thead>
+              <tbody>
+                {historial.slice(0, 50).map((t) => {
+                  const perfil = perfiles[t.user_id] || {}
+                  return (
+                    <tr key={t.id} className="border-b border-gray-50 hover:bg-gray-50">
+                      <td className="py-3 px-4 font-medium truncate max-w-[200px]">{perfil.nombre || t.user_id.slice(0, 8)}</td>
+                      <td className="py-3 px-4">
+                        <span className="text-xs font-medium bg-gray-100 px-2 py-0.5 rounded">
+                          {tipoLabels[t.tipo] || t.tipo}
+                        </span>
+                      </td>
+                      <td className="py-3 px-4 text-center font-bold text-green-600">+{t.monto}</td>
+                      <td className="py-3 px-4 hidden sm:table-cell text-gray-500 text-xs">{t.motivo_registro || '—'}</td>
+                      <td className="py-3 px-4 hidden md:table-cell text-gray-400 text-xs">{new Date(t.creado_en).toLocaleDateString('es-VE')}</td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     </div>
   )

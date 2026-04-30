@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { Check, X as XIcon } from 'lucide-react'
 
 export const metadata: Metadata = {
   title: '¿Cómo funciona? — Todo Anuncios',
@@ -80,6 +81,54 @@ export default function ComoFuncionaPage() {
             <p className="text-gray-600 mt-1">Los precios se publican en USD (dólares). También mostramos el equivalente en bolívares con la tasa referencial del día.</p>
           </div>
         </div>
+      </div>
+
+      {/* ============ COMPARATIVA ============ */}
+      <div className="bg-white rounded-xl p-8 shadow-sm border border-gray-100 mb-12">
+        <h2 className="text-2xl font-bold text-gray-800 mb-2 text-center">¿Por qué somos diferentes?</h2>
+        <p className="text-gray-500 text-center mb-8">Comparación con otros marketplaces</p>
+
+        <div className="grid grid-cols-3 gap-4 max-w-2xl mx-auto">
+          {/* Header */}
+          <div className="text-center pb-3 border-b-2 border-brand-blue">
+            <p className="font-black text-brand-blue text-sm">Todo Anuncios</p>
+          </div>
+          <div className="text-center pb-3 border-b border-gray-200">
+            <p className="font-bold text-gray-400 text-sm">Otros marketplaces</p>
+          </div>
+          <div className="text-center pb-3 border-b border-gray-200">
+            <p className="font-bold text-gray-400 text-sm">Redes sociales</p>
+          </div>
+
+          {/* Rows */}
+          {[
+            { label: 'Publicar', ta: 'Gratis siempre', otros: 'De pago', red: 'Gratis' },
+            { label: 'Comisión', ta: '0%', otros: '5-15%', red: '0%' },
+            { label: 'Contacto directo', ta: 'Sí ✅', otros: 'Intermediarios', red: 'Limitado' },
+            { label: 'Pago Móvil', ta: 'Sí ✅', otros: 'No', red: 'No' },
+            { label: 'Enfocado en Venezuela', ta: 'Sí ✅', otros: 'No', red: 'No' },
+            { label: 'Verificación de vendedores', ta: 'Sí ✅', otros: 'Ocasional', red: 'No' },
+          ].map((r, i) => (
+            <>
+              <div key={'a'+i} className="text-center py-2.5 text-sm font-semibold text-gray-800 border-r border-gray-100 pr-2">
+                {r.label}
+              </div>
+              <div key={'b'+i} className="text-center py-2.5 text-sm text-green-600 font-bold border-r border-gray-100 pr-2">
+                {r.ta}
+              </div>
+              <div key={'c'+i} className={`text-center py-2.5 text-sm ${r.otros.includes('No') || r.otros.includes('Ocasional') || r.otros.includes('Intermediarios') ? 'text-red-400' : 'text-gray-400'}`}>
+                {r.otros}
+              </div>
+              <div key={'d'+i} className={`text-center py-2.5 text-sm ${r.red.includes('No') || r.red.includes('Limitado') ? 'text-red-400' : 'text-gray-400'}`}>
+                {r.red}
+              </div>
+            </>
+          ))}
+        </div>
+
+        <p className="text-center text-xs text-gray-400 mt-6">
+          En todo momento: comprar, vender y contactar es totalmente gratis
+        </p>
       </div>
 
       <div className="text-center mt-12">
