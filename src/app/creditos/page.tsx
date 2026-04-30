@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import {
-  CheckCircle, Zap, Star, X, Copy, Upload, MessageCircle, Loader2
+  CheckCircle, Zap, Star, X, Copy, Upload, Loader2
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 
@@ -42,8 +42,7 @@ const metodosPago = [
     instrucciones: {
       telefono: '041266443099',
       cedula: 'V-20794917',
-      banco: '0134 — Banesco',
-      nota: 'Envía el comprobante por WhatsApp después de pagar',
+      banco: '0108 — Banco Provincial (BBVA)',
     },
   },
   {
@@ -52,28 +51,16 @@ const metodosPago = [
     emoji: '🟡',
     instrucciones: {
       id: '2041475442',
-      nota: 'Envía el receipt después del pago por WhatsApp',
-    },
-  },
-  {
-    id: 'transferencia',
-    nombre: 'Transferencia',
-    emoji: '🏦',
-    disponible: false,
-    instrucciones: {
-      nota: 'No operativo actualmente',
     },
   },
 ]
 
-const WHATSAPP_CONFIRMACION = '584227997043'
 const FALLBACK_TASA = 487.12
 
 function ModalPago({ paquete, tasa, onClose }: { paquete: any; tasa: number; onClose: () => void }) {
   const router = useRouter()
   const [metodo, setMetodo] = useState('')
   const [copiado, setCopiado] = useState('')
-  const [modoEnvio, setModoEnvio] = useState<'whatsapp' | 'subir' | null>(null)
   const [comprobanteFile, setComprobanteFile] = useState<File | null>(null)
   const [comprobantePreview, setComprobantePreview] = useState('')
   const [enviando, setEnviando] = useState(false)
@@ -109,16 +96,13 @@ function ModalPago({ paquete, tasa, onClose }: { paquete: any; tasa: number; onC
 
     setEnviando(true)
     try {
-      // Verificar que hay sesión
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) {
-        // Redirigir a login con redirect
-        const redirect = `/creditos`
-        router.push(`/login?redirect=${redirect}`)
+        router.push(`/login?redirect=/creditos`)
         return
       }
 
-      // Subir imagen a Supabase Storage
+      // Subir imagen
       const fileExt = comprobanteFile.name.split('.').pop()
       const fileName = `comprobante_${user.id}_${Date.now()}.${fileExt}`
       const { error: uploadError } = await supabase.storage
@@ -131,12 +115,11 @@ function ModalPago({ paquete, tasa, onClose }: { paquete: any; tasa: number; onC
         return
       }
 
-      // Obtener URL pública
       const { data: { publicUrl } } = supabase.storage
         .from('comprobantes')
         .getPublicUrl(fileName)
 
-      // Crear transacción en estado pendiente
+      // Crear transacción pendiente
       const { error: dbError } = await supabase
         .from('transacciones_creditos')
         .insert({
@@ -150,7 +133,7 @@ function ModalPago({ paquete, tasa, onClose }: { paquete: any; tasa: number; onC
         })
 
       if (dbError) {
-        alert('Error registrando la transacción: ' + dbError.message)
+        alert('Error registrando: ' + dbError.message)
         setEnviando(false)
         return
       }
@@ -160,15 +143,6 @@ function ModalPago({ paquete, tasa, onClose }: { paquete: any; tasa: number; onC
       alert('Error: ' + (err.message || 'Error desconocido'))
       setEnviando(false)
     }
-  }
-
-  const enviarWhatsApp = () => {
-    if (!metodo) { alert('Selecciona un método de pago'); return }
-    const msg = encodeURIComponent(
-      `Hola, quiero comprar ${paquete.creditos} créditos ($${paquete.precio} USD ≈ Bs. ${precioBs}) por ${selectedMetodo?.nombre}. Te envío el comprobante:`
-    )
-    window.open(`https://wa.me/${WHATSAPP_CONFIRMACION}?text=${msg}`, '_blank')
-    setTimeout(onClose, 500)
   }
 
   return (
@@ -186,175 +160,124 @@ function ModalPago({ paquete, tasa, onClose }: { paquete: any; tasa: number; onC
         </div>
 
         <div className="p-6 space-y-6">
-          {/* Paso 1: Elegir método */}
-          <div>
-            <h4 className="font-bold text-gray-800 mb-3">1. Elige método de pago</h4>
-            <div className="grid grid-cols-3 gap-2">
-              {metodosPago.map(m => {
-                const disp = m.disponible !== false
-                return (
-                  <button
-                    key={m.id}
-                    onClick={() => disp && setMetodo(m.id)}
-                    disabled={!disp}
-                    className={`p-3 rounded-xl border-2 text-center transition ${
-                      !disp ? 'opacity-40 cursor-not-allowed border-gray-100 bg-gray-50' :
-                      metodo === m.id ? 'border-brand-yellow bg-yellow-50' : 'border-gray-200 hover:border-gray-300'
-                    }`}
-                  >
-                    <span className="text-2xl block">{m.emoji}</span>
-                    <span className="text-xs font-medium text-gray-700">{m.nombre}</span>
-                    {!disp && <span className="text-[10px] text-gray-400">No disp.</span>}
-                  </button>
-                )
-              })}
+          {completado ? (
+            <div className="bg-green-50 border border-green-200 rounded-xl p-6 text-center">
+              <CheckCircle size={48} className="text-green-500 mx-auto mb-3" />
+              <p className="font-bold text-green-800 text-lg">¡Comprobante enviado!</p>
+              <p className="text-sm text-green-700 mt-2">Tu transacción está pendiente de aprobación. Recibirás tus créditos cuando el admin la confirme.</p>
+              <button onClick={onClose} className="mt-4 bg-brand-blue text-white px-6 py-2 rounded-lg font-bold hover:bg-blue-900 transition">Cerrar</button>
             </div>
-          </div>
-
-          {/* Paso 2: Datos de pago */}
-          {selectedMetodo && selectedMetodo.disponible !== false && (
+          ) : (
             <>
+              {/* Paso 1: Elegir método */}
               <div>
-                <h4 className="font-bold text-gray-800 mb-3">2. Realiza el pago</h4>
-                <div className="bg-gray-50 rounded-xl p-4 space-y-3">
-                  {Object.entries(selectedMetodo.instrucciones).map(([key, value]) => {
-                    if (key === 'nota') return (
-                      <p key={key} className="text-xs text-amber-700 bg-amber-50 rounded-lg px-3 py-2">
-                        ⚠️ {value as string}
-                      </p>
-                    )
-                    const labelMap: Record<string, string> = {
-                      telefono: 'Teléfono',
-                      cedula: 'Cédula',
-                      banco: 'Banco',
-                      id: 'Binance ID',
-                    }
-                    const isCopiable = ['telefono', 'cedula', 'id'].includes(key)
-                    return (
-                      <div key={key} className="flex items-center justify-between">
-                        <div>
-                          <span className="text-xs text-gray-500">{labelMap[key] || key}</span>
-                          <p className="text-sm font-medium text-gray-800">{value as string}</p>
-                        </div>
-                        {isCopiable && (
-                          <button
-                            onClick={() => copyToClipboard(value as string, key)}
-                            className="text-xs bg-white border rounded-md px-2 py-1 hover:bg-gray-100 transition ml-2"
-                          >
-                            {copiado === key ? '✓ Copiado' : 'Copiar'}
-                          </button>
-                        )}
-                      </div>
-                    )
-                  })}
+                <h4 className="font-bold text-gray-800 mb-3">1. Elige cómo vas a pagar</h4>
+                <div className="grid grid-cols-2 gap-3">
+                  {metodosPago.map(m => (
+                    <button
+                      key={m.id}
+                      onClick={() => setMetodo(m.id)}
+                      className={`p-4 rounded-xl border-2 text-center transition ${
+                        metodo === m.id ? 'border-brand-yellow bg-yellow-50' : 'border-gray-200 hover:border-gray-300'
+                      }`}
+                    >
+                      <span className="text-3xl block">{m.emoji}</span>
+                      <span className="text-sm font-medium text-gray-700 mt-1 block">{m.nombre}</span>
+                    </button>
+                  ))}
                 </div>
               </div>
 
-              {/* Paso 3: Elegir cómo enviar */}
-              {!modoEnvio && (
+              {/* Paso 2: Datos de pago */}
+              {selectedMetodo && (
                 <div>
-                  <h4 className="font-bold text-gray-800 mb-3">3. ¿Cómo quieres enviar el comprobante?</h4>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <button
-                      onClick={() => setModoEnvio('whatsapp')}
-                      className="flex items-center gap-3 bg-[#25D366]/10 border border-[#25D366]/30 rounded-xl p-4 hover:bg-[#25D366]/20 transition"
-                    >
-                      <MessageCircle className="text-[#25D366]" size={24} />
-                      <div className="text-left">
-                        <p className="font-bold text-gray-800">Por WhatsApp</p>
-                        <p className="text-xs text-gray-500">Envía captura directo al admin</p>
-                      </div>
-                    </button>
-                    <button
-                      onClick={() => setModoEnvio('subir')}
-                      className="flex items-center gap-3 bg-brand-blue/10 border border-brand-blue/30 rounded-xl p-4 hover:bg-brand-blue/20 transition"
-                    >
-                      <Upload className="text-brand-blue" size={24} />
-                      <div className="text-left">
-                        <p className="font-bold text-gray-800">Subir aquí</p>
-                        <p className="text-xs text-gray-500">Se envía al panel de admin</p>
-                      </div>
-                    </button>
+                  <h4 className="font-bold text-gray-800 mb-3">2. Datos de pago</h4>
+                  <div className="bg-gray-50 rounded-xl p-4 space-y-3">
+                    {Object.entries(selectedMetodo.instrucciones).map(([key, value]) => {
+                      const labelMap: Record<string, string> = {
+                        telefono: 'Teléfono',
+                        cedula: 'Cédula',
+                        banco: 'Banco',
+                        id: 'Binance ID',
+                      }
+                      const isCopiable = ['telefono', 'cedula', 'id', 'banco'].includes(key)
+                      return (
+                        <div key={key} className="flex items-center justify-between">
+                          <div>
+                            <span className="text-xs text-gray-500">{labelMap[key] || key}</span>
+                            <p className="text-sm font-medium text-gray-800">{value as string}</p>
+                          </div>
+                          {isCopiable && (
+                            <button
+                              onClick={() => copyToClipboard(value as string, key)}
+                              className="text-xs bg-white border rounded-md px-2 py-1 hover:bg-gray-100 transition ml-2"
+                            >
+                              {copiado === key ? '✓ Copiado' : 'Copiar'}
+                            </button>
+                          )}
+                        </div>
+                      )
+                    })}
                   </div>
+                  <p className="text-xs text-amber-700 bg-amber-50 rounded-lg px-3 py-2 mt-3">
+                    ⚠️ Después de pagar, sube el comprobante abajo
+                  </p>
                 </div>
               )}
 
-              {/* Opción WhatsApp */}
-              {modoEnvio === 'whatsapp' && (
-                <div className="space-y-4">
-                  <div className="bg-green-50 border border-green-200 rounded-xl p-4">
-                    <p className="text-sm text-green-800 font-medium mb-1">✅ Comprobante por WhatsApp</p>
-                    <p className="text-xs text-green-700">Toca el botón, abre WhatsApp y envía una captura del pago</p>
+              {/* Paso 3: Subir comprobante */}
+              {selectedMetodo && (
+                <div>
+                  <h4 className="font-bold text-gray-800 mb-3">3. Sube tu comprobante</h4>
+                  <div
+                    className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:border-brand-blue transition cursor-pointer"
+                    onClick={() => document.getElementById('comprobante-input')?.click()}
+                  >
+                    <input
+                      type="file"
+                      accept="image/*"
+                      id="comprobante-input"
+                      onChange={handleFileChange}
+                      className="hidden"
+                    />
+                    {comprobantePreview ? (
+                      <div>
+                        <img src={comprobantePreview} alt="Comprobante" className="max-h-48 mx-auto rounded-lg mb-3" />
+                        <button
+                          onClick={(e) => { e.stopPropagation(); setComprobanteFile(null); setComprobantePreview('') }}
+                          className="text-sm text-red-500 hover:underline"
+                        >
+                          Quitar imagen
+                        </button>
+                      </div>
+                    ) : (
+                      <>
+                        <Upload size={32} className="mx-auto text-gray-400 mb-2" />
+                        <p className="text-sm text-gray-500">Toca aquí para subir tu comprobante</p>
+                        <p className="text-xs text-gray-400 mt-1">JPG, PNG — máx 5MB</p>
+                      </>
+                    )}
                   </div>
                   <button
-                    onClick={enviarWhatsApp}
-                    className="w-full bg-[#25D366] text-white py-3.5 rounded-xl font-bold hover:brightness-90 transition flex items-center justify-center gap-2"
+                    onClick={subirComprobante}
+                    disabled={enviando || !comprobanteFile}
+                    className="w-full mt-4 bg-brand-blue text-white py-3.5 rounded-xl font-bold hover:bg-blue-900 transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
-                    </svg>
-                    Abrir WhatsApp
+                    {enviando ? (
+                      <><Loader2 size={18} className="animate-spin" /> Enviando...</>
+                    ) : (
+                      <><Upload size={18} /> Enviar comprobante</>
+                    )}
                   </button>
-                  <button onClick={() => setModoEnvio(null)} className="w-full text-sm text-gray-400 hover:text-gray-600 transition py-2">← Volver</button>
                 </div>
               )}
 
-              {/* Opción Subir comprobante */}
-              {modoEnvio === 'subir' && (
-                <div className="space-y-4">
-                  {completado ? (
-                    <div className="bg-green-50 border border-green-200 rounded-xl p-6 text-center">
-                      <CheckCircle size={48} className="text-green-500 mx-auto mb-3" />
-                      <p className="font-bold text-green-800 text-lg">¡Comprobante enviado!</p>
-                      <p className="text-sm text-green-700 mt-2">Tu transacción está pendiente. Recibirás tus créditos cuando el admin la apruebe.</p>
-                      <button onClick={onClose} className="mt-4 bg-brand-blue text-white px-6 py-2 rounded-lg font-bold hover:bg-blue-900 transition">Cerrar</button>
-                    </div>
-                  ) : (
-                    <>
-                      <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:border-brand-blue transition">
-                        <input
-                          type="file"
-                          accept="image/*"
-                          id="comprobante-input"
-                          onChange={handleFileChange}
-                          className="hidden"
-                        />
-                        {comprobantePreview ? (
-                          <div>
-                            <img src={comprobantePreview} alt="Comprobante" className="max-h-48 mx-auto rounded-lg mb-3" />
-                            <button onClick={() => { setComprobanteFile(null); setComprobantePreview('') }} className="text-sm text-red-500 hover:underline">Quitar imagen</button>
-                          </div>
-                        ) : (
-                          <label htmlFor="comprobante-input" className="cursor-pointer block">
-                            <Upload size={32} className="mx-auto text-gray-400 mb-2" />
-                            <p className="text-sm text-gray-500">Toca aquí para subir tu comprobante</p>
-                            <p className="text-xs text-gray-400 mt-1">JPG, PNG — máx 5MB</p>
-                          </label>
-                        )}
-                      </div>
-                      <button
-                        onClick={subirComprobante}
-                        disabled={enviando || !comprobanteFile}
-                        className="w-full bg-brand-blue text-white py-3.5 rounded-xl font-bold hover:bg-blue-900 transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        {enviando ? (
-                          <><Loader2 size={18} className="animate-spin" /> Subiendo...</>
-                        ) : (
-                          <><Upload size={18} /> Enviar comprobante</>
-                        )}
-                      </button>
-                      <button onClick={() => setModoEnvio(null)} className="w-full text-sm text-gray-400 hover:text-gray-600 transition py-2">← Volver</button>
-                    </>
-                  )}
+              {!metodo && (
+                <div className="text-center py-4 text-sm text-gray-400">
+                  Selecciona un método de pago para continuar ↓
                 </div>
               )}
             </>
-          )}
-
-          {!metodo && (
-            <div className="text-center py-4 text-sm text-gray-400">
-              Selecciona un método de pago para continuar ↓
-            </div>
           )}
         </div>
       </div>
@@ -393,7 +316,6 @@ export default function CreditosPage() {
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 mb-12">
         <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">¿Para qué sirven los créditos?</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Boost */}
           <div className="border border-gray-200 rounded-xl p-6 hover:border-brand-yellow transition">
             <div className="flex items-start gap-4">
               <div className="p-3 rounded-xl bg-yellow-50 text-brand-yellow">
@@ -402,7 +324,7 @@ export default function CreditosPage() {
               <div>
                 <h3 className="font-bold text-gray-800 text-lg mb-1">⚡ Boost — Subir al #1</h3>
                 <p className="text-sm text-gray-500 mb-3">
-                  Tu publicación sube de posición y aparece <strong>primera</strong> en la lista. Si alguien más hace boost después, le toca el turno a él. El boost es instantáneo.
+                  Tu publicación sube de posición y aparece <strong>primera</strong> en la lista.
                 </p>
                 <div className="flex items-center gap-2">
                   <span className="text-brand-blue font-bold text-2xl">1 crédito</span>
@@ -411,7 +333,6 @@ export default function CreditosPage() {
             </div>
           </div>
 
-          {/* Destacado */}
           <div className="border border-gray-200 rounded-xl p-6 hover:border-brand-yellow transition">
             <div className="flex items-start gap-4">
               <div className="p-3 rounded-xl bg-blue-50 text-brand-blue">
@@ -552,8 +473,8 @@ export default function CreditosPage() {
         <div className="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-5 gap-4">
           {[
             { nombre: 'Pago Móvil', emoji: '📱', ok: true },
+            { nombre: 'Banco Provincial', emoji: '🏦', ok: true },
             { nombre: 'Binance Pay', emoji: '🟡', ok: true },
-            { nombre: 'Transferencia', emoji: '🏦', ok: false },
             { nombre: 'Zelle', emoji: '💵', ok: false },
             { nombre: 'PayPal', emoji: '🅿️', ok: false },
           ].map((m) => (
@@ -570,7 +491,7 @@ export default function CreditosPage() {
           <ol className="text-sm text-blue-800 space-y-1 list-decimal list-inside">
             <li>Selecciona tu paquete de créditos</li>
             <li>Realiza el pago por tu método preferido</li>
-            <li>Envía el comprobante por WhatsApp</li>
+            <li>Sube el comprobante de pago en la web</li>
             <li>Recibirás tus créditos al confirmar (horario 8am-10pm VET)</li>
           </ol>
         </div>

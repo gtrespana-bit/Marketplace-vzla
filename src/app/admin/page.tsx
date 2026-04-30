@@ -267,6 +267,7 @@ export default function AdminPage() {
       {tab === 'dashboard' && <TabDashboard perfiles={perfiles} />}
       {tab === 'anuncios' && <TabAnuncios notify={notify} />}
       {tab === 'categorias' && <TabCategorias notify={notify} />}
+      {tab === 'creditos' && <TabCreditos perfiles={perfiles} notify={notify} />}
       {tab === 'exportar' && <TabExportar />}
     </div>
   )
