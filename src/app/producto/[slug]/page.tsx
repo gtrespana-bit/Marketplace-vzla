@@ -69,10 +69,10 @@ export default function ProductoPage() {
       }
       setProducto(prod)
 
-      // Fetch seller (include id)
+      // Fetch seller (include id + verificado)
       const { data: v } = await supabase
         .from('perfiles')
-        .select('id, nombre, telefono, ciudad, estado, whatsapp_disponible, telefono_visible, email_visible, foto_perfil_url')
+        .select('id, nombre, telefono, ciudad, estado, whatsapp_disponible, telefono_visible, email_visible, foto_perfil_url, verificado')
         .eq('id', prod.user_id)
         .single()
       if (v) setVendedor(v)
@@ -278,42 +278,24 @@ export default function ProductoPage() {
 
             {/* Botones de contacto - según métodos de la publicación */}
             <div className="space-y-2">
-              {/* Chat interno - siempre activo si está habilitado */}
-              {metodos.chat !== false && (
-                <button
-                  onClick={handleContacto}
-                  className="w-full bg-brand-blue text-white py-3 rounded-xl font-bold hover:bg-blue-900 transition flex items-center justify-center gap-2"
-                >
-                  <MessageCircle size={18} /> Enviar mensaje
+              {metodos.chat && (
+                <button onClick={handleContacto} className="w-full bg-brand-blue text-white py-3 rounded-xl font-bold hover:bg-blue-900 transition flex items-center justify-center gap-2">
+                  <MessageCircle size={18} /> Chat del marketplace
                 </button>
               )}
-
-              {/* WhatsApp directo */}
               {metodos.whatsapp && vendedor?.telefono && (
-                <a
-                  href={`https://wa.me/${vendedor.telefono.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(`Hola! Me interesa: "${producto.titulo}"`)}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-full bg-green-500 text-white py-3 rounded-xl font-bold hover:bg-green-600 transition text-center flex items-center justify-center gap-2"
-                >
-                  💚 WhatsApp directo
+                <a href={`https://wa.me/${vendedor.telefono?.replace(/\s+/g, '')}`} target="_blank" className="w-full bg-green-600 text-white py-3 rounded-xl font-bold hover:bg-green-700 transition flex items-center justify-center gap-2">
+                  💚 WhatsApp
                 </a>
               )}
-
-              {/* Mostrar teléfono */}
               {metodos.telefono && vendedor?.telefono && (
-                <button className="w-full border-2 border-gray-200 text-gray-700 py-3 rounded-xl font-semibold hover:bg-gray-50 transition flex items-center justify-center gap-2">
-                  <Phone size={18} /> {vendedor.telefono}
-                </button>
+                <a href={`tel:${vendedor.telefono}`} className="w-full border py-3 rounded-xl font-medium hover:bg-gray-50 transition flex items-center justify-center gap-2">
+                  <Phone size={18} /> Llamar
+                </a>
               )}
-
-              {/* Mostrar email */}
               {metodos.email && (
-                <a
-                  href={`mailto:${producto.user_email || ''}`}
-                  className="w-full border-2 border-gray-200 text-gray-700 py-3 rounded-xl font-semibold hover:bg-gray-50 transition flex items-center justify-center gap-2"
-                >
-                  <Mail size={18} /> Enviar email
+                <a href={`mailto:${vendedor.email}`} className="w-full border py-3 rounded-xl font-medium hover:bg-gray-50 transition flex items-center justify-center gap-2">
+                  <Mail size={18} /> Email
                 </a>
               )}
             </div>
