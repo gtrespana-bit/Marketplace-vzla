@@ -417,8 +417,8 @@ export default function ChatPageClient() {
       prev.map(c => c.id === id ? { ...c, no_leidos: 0 } : c)
     )
     setConvId(id)
-    setConvDestId(id ? (conversaciones.find(cc => cc.id === id)?.user1_id === user?.id ?
-      conversaciones.find(cc => cc.id === id)?.user2_id : conversaciones.find(cc => cc.id === id)?.user1_id) : null)
+    const sel = conversaciones.find(cc => cc.id === id)
+    setConvDestId(id ? (sel?.user1_id === user?.id ? (sel?.user2_id ?? null) : (sel?.user1_id ?? null)) : null)
     setShowMobileChat(true)
     setSendError(null)
     await loadMensajesSilent(id)
