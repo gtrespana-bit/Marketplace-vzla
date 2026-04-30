@@ -147,19 +147,15 @@ export default function ProductoPage() {
     </div>
   )
 
-  // Contact methods - vendedor decide (FIX BUILD)
-  // Por defecto (si no configuro): SOLO chat
-  // Si configuro metodos_contacto al publicar: muestra lo que activo
-  const mc = producto.metodos_contacto || {}
-  const mcObj = mc as Record<string, unknown>
-  const telefono = (mcObj.telefono as string) || (mcObj.whatsapp as string) || ''
+  // Contact methods - debug: el telefono puede estar en el perfil O en el producto
+  const telefono = vendedor?.telefono || producto.seller_telefono || ''
   const tieneTelefono = telefono.trim().length > 0
-  const tieneEmail = !!(mcObj.email)
+  const tieneEmail = !!(vendedor?.email && vendedor.email.trim().length > 0)
   const metodos = {
     chat: true,
     whatsapp: tieneTelefono,
-    telefono: !!(mc.telefono && tieneTelefono),
-    email: tieneEmail && vendedor?.email,
+    telefono: tieneTelefono,
+    email: tieneEmail,
   }
 
   const imagenes = producto.imagenes && producto.imagenes.length > 0
@@ -172,9 +168,14 @@ export default function ProductoPage() {
     const limpio = telefono.replace(/[^0-9]/g, '')
     const sinCero = limpio.startsWith('0') ? limpio.slice(1) : limpio
     const telefonoFinal = sinCero.startsWith('58') ? sinCero : '58' + sinCero
-    const msg = 'Hola! Vi tu publicacion "' + producto.titulo + '" en Todo Anuncios. Esta disponible?'
-    whatsappUrl = 'https://wa.me/' + telefonoFinal + '?text=' + encodeURIComponent(msg)
+    const mensaje = encodeURIComponent('Hola! Vi tu publicacion "' + producto.titulo + '" en Todo Anuncios y me interesa. ¿Esta disponible?')
+    whatsappUrl = 'https://wa.me/' + telefonoFinal + '?text=' + mensaje
   }
+
+  const precioBs = producto.precio_usd ? Math.round(producto.precio_usd * 36).toLocaleString() : ''
+  
+  // DEBUG INFO - remove after fixing
+  const debugPhone = { perfilTel: vendedor?.telefono || '(vacio)', prodTel: (producto as any).seller_telefono || '(no existe)', telefonoFinal: telefono }
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
@@ -289,8 +290,19 @@ export default function ProductoPage() {
                   </button>
                 )}
               </div>
-            }
+            )}
 
+            {/* DEBUG PHONE - quitar despues */}
+            {process.env.NODE_ENV !== 'production' && (
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-3 text-xs font-mono">
+                Debug telefono:<br/>
+                perfilTel: {vendedor?.telefono || '(vacio)'}<br/>
+                productTel: {(producto as any).seller_telefono || '(n/a)'}<br/>
+                usando: {telefono || '(vacio)'}<br/>
+                tieneTelefono: {JSON.stringify(tieneTelefono)}<br/>
+                metodos.whatsapp: {JSON.stringify(metodos.whatsapp)}
+              </div>
+            )}
             {/* Botones de contacto */}
             <div className="space-y-3">
               {/* Botones principales - Chat + WhatsApp */}
@@ -328,7 +340,7 @@ export default function ProductoPage() {
                 {producto.ubicacion_ciudad && producto.ubicacion_estado ? ', ' : ''}
                 {producto.ubicacion_estado}
               </div>
-            }
+            )}
 
             <div className="flex gap-2 mt-3">
               <button
