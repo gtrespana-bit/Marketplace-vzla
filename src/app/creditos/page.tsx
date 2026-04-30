@@ -137,6 +137,10 @@ function ModalPago({ paquete, tasa, onClose }: { paquete: any; tasa: number; onC
         return
       }
 
+      // Notificar admin por Telegram
+      const notifyMsg = "\ud83d\uded2 Nueva compra de créditos\n\n\ud83d\udce6 " + paquete.creditos + " créditos ($" + paquete.precio + " USD ≈ Bs. " + precioBs + ")\n\ud83d\udcb3 Método: " + (selectedMetodo?.nombre || metodo) + "\n\ud83d\udc64 Usuario: " + user.id + "\n\nComprobante pendiente en admin panel."
+      try { await fetch('/api/notify', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ mensaje: notifyMsg }) }) } catch {}
+
       setCompletado(true)
     } catch (err: any) {
       alert('Error: ' + (err.message || 'Error desconocido'))
