@@ -170,6 +170,8 @@ function ModalPago({ paquete, tasa, onClose }: { paquete: any; tasa: number; onC
     window.open(`https://wa.me/${WHATSAPP_CONFIRMACION}?text=${msg}`, '_blank')
     setTimeout(onClose, 500)
   }
+
+  return (
     <div className="fixed inset-0 z-50 bg-black/60 flex items-end md:items-center justify-center">
       <div className="bg-white w-full md:max-w-lg md:rounded-2xl rounded-t-2xl max-h-[90vh] overflow-y-auto">
         {/* Header */}
