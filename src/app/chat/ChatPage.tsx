@@ -498,7 +498,19 @@ export default function ChatPageClient() {
       setSendError(error.message)
       setMensajes(prev => prev.filter(m => m.id !== tempMsg.id))
     } else {
-      // Realtime will add the confirmed message, remove temp
+      // Reload messages from DB to confirm delivery (realtime may be delayed)
+      const { data: msgs } = await supabase
+        .from('mensajes')
+        .select('*')
+        .eq('conversacion_id', convId)
+        .order('creado_en', { ascending: true })
+      if (msgs) {
+        setMensajes(prev => {
+          const realIds = new Set(msgs.map(m => m.id))
+          const nonReal = prev.filter(m => !realIds.has(m.id) && !m.id.startsWith('t-'))
+          return [...nonReal, ...msgs]
+        })
+      }
       setSendError(null)
     }
     setEnviando(false)
