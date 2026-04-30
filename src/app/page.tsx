@@ -11,7 +11,7 @@ async function getDestacados(limit = 8) {
 
     const { data: data2 } = await supabase
       .from('productos')
-      .select('id, titulo, precio_usd, estado, imagen_url, ubicacion_ciudad, destacado, destacado_hasta, user_id, perfiles!productos_user_id_fkey(verificado)')
+      .select('id, titulo, precio_usd, estado, imagen_url, ubicacion_ciudad, destacado, destacado_hasta')
       .eq('activo', true)
       .or('estado_moderacion.is.null,estado_moderacion.eq.aprobado,estado_moderacion.eq.pendiente')
       .eq('destacado', true)
@@ -28,7 +28,7 @@ async function getDestacados(limit = 8) {
 async function getRecentProducts(limit = 8) {
   const { data, error } = await supabase
     .from('productos')
-    .select('id, titulo, precio_usd, estado, imagen_url, ubicacion_ciudad, creado_en, boosteado_en, destacado, destacado_hasta, user_id, perfiles!productos_user_id_fkey(verificado)')
+    .select('id, titulo, precio_usd, estado, imagen_url, ubicacion_ciudad, creado_en, boosteado_en, destacado, destacado_hasta')
     .eq('activo', true)
     .or('estado_moderacion.is.null,estado_moderacion.eq.aprobado')
     .limit(50)
@@ -56,7 +56,6 @@ async function getRecentProducts(limit = 8) {
 }
 
 function ProductCard({ p, highlighted = false }: { p: any; highlighted?: boolean }) {
-  const sellerVerified = p.perfiles?.verificado === true
   return (
     <Link
       href={`/producto/${p.id}`}
@@ -81,13 +80,7 @@ function ProductCard({ p, highlighted = false }: { p: any; highlighted?: boolean
       <div className="p-4">
         <h3 className="font-semibold text-gray-900 truncate">{p.titulo}</h3>
         <p className="text-xl font-black text-brand-blue mt-1">${Number(p.precio_usd || 0).toLocaleString()}</p>
-        {sellerVerified && (
-          <div className="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded-full mt-1">
-            <svg width={10} height={10} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-            Vendedor Verificado
-          </div>
-        )}
-        <p className="text-xs text-gray-500 mt-1">{p.estado} · {p.ubicacion_ciudad || 'Venezuela'}</p>
+                <p className="text-xs text-gray-500 mt-1">{p.estado} · {p.ubicacion_ciudad || 'Venezuela'}</p>
       </div>
     </Link>
   )

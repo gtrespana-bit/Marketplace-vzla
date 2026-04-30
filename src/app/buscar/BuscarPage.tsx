@@ -29,15 +29,13 @@ type Producto = {
   boosteado_en: string | null
   destacado: boolean
   destacado_hasta: string | null
-  perfiles?: { verificado: boolean } | null
-}
+  }
 
 function ProductCard({ p }: { p: Producto }) {
   const isBoosted = p.boosteado_en != null
   const isFeatured = p.destacado && p.destacado_hasta && new Date(p.destacado_hasta) > new Date()
   const isPromoted = isBoosted || isFeatured
-  const sellerVerified = p.perfiles?.verificado === true
-
+  
   return (
     <Link href={`/producto/${p.id}`} className={`bg-white rounded-xl overflow-hidden hover:shadow-lg transition group block border ${isPromoted ? 'border-2 border-brand-yellow shadow-sm' : 'border-gray-100 shadow-sm'}`}>
       <div className="aspect-square bg-gray-100 relative overflow-hidden">
@@ -60,13 +58,7 @@ function ProductCard({ p }: { p: Producto }) {
       <div className="p-4">
         <h3 className="font-semibold text-gray-900 truncate">{p.titulo}</h3>
         <p className="text-xl font-black text-brand-blue mt-1">${Number(p.precio_usd || 0).toLocaleString()}</p>
-        {sellerVerified && (
-          <div className="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded-full mt-1">
-            <svg width={10} height={10} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-            Vendedor Verificado
-          </div>
-        )}
-        <p className="text-xs text-gray-500 mt-1">{p.estado} · {p.ubicacion_ciudad || 'Venezuela'}</p>
+                <p className="text-xs text-gray-500 mt-1">{p.estado} · {p.ubicacion_ciudad || 'Venezuela'}</p>
       </div>
     </Link>
   )
@@ -115,7 +107,7 @@ export default function BuscarClient() {
     setLoading(true)
 
     async function buscar() {
-      let sq = supabase.from('productos').select('*, perfiles!productos_user_id_fkey(verificado)', { count: 'exact' }).eq('activo', true).or('estado_moderacion.is.null,estado_moderacion.eq.aprobado')
+      let sq = supabase.from('productos').select('*', { count: 'exact' }).eq('activo', true).or('estado_moderacion.is.null,estado_moderacion.eq.aprobado')
 
       // Text search
       if (query) sq = sq.ilike('titulo', `%${query}%`)
