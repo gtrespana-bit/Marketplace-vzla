@@ -11,7 +11,7 @@ import { supabase } from '@/lib/supabase'
 const categorias = [
   { id: 'ver-todo', nombre: 'Ver Todo', icon: '🔍' },
   { id: 'vehiculos', nombre: 'Vehículos', icon: '🚗' },
-  { id: 'tecnologia', nombre: 'Técnicología', icon: '💻' },
+  { id: 'tecnologia', nombre: 'Tecnología', icon: '💻' },
   { id: 'moda', nombre: 'Moda', icon: '👗' },
   { id: 'hogar', nombre: 'Hogar', icon: '🏠' },
   { id: 'herramientas', nombre: 'Herramientas', icon: '🔧' },
