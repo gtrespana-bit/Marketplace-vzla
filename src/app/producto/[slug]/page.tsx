@@ -171,12 +171,9 @@ export default function ProductoPage() {
     const limpio = telefono.replace(/[^0-9]/g, '')
     const sinCero = limpio.startsWith('0') ? limpio.slice(1) : limpio
     const telefonoFinal = sinCero.startsWith('58') ? sinCero : '58' + sinCero
-    const mensaje = encodeURIComponent('Hola! Vi tu publicacion "' + producto.titulo + '" en Todo Anuncios y me interesa. ¿Esta disponible?')
-    whatsappUrl = 'https://wa.me/' + telefonoFinal + '?text=' + mensaje
+    const msg = 'Hola! Vi tu publicacion "' + producto.titulo + '" en Todo Anuncios. Esta disponible?'
+    whatsappUrl = 'https://wa.me/' + telefonoFinal + '?text=' + encodeURIComponent(msg)
   }
-
-  const precioBs = producto.precio_usd ? Math.round(producto.precio_usd * 36).toLocaleString() : ''
-  
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
