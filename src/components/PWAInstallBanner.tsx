@@ -44,6 +44,23 @@ export default function PWAInstallBanner() {
     return () => window.removeEventListener('beforeinstallprompt', handler)
   }, [])
 
+  // Re-show banner every 6 hours if dismissed
+  useEffect(() => {
+    const handleDismissed = () => {
+      const d = localStorage.getItem('pwa_install_dismissed')
+      if (d && deferredPrompt.current) {
+        const elapsed = Date.now() - parseInt(d)
+        if (elapsed > 6 * 60 * 60 * 1000) {
+          localStorage.removeItem('pwa_install_dismissed')
+          setShowBanner(true)
+        }
+      }
+    }
+    // Check every minute
+    const interval = setInterval(handleDismissed, 60000)
+    return () => clearInterval(interval)
+  }, [])
+
   const handleInstall = async () => {
     if (!deferredPrompt.current) return
     deferredPrompt.current.prompt()
@@ -58,13 +75,13 @@ export default function PWAInstallBanner() {
   const handleDismiss = () => {
     setShowBanner(false)
     setShowIOS(false)
-    // No mostrar de nuevo por 7 días
-    localStorage.setItem('pwa_install_dismissed', '1')
-    localStorage.setItem('pwa_ios_dismissed', '1')
+    // Reaparece en 6 horas
+    localStorage.setItem('pwa_install_dismissed', Date.now().toString())
+    localStorage.setItem('pwa_ios_dismissed', Date.now().toString())
     setTimeout(() => {
       localStorage.removeItem('pwa_install_dismissed')
       localStorage.removeItem('pwa_ios_dismissed')
-    }, 7 * 24 * 60 * 60 * 1000)
+    }, 6 * 60 * 60 * 1000)
   }
 
   return (

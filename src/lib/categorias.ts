@@ -92,6 +92,23 @@ export const categoriasData: Record<string, { label: string; icon: string; subs:
       { label: 'De Jardín', icon: '🌱', marcas: ['Stihl', 'Husqvarna', 'Truper'], campos: [{ label: 'Tipo', type: 'text' as const, placeholder: 'Ej: Cortacésped, motosierra...' }] },
     ],
   },
+  repuestos: {
+    label: 'Repuestos',
+    icon: '⚙️',
+    subs: [
+      { label: 'Carros', icon: '🚗', marcas: ['Toyota', 'Ford', 'Chevrolet', 'Honda', 'Nissan', 'Hyundai', 'Kia', 'BMW', 'Mercedes-Benz', 'Mazda', 'Renault', 'Peugeot', 'Suzuki', 'Volkswagen', 'Audi', 'Seat', 'Fiat', 'Chery', 'Great Wall'], campos: [{ label: 'Marca', type: 'select' as const, placeholder: 'Selecciona marca...' }, { label: 'Modelo', type: 'text' as const, placeholder: 'Ej: Corolla' }, { label: 'Tipo de repuesto', type: 'text' as const, placeholder: 'Ej: Filtro, pastillas de freno...' }] },
+      { label: 'Motos', icon: '🏍️', marcas: ['Yamaha', 'Bera', 'Empire', 'Venom', 'Honda', 'Suzuki', 'Bajaj', 'Keeway', 'Haolue', 'Italika', 'TVS', 'AKT'], campos: [{ label: 'Marca', type: 'select' as const, placeholder: 'Selecciona marca...' }, { label: 'Modelo', type: 'text' as const, placeholder: 'Ej: FZ 150' }, { label: 'Tipo de repuesto', type: 'text' as const, placeholder: 'Ej: Cadena, carburador...' }] },
+    ],
+  },
+  materiales: {
+    label: 'Materiales',
+    icon: '🧱',
+    subs: [
+      { label: 'Construcción', icon: '🏗️', marcas: [], campos: [{ label: 'Tipo', type: 'text' as const, placeholder: 'Ej: Cemento, arena, bloques, cabillas...' }] },
+      { label: 'Eléctricos', icon: '⚡', marcas: [], campos: [{ label: 'Tipo', type: 'text' as const, placeholder: 'Ej: Cable, breaker, tomacorriente...' }] },
+      { label: 'Plomería', icon: '🔧', marcas: [], campos: [{ label: 'Tipo', type: 'text' as const, placeholder: 'Ej: Tubo PVC, grifería, válvula...' }] },
+    ],
+  },
   otros: {
     label: 'Otros',
     icon: '📦',

@@ -1,23 +1,84 @@
 'use client'
 
 import Link from 'next/link'
-import { useState } from 'react'
-import { Menu, X, Search, PlusCircle, MessageCircle, Shield, Star, Zap } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Menu, X, Search, PlusCircle, MessageCircle, Zap } from 'lucide-react'
 import { useAuth } from '@/components/AuthProvider'
 import Avatar from '@/components/Avatar'
+import { supabase } from '@/lib/supabase'
 
+// Las categorías están ordenadas. "Otros" siempre al final, "Ver Todo" siempre primero.
 const categorias = [
+  { id: 'ver-todo', nombre: 'Ver Todo', icon: '🔍' },
   { id: 'vehiculos', nombre: 'Vehículos', icon: '🚗' },
-  { id: 'tecnologia', nombre: 'Tecnología', icon: '💻' },
+  { id: 'tecnologia', nombre: 'Técnicología', icon: '💻' },
   { id: 'moda', nombre: 'Moda', icon: '👗' },
   { id: 'hogar', nombre: 'Hogar', icon: '🏠' },
   { id: 'herramientas', nombre: 'Herramientas', icon: '🔧' },
+  { id: 'materiales', nombre: 'Materiales', icon: '🧱' },
+  { id: 'repuestos', nombre: 'Repuestos', icon: '⚙️' },
   { id: 'otros', nombre: 'Otros', icon: '📦' },
 ]
 
 export function Header() {
   const { user, loading } = useAuth()
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [creditoBalance, setCreditoBalance] = useState<number | null>(null)
+  const [unreadCount, setUnreadCount] = useState(0)
+  const creditoChecked = typeof creditoBalance === 'number'
+
+  // Fetch user credit balance when logged in
+  useEffect(() => {
+    if (!user) {
+      setCreditoBalance(null)
+      return
+    }
+    async function fetchCredito() {
+      const { data: perfil } = await supabase
+        .from('perfiles')
+        .select('credito_balance')
+        .eq('id', user.id)
+        .single()
+      setCreditoBalance(perfil?.credito_balance ?? 0)
+    }
+    fetchCredito()
+  }, [user])
+
+  // Fetch unread message count
+  useEffect(() => {
+    if (!user) {
+      setUnreadCount(0)
+      return
+    }
+    async function fetchUnread() {
+      const { data: mensajes } = await supabase
+        .from('mensajes')
+        .select('id', { count: 'exact', head: true })
+        .eq('receptor_id', user.id)
+        .eq('leido', false)
+      setUnreadCount(mensajes || 0)
+    }
+    fetchUnread()
+
+    // Subscribe to real-time messages
+    const channel = supabase
+      .channel('header-unread')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'mensajes', filter: `receptor_id=eq.${user.id}` },
+        () => fetchUnread()
+      )
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'mensajes', filter: `receptor_id=eq.${user.id}` },
+        () => fetchUnread()
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [user])
 
   if (loading) return (
     <header className="bg-brand-blue text-white sticky top-0 z-50 shadow-lg">
@@ -34,10 +95,13 @@ export function Header() {
     </header>
   )
 
+  // Badge "1 gratis" solo si no está logueado
+  const showCreditoBadge = !user
+
   return (
     <>
       {/* ============ HEADER PRINCIPAL ============ */}
-      <header className="bg-brand-blue text-white sticky top-0 z-50 shadow-lg">
+      <header className="bg-brand-blue text-white relative sticky top-0 z-50 shadow-lg">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex items-center justify-between h-14">
             {/* Logo */}
@@ -67,14 +131,22 @@ export function Header() {
 
             {/* Actions (desktop) */}
             <div className="flex items-center gap-2">
-              {/* Créditos — siempre visible */}
+              {/* Créditos */}
               <Link href="/creditos" className="relative hidden md:flex items-center gap-1.5 bg-white/10 hover:bg-white/20 text-white px-3 py-2 rounded-lg text-sm font-medium transition" title="Comprar créditos">
                 <Zap size={16} className="text-brand-yellow" />
                 <span className="hidden lg:inline">Créditos</span>
-                <span className="absolute -top-1 -right-1 bg-green-400 text-brand-blue text-[9px] font-black px-1 rounded-full">1 gratis</span>
+                {showCreditoBadge && (
+                  <span className="absolute -top-1 -right-1 bg-green-400 text-brand-blue text-[9px] font-black px-1 rounded-full">1 gratis</span>
+                )}
+                {creditoChecked && creditoBalance !== null && creditoBalance > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-brand-yellow text-brand-blue text-[9px] font-black px-1.5 py-0.5 rounded-full min-w-[16px] text-center">{creditoBalance}</span>
+                )}
               </Link>
-              <Link href="/creditos" className="md:hidden p-2 hover:bg-white/10 rounded-lg transition" title="Créditos">
+              <Link href="/creditos" className="md:hidden p-2 hover:bg-white/10 rounded-lg transition relative" title="Créditos">
                 <Zap size={20} className="text-brand-yellow" />
+                {showCreditoBadge && (
+                  <span className="absolute top-0 right-0 bg-green-400 text-brand-blue text-[9px] font-black w-4 h-4 flex items-center justify-center rounded-full">1</span>
+                )}
               </Link>
 
               {!user ? (
@@ -92,7 +164,9 @@ export function Header() {
                   </Link>
                   <Link href="/chat" className="relative p-2 hover:bg-white/10 rounded-lg transition" title="Mensajes">
                     <MessageCircle size={20} />
-                    <span className="absolute top-1 right-1 bg-brand-red w-2 h-2 rounded-full"></span>
+                    {unreadCount > 0 && (
+                      <span className="absolute top-0.5 right-0.5 bg-brand-red text-white text-[10px] font-bold w-4 h-4 flex items-center justify-center rounded-full">{unreadCount > 9 ? '9+' : unreadCount}</span>
+                    )}
                   </Link>
                   <Link href="/dashboard" className="hidden sm:block p-1 hover:bg-white/10 rounded-lg transition" title="Mi panel">
                     <Avatar nombre={user?.user_metadata?.nombre || user?.email || 'U'} fotoUrl={user?.user_metadata?.foto_perfil_url || null} size="sm" />
@@ -120,9 +194,9 @@ export function Header() {
                 ) : (
                   <>
                     <Link href="/publicar" className="px-3 py-2 rounded-lg bg-brand-yellow text-brand-blue font-bold text-center transition">📢 Publicar algo</Link>
-                    <Link href="/chat" className="px-3 py-2 rounded-lg hover:bg-white/10 transition">💬 Mensajes</Link>
+                    <Link href="/chat" className="px-3 py-2 rounded-lg hover:bg-white/10 transition">💬 Mensajes{unreadCount > 0 ? ` (${unreadCount} sin leer)` : ''}</Link>
                     <Link href="/dashboard" className="px-3 py-2 rounded-lg hover:bg-white/10 transition">👤 Mi Panel</Link>
-                    <Link href="/creditos" className="px-3 py-2 rounded-lg hover:bg-white/10 transition">⚡ Comprar Créditos</Link>
+                    <Link href="/creditos" className="px-3 py-2 rounded-lg hover:bg-white/10 transition">⚡ Créditos{creditoChecked && creditoBalance !== null && creditoBalance > 0 ? ` — ${creditoBalance} disponibles` : ''}</Link>
                   </>
                 )}
                 <Link href="/catalogo" className="px-3 py-2 rounded-lg hover:bg-white/10 transition">📦 Ver catálogo</Link>
@@ -135,25 +209,21 @@ export function Header() {
       {/* ============ SUB-HEADER: CATEGORÍAS ============ */}
       <div className="hidden md:block bg-white border-b border-gray-200 shadow-sm sticky top-14 z-40">
         <div className="max-w-7xl mx-auto px-4">
-          <div className="flex items-center gap-1 h-11">
+          <div className="flex items-center gap-1 h-11 overflow-x-auto hide-scrollbar">
             {categorias.map((cat) => (
               <Link
                 key={cat.id}
-                href={`/catalogo?categoria=${cat.id}`}
-                className="flex items-center gap-1.5 px-3 py-2 text-sm text-gray-600 hover:text-brand-blue hover:bg-blue-50 rounded-lg transition font-medium whitespace-nowrap"
+                href={cat.id === 'ver-todo' ? '/catalogo' : `/catalogo?categoria=${cat.id}`}
+                className={`flex items-center gap-1.5 px-3 py-2 text-sm rounded-lg transition font-medium whitespace-nowrap ${
+                  cat.id === 'ver-todo'
+                    ? 'text-brand-blue bg-blue-50 hover:bg-blue-100 font-bold'
+                    : 'text-gray-600 hover:text-brand-blue hover:bg-blue-50'
+                }`}
               >
                 <span className="text-base">{cat.icon}</span>
                 {cat.nombre}
               </Link>
             ))}
-            <div className="flex-1" />
-            <Link
-              href="/creditos"
-              className="flex items-center gap-1.5 bg-brand-yellow/10 text-brand-blue px-4 py-2 rounded-lg text-sm font-bold hover:bg-brand-yellow/20 transition shrink-0"
-            >
-              <Zap size={14} />
-              Comprar Créditos
-            </Link>
           </div>
         </div>
       </div>
