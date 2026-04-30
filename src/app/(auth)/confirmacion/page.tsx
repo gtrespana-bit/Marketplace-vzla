@@ -1,31 +1,22 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { CheckCircle, Mail, ExternalLink } from 'lucide-react'
+import { CheckCircle, Mail, ExternalLink, ArrowRight } from 'lucide-react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 
 function ConfirmacionContent() {
+  const router = useRouter()
   const [email, setEmail] = useState('')
-  const [countdown, setCountdown] = useState(5)
 
   useEffect(() => {
     setEmail(sessionStorage.getItem('tempEmail') || 'tu correo electrónico')
   }, [])
 
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCountdown((prev) => {
-        if (prev <= 1) {
-          clearInterval(timer)
-          window.location.href = '/login'
-          return 0
-        }
-        return prev - 1
-      })
-    }, 1000)
-
-    return () => clearInterval(timer)
-  }, [])
+  const handleConfirmClick = () => {
+    sessionStorage.removeItem('tempEmail')
+    router.push('/login')
+  }
 
   return (
     <div className="min-h-[80vh] flex items-center justify-center px-4 py-12">
@@ -72,7 +63,7 @@ function ConfirmacionContent() {
               🔗 Haz clic en el enlace que viene dentro del email para activar tu cuenta
             </p>
             <p>
-              ⚠️ El enlace expira en 24 horas. Si ya no está disponible, solicita uno nuevo en el login.
+              ⚠️ El enlace expira en 24 horas. Si ya no está disponible, solicita uno nuevo.
             </p>
             <p className="text-yellow-700 font-medium">
               📂 Revisa también tu carpeta de SPAM o Correos no deseados
@@ -89,15 +80,26 @@ function ConfirmacionContent() {
             </p>
             <Link
               href="/login"
-              className="w-full bg-yellow-500 text-brand-dark font-bold py-2.5 rounded-lg hover:bg-yellow-400 transition flex items-center justify-center gap-2"
+              className="w-full bg-yellow-500 text-brand-dark font-bold py-3 rounded-lg hover:bg-yellow-400 transition flex items-center justify-center gap-2"
             >
               <ExternalLink size={16} />
               Ir al login
             </Link>
           </div>
 
-          <p className="text-xs text-gray-400 mt-6 text-center">
-            ¿Recibiste el email? Haz clic en el enlace para confirmar.
+          {/* Botón principal */}
+          <div className="space-y-3">
+            <button
+              onClick={handleConfirmClick}
+              className="w-full bg-brand-blue text-white py-4 rounded-lg font-bold hover:bg-blue-900 transition flex items-center justify-center gap-2 text-lg"
+            >
+              Ya confirmé mi email
+              <ArrowRight size={20} />
+            </button>
+          </div>
+
+          <p className="text-xs text-gray-400 mt-4 text-center">
+            Cuando recibas el email, confirma tu cuenta y luego regresa a hacer login.
           </p>
         </div>
       </div>
