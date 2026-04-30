@@ -147,16 +147,17 @@ export default function ProductoPage() {
     </div>
   )
 
-  // Contact methods - fallback: perfil > producto.metodos_contacto > seller_telefono
+  // Contact methods - el vendedor decide por publicacion
+  // Si no configuro metodos_contacto: solo chat (conservador)
   const mc = (producto as any).metodos_contacto || {}
-  const telefonoPerPublication = mc.telefono || mc.whatsapp || ''
-  const telefono = vendedor?.telefono || telefonoPerPublication || producto.seller_telefono || ''
+  // El telefono para WhatsApp viene del metodos_contacto configurado al publicar
+  const telefono = mc.telefono || mc.whatsapp || ''
   const tieneTelefono = telefono.trim().length > 0
-  const tieneEmail = !!(vendedor?.email && vendedor.email.trim().length > 0)
+  const tieneEmail = !!(vendedor?.email && vendedor.email.trim().length > 0 && mc.email)
   const metodos = {
     chat: true,
     whatsapp: tieneTelefono,
-    telefono: tieneTelefono,
+    telefono: false,
     email: tieneEmail,
   }
 
