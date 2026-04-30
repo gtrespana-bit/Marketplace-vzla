@@ -457,11 +457,9 @@ export default function ChatPageClient() {
       contenido,
     }
     console.log('[chat] intentando insertar mensaje:', JSON.stringify(insertData))
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from('mensajes')
       .insert(insertData)
-      .select()
-      .single()
 
     console.log('[chat] resultado insert - data:', JSON.stringify(data), 'error:', JSON.stringify(error))
 
@@ -473,7 +471,7 @@ export default function ChatPageClient() {
       console.error('Error sending message:', error)
       setSendError(error.message)
       setMensajes(prev => prev.filter(m => m.id !== tempMsg.id))
-    } else if (data) {
+    } else {
       // Realtime will add the confirmed message, remove temp
       setSendError(null)
     }
