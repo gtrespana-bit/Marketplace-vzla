@@ -452,16 +452,29 @@ export default function ChatPageClient() {
     setSendError(null)
     setEnviando(true)
 
-    // Always fetch from DB to avoid stale closure issues
-    const { data: conv, error: convError } = await supabase
+    // Fetch conversation from DB to get recipient ID
+    const { data: conv } = await supabase
       .from('conversaciones')
       .select('user1_id, user2_id')
       .eq('id', convId)
-      .single()
-    console.log('[chat] conv query result - conv:', conv, 'error:', convError)
-    if (!conv) { setEnviando(false); setSendError('Conversaci\u00f3n no encontrada'); return }
+      .limit(1)
+      .maybeSingle()
 
-    const destinatarioId = conv.user1_id === user.id ? conv.user2_id : conv.user1_id
+    let destinatarioId: string
+    if (conv) {
+      destinatarioId = conv.user1_id === user.id ? conv.user2_id : conv.user1_id
+    } else {
+      // Conv not yet in DB (replication lag) — infer recipient from known state
+      // The trigger on mensajes will create the conversation if needed
+      const convObj = conversaciones.find(c => c.id === convId)
+      if (convObj) {
+        destinatarioId = convObj.user1_id === user.id ? convObj.user2_id : convObj.user1_id
+      } else {
+        setEnviando(false)
+        setSendError('Conversación no encontrada')
+        return
+      }
+    }
 
     // Optimistic
     const tempMsg: Mensaje = {
