@@ -636,3 +636,4 @@ function ConfiguracionPlaceholder() {
   )
 }
 Thu Apr 30 21:02:36 UTC 2026
+// Force Vercel rebuild - Thu Apr 30 21:07:12 UTC 2026
