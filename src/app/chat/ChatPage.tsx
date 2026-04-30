@@ -76,11 +76,7 @@ export default function ChatPageClient() {
 
   const [conversaciones, setConversaciones] = useState<Conversacion[]>([])
   const conversacionesRef = useRef(conversaciones)
-  conversacionesRef.current = conversaciones
-  const conversacionesRef = useRef(conversaciones)
-  conversacionesRef.current = conversaciones
   const [convId, setConvId] = useState<string | null>(null)
-  const [convDestId, setConvDestId] = useState<string | null>(null)
   const [convDestId, setConvDestId] = useState<string | null>(null)
   const [mensajes, setMensajes] = useState<Mensaje[]>([])
   const [texto, setTexto] = useState('')
