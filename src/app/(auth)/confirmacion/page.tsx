@@ -5,25 +5,11 @@ import { CheckCircle, Mail, ExternalLink } from 'lucide-react'
 import Link from 'next/link'
 
 function ConfirmacionContent() {
+  const [email, setEmail] = useState('')
   const [countdown, setCountdown] = useState(5)
 
   useEffect(() => {
     setEmail(sessionStorage.getItem('tempEmail') || 'tu correo electrónico')
-  }, [])
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCountdown((prev) => {
-        if (prev <= 1) {
-          clearInterval(timer)
-          window.location.href = '/login'
-          return 0
-        }
-        return prev - 1
-      })
-    }, 1000)
-
-    return () => clearInterval(timer)
   }, [])
 
   useEffect(() => {
