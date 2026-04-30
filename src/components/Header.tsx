@@ -51,7 +51,7 @@ export function Header() {
       return
     }
     async function fetchUnread() {
-      const { data: mensajes } = await supabase
+      const { count: mensajes } = await supabase
         .from('mensajes')
         .select('id', { count: 'exact', head: true })
         .eq('receptor_id', user!.id)
