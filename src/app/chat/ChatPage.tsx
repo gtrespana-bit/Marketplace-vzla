@@ -461,7 +461,6 @@ export default function ChatPageClient() {
       .from('mensajes')
       .insert(insertData)
 
-    console.log('[chat] resultado insert - data:', JSON.stringify(data), 'error:', JSON.stringify(error))
 
     // Minimum delay so user sees the transition
     const elapsed = Date.now() - startTime
