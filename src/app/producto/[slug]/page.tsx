@@ -147,8 +147,9 @@ export default function ProductoPage() {
     </div>
   )
 
-  // Contact methods - simple: si hay datos, se muestra
+  // Contact methods - debug: si hay datos, se muestra
   const tieneTelefono = !!(vendedor?.telefono && vendedor.telefono.trim().length > 0)
+  console.log("[producto] vendedor:", JSON.stringify({ nombre: vendedor?.nombre, telefono: vendedor?.telefono, whatsapp: vendedor?.whatsapp_disponible, tieneTelefono }))
   const tieneEmail = !!(vendedor?.email && vendedor.email.trim().length > 0)
   const metodos = {
     chat: true,
