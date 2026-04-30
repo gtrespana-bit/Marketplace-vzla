@@ -147,14 +147,12 @@ export default function ProductoPage() {
     </div>
   )
 
-  // Contact methods - debug: el telefono puede estar en el perfil O en el producto
-  const telefono = vendedor?.telefono || producto.seller_telefono || ''
+  // Contact methods - fallback: perfil > producto.metodos_contacto > seller_telefono
+  const mc = (producto as any).metodos_contacto || {}
+  const telefonoPerPublication = mc.telefono || mc.whatsapp || ''
+  const telefono = vendedor?.telefono || telefonoPerPublication || producto.seller_telefono || ''
   const tieneTelefono = telefono.trim().length > 0
   const tieneEmail = !!(vendedor?.email && vendedor.email.trim().length > 0)
-  // Log everything for debugging
-    console.log('[DEBUG] producto keys:', Object.keys(producto || {}))
-    console.log('[DEBUG] producto completo:', JSON.stringify(producto, null, 2))
-    console.log('[DEBUG] vendedor:', JSON.stringify(vendedor, null, 2))
   const metodos = {
     chat: true,
     whatsapp: tieneTelefono,
