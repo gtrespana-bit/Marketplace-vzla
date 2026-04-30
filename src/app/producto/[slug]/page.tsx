@@ -174,6 +174,9 @@ export default function ProductoPage() {
   }
 
   const precioBs = producto.precio_usd ? Math.round(producto.precio_usd * 36).toLocaleString() : ''
+  
+  // DEBUG INFO - remove after fixing
+  const debugPhone = { perfilTel: vendedor?.telefono || '(vacio)', prodTel: (producto as any).seller_telefono || '(no existe)', telefonoFinal: telefono }
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
@@ -290,6 +293,17 @@ export default function ProductoPage() {
               </div>
             )}
 
+            {/* DEBUG PHONE - quitar despues */}
+            {process.env.NODE_ENV !== 'production' && (
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-3 text-xs font-mono">
+                Debug telefono:<br/>
+                perfilTel: {vendedor?.telefono || '(vacio)'}<br/>
+                productTel: {(producto as any).seller_telefono || '(n/a)'}<br/>
+                usando: {telefono || '(vacio)'}<br/>
+                tieneTelefono: {JSON.stringify(tieneTelefono)}<br/>
+                metodos.whatsapp: {JSON.stringify(metodos.whatsapp)}
+              </div>
+            )}
             {/* Botones de contacto */}
             <div className="space-y-3">
               {/* Botones principales - Chat + WhatsApp */}
