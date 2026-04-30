@@ -147,12 +147,12 @@ export default function ProductoPage() {
     </div>
   )
 
-  // Contact methods from product (new per-publication setting) or fallback to seller profile
-  const metodos = producto.metodos_contacto || {
-    chat: true,
-    whatsapp: vendedor?.whatsapp_disponible || false,
-    telefono: vendedor?.telefono_visible || false,
-    email: vendedor?.email_visible || false,
+  // Contact methods - siempre mostrar chat y whatsapp si hay datos
+  const metodos = {
+    chat: true, // siempre disponible
+    whatsapp: !!(vendedor?.whatsapp_disponible && vendedor?.telefono),
+    telefono: !!(vendedor?.telefono_visible && vendedor?.telefono),
+    email: !!(vendedor?.email_visible && vendedor?.email),
   }
 
   const imagenes = producto.imagenes && producto.imagenes.length > 0
