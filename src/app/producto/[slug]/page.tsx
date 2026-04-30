@@ -11,6 +11,7 @@ import Avatar from '@/components/Avatar'
 import ReportarButton from '@/components/ReportarButton'
 import BadgeVerificado from '@/components/BadgeVerificado'
 import ImageGallery from '@/components/ImageGallery'
+import SellerReputation from '@/components/SellerReputation'
 
 function formatarWhatsapp(telefono: string): string {
   // Limpiar y convertir a formato internacional Venezuela (+58)
@@ -73,6 +74,7 @@ export default function ProductoPage() {
   const [enviandoResena, setEnviandoResena] = useState(false)
   const [esFavorito, setEsFavorito] = useState(false)
   const [toggleandoFav, setToggleandoFav] = useState(false)
+  const [vendedorStats, setVendedorStats] = useState<any>(null)
 
   useEffect(() => {
     if (!slug) return
@@ -93,13 +95,29 @@ export default function ProductoPage() {
       }
       setProducto(prod)
 
-      // Fetch seller (include id + verificado)
+      // Fetch seller (include id + verificado + reputation)
       const { data: v } = await supabase
         .from('perfiles')
-        .select('id, nombre, telefono, ciudad, estado, whatsapp_disponible, telefono_visible, email_visible, foto_perfil_url, verificado')
+        .select('id, nombre, telefono, ciudad, estado, whatsapp_disponible, telefono_visible, email_visible, foto_perfil_url, verificado, verificado_desde, nivel_confianza, badges_automaticos, ultima_actividad, creado_en')
         .eq('id', prod.user_id)
         .single()
       if (v) setVendedor(v)
+
+      // Vendedor stats (reputación)
+      const [{ count: vendidas }, { count: activas }, { data: resData }] = await Promise.all([
+        supabase.from('productos').select('*', { count: 'exact' }).eq('user_id', prod.user_id).eq('activo', false).neq('estado_moderacion', 'rechazado'),
+        supabase.from('productos').select('*', { count: 'exact' }).eq('user_id', prod.user_id).eq('activo', true),
+        supabase.from('resenas').select('puntuacion').eq('vendedor_id', prod.user_id),
+      ])
+      const prom = resData && resData.length > 0 ? resData.reduce((s: number, r: any) => s + r.puntuacion, 0) / resData.length : 0
+      const antiguedad = v ? Math.floor((Date.now() - new Date(v.creado_en).getTime()) / (1000*60*60*24)) : 0
+      setVendedorStats({
+        vendidas: vendidas || 0,
+        activas: activas || 0,
+        resenasCount: resData?.length || 0,
+        resenasAvg: prom,
+        antiguedad,
+      })
 
       // Reseñas count
       const { count: rc } = await supabase
@@ -300,13 +318,21 @@ export default function ProductoPage() {
                     {vendedor.ciudad && <p className="text-xs text-gray-500">{vendedor.ciudad}{vendedor.estado ? `, ${vendedor.estado}` : ''}</p>}
                   </div>
                 </Link>
-                {/* Reseñas mini-resumen */}
-                {totalResenas > 0 && (
-                  <div className="flex items-center gap-1 mt-2 ml-0">
-                    {[1, 2, 3, 4, 5].map(i => (
-                      <Star key={i} size={14} className="fill-yellow-400 text-yellow-400" />
-                    ))}
-                    <span className="text-xs text-gray-500 ml-1">{totalResenas} reseña{totalResenas !== 1 ? 's' : ''}</span>
+                {/* Reseñas mini-resumen + Reputacion */}
+                {vendedorStats && (
+                  <div className="mt-2 ml-0">
+                    <SellerReputation
+                      nivel={vendedor.nivel_confianza || 0}
+                      numResenas={vendedorStats.resenasCount}
+                      promedioResenas={vendedorStats.resenasAvg}
+                      numPubsActivas={vendedorStats.activas}
+                      numPubsVendidas={vendedorStats.vendidas}
+                      antiguedadDias={vendedorStats.antiguedad}
+                      ultimaActividad={vendedor.ultima_actividad}
+                      verificado={vendedor.verificado}
+                      badges={vendedor.badges_automaticos || []}
+                      size="sm"
+                    />
                   </div>
                 )}
                 {/* Botón de reseña — solo el comprador real */}

@@ -7,7 +7,8 @@ import Link from 'next/link'
 import Image from 'next/image'
 import BadgeVerificado from '@/components/BadgeVerificado'
 import Avatar from '@/components/Avatar'
-import { MapPin, Phone, Mail, MessageSquare, Star, ArrowLeft, ShoppingBag, Calendar } from 'lucide-react'
+import { MapPin, Phone, Mail, MessageSquare, Star, ArrowLeft, ShoppingBag, Calendar, ShieldCheck, Activity } from 'lucide-react'
+import SellerReputation from '@/components/SellerReputation'
 
 export default function VendedorPage() {
   const params = useParams()
@@ -35,18 +36,7 @@ export default function VendedorPage() {
 
       setVendedor(perfil)
 
-      // Productos activos
-      const { data: prods } = await supabase
-        .from('productos')
-        .select('id, titulo, precio_usd, imagen_url, categoria_id, subcategoria')
-        .eq('user_id', vendedorId)
-        .eq('activo', true)
-        .order('creado_en', { ascending: false })
-        .limit(12)
-
-      setProductos(prods || [])
-
-      // Reseñas (las que recibe el vendedor)
+      // Reseñas (para calcular promedio)
       const { data: res } = await supabase
         .from('resenas')
         .select('*')
@@ -60,6 +50,17 @@ export default function VendedorPage() {
           setPromedio(Math.round(avg * 10) / 10)
         }
       }
+
+      // Productos activos
+      const { data: prods } = await supabase
+        .from('productos')
+        .select('id, titulo, precio_usd, imagen_url, categoria_id, subcategoria')
+        .eq('user_id', vendedorId)
+        .eq('activo', true)
+        .order('creado_en', { ascending: false })
+        .limit(12)
+
+      setProductos(prods || [])
 
       setLoading(false)
     }
@@ -117,14 +118,21 @@ export default function VendedorPage() {
               </p>
             )}
 
-            {/* Rating */}
-            {resenas.length > 0 && (
-              <div className="flex items-center gap-2 mt-2">
-                {estrellasRender(promedio, 18)}
-                <span className="text-sm font-bold text-gray-700">{promedio.toFixed(1)}</span>
-                <span className="text-sm text-gray-500">({resenas.length} reseña{resenas.length !== 1 ? 's' : ''})</span>
-              </div>
-            )}
+            {/* Reputación */}
+            <div className="mt-3">
+              <SellerReputation
+                nivel={vendedor.nivel_confianza || 0}
+                numResenas={resenas.length}
+                promedioResenas={promedio}
+                numPubsActivas={productos.length}
+                numPubsVendidas={vendedor.total_vendidas || 0}
+                antiguedadDias={vendedor.antiguedad_dias || Math.floor((Date.now() - new Date(vendedor.creado_en).getTime()) / (1000*60*60*24))}
+                ultimaActividad={vendedor.ultima_actividad}
+                verificado={vendedor.verificado}
+                badges={vendedor.badges_automaticos || []}
+                size="md"
+              />
+            </div>
 
             {/* Contacto */}
             <div className="flex flex-wrap gap-2 mt-4">
