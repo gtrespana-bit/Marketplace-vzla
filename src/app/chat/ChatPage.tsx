@@ -408,10 +408,23 @@ export default function ChatPageClient() {
 
   // ─── Eliminar conversación ───
   const eliminarConv = async (id: string, e: React.MouseEvent) => {
-    e.stopPropagation() // Prevent triggering seleccionarConv
+    e.stopPropagation()
     if (!confirm('¿Eliminar esta conversación y todos sus mensajes?')) return
-    await supabase.from('mensajes').delete().eq('conversacion_id', id)
-    await supabase.from('conversaciones').delete().eq('id', id)
+
+    const { error: msgErr } = await supabase.from('mensajes').delete().eq('conversacion_id', id)
+    if (msgErr) {
+      console.error('Error eliminando mensajes:', msgErr)
+      alert('Error al eliminar los mensajes. La policy RLS puede faltar.')
+      return
+    }
+
+    const { error: convErr } = await supabase.from('conversaciones').delete().eq('id', id)
+    if (convErr) {
+      console.error('Error eliminando conversación:', convErr)
+      alert('Error al eliminar la conversación.')
+      return
+    }
+
     setConversaciones(prev => prev.filter(c => c.id !== id))
     if (convId === id) {
       setConvId(null)
