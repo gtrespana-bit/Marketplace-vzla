@@ -147,13 +147,14 @@ export default function ProductoPage() {
     </div>
   )
 
-  // Contact methods - el vendedor decide POR PUBLICACION
+  // Contact methods - vendedor decide (FIX BUILD)
   // Por defecto (si no configuro): SOLO chat
   // Si configuro metodos_contacto al publicar: muestra lo que activo
-  const mc = (producto as any).metodos_contacto || {}
-  const telefono = mc.telefono || mc.whatsapp || ''
+  const mc = producto.metodos_contacto || {}
+  const mcObj = mc as Record<string, unknown>
+  const telefono = (mcObj.telefono as string) || (mcObj.whatsapp as string) || ''
   const tieneTelefono = telefono.trim().length > 0
-  const tieneEmail = !!(mc.email)
+  const tieneEmail = !!(mcObj.email)
   const metodos = {
     chat: true,
     whatsapp: tieneTelefono,
