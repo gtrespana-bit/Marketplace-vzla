@@ -194,63 +194,71 @@ export default function ChatPageClient() {
         setShowMobileChat(true)
         setTimeout(() => loadMensajesSilent(match.id), 100)
       } else {
-        // No conv exists — create one
-        await new Promise<void>((resolve) => {
-          supabase
+        // No conv exists — create one synchronously and update state
+        const convData = {
+          id: `temp-${Date.now()}`,
+          user1_id: uid.id < vendedorId ? uid.id : vendedorId,
+          user2_id: uid.id < vendedorId ? vendedorId : uid.id,
+          producto_id: productoId,
+        }
+
+        try {
+          // Insert conversation
+          const { data: newConv, error: insError } = await supabase
             .from('conversaciones')
             .insert({
-              user1_id: uid.id < vendedorId ? uid.id : vendedorId,
-              user2_id: uid.id < vendedorId ? vendedorId : uid.id,
+              user1_id: convData.user1_id,
+              user2_id: convData.user2_id,
               producto_id: productoId,
             })
             .select()
             .single()
-            .then(async ({ data: newConv, error: err }) => {
-              if (err) {
-                if (err.code === '23505') {
-                  // Constraint violation — refetch to get existing
-                  await loadConversaciones().then(resolve)
-                  return
-                }
-                console.error('Error creating conversation:', err)
-                resolve()
-                return
-              }
-              if (newConv) {
-                setConvId(newConv.id)
-                setShowMobileChat(true)
-                setConversaciones(prev => [
-                  {
-                    id: newConv.id,
-                    user1_id: newConv.user1_id,
-                    user2_id: newConv.user2_id,
-                    producto_id: newConv.producto_id,
-                    ultimo_mensaje: null,
-                    ultimo_mensaje_en: new Date().toISOString(),
-                    creado_en: newConv.creado_en,
-                    otro_nombre: newConv.user1_id === uid.id
-                      ? (perfilMap.get(newConv.user2_id)?.nombre || 'Usuario')
-                      : (perfilMap.get(newConv.user1_id)?.nombre || 'Usuario'),
-                    otro_foto: null,
-                    producto_titulo: prodMap.get(productoId) || null,
-                    no_leidos: 0,
-                  },
-                  ...prev,
-                ])
-                setTimeout(() => loadMensajesSilent(newConv.id), 100)
-              }
-              resolve()
-            })
-        })
+
+          if (insError) {
+            console.error('Error creating conv:', insError)
+            await loadConversaciones()
+            return
+          }
+
+          if (newConv) {
+            const perfil = perfilMap.get(newConv.user1_id === uid.id ? newConv.user2_id : newConv.user1_id)
+            const productTitle = prodMap.get(productoId) || null
+
+            const newConvObj: Conversacion = {
+              id: newConv.id,
+              user1_id: newConv.user1_id,
+              user2_id: newConv.user2_id,
+              producto_id: newConv.producto_id,
+              ultimo_mensaje: null,
+              ultimo_mensaje_en: new Date().toISOString(),
+              creado_en: newConv.creado_en,
+              otro_nombre: perfil?.nombre || 'Usuario',
+              otro_foto: perfil?.foto || null,
+              producto_titulo: productTitle,
+              no_leidos: 0,
+            }
+
+            // Update state with new conversation at top
+            setConversaciones(prev => [newConvObj, ...prev])
+            setConvId(newConv.id)
+            setShowMobileChat(true)
+
+            // Load messages after state is updated
+            setTimeout(() => loadMensajesSilent(newConv.id), 50)
+          }
+        } catch (err) {
+          console.error('Failed to create conversation:', err)
+        }
       }
     }
-  }, [])
+  }, [productoId, vendedorId])
 
   // Load once on mount
   useEffect(() => {
     if (authLoading || !user) return
     loadConversaciones()
-  }, [user, authLoading, loadConversaciones])
+    // Also reload when product/seller params change
+  }, [user, authLoading, loadConversaciones, productoId, vendedorId])
 
   // ─── Realtime sidebar update ───
   useEffect(() => {
