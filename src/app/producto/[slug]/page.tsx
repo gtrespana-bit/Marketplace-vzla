@@ -151,7 +151,10 @@ export default function ProductoPage() {
   const telefono = vendedor?.telefono || producto.seller_telefono || ''
   const tieneTelefono = telefono.trim().length > 0
   const tieneEmail = !!(vendedor?.email && vendedor.email.trim().length > 0)
-  console.log('[producto] vendedor:', JSON.stringify({ perfilTel: vendedor?.telefono, prodTel: producto.seller_telefono, telefono, tieneTelefono }))
+  // Log everything for debugging
+    console.log('[DEBUG] producto keys:', Object.keys(producto || {}))
+    console.log('[DEBUG] producto completo:', JSON.stringify(producto, null, 2))
+    console.log('[DEBUG] vendedor:', JSON.stringify(vendedor, null, 2))
   const metodos = {
     chat: true,
     whatsapp: tieneTelefono,
@@ -175,8 +178,6 @@ export default function ProductoPage() {
 
   const precioBs = producto.precio_usd ? Math.round(producto.precio_usd * 36).toLocaleString() : ''
   
-  // DEBUG INFO - remove after fixing
-  const debugPhone = { perfilTel: vendedor?.telefono || '(vacio)', prodTel: (producto as any).seller_telefono || '(no existe)', telefonoFinal: telefono }
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
@@ -291,19 +292,8 @@ export default function ProductoPage() {
                   </button>
                 )}
               </div>
-            )}
+            }
 
-            {/* DEBUG PHONE - quitar despues */}
-            {process.env.NODE_ENV !== 'production' && (
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-3 text-xs font-mono">
-                Debug telefono:<br/>
-                perfilTel: {vendedor?.telefono || '(vacio)'}<br/>
-                productTel: {(producto as any).seller_telefono || '(n/a)'}<br/>
-                usando: {telefono || '(vacio)'}<br/>
-                tieneTelefono: {JSON.stringify(tieneTelefono)}<br/>
-                metodos.whatsapp: {JSON.stringify(metodos.whatsapp)}
-              </div>
-            )}
             {/* Botones de contacto */}
             <div className="space-y-3">
               {/* Botones principales - Chat + WhatsApp */}
@@ -341,7 +331,7 @@ export default function ProductoPage() {
                 {producto.ubicacion_ciudad && producto.ubicacion_estado ? ', ' : ''}
                 {producto.ubicacion_estado}
               </div>
-            )}
+            }
 
             <div className="flex gap-2 mt-3">
               <button
