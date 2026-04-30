@@ -8,8 +8,9 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
   const token = searchParams.get('token')
   const type = searchParams.get('type')
+  const email = searchParams.get('email')
 
-  if (!token || type !== 'email') {
+  if (!token || type !== 'email' || !email) {
     return NextResponse.redirect(new URL('/confirmacion', request.url))
   }
 
@@ -18,6 +19,7 @@ export async function GET(request: Request) {
     
     // Verificar el token de confirmación
     const { data, error } = await supabase.auth.verifyOtp({
+      email,
       token,
       type: 'email',
     })
