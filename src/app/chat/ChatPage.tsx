@@ -121,14 +121,19 @@ export default function ChatPageClient() {
     productosRes.data?.forEach(p => prodMap.set(p.id, p.titulo || ''))
 
     // Unread count
-    const unreadRes = convs?.length
-      ? await supabase.from('mensajes').select('conversacion_id').eq('destinatario_id', uid).eq('leido', false).in('conversacion_id', convs.map(c => c.id))
-      : Promise.resolve({ data: [] })
-
     const unreadMap = new Map<string, number>()
-    (await unreadRes).data?.forEach((m: { conversacion_id: string }) => {
-      unreadMap.set(m.conversacion_id, (unreadMap.get(m.conversacion_id) || 0) + 1)
-    })
+    if (convs && convs.length > 0) {
+      const { data: unreadData } = await supabase
+        .from('mensajes')
+        .select('conversacion_id')
+        .eq('destinatario_id', uid)
+        .eq('leido', false)
+        .in('conversacion_id', convs.map(c => c.id))
+      unreadData?.forEach((m: { conversacion_id: string }) => {
+        const count = unreadMap.get(m.conversacion_id) || 0
+        unreadMap.set(m.conversacion_id, count + 1)
+      })
+    }
 
     const enriched: Conversacion[] = (convs || []).map(c => {
       const otroId = c.user1_id === uid ? c.user2_id : c.user1_id
