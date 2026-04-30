@@ -12,7 +12,9 @@ export default function LoginPage() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-  const [registered, setRegistered] = useState(false)
+  const [showResend, setShowResend] = useState(false)
+  const [resendSuccess, setResendSuccess] = useState(false)
+  const [resendLoading, setResendLoading] = useState(false)
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -32,6 +34,27 @@ export default function LoginPage() {
       router.push('/dashboard')
     }
     setLoading(false)
+  }
+
+  const handleResendConfirmation = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setError('')
+    setResendLoading(true)
+    setResendSuccess(false)
+
+    const { error } = await supabase.auth.resend({
+      type: 'email',
+      email,
+    })
+
+    if (error) {
+      setError(error.message === 'User not found'
+        ? 'No existe una cuenta con este email'
+        : error.message)
+    } else {
+      setResendSuccess(true)
+    }
+    setResendLoading(false)
   }
 
   return (
@@ -93,6 +116,71 @@ export default function LoginPage() {
               Regístrate gratis
             </Link>
           </p>
+
+          {/* Botón para reenviar email de confirmación */}
+          {!showResend ? (
+            <p className="text-center text-sm text-gray-500 mt-3">
+              ¿No recibiste el email de confirmación?
+              <button
+                type="button"
+                onClick={() => setShowResend(true)}
+                className="text-brand-blue font-semibold hover:underline ml-1"
+              >
+                Reenviarlo
+              </button>
+            </p>
+          ) : (
+            <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+              {resendSuccess ? (
+                <div className="text-center">
+                  <div className="flex items-center justify-center gap-2 text-green-700 font-semibold mb-2">
+                    ✅ Email reenviado con éxito
+                  </div>
+                  <p className="text-sm text-gray-600 mb-3">
+                    Hemos enviado un nuevo email de confirmación a
+                    <strong> {email}</strong>
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setShowResend(false)}
+                    className="text-brand-blue font-semibold hover:underline text-sm"
+                  >
+                    Volver al login
+                  </button>
+                </div>
+              ) : (
+                <form onSubmit={handleResendConfirmation} className="space-y-3">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                      Email
+                    </label>
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="tu@email.com"
+                      required
+                      className="w-full border rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-brand-yellow bg-white text-sm"
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    disabled={resendLoading}
+                    className="w-full bg-brand-blue text-white py-2.5 rounded-lg font-semibold hover:bg-blue-900 transition disabled:opacity-50 text-sm"
+                  >
+                    {resendLoading ? 'Enviando...' : 'Reenviar email de confirmación'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowResend(false)}
+                    className="w-full text-sm text-gray-600 hover:text-gray-800"
+                  >
+                    Cancelar
+                  </button>
+                </form>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>

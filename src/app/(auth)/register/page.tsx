@@ -82,9 +82,8 @@ export default function RegisterPage() {
         ? 'Ya existe una cuenta con este email'
         : error.message)
     } else {
-      // Redirigir a dashboard si no requiere verificación email
-      // o mostrar mensaje de confirmación
-      router.push('/dashboard')
+      // Mostrar mensaje de confirmación y redirigir a pantalla de confirmación
+      router.push(`/confirmacion?email=${encodeURIComponent(email)}`)
     }
     setLoading(false)
   }
