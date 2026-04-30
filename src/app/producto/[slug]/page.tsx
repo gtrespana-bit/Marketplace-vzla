@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/components/AuthProvider'
 import { MapPin, Tag, MessageCircle, Phone, Mail, Share2, Heart, ChevronRight, Shield, Clock, Star, X, Send } from 'lucide-react'
@@ -206,13 +207,25 @@ export default function ProductoPage() {
           {imagenes.length > 0 ? (
             <div className="bg-white rounded-2xl shadow-sm border overflow-hidden">
               <div className="aspect-square md:aspect-[16/10] bg-gray-100">
-                <img src={imagenes[0]} alt={producto.titulo} className="w-full h-full object-cover" />
+                <Image
+                  src={imagenes[0]}
+                  alt={producto.titulo}
+                  width={800}
+                  height={600}
+                  sizes="(max-width: 1024px) 100vw, 66vw"
+                  className="w-full h-full object-cover"
+                  priority
+                  fetchPriority="high"
+                  decoding="async"
+                />
               </div>
               {imagenes.length > 1 && (
                 <div className="flex gap-2 p-3 overflow-x-auto hide-scrollbar">
                   {imagenes.map((img: string, i: number) => (
                     <button key={i} className="w-20 h-20 rounded-lg overflow-hidden flex-shrink-0 border-2 hover:border-brand-yellow transition">
-                      <img src={img} alt="" className="w-full h-full object-cover" />
+                  <button key={i} className="w-20 h-20 rounded-lg overflow-hidden flex-shrink-0 border-2 hover:border-brand-yellow transition">
+                    <Image src={img} alt="" width={80} height={80} className="w-full h-full object-cover" decoding="async" loading="lazy" />
+                  </button>
                     </button>
                   ))}
                 </div>

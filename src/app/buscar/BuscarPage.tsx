@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useSearchParams, usePathname, useRouter } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import { Search, ChevronRight, XCircle, Loader2 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { categoriasData } from '@/lib/categorias'
@@ -51,7 +52,7 @@ function ProductCard({ p }: { p: Producto }) {
           </div>
         )}
         {p.imagen_url ? (
-          <img src={p.imagen_url} alt={p.titulo} className="w-full h-full object-cover group-hover:scale-105 transition-transform" loading="lazy" />
+          <Image src={p.imagen_url} alt={p.titulo} width={300} height={300} sizes="(max-width: 768px) 50vw, 25vw" className="w-full h-full object-cover group-hover:scale-105 transition-transform" loading="lazy" decoding="async" />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-gray-300 text-5xl">📦</div>
         )}

@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import { Search, ArrowRight, Star, Zap, Eye, TrendingUp } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 
@@ -72,7 +73,16 @@ function ProductCard({ p, highlighted = false }: { p: any; highlighted?: boolean
           </div>
         )}
         {p.imagen_url ? (
-          <img src={p.imagen_url} alt={p.titulo} className="w-full h-full object-cover group-hover:scale-105 transition-transform" loading="lazy" />
+          <Image
+            src={p.imagen_url}
+            alt={p.titulo}
+            width={400}
+            height={400}
+            sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+            loading="lazy"
+            decoding="async"
+          />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-gray-300 text-4xl">📦</div>
         )}

@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Link from 'next/link'
+import Image from 'next/image'
 import BadgeVerificado from '@/components/BadgeVerificado'
 import Avatar from '@/components/Avatar'
 import { MapPin, Phone, Mail, MessageSquare, Star, ArrowLeft, ShoppingBag, Calendar } from 'lucide-react'
@@ -204,7 +205,7 @@ export default function VendedorPage() {
               <Link key={p.id} href={`/producto/${p.id}`} className="bg-white rounded-xl shadow-sm border overflow-hidden hover:shadow-md transition group">
                 <div className="aspect-square bg-gray-100">
                   {p.imagen_url ? (
-                    <img src={p.imagen_url} alt={p.titulo} className="w-full h-full object-cover group-hover:scale-105 transition duration-300" />
+                    <Image src={p.imagen_url} alt={p.titulo} width={400} height={400} sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw" className="w-full h-full object-cover group-hover:scale-105 transition duration-300" loading="lazy" decoding="async" />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-gray-400 text-sm">Sin foto</div>
                   )}

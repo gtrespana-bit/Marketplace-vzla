@@ -296,7 +296,7 @@ function MisProductos({ productos, onBoost, onDestacar }: { productos: any[]; on
               <Link href={`/producto/${p.id}`} className="flex items-center gap-4 flex-1 min-w-0">
                 <div className="w-16 h-16 rounded-lg bg-gray-100 flex-shrink-0 overflow-hidden">
                   {p.imagen_url ? (
-                    <img src={p.imagen_url} alt={p.titulo} className="w-full h-full object-cover" />
+                    <img src={p.imagen_url} alt={p.titulo} className="w-full h-full object-cover" loading="lazy" decoding="async" />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">Sin foto</div>
                   )}
@@ -566,7 +566,7 @@ function FavoritosPlaceholder({ favoritos }: { favoritos: any[] }) {
               <Link href={`/producto/${p.id}`} className="flex items-center gap-4 flex-1 min-w-0">
                 <div className="w-16 h-16 rounded-lg bg-gray-100 flex-shrink-0 overflow-hidden">
                   {p.imagen_url ? (
-                    <img src={p.imagen_url} alt={p.titulo} className="w-full h-full object-cover" />
+                    <img src={p.imagen_url} alt={p.titulo} className="w-full h-full object-cover" loading="lazy" decoding="async" />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">Sin foto</div>
                   )}

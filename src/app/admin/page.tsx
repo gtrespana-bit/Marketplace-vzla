@@ -141,7 +141,7 @@ function ModeracionTab({ notify }: { notify: (msg: string) => void }) {
                 <div key={p.id} className="p-4 hover:bg-gray-50">
                   <div className="flex items-start justify-between">
                     <div className="flex gap-3">
-                      {p.imagen_url && <img src={p.imagen_url} alt="" className="w-16 h-16 rounded-lg object-cover" />}
+                      {p.imagen_url ? <img src={p.imagen_url} alt="" className="w-16 h-16 rounded-lg object-cover" loading="lazy" decoding="async" /> : null}
                       <div>
                         <p className="font-semibold">{p.titulo}</p>
                         {p.precio_usd && <p className="text-brand-blue font-bold">${Number(p.precio_usd).toLocaleString()}</p>}
@@ -511,7 +511,7 @@ function TabPublicaciones({ perfiles, notify }: { perfiles: Record<string, any>;
                   {/* Miniatura */}
                   <Link href={`/producto/${p.id}`} className="w-16 h-16 rounded-lg bg-gray-100 flex-shrink-0 overflow-hidden">
                     {p.imagen_url ? (
-                      <img src={p.imagen_url} alt={p.titulo} className="w-full h-full object-cover" />
+                      <img src={p.imagen_url} alt={p.titulo} className="w-full h-full object-cover" loading="lazy" decoding="async" />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-gray-300">📦</div>
                     )}
