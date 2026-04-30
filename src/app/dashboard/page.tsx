@@ -636,7 +636,6 @@ function FavoritosPlaceholder({ favoritos }: { favoritos: any[] }) {
             </div>
           )
         })}
-        </div>
       </div>
     </div>
   )
