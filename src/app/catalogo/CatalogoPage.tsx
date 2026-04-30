@@ -50,7 +50,7 @@ function ProductCard({ p }: { p: Producto }) {
       <div className="p-4">
         <h3 className="font-semibold text-gray-900 truncate">{p.titulo}</h3>
         <p className="text-xl font-black text-brand-blue mt-1">${Number(p.precio_usd || 0).toLocaleString()}</p>
-        { · {p.ubicacion_ciudad || p.ubicacion_estado || 'Venezuela'}</p>
+        <p className="text-xs text-gray-500 mt-1">{p.ubicacion_ciudad || p.ubicacion_estado || 'Venezuela'}</p>
       </div>
     </Link>
   )
