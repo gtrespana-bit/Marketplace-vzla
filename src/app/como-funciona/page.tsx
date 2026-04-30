@@ -86,48 +86,42 @@ export default function ComoFuncionaPage() {
       {/* ============ COMPARATIVA ============ */}
       <div className="bg-white rounded-xl p-8 shadow-sm border border-gray-100 mb-12">
         <h2 className="text-2xl font-bold text-gray-800 mb-2 text-center">¿Por qué somos diferentes?</h2>
-        <p className="text-gray-500 text-center mb-8">Comparación con otros marketplaces</p>
+        <p className="text-gray-500 text-center mb-8">Aquí tienes toda la diferencia, de un vistazo</p>
 
-        <div className="grid grid-cols-3 gap-4 max-w-2xl mx-auto">
-          {/* Header */}
-          <div className="text-center pb-3 border-b-2 border-brand-blue">
-            <p className="font-black text-brand-blue text-sm">Todo Anuncios</p>
-          </div>
-          <div className="text-center pb-3 border-b border-gray-200">
-            <p className="font-bold text-gray-400 text-sm">Otros marketplaces</p>
-          </div>
-          <div className="text-center pb-3 border-b border-gray-200">
-            <p className="font-bold text-gray-400 text-sm">Redes sociales</p>
-          </div>
-
-          {/* Rows */}
-          {[
-            { label: 'Publicar', ta: 'Gratis siempre', otros: 'De pago', red: 'Gratis' },
-            { label: 'Comisión', ta: '0%', otros: '5-15%', red: '0%' },
-            { label: 'Contacto directo', ta: 'Sí ✅', otros: 'Intermediarios', red: 'Limitado' },
-            { label: 'Pago Móvil', ta: 'Sí ✅', otros: 'No', red: 'No' },
-            { label: 'Enfocado en Venezuela', ta: 'Sí ✅', otros: 'No', red: 'No' },
-            { label: 'Verificación de vendedores', ta: 'Sí ✅', otros: 'Ocasional', red: 'No' },
-          ].map((r, i) => (
-            <>
-              <div key={'a'+i} className="text-center py-2.5 text-sm font-semibold text-gray-800 border-r border-gray-100 pr-2">
-                {r.label}
-              </div>
-              <div key={'b'+i} className="text-center py-2.5 text-sm text-green-600 font-bold border-r border-gray-100 pr-2">
-                {r.ta}
-              </div>
-              <div key={'c'+i} className={`text-center py-2.5 text-sm ${r.otros.includes('No') || r.otros.includes('Ocasional') || r.otros.includes('Intermediarios') ? 'text-red-400' : 'text-gray-400'}`}>
-                {r.otros}
-              </div>
-              <div key={'d'+i} className={`text-center py-2.5 text-sm ${r.red.includes('No') || r.red.includes('Limitado') ? 'text-red-400' : 'text-gray-400'}`}>
-                {r.red}
-              </div>
-            </>
-          ))}
+        <div className="max-w-2xl mx-auto overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b-2 border-gray-200">
+                <th className="text-left py-4 px-3 font-semibold text-gray-500 w-[20%]">¿Qué importa?</th>
+                <th className="text-center py-4 px-3 font-bold text-brand-blue bg-green-50 rounded-t-lg w-[27%]">
+                  <span className="text-lg">Todo Anuncios</span>
+                </th>
+                <th className="text-center py-4 px-3 font-semibold text-gray-400 w-[27%]">Otros marketplaces</th>
+                <th className="text-center py-4 px-3 font-semibold text-gray-400 w-[27%]">Redes sociales</th>
+              </tr>
+            </thead>
+            <tbody>
+              {[
+                { l: 'Publicar', ta: '✅ Gratis siempre', otros: '❌ De pago', red: '✅ Gratis' },
+                { l: 'Comisión por venta', ta: '✅ 0% comisión', otros: '❌ 5-15% comisión', red: '❌ 0% (pero sin filtros)' },
+                { l: 'Contacto directo', ta: '✅ Sí, directo', otros: '❌ Con intermediarios', red: '⚠️ Limitado' },
+                { l: 'Pago Móvil', ta: '✅ Sí', otros: '❌ No', red: '❌ No' },
+                { l: 'Enfocado en Venezuela', ta: '✅ 100% Vzla', otros: '❌ Global', red: '❌ No enfocado' },
+                { l: 'Vendedores verificados', ta: '✅ Sistema activo', otros: '⚠️ Ocasional', red: '❌ No existe' },
+              ].map((r, i) => (
+                <tr key={i} className={`border-b border-gray-100 ${i % 2 === 0 ? 'bg-gray-50/50' : 'bg-white'}`}>
+                  <td className="py-3.5 px-3 font-semibold text-gray-800">{r.l}</td>
+                  <td className="py-3.5 px-3 text-center font-bold text-green-700 bg-green-50/50">{r.ta}</td>
+                  <td className="py-3.5 px-3 text-center text-red-500">{r.otros}</td>
+                  <td className="py-3.5 px-3 text-center text-gray-400">{r.red}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
 
         <p className="text-center text-xs text-gray-400 mt-6">
-          En todo momento: comprar, vender y contactar es totalmente gratis
+          Comprar, vender y contactar es <strong className="text-gray-500">totalmente gratis</strong>. Siempre será así.
         </p>
       </div>
 
