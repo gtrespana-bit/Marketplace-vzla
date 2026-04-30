@@ -105,14 +105,18 @@ export default function MiPerfilPage() {
   const handleGuardar = async () => {
     if (!nombre.trim()) return
     setGuardando(true)
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from('perfiles')
-      .update({ nombre, telefono, estado, ciudad })
+      .upsert({ id: uid, nombre, telefono, estado, ciudad })
       .eq('id', uid)
+      .select()
     if (error) {
       alert('Error al guardar: ' + error.message)
+    } else if (!data || data.length === 0) {
+      alert('No se pudo guardar. Revise que tenga un perfil creado.')
     } else {
       setEditando(false)
+      alert('Perfil guardado correctamente')
     }
     setGuardando(false)
   }
