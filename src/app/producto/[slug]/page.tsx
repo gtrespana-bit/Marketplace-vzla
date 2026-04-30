@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { getTasaBCVClient, actualizarTasaClient } from '@/lib/tasaBCV'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -74,6 +75,14 @@ export default function ProductoPage() {
   const [enviandoResena, setEnviandoResena] = useState(false)
   const [esFavorito, setEsFavorito] = useState(false)
   const [toggleandoFav, setToggleandoFav] = useState(false)
+  const [tasaBs, setTasaBs] = useState(0)
+
+  useEffect(() => {
+    actualizarTasaClient().then(d => setTasaBs(d.tasa))
+    // Set initial value from localStorage cache
+    const cached = getTasaBCVClient()
+    if (cached.tasa > 0) setTasaBs(cached.tasa)
+  }, [])
   const [vendedorStats, setVendedorStats] = useState<any>(null)
 
   useEffect(() => {
@@ -221,7 +230,7 @@ export default function ProductoPage() {
     ? producto.imagenes
     : producto.imagen_url ? [producto.imagen_url] : []
 
-  const precioBs = producto.precio_usd ? Math.round(producto.precio_usd * 36).toLocaleString() : ''
+  const precioBs = producto.precio_usd && tasaBs > 0 ? Math.round(producto.precio_usd * tasaBs).toLocaleString('es-VE') : ''
 
   // WhatsApp link
   let whatsappLink = ''
@@ -294,7 +303,7 @@ export default function ProductoPage() {
         <div>
           <div className="bg-white rounded-2xl shadow-sm border p-6 sticky top-20">
             <p className="text-4xl font-black text-brand-blue">${Number(producto.precio_usd || 0).toLocaleString()}</p>
-            {precioBs && <p className="text-sm text-gray-500 mt-1">Bs. {precioBs} (tasa ref.)</p>}
+            {precioBs && <p className="text-sm text-gray-500 mt-1">Bs. {precioBs} <span className="text-[10px] text-gray-400">· tasa BCV {tasaBs > 0 ? tasaBs : 'ref.'}</span></p>}
 
             <div className="flex items-center gap-4 text-xs text-gray-500 my-4 pb-4 border-b">
               <span className="flex items-center gap-1"><Clock size={14} /> Publicado</span>

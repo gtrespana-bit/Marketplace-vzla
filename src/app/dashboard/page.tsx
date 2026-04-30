@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { getTasaBCVClient, actualizarTasaClient } from '@/lib/tasaBCV'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
@@ -26,6 +27,13 @@ export default function DashboardPage() {
   const [boostModal, setBoostModal] = useState<{ productId: string; titulo: string } | null>(null)
   const [destacadoModal, setDestacadoModal] = useState<{ productId: string; titulo: string } | null>(null)
   const [toast, setToast] = useState<string | null>(null)
+  const [tasaBs, setTasaBs] = useState(0)
+
+  useEffect(() => {
+    const t = getTasaBCVClient()
+    setTasaBs(t.tasa)
+    actualizarTasaClient().then(d => setTasaBs(d.tasa))
+  }, [])
 
   useEffect(() => {
     if (authLoading) return
@@ -272,6 +280,7 @@ export default function DashboardPage() {
           {activeTab === 'creditos' && (
             <CompraCreditos
               creditos={creditos}
+              tasaBs={tasaBs}
               refreshCreditos={() => {
                 if (user) supabase.from('perfiles').select('credito_balance').eq('id', user.id).single().then(({ data }) => setCreditos(data?.credito_balance ?? 0))
               }}
@@ -367,7 +376,7 @@ function MensajesPlaceholder() {
   )
 }
 
-function CompraCreditos({ creditos, refreshCreditos }: { creditos: number; refreshCreditos: () => void }) {
+function CompraCreditos({ creditos, tasaBs, refreshCreditos }: { creditos: number; tasaBs: number; refreshCreditos: () => void }) {
   const [paso, setPaso] = useState<'paquetes' | 'comprobante' | null>(null)
   const [paqueteSel, setPaqueteSel] = useState<{ creditos: number; precio: number } | null>(null)
   const [comprobante, setComprobante] = useState<File | null>(null)
@@ -483,7 +492,7 @@ function CompraCreditos({ creditos, refreshCreditos }: { creditos: number; refre
             <p className="text-3xl font-black text-gray-800">{pkg.creditos}</p>
             <p className="text-xs text-gray-500">créditos</p>
             <p className="text-2xl font-black text-brand-blue mt-2">${pkg.precio}</p>
-            <p className="text-xs text-gray-400">≈ Bs. {(pkg.precio * 64).toLocaleString('es-VE')}</p>
+<p className="text-xs text-gray-400">{tasaBs > 0 ? `≈ Bs. ${(pkg.precio * tasaBs).toLocaleString('es-VE')}` : ''}</p>
           </button>
         ))}
       </div>
