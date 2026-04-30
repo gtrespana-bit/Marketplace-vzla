@@ -20,6 +20,7 @@ type Producto = {
   boosteado_en: string | null
   destacado: boolean
   destacado_hasta: string | null
+  vendedor_verificado: boolean | null
   }
 
 function ProductCard({ p }: { p: Producto }) {
