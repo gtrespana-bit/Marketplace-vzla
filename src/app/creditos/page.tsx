@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import {
-  CheckCircle, Zap, Star, X, Copy, Upload, Loader2, Sparkles
+  CheckCircle, Zap, Star, X, Copy, Upload, Loader2
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 
@@ -16,21 +16,10 @@ const paquetesCredito = [
 
 const metodosPago = [
   {
-    id: 'pagomovil',
-    nombre: 'Pago Móvil',
-    emoji: '📱',
-    instrucciones: {
-      telefono: '041266443099',
-      cedula: 'V-20794917',
-      banco: '0108 — Banco Provincial (BBVA)',
-    },
+    id: 'pagomovil', nombre: 'Pago Móvil', emoji: '📱',
+    instrucciones: { telefono: '041266443099', cedula: 'V-20794917', banco: '0108 — Banco Provincial (BBVA)' },
   },
-  {
-    id: 'binance',
-    nombre: 'Binance Pay',
-    emoji: '🟡',
-    instrucciones: { id: '2041475442' },
-  },
+  { id: 'binance', nombre: 'Binance Pay', emoji: '🟡', instrucciones: { id: '2041475442' } },
 ]
 
 const FALLBACK_TASA = 487.12
@@ -42,7 +31,7 @@ function ModalPago({ paquete, tasa, onClose }: { paquete: any; tasa: number; onC
   const [comprobanteFile, setComprobanteFile] = useState<File | null>(null)
   const [comprobantePreview, setComprobantePreview] = useState('')
   const [enviando, setEnviando] = useState(false)
-  const [resultado, setResultado] = useState<{ autoAprobado: boolean; texto: string } | null>(null)
+  const [enviado, setEnviado] = useState(false)
 
   const precioBs = (paquete.precio * tasa).toFixed(2)
   const selectedMetodo = metodosPago.find(m => m.id === metodo)
@@ -77,11 +66,10 @@ function ModalPago({ paquete, tasa, onClose }: { paquete: any; tasa: number; onC
       const { error: uploadError } = await supabase.storage
         .from('comprobantes')
         .upload(fileName, comprobanteFile, { contentType: comprobanteFile.type })
-      if (uploadError) { throw new Error('Error subiendo: ' + uploadError.message) }
+      if (uploadError) { alert('Error subiendo: ' + uploadError.message); setEnviando(false); return }
 
       const { data: { publicUrl } } = supabase.storage.from('comprobantes').getPublicUrl(fileName)
 
-      // Enviar al API — el comprobante es la verificación real
       const res = await fetch('/api/comprar-creditos', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -95,56 +83,34 @@ function ModalPago({ paquete, tasa, onClose }: { paquete: any; tasa: number; onC
       })
 
       const data = await res.json()
-      if (!data.ok) {
+      if (data.ok) {
+        setEnviado(true)
+      } else {
         alert('Error: ' + (data.error || 'Error procesando'))
-        setEnviando(false)
-        return
       }
-
-      setResultado({
-        autoAprobado: data.autoApproved,
-        texto: data.autoApproved
-          ? '¡Compra aprobada automáticamente! Tu comprobante fue verificado y los créditos están en tu cuenta.'
-          : 'Comprobante enviado. Un administrador revisará tu pago en breve.',
-      })
     } catch (err: any) {
       alert('Error: ' + (err.message || 'Error desconocido'))
     }
     setEnviando(false)
   }
 
-  // ---- Success / Pending screen ----
-  if (resultado) {
+  if (enviado) {
     return (
       <div className="fixed inset-0 z-50 bg-black/60 flex items-end md:items-center justify-center">
-        <div className="bg-white w-full md:max-w-lg md:rounded-2xl rounded-t-2xl p-6 animate-fadeIn">
-          {resultado.autoAprobado ? (
-            <>
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Sparkles size={32} className="text-green-600" />
-              </div>
-              <h3 className="text-xl font-bold text-center text-green-700 mb-2">¡Créditos añadidos!</h3>
-              <p className="text-sm text-gray-600 text-center mb-4">{resultado.texto}</p>
-              <div className="bg-green-50 rounded-lg p-3 text-center mb-4">
-                <p className="text-2xl font-black text-green-700">+{paquete.creditos} créditos</p>
-              </div>
-            </>
-          ) : (
-            <>
-              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <CheckCircle size={32} className="text-brand-blue" />
-              </div>
-              <h3 className="text-xl font-bold text-center text-brand-blue mb-2">Comprobante enviado</h3>
-              <p className="text-sm text-gray-600 text-center mb-4">{resultado.texto}</p>
-            </>
-          )}
+        <div className="bg-white w-full md:max-w-lg md:rounded-2xl rounded-t-2xl p-6 text-center">
+          <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <CheckCircle size={32} className="text-brand-blue" />
+          </div>
+          <h3 className="text-xl font-bold text-brand-blue mb-2">¡Comprobante enviado!</h3>
+          <p className="text-sm text-gray-600 mb-4">
+            Tu pago será revisado en breve. Recibirás <strong>{paquete.creditos} créditos</strong> cuando se confirme.
+          </p>
           <button onClick={onClose} className="w-full bg-brand-blue text-white py-3 rounded-xl font-bold hover:bg-blue-900 transition">Cerrar</button>
         </div>
       </div>
     )
   }
 
-  // ---- Main modal ----
   return (
     <div className="fixed inset-0 z-50 bg-black/60 flex items-end md:items-center justify-center">
       <div className="bg-white w-full md:max-w-lg md:rounded-2xl rounded-t-2xl max-h-[90vh] overflow-y-auto">
@@ -157,7 +123,7 @@ function ModalPago({ paquete, tasa, onClose }: { paquete: any; tasa: number; onC
         </div>
 
         <div className="p-6 space-y-6">
-          {/* 1. Método de pago */}
+          {/* Método de pago */}
           <div>
             <h4 className="font-bold text-gray-800 mb-3">1. Elige cómo vas a pagar</h4>
             <div className="grid grid-cols-2 gap-3">
@@ -171,7 +137,7 @@ function ModalPago({ paquete, tasa, onClose }: { paquete: any; tasa: number; onC
             </div>
           </div>
 
-          {/* 2. Datos de pago */}
+          {/* Datos de pago */}
           {selectedMetodo && (
             <div>
               <h4 className="font-bold text-gray-800 mb-3">2. Datos de pago</h4>
@@ -194,7 +160,7 @@ function ModalPago({ paquete, tasa, onClose }: { paquete: any; tasa: number; onC
             </div>
           )}
 
-          {/* 3. Comprobante */}
+          {/* Comprobante */}
           {selectedMetodo && (
             <div>
               <h4 className="font-bold text-gray-800 mb-3">3. Sube tu comprobante de pago</h4>
@@ -218,9 +184,6 @@ function ModalPago({ paquete, tasa, onClose }: { paquete: any; tasa: number; onC
                 className="w-full mt-4 bg-brand-blue text-white py-3.5 rounded-xl font-bold hover:bg-blue-900 transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
                 {enviando ? <><Loader2 size={18} className="animate-spin" /> Enviando...</> : <><Upload size={18} /> Enviar comprobante</>}
               </button>
-              <p className="text-center text-xs text-gray-400 mt-2">
-                La imagen del comprobante es la verificación del pago ✨
-              </p>
             </div>
           )}
 
@@ -235,7 +198,6 @@ function ModalPago({ paquete, tasa, onClose }: { paquete: any; tasa: number; onC
   )
 }
 
-// ---- Página principal ----
 export default function CreditosPage() {
   const [paqueteSeleccionado, setPaqueteSeleccionado] = useState<any>(null)
   const [tasa, setTasa] = useState<number>(FALLBACK_TASA)
@@ -343,9 +305,9 @@ export default function CreditosPage() {
           <h3 className="font-bold text-brand-blue text-sm mb-2">ℹ️ Cómo funciona</h3>
           <ol className="text-sm text-blue-800 space-y-1 list-decimal list-inside">
             <li>Selecciona tu paquete y realiza el pago</li>
-            <li>Sube la captura del comprobante</li>
-            <li>Se verifica la imagen → créditos al instante ✨</li>
-            <li>Si no se puede verificar → un admin lo aprueba manualmente</li>
+            <li>Sube la captura del comprobante aquí</li>
+            <li>Un admin revisa y aprueba tu pago</li>
+            <li>Recibes tus créditos al aprobar (horario 8am-10pm VET)</li>
           </ol>
         </div>
       </div>
