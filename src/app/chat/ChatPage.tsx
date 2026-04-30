@@ -203,16 +203,14 @@ export default function ChatPageClient() {
         }
 
         try {
-          // Insert conversation
-          const { data: newConv, error: insError } = await supabase
+          // Insert conversation WITHOUT .select() to avoid RLS blocking the read-back
+          const { error: insError } = await supabase
             .from('conversaciones')
             .insert({
               user1_id: convData.user1_id,
               user2_id: convData.user2_id,
               producto_id: productoId,
             })
-            .select()
-            .single()
 
           if (insError) {
             console.error('Error creating conv:', insError)
@@ -220,32 +218,29 @@ export default function ChatPageClient() {
             return
           }
 
-          if (newConv) {
-            const perfil = perfilMap.get(newConv.user1_id === uid.id ? newConv.user2_id : newConv.user1_id)
-            const productTitle = prodMap.get(productoId) || null
+          // Construct conversation locally (we have all the data)
+          const perfil = perfilMap.get(vendedorId)
+          const productTitle = prodMap.get(productoId) || null
+          const newId = crypto.randomUUID()
 
-            const newConvObj: Conversacion = {
-              id: newConv.id,
-              user1_id: newConv.user1_id,
-              user2_id: newConv.user2_id,
-              producto_id: newConv.producto_id,
-              ultimo_mensaje: null,
-              ultimo_mensaje_en: new Date().toISOString(),
-              creado_en: newConv.creado_en,
-              otro_nombre: perfil?.nombre || 'Usuario',
-              otro_foto: perfil?.foto || null,
-              producto_titulo: productTitle,
-              no_leidos: 0,
-            }
-
-            // Update state with new conversation at top
-            setConversaciones(prev => [newConvObj, ...prev])
-            setConvId(newConv.id)
-            setShowMobileChat(true)
-
-            // Load messages after state is updated
-            setTimeout(() => loadMensajesSilent(newConv.id), 50)
+          const newConvObj: Conversacion = {
+            id: newId,
+            user1_id: uid.id < vendedorId ? uid.id : vendedorId,
+            user2_id: uid.id < vendedorId ? vendedorId : uid.id,
+            producto_id: productoId,
+            ultimo_mensaje: null,
+            ultimo_mensaje_en: new Date().toISOString(),
+            creado_en: new Date().toISOString(),
+            otro_nombre: perfil?.nombre || 'Usuario',
+            otro_foto: perfil?.foto || null,
+            producto_titulo: productTitle,
+            no_leidos: 0,
           }
+
+          setConversaciones(prev => [newConvObj, ...prev])
+          setConvId(newId)
+          setShowMobileChat(true)
+          setTimeout(() => loadMensajesSilent(newId), 50)
         } catch (err) {
           console.error('Failed to create conversation:', err)
         }
