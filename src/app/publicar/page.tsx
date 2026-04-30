@@ -53,13 +53,23 @@ export default function PublicarPage() {
   const [contactMessenger, setContactMessenger] = useState('')
   const [moderacionResultado, setModeracionResultado] = useState<{ nivel: string; palabras: string[] } | null>(null)
   const [showEmprendedor, setShowEmprendedor] = useState(false)
+  const [pubCount, setPubCount] = useState(0)
 
   // Redirect if not logged in
   useEffect(() => {
     if (!authLoading && !session) {
       router.push('/login')
     }
-  }, [authLoading, session, router])
+    if (user) {
+      // Contar publicaciones para el progreso emprendedor
+      supabase
+        .from('productos')
+        .select('*', { count: 'exact' })
+        .eq('user_id', user.id)
+        .eq('activo', true)
+        .then(({ count }) => setPubCount(count || 0))
+    }
+  }, [authLoading, session, router, user])
 
   // Cleanup preview URLs on unmount
   useEffect(() => {
@@ -616,6 +626,24 @@ export default function PublicarPage() {
                   <AlertCircle size={18} className="text-red-600 flex-shrink-0 mt-0.5" />
                   <p className="text-sm text-red-700">{error}</p>
                 </div>
+              </div>
+            )}
+
+            {/* Progreso Emprendedor */}
+            {pubCount > 0 && pubCount < 10 && (
+              <div className="p-3 bg-purple-50 border border-purple-200 rounded-lg mb-4">
+                <div className="flex justify-between text-xs mb-1.5">
+                  <span className="font-semibold text-purple-800">🎯 {pubCount}/10 publicaciones → Bonus Emprendedor</span>
+                  <span className="text-purple-600">{10 - pubCount} restantes → 5 créditos gratis</span>
+                </div>
+                <div className="w-full bg-purple-200 rounded-full h-2">
+                  <div className="bg-purple-500 h-2 rounded-full transition-all" style={{ width: `${(pubCount / 10) * 100}%` }} />
+                </div>
+              </div>
+            )}
+            {pubCount >= 10 && !showEmprendedor && (
+              <div className="p-3 bg-green-50 border border-green-200 rounded-lg mb-4 flex items-center gap-2">
+                <span className="text-sm font-semibold text-green-800">🎁 Ya desbloqueaste el Bonus Emprendedor (+5 créditos)</span>
               </div>
             )}
 

@@ -68,9 +68,10 @@ export function Header() {
             {/* Actions (desktop) */}
             <div className="flex items-center gap-2">
               {/* Créditos — siempre visible */}
-              <Link href="/creditos" className="hidden md:flex items-center gap-1.5 bg-white/10 hover:bg-white/20 text-white px-3 py-2 rounded-lg text-sm font-medium transition" title="Comprar créditos">
+              <Link href="/creditos" className="relative hidden md:flex items-center gap-1.5 bg-white/10 hover:bg-white/20 text-white px-3 py-2 rounded-lg text-sm font-medium transition" title="Comprar créditos">
                 <Zap size={16} className="text-brand-yellow" />
                 <span className="hidden lg:inline">Créditos</span>
+                <span className="absolute -top-1 -right-1 bg-green-400 text-brand-blue text-[9px] font-black px-1 rounded-full">1 gratis</span>
               </Link>
               <Link href="/creditos" className="md:hidden p-2 hover:bg-white/10 rounded-lg transition" title="Créditos">
                 <Zap size={20} className="text-brand-yellow" />

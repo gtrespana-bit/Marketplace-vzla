@@ -98,6 +98,15 @@ export default function RegisterPage() {
           </Link>
           <h1 className="text-2xl font-bold text-gray-800 mt-4">Crea tu cuenta</h1>
           <p className="text-gray-500 mt-1">Únete gratis. Empieza a vender hoy.</p>
+
+          {/* Banner: credito gratis */}
+          <div className="mt-4 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl p-4 flex items-center gap-3 animate-fadeIn">
+            <span className="text-3xl">🎁</span>
+            <div>
+              <p className="font-bold text-green-800 text-sm">1 crédito GRATIS al registrarte</p>
+              <p className="text-green-600 text-xs">Publica 10 anuncios y recibe 5 créditos más. ¡Así de simple!</p>
+            </div>
+          </div>
         </div>
 
         <div className="bg-white rounded-2xl shadow-sm p-8 border border-gray-100">

@@ -22,6 +22,7 @@ export default function DashboardPage() {
   const [favoritos, setFavoritos] = useState<any[]>([])
   const [favoritosCount, setFavoritosCount] = useState(0)
   const [creditos, setCreditos] = useState(0)
+  const [pubCount, setPubCount] = useState(0)
   const [boostModal, setBoostModal] = useState<{ productId: string; titulo: string } | null>(null)
   const [destacadoModal, setDestacadoModal] = useState<{ productId: string; titulo: string } | null>(null)
   const [toast, setToast] = useState<string | null>(null)
@@ -40,6 +41,7 @@ export default function DashboardPage() {
         setFavoritosCount(data?.length || 0)
       }),
       supabase.from('perfiles').select('credito_balance').eq('id', user.id).single().then(({ data }) => setCreditos(data?.credito_balance ?? 0)),
+      supabase.from('productos').select('*', { count: 'exact' }).eq('user_id', user.id).eq('activo', true).then(({ count }) => setPubCount(count || 0)),
     ]).finally(() => setLoading(false))
   }, [user, authLoading])
 
@@ -207,7 +209,7 @@ export default function DashboardPage() {
           { label: 'Publicaciones', value: productos.length, icon: Package, color: 'bg-blue-50 text-brand-blue' },
           { label: 'Visitas totales', value: visitasTotales, icon: Eye, color: 'bg-green-50 text-green-700' },
           { label: 'Favoritos', value: favoritosCount, icon: Heart, color: 'bg-red-50 text-red-600' },
-          { label: 'Créditos', value: loading ? '...' : creditos, icon: CreditCard, color: 'bg-yellow-50 text-brand-yellow' },
+          { label: 'Créditos', value: loading ? '...' : creditos, icon: CreditCard, color: 'bg-yellow-50 text-brand-yellow', isCredits: true },
         ].map((stat) => (
           <div key={stat.label} className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
             <div className="flex items-center gap-3">
@@ -219,6 +221,20 @@ export default function DashboardPage() {
                 <p className="text-xs text-gray-500">{stat.label}</p>
               </div>
             </div>
+            {/* Info: como ganar créditos */}
+            {stat.isCredits && (
+              <div className="mt-3 pt-3 border-t border-gray-100 space-y-2">
+                <div className="flex items-center gap-1.5 text-xs text-green-700 font-medium">
+                  <span>🎁 1 crédito gratis al registrarte</span>
+                </div>
+                <div>
+                  <p className="text-xs text-purple-700 font-medium mb-1">🎯 {pubCount}/10 publicaciones → 5 créditos gratis</p>
+                  <div className="w-full bg-purple-100 rounded-full h-1.5">
+                    <div className="bg-purple-500 h-1.5 rounded-full transition-all" style={{ width: `${Math.min((pubCount / 10) * 100, 100)}%` }} />
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         ))}
       </div>
