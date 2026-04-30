@@ -8,6 +8,7 @@ import { useAuth } from '@/components/AuthProvider'
 import { MapPin, Tag, MessageCircle, Phone, Mail, Share2, Heart, ChevronRight, Shield, Clock, Star, X, Send } from 'lucide-react'
 import Avatar from '@/components/Avatar'
 import ReportarButton from '@/components/ReportarButton'
+import BadgeVerificado from '@/components/BadgeVerificado'
 
 // Helper component for star rating
 function StarRating({ value, onChange, size = 24, readonly = false }: { value: number; onChange?: (v: number) => void; size?: number; readonly?: boolean }) {
@@ -247,7 +248,10 @@ export default function ProductoPage() {
                 <Link href={`/vendedor/${vendedor.id}`} className="flex items-center gap-3 hover:bg-gray-100 rounded-xl p-1 -m-1 transition">
                   <Avatar nombre={vendedor.nombre || 'Vendedor'} fotoUrl={vendedor.foto_perfil_url} />
                   <div>
-                    <p className="font-semibold text-gray-900">{vendedor.nombre || 'Vendedor'}</p>
+                    <div className="flex items-center gap-2">
+                      <p className="font-semibold text-gray-900">{vendedor.nombre || 'Vendedor'}</p>
+                      {vendedor.verificado && <BadgeVerificado size="sm" />}
+                    </div>
                     {vendedor.ciudad && <p className="text-xs text-gray-500">{vendedor.ciudad}{vendedor.estado ? `, ${vendedor.estado}` : ''}</p>}
                   </div>
                 </Link>
