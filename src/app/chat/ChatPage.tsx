@@ -76,7 +76,6 @@ export default function ChatPageClient() {
 
   const [conversaciones, setConversaciones] = useState<Conversacion[]>([])
   const [convId, setConvId] = useState<string | null>(null)
-  const [convDestId, setConvDestId] = useState<string | null>(null)
   const [mensajes, setMensajes] = useState<Mensaje[]>([])
   const [texto, setTexto] = useState('')
   const [loading, setLoading] = useState(true)
@@ -192,7 +191,6 @@ export default function ChatPageClient() {
       if (match) {
         // Found existing conversation - SELECT IT
         setConvId(match.id)
-        setConvDestId(match.user1_id === uid?.id ? match.user2_id : match.user1_id)
         setShowMobileChat(true)
         setTimeout(() => loadMensajesSilent(match.id), 100)
       } else {
@@ -243,7 +241,6 @@ export default function ChatPageClient() {
             // Update state with new conversation at top
             setConversaciones(prev => [newConvObj, ...prev])
             setConvId(newConv.id)
-            setConvDestId(newConv.user1_id === uid.id ? newConv.user2_id : newConv.user1_id)
             setShowMobileChat(true)
 
             // Load messages after state is updated
@@ -416,25 +413,33 @@ export default function ChatPageClient() {
       prev.map(c => c.id === id ? { ...c, no_leidos: 0 } : c)
     )
     setConvId(id)
-    const sel = conversaciones.find(cc => cc.id === id)
-    setConvDestId(id ? (sel?.user1_id === user?.id ? (sel?.user2_id ?? null) : (sel?.user1_id ?? null)) : null)
     setShowMobileChat(true)
     setSendError(null)
     await loadMensajesSilent(id)
   }
 
   // ─── Reintentar envio fallido ───
-  const retrySend = useCallback(async (contenido: string) => {
-    if (!convId || !user || !convDestId || enviando) return
+  const retrySend = async (contenido: string) => {
+    if (!convId || !user || enviando) return
     setSendError(null)
     setEnviando(true)
+
+    // Always fetch from DB to avoid stale closure issues
+    const { data: conv } = await supabase
+      .from('conversaciones')
+      .select('user1_id, user2_id')
+      .eq('id', convId)
+      .single()
+    if (!conv) { setEnviando(false); setSendError('Conversaci\u00f3n no encontrada'); return }
+
+    const destinatarioId = conv.user1_id === user.id ? conv.user2_id : conv.user1_id
 
     // Optimistic
     const tempMsg: Mensaje = {
       id: `t-${Date.now()}`,
       conversacion_id: convId,
       remitente_id: user.id,
-      destinatario_id: convDestId,
+      destinatario_id: destinatarioId,
       contenido,
       leido: true,
       creado_en: new Date().toISOString(),
@@ -448,7 +453,8 @@ export default function ChatPageClient() {
       .insert({
         conversacion_id: convId,
         remitente_id: user.id,
-        destinatario_id: convDestId,
+        destinatario_id: destinatarioId,
+        contenido,
       })
       .select()
       .single()
@@ -466,7 +472,7 @@ export default function ChatPageClient() {
       setSendError(null)
     }
     setEnviando(false)
-  }, [convId, user, convDestId])
+  }
 
   // ─── Enviar mensaje ───
   const enviarMensaje = async () => {
