@@ -1,7 +1,8 @@
-// Tasa USD → Bs. Híbrida: API automática + fallback manual
-// Si la API falla, usa el fallback. Se refresca cada 1 hora.
+// Tasa USD -> Bs. Híbrida: API automática + fallback manual
+// Fuente principal: ve.dolarapi.com (BCV oficial Venezuela)
+// Fallback: valor manual configurable en FALLBACK_RATE
 
-const FALLBACK_RATE = 90
+const FALLBACK_RATE = 487
 
 interface TasaData {
   tasa: number
@@ -13,49 +14,33 @@ let cache: TasaData | null = null
 let cacheTime = 0
 const CACHE_DURATION = 3600 * 1000 // 1 hora
 
-// Intenta obtener tasa de pydolarve.org (API gratuita de Venezuela)
 async function fetchFromAPI(): Promise<number | null> {
   try {
-    const resp = await fetch('https://pydolarve.org/api/v1/dollar?page=bcv', {
-      next: { revalidate: 3600 }, // Cache SSR de Next.js: 1 hora
+    // Fuente principal: ve.dolarapi.com (tasa BCV oficial)
+    const resp = await fetch('https://ve.dolarapi.com/v1/dolares', {
+      next: { revalidate: 3600 },
     })
     if (!resp.ok) return null
 
     const data = await resp.json()
-    // La estructura de pydolarve: { dollars: { usd: { price, last_update } } }
-    if (data?.dollars?.usd?.price) {
-      return parseFloat(data.dollars.usd.price)
+    // Buscar la tasa oficial (BCV) en el array
+    const oficial = data.find((d: any) => d.fuente === 'oficial')
+    if (oficial && oficial.promedio) {
+      return parseFloat(oficial.promedio)
     }
-    // Formato alternativo: { price, monitor, change, last_update }
-    if (data?.price) {
-      return parseFloat(data.price)
+
+    // Si no encuentra "oficial", usar el primer elemento del array
+    if (Array.isArray(data) && data.length > 0 && data[0].promedio) {
+      return parseFloat(data[0].promedio)
     }
+
     return null
   } catch {
-    // Fallback a API alternativa: exchangerate-api o scraping-free
-    try {
-      const resp2 = await fetch('https://api.exchangerate-api.com/v4/latest/USD', {
-        next: { revalidate: 3600 },
-      })
-      if (resp2.ok) {
-        const data2 = await resp2.json()
-        // Esta API da tasas internacionales, no BCV exacto
-        // VES = Bolívar, pero es tasa paralela/BCV aproximado
-        if (data2?.rates?.VES) {
-          // VES está en centimos, dividir por 100000 (bolívares digitales)
-          // 1 USD ≈ X VES, en bolívares actuales = VES / 100000
-          return Math.round((data2.rates.VES / 100000) * 100) / 100
-        }
-      }
-    } catch {
-      // Segunda API falló también
-    }
     return null
   }
 }
 
 export async function getTasaBCV(): Promise<TasaData> {
-  // Cache en memoria del servidor
   if (cache && Date.now() - cacheTime < CACHE_DURATION) {
     return cache
   }
@@ -64,7 +49,7 @@ export async function getTasaBCV(): Promise<TasaData> {
 
   if (apiRate && apiRate > 10) {
     cache = {
-      tasa: Math.round(apiRate * 100) / 100,
+      tasa: Math.round(apiRate * 2) / 2, // Redondear a .5 más cercano
       fuente: 'api',
       ultimaActualizacion: new Date().toLocaleString('es-VE'),
     }
@@ -72,7 +57,7 @@ export async function getTasaBCV(): Promise<TasaData> {
     cache = {
       tasa: FALLBACK_RATE,
       fuente: 'fallback',
-      ultimaActualizacion: 'Tasa manual (pendiente actualización)',
+      ultimaActualizacion: 'Tasa manual',
     }
   }
 
@@ -80,7 +65,7 @@ export async function getTasaBCV(): Promise<TasaData> {
   return cache
 }
 
-// Versión síncrona para cliente (usa localStorage cache)
+// Versión para cliente (usa localStorage cache)
 export function getTasaBCVClient(): TasaData {
   if (typeof window === 'undefined') {
     return { tasa: FALLBACK_RATE, fuente: 'fallback', ultimaActualizacion: '' }
@@ -95,10 +80,10 @@ export function getTasaBCVClient(): TasaData {
       }
     }
   } catch {
-    // Cache corrupted
+    // Cache corrupted, ignora
   }
 
-  return { tasa: FALLBACK_RATE, fuente: 'fallback', ultimaActualizacion: '' }
+  return { tasa: FALLBACK_RATE, fuente: 'fallback', ultimaActualizacion: 'Actualizando...' }
 }
 
 export async function actualizarTasaClient(): Promise<TasaData> {
