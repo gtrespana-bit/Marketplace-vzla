@@ -9,11 +9,57 @@
 
 html {
   scroll-behavior: smooth;
+  overflow-y: scroll;
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (display-mode: standalone) {
+  html, body { overflow-y: scroll !important; }
 }
 
 body {
   color: var(--foreground);
   background: var(--background);
+}
+
+/* ===== MOBILE APP-LIKE BEHAVIOR ===== */
+@media (max-width: 767px) {
+  body { overscroll-behavior-y: none; }
+  main { padding-bottom: 5rem; }
+}
+
+/* PWA status bar */
+@media (display-mode: standalone) {
+  html { padding-top: env(safe-area-inset-top, 0); }
+}
+
+/* Bottom navigation safe area for PWA */
+@media (max-width: 767px) {
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 0);
+    padding-top: env(safe-area-inset-bottom, 0);
+  }
+}
+
+/* ===== PAGE TRANSITIONS ===== */
+@media (max-width: 767px) {
+  main > * {
+    animation: page-enter 0.3s ease-out;
+  }
+}
+@keyframes page-enter {
+  from { opacity: 0; transform: translateX(8px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+/* ===== APP-LIKE CARDS ===== */
+@media (max-width: 767px) {
+  .app-card {
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.06);
+  }
+  /* Touch-friendly tap targets */
+  button a { min-height: 38px; }
 }
 
 /* ===== SCROLL ANIMATIONS ===== */

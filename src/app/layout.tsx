@@ -5,6 +5,7 @@ import { Header } from '@/components/Header'
 import { Footer } from '@/components/Footer'
 import { AuthProvider } from '@/components/AuthProvider'
 import PWAInstallBanner from '@/components/PWAInstallBanner'
+import BottomTabNav from '@/components/BottomTabNav'
 
 const inter = Inter({
   subsets: ['latin'],
@@ -75,6 +76,7 @@ export default function RootLayout({
           </main>
           <Footer />
           <PWAInstallBanner />
+          <BottomTabNav />
         </AuthProvider>
         <script src="/sw-register.js" />
       </body>

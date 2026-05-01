@@ -7,7 +7,7 @@ export const metadata: Metadata = {
 
 export function Footer() {
   return (
-    <footer className="bg-brand-dark text-gray-400 mt-auto">
+    <footer className="bg-brand-dark text-gray-400 mt-auto hidden md:block">
       <div className="max-w-7xl mx-auto px-4 py-12">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div>

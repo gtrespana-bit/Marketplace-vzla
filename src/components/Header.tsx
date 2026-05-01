@@ -22,7 +22,6 @@ const categorias = [
 
 export function Header() {
   const { user, loading } = useAuth()
-  const [mobileOpen, setMobileOpen] = useState(false)
   const [creditoBalance, setCreditoBalance] = useState<number | null>(null)
   const [unreadCount, setUnreadCount] = useState(0)
   const creditoChecked = typeof creditoBalance === 'number'
@@ -169,9 +168,6 @@ export function Header() {
                 <>
                   <Link href="/login" className="hidden md:inline px-3 py-2 text-sm font-medium hover:text-brand-yellow transition">Iniciar sesión</Link>
                   <Link href="/register" className="hidden md:inline bg-brand-yellow text-brand-blue px-4 py-2 rounded-lg text-sm font-bold hover:bg-yellow-400 transition">Regístrate</Link>
-                  <button className="md:hidden p-2 hover:bg-white/10 rounded-lg transition" onClick={() => setMobileOpen(!mobileOpen)}>
-                    {mobileOpen ? <X size={24} /> : <Menu size={24} />}
-                  </button>
                 </>
               ) : (
                 <>
@@ -187,38 +183,10 @@ export function Header() {
                   <Link href="/dashboard" className="hidden sm:block p-1 hover:bg-white/10 rounded-lg transition" title="Mi panel">
                     <Avatar nombre={user?.user_metadata?.nombre || user?.email || 'U'} fotoUrl={user?.user_metadata?.foto_perfil_url || null} size="sm" />
                   </Link>
-                  <button className="md:hidden p-2 hover:bg-white/10 rounded-lg transition" onClick={() => setMobileOpen(!mobileOpen)}>
-                    {mobileOpen ? <X size={24} /> : <Menu size={24} />}
-                  </button>
                 </>
               )}
             </div>
           </div>
-
-          {/* Mobile menu */}
-          {mobileOpen && (
-            <div className="md:hidden pb-4 animate-fadeIn">
-              <form action="/buscar" method="GET" className="mb-3">
-                <input type="text" name="q" placeholder="¿Qué estás buscando?" className="w-full py-2.5 px-4 rounded-lg text-gray-800 bg-white" />
-              </form>
-              <nav className="flex flex-col gap-1">
-                {!user ? (
-                  <>
-                    <Link href="/login" onClick={() => setMobileOpen(false)} className="px-3 py-2 rounded-lg hover:bg-white/10 transition">Iniciar sesión</Link>
-                    <Link href="/register" onClick={() => setMobileOpen(false)} className="px-3 py-2 rounded-lg bg-brand-yellow text-brand-blue font-bold text-center transition">Regístrate gratis</Link>
-                  </>
-                ) : (
-                  <>
-                    <Link href="/publicar" onClick={() => setMobileOpen(false)} className="px-3 py-2 rounded-lg bg-brand-yellow text-brand-blue font-bold text-center transition">📢 Publicar algo</Link>
-                    <Link href="/chat" onClick={() => setMobileOpen(false)} className="px-3 py-2 rounded-lg hover:bg-white/10 transition">💬 Mensajes{unreadCount > 0 ? ` (${unreadCount} sin leer)` : ''}</Link>
-                    <Link href="/dashboard" onClick={() => setMobileOpen(false)} className="px-3 py-2 rounded-lg hover:bg-white/10 transition">👤 Mi Panel</Link>
-                    <Link href="/creditos" onClick={() => setMobileOpen(false)} className="px-3 py-2 rounded-lg hover:bg-white/10 transition">⚡ Créditos{creditoChecked && creditoBalance !== null && creditoBalance > 0 ? ` — ${creditoBalance} disponibles` : ''}</Link>
-                  </>
-                )}
-                <Link href="/catalogo" onClick={() => setMobileOpen(false)} className="px-3 py-2 rounded-lg hover:bg-white/10 transition">📦 Ver catálogo</Link>
-              </nav>
-            </div>
-          )}
         </div>
       </header>
 
