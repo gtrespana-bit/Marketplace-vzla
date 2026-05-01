@@ -1,8 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import Link from 'next/link'
 import { Home, Search, PlusCircle, MessageCircle, User } from 'lucide-react'
 
 const navItems = [
@@ -13,24 +12,23 @@ const navItems = [
   { href: '/mi-perfil', icon: User, label: 'Perfil' },
 ]
 
+function isPWA(): boolean {
+  if (typeof window === 'undefined') return false
+  return (
+    window.matchMedia('(display-mode: standalone)').matches ||
+    (window.navigator as any).standalone === true
+  )
+}
+
 export default function BottomTabNav() {
   const pathname = usePathname()
-  const [isStandalone, setIsStandalone] = useState(false)
 
-  useEffect(() => {
-    if (typeof window === 'undefined') return
-    const standalone =
-      window.matchMedia('(display-mode: standalone)').matches ||
-      (window.navigator as any).standalone === true
-    setIsStandalone(standalone)
-  }, [])
-
-  if (!isStandalone) return null
+  if (!isPWA()) return null
 
   return (
     <nav
-      className="hidden md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 safe-bottom"
-      data-standalone="true"
+      className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200"
+      style={{ paddingBottom: 'env(safe-area-inset-bottom, 0)' }}
       role="navigation"
     >
       <div className="flex items-center justify-around h-16">
