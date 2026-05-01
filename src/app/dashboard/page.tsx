@@ -1,4 +1,4 @@
-'use client'
+"use client"
 
 import { useEffect, useState } from 'react'
 import { getTasaBCVClient, actualizarTasaClient } from '@/lib/tasaBCV'
@@ -8,7 +8,8 @@ import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/components/AuthProvider'
 import {
   Plus, Package, MessageSquare, CreditCard, Settings,
-  Eye, Heart, LogOut, ChevronRight, X, Pause, Play, Edit, User, Zap, Star, ShieldCheck
+  Eye, Heart, LogOut, ChevronRight, X, Pause, Play, Edit, User, Zap, Star, ShieldCheck,
+  Camera, Phone, Mail, MapPin, Save
 } from 'lucide-react'
 import SolicitarVerificacion from '@/components/SolicitarVerificacion'
 import BadgeVerificado from '@/components/BadgeVerificado'
@@ -28,6 +29,13 @@ export default function DashboardPage() {
   const [destacadoModal, setDestacadoModal] = useState<{ productId: string; titulo: string } | null>(null)
   const [toast, setToast] = useState<string | null>(null)
   const [tasaBs, setTasaBs] = useState(0)
+
+  // Leer tab desde URL (para redirect de /mi-perfil)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const tab = params.get('tab')
+    if (tab) setActiveTab(tab)
+  }, [])
 
   useEffect(() => {
     const t = getTasaBCVClient()
@@ -202,9 +210,6 @@ export default function DashboardPage() {
           <p className="text-gray-500">Gestiona tus publicaciones y créditos</p>
         </div>
         <div className="flex gap-2">
-          <Link href="/mi-perfil" className="flex items-center gap-2 border px-4 py-2.5 rounded-lg font-medium hover:bg-gray-50 transition text-sm">
-            <User size={16} /> Ver Mi Perfil
-          </Link>
           <Link href="/publicar" className="flex items-center gap-2 bg-brand-yellow text-brand-blue px-5 py-2.5 rounded-lg font-bold hover:bg-yellow-400 transition">
             <Plus size={18} /> Publicar
           </Link>
@@ -257,7 +262,7 @@ export default function DashboardPage() {
               { id: 'creditos', label: 'Comprar créditos', icon: CreditCard },
               { id: 'favoritos', label: 'Mis favoritos', icon: Heart },
               { id: 'verificacion', label: 'Verificacion', icon: ShieldCheck },
-              { id: 'configuracion', label: 'Configuracion', icon: Settings },
+              { id: 'perfil', label: 'Mi Perfil', icon: User },
             ].map((item) => (
               <button
                 key={item.id}
@@ -288,7 +293,7 @@ export default function DashboardPage() {
           )}
           {activeTab === 'favoritos' && <FavoritosPlaceholder favoritos={favoritos} />}
           {activeTab === 'verificacion' && <SolicitarVerificacion />}
-          {activeTab === 'configuracion' && <ConfiguracionPlaceholder />}
+          {activeTab === 'perfil' && <PerfilTab />}
         </div>
       </div>
     </div>
@@ -641,24 +646,263 @@ function FavoritosPlaceholder({ favoritos }: { favoritos: any[] }) {
   )
 }
 
-function ConfiguracionPlaceholder() {
+function PerfilTab() {
   const router = useRouter()
   const { user } = useAuth()
+  const [nombre, setNombre] = useState('')
+  const [telefono, setTelefono] = useState('')
+  const [estado, setEstado] = useState('')
+  const [ciudad, setCiudad] = useState('')
+  const [fotoUrl, setFotoUrl] = useState<string | null>(null)
+  const [editando, setEditando] = useState(false)
+  const [guardando, setGuardando] = useState(false)
+  const [subiendoFoto, setSubiendoFoto] = useState(false)
+  const [tabResenas, setTabResenas] = useState<'recibidas' | 'dadas'>('recibidas')
+  const [recibidas, setRecibidas] = useState<any[]>([])
+  const [dadas, setDadas] = useState<any[]>([])
+  const [promRecibidas, setPromRecibidas] = useState(0)
+
+  useEffect(() => {
+    if (!user) return
+    const uid = user.id
+    async function loadPerfil() {
+      const { data: perfil } = await supabase.from('perfiles').select('*').eq('id', uid).single()
+      if (perfil) {
+        setNombre(perfil.nombre || '')
+        setTelefono(perfil.telefono || '')
+        setEstado(perfil.estado || '')
+        setCiudad(perfil.ciudad || '')
+        setFotoUrl(perfil.foto_perfil_url || null)
+      }
+      const { data: resR } = await supabase.from('resenas').select('*').eq('vendedor_id', uid).order('creado_en', { ascending: false })
+      if (resR && resR.length > 0) {
+        const prodIds = [...new Set(resR.map(r => r?.producto_id).filter(Boolean))] as string[]
+        const { data: prods } = prodIds.length > 0 ? await supabase.from('productos').select('id, titulo').in('id', prodIds) : { data: [] }
+        const prodMap = new Map<string, string>()
+        prods?.forEach(p => prodMap.set(p.id, p.titulo))
+        setRecibidas(resR.map(r => ({ ...r, producto_titulo: r.producto_id ? (prodMap.get(r.producto_id) || 'Producto eliminado') : null })))
+        setPromRecibidas(resR.reduce((s, r) => s + r.puntuacion, 0) / resR.length)
+      }
+      const { data: resD } = await supabase.from('resenas').select('*').eq('comprador_id', uid).order('creado_en', { ascending: false })
+      if (resD && resD.length > 0) {
+        const prodIds = [...new Set(resD.map(r => r?.producto_id).filter(Boolean))] as string[]
+        const { data: prods } = prodIds.length > 0 ? await supabase.from('productos').select('id, titulo').in('id', prodIds) : { data: [] }
+        const prodMap = new Map<string, string>()
+        prods?.forEach(p => prodMap.set(p.id, p.titulo))
+        setDadas(resD.map(r => ({ ...r, producto_titulo: r.producto_id ? (prodMap.get(r.producto_id) || 'Producto eliminado') : null })))
+      }
+    }
+    loadPerfil()
+  }, [user])
+
+  if (!user) return null
+  const uid = user.id
+
+  const handleGuardar = async () => {
+    if (!nombre.trim()) return
+    setGuardando(true)
+    const { data, error } = await supabase.from('perfiles').upsert({ id: uid, nombre, telefono, estado, ciudad }).eq('id', uid).select()
+    if (error) {
+      alert('Error al guardar: ' + error.message)
+    } else if (!data || data.length === 0) {
+      alert('No se pudo guardar. Revise que tenga un perfil creado.')
+    } else {
+      setEditando(false)
+      alert('Perfil guardado correctamente')
+    }
+    setGuardando(false)
+  }
+
+  const handleSubirFoto = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file || !file.type.startsWith('image/')) return
+    if (file.size > 2 * 1024 * 1024) { alert('La imagen debe ser menor a 2MB'); return }
+    setSubiendoFoto(true)
+    const ext = file.name.split('.').pop() || 'jpg'
+    const filePath = `${uid}/avatar.${ext}`
+    const { error: uploadErr } = await supabase.storage.from('foto_perfil').upload(filePath, file, { upsert: true, cacheControl: '3600' })
+    if (uploadErr) { alert('Error subiendo foto: ' + uploadErr.message); setSubiendoFoto(false); return }
+    const { data: urlData } = supabase.storage.from('foto_perfil').getPublicUrl(filePath)
+    const publicUrl = urlData.publicUrl
+    await supabase.from('perfiles').update({ foto_perfil_url: publicUrl }).eq('id', uid)
+    setFotoUrl(publicUrl)
+    setSubiendoFoto(false)
+  }
+
   const handleLogout = async () => { await supabase.auth.signOut(); router.push('/') }
+
+  const estrellasRender = (rating: number, size = 16) =>
+    Array.from({ length: 5 }).map((_, i) => (
+      <Star key={i} size={size} className={i < Math.round(rating) ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'} />
+    ))
+
+  const estadosVE = [
+    'Amazonas', 'Anzoátegui', 'Apure', 'Aragua', 'Barinas', 'Bolívar',
+    'Carabobo', 'Cojedes', 'Delta Amacuro', 'Distrito Capital', 'Falcón',
+    'Guárico', 'Lara', 'Mérida', 'Miranda', 'Monagas', 'Nueva Esparta',
+    'Portuguesa', 'Sucre', 'Táchira', 'Trujillo', 'Vargas', 'Yaracuy', 'Zulia',
+  ]
+
+  const distribucion = (resenas: any[]) =>
+    [5, 4, 3, 2, 1].map(star => {
+      const count = resenas.filter(r => r.puntuacion === star).length
+      const pct = resenas.length > 0 ? (count / resenas.length) * 100 : 0
+      return { star, count, pct }
+    })
+
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8">
-      <h3 className="text-xl font-bold text-gray-800 mb-2">Configuración</h3>
-      <p className="text-gray-500 text-sm mb-6">Gestiona tu perfil y preferencias</p>
-      <div className="space-y-5">
-        <div>
-          <h4 className="text-sm font-semibold text-gray-700 mb-3">📝 Métodos de contacto</h4>
-          <p className="text-sm text-gray-500">Los métodos de contacto se configuran <b>por publicación</b>.</p>
-          <Link href="/publicar" className="inline-block mt-3 text-brand-blue hover:underline text-sm font-medium">Crear publicación →</Link>
+    <div className="space-y-6">
+      {/* Tarjeta de perfil */}
+      <div className="bg-white rounded-2xl shadow-sm border p-6">
+        <div className="flex flex-col sm:flex-row items-start gap-6">
+          <label className="relative group cursor-pointer flex-shrink-0">
+            <Avatar nombre={nombre} fotoUrl={fotoUrl} size="lg" />
+            <div className="absolute inset-0 rounded-full bg-black/50 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
+              <Camera size={20} className="text-white" />
+            </div>
+            {subiendoFoto && (
+              <div className="absolute inset-0 rounded-full bg-black/50 flex items-center justify-center">
+                <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              </div>
+            )}
+            <input type="file" accept="image/*" onChange={handleSubirFoto} className="hidden" disabled={subiendoFoto} />
+          </label>
+          <div className="flex-1">
+            {editando ? (
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-xs font-medium text-gray-500 mb-1">Nombre</label>
+                  <input type="text" value={nombre} onChange={e => setNombre(e.target.value)} className="w-full border rounded-lg px-3 py-2 text-sm" placeholder="Tu nombre" />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-medium text-gray-500 mb-1 flex items-center gap-1"><Phone size={12} /> Teléfono</label>
+                    <input type="tel" value={telefono} onChange={e => setTelefono(e.target.value)} className="w-full border rounded-lg px-3 py-2 text-sm" placeholder="+58 412 1234567" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-500 mb-1 flex items-center gap-1"><MapPin size={12} /> Estado</label>
+                    <select value={estado} onChange={e => setEstado(e.target.value)} className="w-full border rounded-lg px-3 py-2 text-sm bg-white">
+                      <option value="">Selecciona...</option>
+                      {estadosVE.map(e => <option key={e} value={e}>{e}</option>)}
+                    </select>
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-500 mb-1">Ciudad</label>
+                  <input type="text" value={ciudad} onChange={e => setCiudad(e.target.value)} className="w-full border rounded-lg px-3 py-2 text-sm" placeholder="Tu ciudad" />
+                </div>
+                <div className="flex gap-2">
+                  <button onClick={handleGuardar} disabled={guardando} className="flex items-center gap-2 bg-brand-blue text-white px-4 py-2 rounded-lg text-sm font-medium disabled:opacity-50">
+                    <Save size={14} /> {guardando ? 'Guardando...' : 'Guardar'}
+                  </button>
+                  <button onClick={() => setEditando(false)} className="flex items-center gap-2 border px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-50">
+                    <X size={14} /> Cancelar
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-start justify-between">
+                <div>
+                  <h2 className="text-xl font-bold text-gray-900">
+                    {nombre || <button onClick={() => setEditando(true)} className="text-sm font-medium text-brand-blue hover:underline">Añadir nombre →</button>}
+                  </h2>
+                  {user?.email && <p className="text-sm text-gray-500 flex items-center gap-1 mt-1"><Mail size={12} /> {user.email}</p>}
+                  {(ciudad || estado) && <p className="text-sm text-gray-500 flex items-center gap-1 mt-1"><MapPin size={12} /> {[ciudad, estado].filter(Boolean).join(', ')}</p>}
+                  {telefono && <p className="text-sm text-gray-500 flex items-center gap-1 mt-1"><Phone size={12} /> {telefono}</p>}
+                </div>
+                <button onClick={() => setEditando(true)} className="flex items-center gap-2 text-brand-blue hover:underline text-sm font-medium ml-4">
+                  <Edit3 size={14} /> Editar
+                </button>
+              </div>
+            )}
+          </div>
         </div>
-        <div className="pt-4 border-t flex items-center gap-4">
-          <Link href="/mi-perfil" className="flex items-center gap-2 border px-4 py-2.5 rounded-lg font-medium hover:bg-gray-50 transition text-sm"><User size={16} /> Editar mi perfil</Link>
-          <button onClick={handleLogout} className="flex items-center gap-2 text-red-600 hover:bg-red-50 px-4 py-2.5 rounded-lg transition text-sm"><LogOut size={16} /> Cerrar sesión</button>
+        <div className="mt-6 pt-4 border-t flex items-center gap-3">
+          <button onClick={handleLogout} className="text-sm text-red-600 hover:text-red-800 ml-auto flex items-center gap-1">
+            <LogOut size={14} /> Cerrar sesión
+          </button>
         </div>
+      </div>
+
+      {/* Reseñas */}
+      <div className="bg-white rounded-2xl shadow-sm border p-6">
+        <h3 className="font-bold text-lg flex items-center gap-2 mb-4">
+          <Star size={20} className="text-yellow-400 fill-yellow-400" /> Mis Reseñas
+        </h3>
+        <div className="flex gap-2 mb-6 border-b">
+          <button onClick={() => setTabResenas('recibidas')} className={`px-4 py-2 text-sm font-medium border-b-2 -mb-[1px] transition ${tabResenas === 'recibidas' ? 'border-brand-blue text-brand-blue' : 'border-transparent text-gray-500 hover:text-gray-800'}`}>
+            Recibidas ({recibidas.length})
+          </button>
+          <button onClick={() => setTabResenas('dadas')} className={`px-4 py-2 text-sm font-medium border-b-2 -mb-[1px] transition ${tabResenas === 'dadas' ? 'border-brand-blue text-brand-blue' : 'border-transparent text-gray-500 hover:text-gray-800'}`}>
+            Dadas ({dadas.length})
+          </button>
+        </div>
+
+        {tabResenas === 'recibidas' && (
+          recibidas.length === 0 ? (
+            <div className="text-center py-8 text-gray-400">
+              <Star size={40} className="mx-auto mb-2 text-gray-300" />
+              <p className="font-medium">Aún no tienes reseñas</p>
+              <p className="text-sm mt-1">Recibe calificaciones cuando alguien compre algo tuyo</p>
+            </div>
+          ) : (
+            <>
+              <div className="flex items-center gap-6 p-4 bg-yellow-50 rounded-xl mb-6">
+                <div className="text-center">
+                  <p className="text-3xl font-black text-gray-900">{promRecibidas.toFixed(1)}</p>
+                  <div className="flex gap-1 mt-1">{estrellasRender(promRecibidas)}</div>
+                  <p className="text-xs text-gray-500 mt-1">{recibidas.length} reseña{recibidas.length !== 1 ? 's' : ''}</p>
+                </div>
+                <div className="flex-1 space-y-1.5">
+                  {distribucion(recibidas).map(({ star, count, pct }) => (
+                    <div key={star} className="flex items-center gap-2 text-xs">
+                      <span className="w-4 text-gray-600">{star}</span>
+                      <div className="flex-1 bg-gray-200 rounded-full h-2">
+                        <div className="bg-yellow-400 h-2 rounded-full" style={{ width: `${pct}%` }} />
+                      </div>
+                      <span className="w-6 text-gray-500 text-right">{count}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className="space-y-4">
+                {recibidas.map(r => (
+                  <div key={r.id} className="border rounded-xl p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      {estrellasRender(r.puntuacion, 14)}
+                      <span className="text-xs text-gray-400 ml-auto">{new Date(r.creado_en).toLocaleDateString('es-VE', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
+                    </div>
+                    {r.comentario && <p className="text-sm text-gray-600">{r.comentario}</p>}
+                    {r.producto_titulo && <p className="text-xs text-gray-400 mt-2">Producto: {r.producto_titulo}</p>}
+                  </div>
+                ))}
+              </div>
+            </>
+          )
+        )}
+
+        {tabResenas === 'dadas' && (
+          dadas.length === 0 ? (
+            <div className="text-center py-8 text-gray-400">
+              <Star size={40} className="mx-auto mb-2 text-gray-300" />
+              <p className="font-medium">Aún no has dejado reseñas</p>
+              <p className="text-sm mt-1">Califica vendedores después de comprar</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {dadas.map(r => (
+                <div key={r.id} className="border rounded-xl p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    {estrellasRender(r.puntuacion, 14)}
+                    <span className="text-xs text-gray-400 ml-auto">{new Date(r.creado_en).toLocaleDateString('es-VE', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
+                  </div>
+                  {r.comentario && <p className="text-sm text-gray-600">{r.comentario}</p>}
+                  {r.producto_titulo && <p className="text-xs text-gray-400 mt-2">Sobre: {r.producto_titulo}</p>}
+                </div>
+              ))}
+            </div>
+          )
+        )}
       </div>
     </div>
   )

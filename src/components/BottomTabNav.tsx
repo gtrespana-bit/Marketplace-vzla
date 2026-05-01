@@ -9,7 +9,7 @@ const navItems = [
   { href: '/buscar', icon: Search, label: 'Buscar' },
   { href: '/publicar', icon: PlusCircle, label: 'Publicar', highlight: true },
   { href: '/chat', icon: MessageCircle, label: 'Chat' },
-  { href: '/mi-perfil', icon: User, label: 'Perfil' },
+  { href: '/dashboard', icon: User, label: 'Perfil' },
 ]
 
 function isPWA(): boolean {
@@ -34,7 +34,7 @@ export default function BottomTabNav() {
       <div className="flex items-center justify-around h-16">
         {navItems.map((item) => {
           const Icon = item.icon
-          const isActive = pathname === item.href
+          const isActive = pathname === item.href || (item.href === '/dashboard' && pathname === '/dashboard')
           return (
             <Link
               key={item.href}
