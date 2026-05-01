@@ -26,6 +26,16 @@ export function Header() {
   const [creditoBalance, setCreditoBalance] = useState<number | null>(null)
   const [unreadCount, setUnreadCount] = useState(0)
   const creditoChecked = typeof creditoBalance === 'number'
+  const [isPWA, setIsPWA] = useState(false)
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    setIsPWA(window.matchMedia('(display-mode: standalone)').matches)
+    // iOS también puede usar standalone sin display-mode
+    if ('standalone' in window.navigator && !(window.navigator as any).standalone === false) {
+      setIsPWA(true)
+    }
+  }, [])
 
   // Fetch user credit balance when logged in
   useEffect(() => {
@@ -104,6 +114,12 @@ export function Header() {
       <header className="bg-brand-blue text-white relative sticky top-0 z-50 shadow-lg">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex items-center justify-between h-14">
+            {/* Botón atrás — solo PWA */}
+            {isPWA && (
+              <button onClick={() => window.history.back()} className="p-1 hover:bg-white/10 rounded-lg transition text-white/80">
+                <ChevronLeft size={22} />
+              </button>
+            )}
             {/* Logo */}
             <Link href="/" className="flex items-center gap-3 flex-shrink-0">
               <div className="w-9 h-9 bg-brand-yellow rounded-lg flex items-center justify-center font-black text-brand-blue text-lg">
@@ -188,18 +204,18 @@ export function Header() {
               <nav className="flex flex-col gap-1">
                 {!user ? (
                   <>
-                    <Link href="/login" className="px-3 py-2 rounded-lg hover:bg-white/10 transition">Iniciar sesión</Link>
-                    <Link href="/register" className="px-3 py-2 rounded-lg bg-brand-yellow text-brand-blue font-bold text-center transition">Regístrate gratis</Link>
+                    <Link href="/login" onClick={() => setMobileOpen(false)} className="px-3 py-2 rounded-lg hover:bg-white/10 transition">Iniciar sesión</Link>
+                    <Link href="/register" onClick={() => setMobileOpen(false)} className="px-3 py-2 rounded-lg bg-brand-yellow text-brand-blue font-bold text-center transition">Regístrate gratis</Link>
                   </>
                 ) : (
                   <>
-                    <Link href="/publicar" className="px-3 py-2 rounded-lg bg-brand-yellow text-brand-blue font-bold text-center transition">📢 Publicar algo</Link>
-                    <Link href="/chat" className="px-3 py-2 rounded-lg hover:bg-white/10 transition">💬 Mensajes{unreadCount > 0 ? ` (${unreadCount} sin leer)` : ''}</Link>
-                    <Link href="/dashboard" className="px-3 py-2 rounded-lg hover:bg-white/10 transition">👤 Mi Panel</Link>
-                    <Link href="/creditos" className="px-3 py-2 rounded-lg hover:bg-white/10 transition">⚡ Créditos{creditoChecked && creditoBalance !== null && creditoBalance > 0 ? ` — ${creditoBalance} disponibles` : ''}</Link>
+                    <Link href="/publicar" onClick={() => setMobileOpen(false)} className="px-3 py-2 rounded-lg bg-brand-yellow text-brand-blue font-bold text-center transition">📢 Publicar algo</Link>
+                    <Link href="/chat" onClick={() => setMobileOpen(false)} className="px-3 py-2 rounded-lg hover:bg-white/10 transition">💬 Mensajes{unreadCount > 0 ? ` (${unreadCount} sin leer)` : ''}</Link>
+                    <Link href="/dashboard" onClick={() => setMobileOpen(false)} className="px-3 py-2 rounded-lg hover:bg-white/10 transition">👤 Mi Panel</Link>
+                    <Link href="/creditos" onClick={() => setMobileOpen(false)} className="px-3 py-2 rounded-lg hover:bg-white/10 transition">⚡ Créditos{creditoChecked && creditoBalance !== null && creditoBalance > 0 ? ` — ${creditoBalance} disponibles` : ''}</Link>
                   </>
                 )}
-                <Link href="/catalogo" className="px-3 py-2 rounded-lg hover:bg-white/10 transition">📦 Ver catálogo</Link>
+                <Link href="/catalogo" onClick={() => setMobileOpen(false)} className="px-3 py-2 rounded-lg hover:bg-white/10 transition">📦 Ver catálogo</Link>
               </nav>
             </div>
           )}
