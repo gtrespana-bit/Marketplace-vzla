@@ -812,7 +812,7 @@ function PerfilTab() {
                   {telefono && <p className="text-sm text-gray-500 flex items-center gap-1 mt-1"><Phone size={12} /> {telefono}</p>}
                 </div>
                 <button onClick={() => setEditando(true)} className="flex items-center gap-2 text-brand-blue hover:underline text-sm font-medium ml-4">
-                  <Edit3 size={14} /> Editar
+                  <Edit size={14} /> Editar
                 </button>
               </div>
             )}
