@@ -17,7 +17,7 @@ const paquetesCredito = [
 const metodosPago = [
   {
     id: 'pagomovil', nombre: 'Pago Móvil', emoji: '📱',
-    instrucciones: { telefono: '041266443099', cedula: 'V-20794917', banco: '0108 — Banco Provincial (BBVA)' },
+    instrucciones: { telefono: '04124444444', cedula: 'V29394292', banco: 'Banesco' },
   },
   { id: 'binance', nombre: 'Binance Pay', emoji: '🟡', instrucciones: { id: '2041475442' } },
 ]

@@ -7,9 +7,10 @@ export const metadata: Metadata = {
 
 export function Footer() {
   return (
-    <footer className="bg-brand-dark text-gray-400 mt-auto hidden md:block">
-      <div className="max-w-7xl mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+    <footer className="bg-brand-dark text-gray-400 mt-auto">
+      <div className="hidden md:block">
+        <div className="max-w-7xl mx-auto px-4 py-12">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div>
             <Link href="/" className="inline-flex items-center gap-2 mb-3">
               <div className="w-8 h-8 bg-brand-yellow rounded-lg flex items-center justify-center font-black text-brand-blue text-sm">TA</div>
@@ -45,6 +46,7 @@ export function Footer() {
         <div className="border-t border-gray-700 mt-8 pt-6 text-center text-sm">
           <p>© {new Date().getFullYear()} Todo Anuncios. Todos los derechos reservados.</p>
         </div>
+      </div>
       </div>
     </footer>
   )

@@ -1,5 +1,6 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Home, Search, PlusCircle, MessageCircle, User } from 'lucide-react'
@@ -14,9 +15,24 @@ const navItems = [
 
 export default function BottomTabNav() {
   const pathname = usePathname()
+  const [isStandalone, setIsStandalone] = useState(false)
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const standalone =
+      window.matchMedia('(display-mode: standalone)').matches ||
+      (window.navigator as any).standalone === true
+    setIsStandalone(standalone)
+  }, [])
+
+  if (!isStandalone) return null
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 safe-bottom" role="navigation">
+    <nav
+      className="hidden md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 safe-bottom"
+      data-standalone="true"
+      role="navigation"
+    >
       <div className="flex items-center justify-around h-16">
         {navItems.map((item) => {
           const Icon = item.icon
