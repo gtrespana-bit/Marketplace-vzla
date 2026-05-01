@@ -105,12 +105,7 @@ export default function BuscarClient() {
 
   // Query Supabase when query or filters change
   useEffect(() => {
-    if (!query && !categoria && !subcategoria && !marca && !estadoProd && !ubicacion && !precioMin && !precioMax) {
-      setProductos([])
-      setResultCount(0)
-      return
-    }
-
+    // Always query — show all products if no filters, or filtered results if filters set
     let cancelled = false
     setLoading(true)
 
@@ -332,10 +327,10 @@ export default function BuscarClient() {
             </form>
           </div>
 
-          {query && (
+          {true && (
             <>
               <p className="text-sm text-gray-500 mb-4">
-                {loading ? 'Buscando...' : `${resultCount} resultado${resultCount !== 1 ? 's' : ''} para &ldquo;<strong>${query}</strong>&rdquo;`}
+                {loading ? 'Buscando...' : `${resultCount} resultado${resultCount !== 1 ? 's' : ''}${query ? ` para &ldquo;<strong>${query}</strong>&rdquo;` : ''}`}
               </p>
 
               {loading ? (
@@ -367,12 +362,8 @@ export default function BuscarClient() {
             </>
           )}
 
-          {!query && !categoria && !subcategoria && !marca && !estadoProd && !ubicacion && !precioMin && !precioMax && (
-            <div className="bg-white rounded-xl p-16 text-center shadow-sm border">
-              <Search size={48} className="text-gray-300 mx-auto mb-4" />
-              <h3 className="text-xl font-bold text-gray-800 mb-2">Que quieres encontrar?</h3>
-              <p className="text-gray-500">Escribe algo en la barra de busqueda para empezar</p>
-            </div>
+          {!query && !categoria && !subcategoria && !marca && !estadoProd && !ubicacion && !precioMin && !precioMax && productos.length > 0 && (
+            <p className="text-sm text-gray-500 mb-4">Mostrando todos los productos ({resultCount} resultados)</p>
           )}
         </div>
       </div>
