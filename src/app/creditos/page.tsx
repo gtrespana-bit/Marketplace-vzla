@@ -140,10 +140,18 @@ function ModalPago({ paquete, tasa, onClose }: { paquete: any; tasa: number; onC
 
           {/* Monto a pagar en Bs — solo Pago Móvil */}
           {isPagoMovil && (
-            <div className="bg-brand-blue/5 border-2 border-brand-blue/20 rounded-xl p-4 text-center">
-              <p className="text-xs text-gray-500 mb-1">Monto a pagar (Pago Móvil)</p>
-              <p className="text-3xl font-black text-brand-blue">Bs. {precioBs}</p>
-              <p className="text-xs text-gray-400 mt-1">Tasa BCV: Bs. {tasa.toFixed(2)} / ${paquete.precio}</p>
+            <div className="bg-brand-blue/5 border-2 border-brand-blue/20 rounded-xl p-4">
+              <p className="text-xs text-gray-500 mb-1 text-center">Monto a pagar (Pago Móvil)</p>
+              <div className="flex items-center justify-center gap-3">
+                <p className="text-3xl font-black text-brand-blue">Bs. {precioBs}</p>
+                <button
+                  onClick={() => copyToClipboard(precioBs, 'precioBs')}
+                  className="flex items-center gap-1 bg-white border border-brand-blue/30 rounded-lg px-3 py-2 text-sm text-brand-blue hover:bg-brand-blue/5 transition"
+                >
+                  {copiado === 'precioBs' ? '✓' : 'Copiar'}
+                </button>
+              </div>
+              <p className="text-xs text-gray-400 mt-1 text-center">Tasa BCV: Bs. {tasa.toFixed(2)} / ${paquete.precio}</p>
             </div>
           )}
 
