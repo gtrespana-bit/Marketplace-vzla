@@ -9,7 +9,7 @@ import { useAuth } from '@/components/AuthProvider'
 import {
   Plus, Package, MessageSquare, CreditCard,
   Eye, Heart, LogOut, X, Pause, Play, Edit, Zap, Star, ShieldCheck,
-  Camera, Phone, Mail, MapPin, Save
+  Camera, Phone, Mail, MapPin, Save, CheckCircle, Copy, Upload, Loader2
 } from 'lucide-react'
 import SolicitarVerificacion from '@/components/SolicitarVerificacion'
 import Avatar from '@/components/Avatar'
@@ -485,64 +485,16 @@ function MensajesPlaceholder() {
 }
 
 function CompraCreditos({ creditos, tasaBs, refreshCreditos }: { creditos: number; tasaBs: number; refreshCreditos: () => void }) {
-  const [paso, setPaso] = useState<'paquetes' | 'comprobante' | null>(null)
-  const [paqueteSel, setPaqueteSel] = useState<{ creditos: number; precio: number } | null>(null)
-  const [comprobante, setComprobante] = useState<File | null>(null)
-  const [metodoPago, setMetodoPago] = useState('')
-  const [enviando, setEnviando] = useState(false)
-  const [toast, setToast] = useState<string | null>(null)
+  const [paqueteSeleccionado, setPaqueteSeleccionado] = useState<any>(null)
+  const [tasa, setTasa] = useState<number>(tasaBs || 487.12)
 
-  const paquetes = [
-    { creditos: 2, precio: 1, desc: 'Para probar' },
-    { creditos: 15, precio: 5, desc: 'Más popular', popular: true },
-    { creditos: 40, precio: 10, desc: 'Vendedor activo' },
-    { creditos: 100, precio: 20, desc: 'Máximo ahorro' },
-  ]
-
-  const datosPago = [
-    { metodo: 'Pago Móvil', datos: '0412-1234567 · CI 12345678 · Banesco' },
-    { metodo: 'Zelle', datos: 'tuemail@ejemplo.com' },
-    { metodo: 'Binance Pay', datos: 'Pay ID: 123456789' },
-    { metodo: 'PayPal', datos: 'paypal@ejemplo.com' },
-    { metodo: 'Transferencia', datos: 'Banesco · 0134 · CI 12345678 · 0134-1234-56-1234567890' },
-  ]
-
-  async function enviarComprobante() {
-    if (!comprobante || !metodoPago || !paqueteSel) return
-    setEnviando(true)
-    let fileUrl = ''
-    const fileName = `${Date.now()}-${comprobante.name}`
-    const { error: uploadErr } = await supabase.storage.from('comprobantes').upload(fileName, comprobante)
-    if (!uploadErr) {
-      const { data: urlData } = supabase.storage.from('comprobantes').getPublicUrl(fileName)
-      fileUrl = urlData.publicUrl
-    }
-    const { data: userData } = await supabase.auth.getUser()
-    const { data: perfilData } = await supabase.from('perfiles').select('nombre').eq('id', userData.user?.id).single()
-    const nombreUsuario = perfilData?.nombre || 'Usuario'
-    const { error: dbErr } = await supabase.from('transacciones_creditos').insert({
-      user_id: userData.user?.id, tipo: 'compra', monto: paqueteSel.creditos,
-      metodo_pago: metodoPago, comprobante_url: fileUrl || null, estado: 'pendiente',
-    })
-    if (!dbErr) {
-      const mensaje = `🔔 <b>Nuevo pago pendiente</b>\n\n👤 ${nombreUsuario}\n💰 <b>${paqueteSel.creditos} créditos</b> por $${paqueteSel.precio} USD\n💳 Método: ${metodoPago}`
-      try { await fetch('/api/notify', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ mensaje }) }) } catch (e) { console.error('Error notificando:', e) }
-    }
-    setEnviando(false)
-    if (dbErr) {
-      setToast('Error al enviar. Intenta de nuevo.')
-    } else {
-      setToast('✅ Comprobante enviado! Recibirás tus créditos pronto.')
-      setPaso(null)
-      setComprobante(null)
-      setMetodoPago('')
-      setPaqueteSel(null)
-      setTimeout(() => setToast(null), 5000)
-    }
-  }
+  useEffect(() => {
+    fetch('/api/tasa-bcv').then(r => r.json()).then(d => { if (d.tasa) setTasa(d.tasa) }).catch(() => {})
+  }, [])
 
   return (
     <div className="space-y-6">
+      {/* Balance */}
       <div className="bg-gradient-to-r from-brand-blue to-blue-900 rounded-2xl p-6 text-white flex items-center justify-between">
         <div>
           <p className="text-sm opacity-80">Tu balance actual</p>
@@ -551,6 +503,7 @@ function CompraCreditos({ creditos, tasaBs, refreshCreditos }: { creditos: numbe
         <CreditCard size={40} className="opacity-50" />
       </div>
 
+      {/* Info */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
         <h3 className="font-bold text-lg mb-3">¿Para qué sirven?</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -565,74 +518,270 @@ function CompraCreditos({ creditos, tasaBs, refreshCreditos }: { creditos: numbe
         </div>
       </div>
 
+      {/* Paquetes */}
+      <h3 className="text-xl font-bold text-gray-800 text-center">Elige tu paquete</h3>
+      <p className="text-center text-sm text-gray-500">Tasa BCV: <span className="font-bold text-brand-blue">Bs. {tasa.toFixed(2)} por $</span></p>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {paquetes.map((pkg) => (
-          <button key={pkg.creditos} onClick={() => { setPaqueteSel(pkg); setPaso('comprobante') }}
-            className={`bg-white rounded-xl shadow-sm border-2 p-5 text-left hover:-translate-y-1 transition ${pkg.popular ? 'border-brand-yellow' : 'border-transparent hover:border-gray-300'}`}>
-            {pkg.popular && <div className="text-[10px] font-bold text-brand-yellow bg-brand-yellow/10 rounded-full px-2 py-0.5 inline-block mb-2">⭐ Más popular</div>}
-            <p className="text-3xl font-black text-gray-800">{pkg.creditos}</p>
-            <p className="text-xs text-gray-500">créditos</p>
-            <p className="text-2xl font-black text-brand-blue mt-2">${pkg.precio}</p>
-            <p className="text-xs text-gray-400">{tasaBs > 0 ? `≈ Bs. ${(pkg.precio * tasaBs).toLocaleString('es-VE')}` : ''}</p>
-          </button>
-        ))}
+        {[
+          { creditos: 2, precio: 1, descripcion: 'Para empezar', popular: false },
+          { creditos: 15, precio: 5, descripcion: '¡El más elegido!', popular: true },
+          { creditos: 40, precio: 10, descripcion: 'Para vendedores activos', popular: false },
+          { creditos: 100, precio: 20, descripcion: 'Máximo ahorro', popular: false },
+        ].map((pkg) => {
+          const porCredito = (pkg.precio / pkg.creditos).toFixed(2)
+          const precioBs = (pkg.precio * tasa).toFixed(2)
+          return (
+            <div key={pkg.creditos} className={`bg-white rounded-2xl shadow-lg overflow-hidden border-2 transition hover:-translate-y-1 ${pkg.popular ? 'border-brand-yellow' : 'border-transparent'}`}>
+              {pkg.popular && <div className="bg-brand-yellow text-brand-blue text-center py-1.5 text-xs font-bold">⭐ MÁS POPULAR</div>}
+              <div className="bg-gradient-to-br from-brand-blue to-blue-800 p-6 text-white text-center">
+                <p className="text-5xl font-black">{pkg.creditos}</p>
+                <p className="text-sm opacity-80">créditos</p>
+              </div>
+              <div className="p-6 text-center">
+                <p className="text-3xl font-black text-gray-800 mb-1">${pkg.precio} <span className="text-sm font-normal text-gray-500">USD</span></p>
+                <p className="text-sm text-gray-400 mb-4">≈ Bs. {precioBs}</p>
+                <p className="text-xs text-gray-500 mb-5 bg-gray-50 rounded-lg py-1 px-2 inline-block">${porCredito} por crédito</p>
+                <ul className="text-sm text-gray-600 space-y-2 mb-6 text-left">
+                  <li className="flex items-center gap-2"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /><strong>{pkg.creditos}</strong> boost(s) al #1</li>
+                  <li className="flex items-center gap-2"><CheckCircle size={14} className="text-green-500 flex-shrink-0" />o {Math.floor(pkg.creditos / 4)}× destacado 12h</li>
+                  <li className="flex items-center gap-2"><CheckCircle size={14} className="text-green-500 flex-shrink-0" />Sin expiración</li>
+                </ul>
+                <button onClick={() => setPaqueteSeleccionado(pkg)} className="w-full bg-brand-blue text-white py-3 rounded-lg font-bold hover:bg-blue-900 transition cursor-pointer">Comprar</button>
+              </div>
+            </div>
+          )
+        })}
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
-        <h3 className="font-bold text-lg mb-4">📱 Datos de pago</h3>
-        <div className="space-y-2">
-          {datosPago.map((dp) => (
-            <div key={dp.metodo} className="flex items-start gap-3 p-3 rounded-lg bg-gray-50">
-              <p className="font-bold text-sm text-gray-800 min-w-[120px]">{dp.metodo}:</p>
-              <p className="text-sm text-gray-600">{dp.datos}</p>
+      {/* Métodos */}
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+        <h3 className="font-bold text-lg mb-4 text-center">Métodos de pago aceptados</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {[
+            { nombre: 'Pago Móvil', emoji: '📱', ok: true },
+            { nombre: 'Binance Pay', emoji: '🟡', ok: true },
+            { nombre: 'Transferencia', emoji: '🏦', ok: true },
+          ].map((m) => (
+            <div key={m.nombre} className="rounded-xl p-4 text-center bg-gray-50">
+              <span className="text-3xl block mb-2">{m.emoji}</span>
+              <p className="text-sm font-medium text-gray-800">{m.nombre}</p>
             </div>
           ))}
         </div>
-        <p className="text-xs text-gray-400 mt-3">⚠️ Actualiza los datos de pago en el código con los reales</p>
       </div>
 
-      {paso === 'comprobante' && paqueteSel && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => { setPaso(null); setPaqueteSel(null) }}>
-          <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xl font-bold text-gray-800">Enviar comprobante</h3>
-              <button onClick={() => { setPaso(null); setPaqueteSel(null) }} className="p-1 hover:bg-gray-100 rounded-lg"><X size={20} /></button>
-            </div>
-            <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 mb-4">
-              <p className="text-sm text-brand-blue">Comprando <strong>{paqueteSel.creditos} créditos</strong> por <strong>${paqueteSel.precio} USD</strong></p>
-            </div>
-            <div className="mb-4">
-              <label className="block text-sm font-bold text-gray-700 mb-2">Método de pago usado:</label>
-              <select value={metodoPago} onChange={e => setMetodoPago(e.target.value)} className="w-full border rounded-lg px-3 py-2.5 text-sm text-gray-800 bg-white">
-                <option value="">Selecciona...</option>
-                <option value="pago_movil">Pago Móvil</option>
-                <option value="zelle">Zelle</option>
-                <option value="binance">Binance Pay</option>
-                <option value="paypal">PayPal</option>
-                <option value="transferencia">Transferencia</option>
-              </select>
-            </div>
-            <div className="mb-6">
-              <label className="block text-sm font-bold text-gray-700 mb-2">Captura del pago:</label>
-              <input type="file" accept="image/*,.pdf" onChange={e => setComprobante(e.target.files?.[0] || null)} className="w-full text-sm bg-gray-50 border rounded-lg p-2" />
-            </div>
-            <button onClick={enviarComprobante} disabled={enviando || !comprobante || !metodoPago}
-              className="w-full bg-brand-yellow text-brand-blue py-3 rounded-lg font-bold hover:bg-yellow-400 disabled:opacity-50 disabled:cursor-not-allowed">
-              {enviando ? 'Enviando...' : 'Enviar comprobante'}
-            </button>
-          </div>
-        </div>
-      )}
-
-      {toast && (
-        <div className="fixed bottom-4 right-4 z-50 bg-gray-900 text-white px-6 py-3 rounded-xl shadow-2xl text-sm font-medium">
-          {toast}
-        </div>
+      {paqueteSeleccionado && (
+        <ModalCompraCreditos
+          paquete={paqueteSeleccionado}
+          tasa={tasa}
+          onClose={() => setPaqueteSeleccionado(null)}
+          onCompraExitosa={refreshCreditos}
+        />
       )}
     </div>
   )
 }
 
+const metodosPagoCreditos = [
+  {
+    id: 'pagomovil', nombre: 'Pago Móvil', emoji: '📱',
+    instrucciones: { telefono: '04126443099', cedula: 'V20794917', banco: 'Banco Provincial BBVA' },
+  },
+  { id: 'binance', nombre: 'Binance Pay', emoji: '🟡', instrucciones: { id: '204147542' } },
+]
+
+function ModalCompraCreditos({ paquete, tasa, onClose, onCompraExitosa }: { paquete: any; tasa: number; onClose: () => void; onCompraExitosa: () => void }) {
+  const router = useRouter()
+  const [metodo, setMetodo] = useState('')
+  const [copiado, setCopiado] = useState('')
+  const [comprobanteFile, setComprobanteFile] = useState<File | null>(null)
+  const [comprobantePreview, setComprobantePreview] = useState('')
+  const [enviando, setEnviando] = useState(false)
+  const [enviado, setEnviado] = useState(false)
+
+  const precioBs = (paquete.precio * tasa).toFixed(2)
+  const selectedMetodo = metodosPagoCreditos.find(m => m.id === metodo)
+  const isPagoMovil = metodo === 'pagomovil'
+
+  const copyToClipboard = (text: string, label: string) => {
+    navigator.clipboard.writeText(text)
+    setCopiado(label)
+    setTimeout(() => setCopiado(''), 2000)
+  }
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    if (!file.type.startsWith('image/')) { alert('Solo se permiten imágenes'); return }
+    if (file.size > 5 * 1024 * 1024) { alert('Máximo 5MB'); return }
+    setComprobanteFile(file)
+    setComprobantePreview(URL.createObjectURL(file))
+  }
+
+  const procesarCompra = async () => {
+    if (!metodo) { alert('Selecciona un método de pago'); return }
+    if (!comprobanteFile) { alert('Sube el comprobante'); return }
+
+    setEnviando(true)
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) { router.push(`/login?redirect=/dashboard?tab=creditos`); return }
+
+      const fileExt = comprobanteFile.name.split('.').pop()
+      const fileName = `comprobante_${user.id}_${Date.now()}.${fileExt}`
+
+      const { error: uploadError } = await supabase.storage
+        .from('comprobantes')
+        .upload(fileName, comprobanteFile, { contentType: comprobanteFile.type })
+      if (uploadError) { alert('Error subiendo: ' + uploadError.message); setEnviando(false); return }
+
+      const { data: { publicUrl } } = supabase.storage.from('comprobantes').getPublicUrl(fileName)
+
+      const res = await fetch('/api/comprar-creditos', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: user.id,
+          creditos: paquete.creditos,
+          precioUsd: paquete.precio,
+          metodoPago: selectedMetodo?.nombre || metodo,
+          comprobanteUrl: publicUrl,
+        }),
+      })
+
+      const data = await res.json()
+      if (data.ok) {
+        setEnviado(true)
+        onCompraExitosa()
+      } else {
+        alert('Error: ' + (data.error || 'Error procesando'))
+      }
+    } catch (err: any) {
+      alert('Error: ' + (err.message || 'Error desconocido'))
+    }
+    setEnviando(false)
+  }
+
+  if (enviado) {
+    return (
+      <div className="fixed inset-0 z-50 bg-black/60 flex items-end md:items-center justify-center">
+        <div className="bg-white w-full md:max-w-lg md:rounded-2xl rounded-t-2xl p-6 text-center">
+          <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <CheckCircle size={32} className="text-brand-blue" />
+          </div>
+          <h3 className="text-xl font-bold text-brand-blue mb-2">¡Comprobante enviado!</h3>
+          <p className="text-sm text-gray-600 mb-4">
+            Tu pago será revisado en breve. Recibirás <strong>{paquete.creditos} créditos</strong> cuando se confirme.
+          </p>
+          <button onClick={onClose} className="w-full bg-brand-blue text-white py-3 rounded-xl font-bold hover:bg-blue-900 transition">Cerrar</button>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black/60 flex items-end md:items-center justify-center">
+      <div className="bg-white w-full md:max-w-lg md:rounded-2xl rounded-t-2xl max-h-[90vh] overflow-y-auto">
+        <div className="sticky top-0 bg-white border-b px-6 py-4 flex items-center justify-between rounded-t-2xl z-10">
+          <div>
+            <h3 className="text-lg font-bold text-gray-900">{paquete.creditos} créditos — ${paquete.precio} USD</h3>
+            <p className="text-sm text-gray-500">≈ Bs. {precioBs}</p>
+          </div>
+          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full"><X size={20} /></button>
+        </div>
+
+        <div className="p-6 space-y-6">
+          {/* Método de pago */}
+          <div>
+            <h4 className="font-bold text-gray-800 mb-3">1. Elige cómo vas a pagar</h4>
+            <div className="grid grid-cols-2 gap-3">
+              {metodosPagoCreditos.map(m => (
+                <button key={m.id} onClick={() => setMetodo(m.id)}
+                  className={`p-4 rounded-xl border-2 text-center transition ${metodo === m.id ? 'border-brand-yellow bg-yellow-50' : 'border-gray-200 hover:border-gray-300'}`}>
+                  <span className="text-3xl block">{m.emoji}</span>
+                  <span className="text-sm font-medium text-gray-700 mt-1 block">{m.nombre}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Monto a pagar en Bs — solo Pago Móvil */}
+          {isPagoMovil && (
+            <div className="bg-brand-blue/5 border-2 border-brand-blue/20 rounded-xl p-4">
+              <p className="text-xs text-gray-500 mb-1 text-center">Monto a pagar (Pago Móvil)</p>
+              <div className="flex items-center justify-center gap-3">
+                <p className="text-3xl font-black text-brand-blue">Bs. {precioBs}</p>
+                <button
+                  onClick={() => copyToClipboard(precioBs, 'precioBs')}
+                  className="flex items-center gap-1 bg-white border border-brand-blue/30 rounded-lg px-3 py-2 text-sm text-brand-blue hover:bg-brand-blue/5 transition"
+                >
+                  {copiado === 'precioBs' ? '✓' : 'Copiar'}
+                </button>
+              </div>
+              <p className="text-xs text-gray-400 mt-1 text-center">Tasa BCV: Bs. {tasa.toFixed(2)} / ${paquete.precio}</p>
+            </div>
+          )}
+
+          {/* Datos de pago */}
+          {selectedMetodo && (
+            <div>
+              <h4 className="font-bold text-gray-800 mb-3">2. Datos de pago</h4>
+              <div className="bg-gray-50 rounded-xl p-4 space-y-3">
+                {Object.entries(selectedMetodo.instrucciones).map(([key, value]) => {
+                  const labelMap: Record<string, string> = { telefono: 'Teléfono', cedula: 'Cédula', banco: 'Banco', id: 'Binance ID' }
+                  return (
+                    <div key={key} className="flex items-center justify-between">
+                      <div>
+                        <span className="text-xs text-gray-500">{labelMap[key] || key}</span>
+                        <p className="text-sm font-medium text-gray-800">{value as string}</p>
+                      </div>
+                      <button onClick={() => copyToClipboard(value as string, key)} className="text-xs bg-white border rounded-md px-2 py-1 hover:bg-gray-100 transition ml-2">
+                        {copiado === key ? '✓ Copiado' : 'Copiar'}
+                      </button>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Comprobante */}
+          {selectedMetodo && (
+            <div>
+              <h4 className="font-bold text-gray-800 mb-3">3. Sube tu comprobante de pago</h4>
+              <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:border-brand-blue transition cursor-pointer"
+                onClick={() => document.getElementById('comprobante-input-dash')?.click()}>
+                <input type="file" accept="image/*" id="comprobante-input-dash" onChange={handleFileChange} className="hidden" />
+                {comprobantePreview ? (
+                  <div>
+                    <img src={comprobantePreview} alt="Comprobante" className="max-h-48 mx-auto rounded-lg mb-3" />
+                    <button onClick={(e) => { e.stopPropagation(); setComprobanteFile(null); setComprobantePreview('') }} className="text-sm text-red-500 hover:underline">Quitar imagen</button>
+                  </div>
+                ) : (
+                  <>
+                    <Upload size={32} className="mx-auto text-gray-400 mb-2" />
+                    <p className="text-sm text-gray-500">Toca para subir captura del pago</p>
+                    <p className="text-xs text-gray-400 mt-1">JPG, PNG — máx 5MB</p>
+                  </>
+                )}
+              </div>
+              <button onClick={procesarCompra} disabled={enviando || !comprobanteFile}
+                className="w-full mt-4 bg-brand-blue text-white py-3.5 rounded-xl font-bold hover:bg-blue-900 transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
+                {enviando ? <><Loader2 size={18} className="animate-spin" /> Enviando...</> : <><Upload size={18} /> Enviar comprobante</>}
+              </button>
+            </div>
+          )}
+
+          {!metodo && (
+            <div className="text-center py-4 text-sm text-gray-400">
+              Selecciona un método de pago para continuar ↓
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
 function FavoritosPlaceholder({ favoritos }: { favoritos: any[] }) {
   if (favoritos.length === 0) {
     return (
