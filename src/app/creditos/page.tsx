@@ -35,6 +35,7 @@ function ModalPago({ paquete, tasa, onClose }: { paquete: any; tasa: number; onC
 
   const precioBs = (paquete.precio * tasa).toFixed(2)
   const selectedMetodo = metodosPago.find(m => m.id === metodo)
+  const isPagoMovil = metodo === 'pagomovil'
 
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text)
@@ -137,6 +138,15 @@ function ModalPago({ paquete, tasa, onClose }: { paquete: any; tasa: number; onC
             </div>
           </div>
 
+          {/* Monto a pagar en Bs — solo Pago Móvil */}
+          {isPagoMovil && (
+            <div className="bg-brand-blue/5 border-2 border-brand-blue/20 rounded-xl p-4 text-center">
+              <p className="text-xs text-gray-500 mb-1">Monto a pagar (Pago Móvil)</p>
+              <p className="text-3xl font-black text-brand-blue">Bs. {precioBs}</p>
+              <p className="text-xs text-gray-400 mt-1">Tasa BCV: Bs. {tasa.toFixed(2)} / ${paquete.precio}</p>
+            </div>
+          )}
+
           {/* Datos de pago */}
           {selectedMetodo && (
             <div>
@@ -215,7 +225,7 @@ export default function CreditosPage() {
       </div>
 
       {/* Info */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 mb-12">
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 md:p-8 mb-8">
         <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">¿Para qué sirven los créditos?</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="border border-gray-200 rounded-xl p-6 hover:border-brand-yellow transition">
@@ -246,7 +256,7 @@ export default function CreditosPage() {
       </div>
 
       {/* Paquetes */}
-      <div className="mb-12">
+      <div className="mb-8">
         <h2 className="text-2xl font-bold text-gray-800 mb-2 text-center">Elige tu paquete</h2>
         {tasaCargando ? (
           <p className="text-center text-sm text-gray-400 mb-4 animate-pulse">Cargando tasa BCV...</p>
@@ -254,7 +264,7 @@ export default function CreditosPage() {
           <p className="text-center text-sm text-gray-500 mb-4">Tasa BCV: <span className="font-bold text-brand-blue">Bs. {tasa.toFixed(2)} por $</span></p>
         )}
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="creditos-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {paquetesCredito.map((pkg) => {
             const porCredito = (pkg.precio / pkg.creditos).toFixed(2)
             const precioBs = (pkg.precio * tasa).toFixed(2)
@@ -283,15 +293,13 @@ export default function CreditosPage() {
       </div>
 
       {/* Métodos */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 md:p-8">
         <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">Métodos de pago aceptados</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-5 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {[
             { nombre: 'Pago Móvil', emoji: '📱', ok: true },
-            { nombre: 'Banco Provincial', emoji: '🏦', ok: true },
             { nombre: 'Binance Pay', emoji: '🟡', ok: true },
-            { nombre: 'Zelle', emoji: '💵', ok: false },
-            { nombre: 'PayPal', emoji: '🅿️', ok: false },
+            { nombre: 'Transferencia', emoji: '🏦', ok: true },
           ].map((m) => (
             <div key={m.nombre} className={`rounded-xl p-4 text-center ${m.ok ? 'bg-gray-50' : 'bg-gray-50 opacity-50'}`}>
               <span className="text-3xl block mb-2">{m.emoji}</span>

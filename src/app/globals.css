@@ -25,7 +25,9 @@ body {
 /* ===== MOBILE APP-LIKE BEHAVIOR ===== */
 @media (max-width: 767px) {
   body { overscroll-behavior-y: none; }
-  main { padding-bottom: 5rem; }
+  main { padding-bottom: 5.5rem; }
+  /* Extra padding en página de créditos para que el bottom nav no tape los botones */
+  .creditos-grid { padding-bottom: 2rem; }
 }
 
 /* PWA status bar */
