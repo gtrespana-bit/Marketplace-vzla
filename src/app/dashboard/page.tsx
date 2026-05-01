@@ -13,6 +13,7 @@ import {
 } from 'lucide-react'
 import SolicitarVerificacion from '@/components/SolicitarVerificacion'
 import BadgeVerificado from '@/components/BadgeVerificado'
+import Avatar from '@/components/Avatar'
 
 export default function DashboardPage() {
   const { user, session, loading: authLoading } = useAuth()
