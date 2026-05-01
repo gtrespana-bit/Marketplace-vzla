@@ -13,9 +13,9 @@ export async function GET() {
     // Fallback if admin profile doesn't have payment data
     return NextResponse.json({
       pagoMovil: {
-        telefono: '04124444444',
-        cedula: 'V29394292',
-        banco: 'Banesco'
+        telefono: '04126443099',
+        cedula: 'V20794917',
+        banco: 'Banco Provincial BBVA'
       }
     })
   }

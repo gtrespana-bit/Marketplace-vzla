@@ -17,9 +17,9 @@ const paquetesCredito = [
 const metodosPago = [
   {
     id: 'pagomovil', nombre: 'Pago Móvil', emoji: '📱',
-    instrucciones: { telefono: '04124444444', cedula: 'V29394292', banco: 'Banesco' },
+    instrucciones: { telefono: '04126443099', cedula: 'V20794917', banco: 'Banco Provincial BBVA' },
   },
-  { id: 'binance', nombre: 'Binance Pay', emoji: '🟡', instrucciones: { id: '2041475442' } },
+  { id: 'binance', nombre: 'Binance Pay', emoji: '🟡', instrucciones: { id: '204147542' } },
 ]
 
 const FALLBACK_TASA = 487.12
