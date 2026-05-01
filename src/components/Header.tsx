@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useState, useEffect } from 'react'
-import { Menu, X, Search, PlusCircle, MessageCircle, Zap } from 'lucide-react'
+import { Menu, X, Search, PlusCircle, MessageCircle, Zap, ChevronLeft } from 'lucide-react'
 import { useAuth } from '@/components/AuthProvider'
 import Avatar from '@/components/Avatar'
 import { supabase } from '@/lib/supabase'
