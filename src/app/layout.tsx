@@ -6,6 +6,7 @@ import { Footer } from '@/components/Footer'
 import { AuthProvider } from '@/components/AuthProvider'
 import PWAInstallBanner from '@/components/PWAInstallBanner'
 import BottomTabNav from '@/components/BottomTabNav'
+import { Analytics } from '@vercel/analytics/next'
 
 const inter = Inter({
   subsets: ['latin'],
@@ -78,6 +79,7 @@ export default function RootLayout({
           <PWAInstallBanner />
           <BottomTabNav />
         </AuthProvider>
+        <Analytics />
         <script src="/sw-register.js" />
       </body>
     </html>
