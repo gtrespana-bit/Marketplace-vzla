@@ -11,4 +11,4 @@ Disallow: /chat
 Disallow: /mi-perfil
 Disallow: /api/
 
-Sitemap: https://marketplacevzla.vercel.app/sitemap.xml
+Sitemap: https://vendet.online/sitemap.xml

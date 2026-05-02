@@ -69,6 +69,17 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
       </head>
       <body className={`${inter.variable} font-sans antialiased`}>
+      {/* JSON-LD Organization Schema */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify({ '@context': 'https://schema.org', '@type': 'Organization', name: 'VendeT-Venezuela', url: 'https://vendet.online', description: 'Marketplace venezolano. Compra y vende en Venezuela. Publica gratis.', logo: 'https://vendet.online/logo-vendet.png' }) }}
+      />
+      {/* JSON-LD WebSite Schema (SearchAction) */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify({ '@context': 'https://schema.org', '@type': 'WebSite', name: 'VendeT-Venezuela', url: 'https://vendet.online', potentialAction: { '@type': 'SearchAction', target: 'https://vendet.online/buscar?q={search_term_string}', 'query-input': 'required name=search_term_string' } }) }}
+      />
+        <AuthProvider>
         <AuthProvider>
           <Header />
           <main className="min-h-screen bg-white">
