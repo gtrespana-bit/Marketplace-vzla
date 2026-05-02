@@ -24,7 +24,7 @@ export default function LandingCiudad({ slug, nombre }: Props) {
       .or('estado_moderacion.is.null,estado_moderacion.eq.aprobado')
       .order('creado_en', { ascending: false })
       .limit(24)
-      .then(n(({ data, count }) => {
+      .then(({ data, count }) => {
         setProductos(data || [])
         setTotal(count || 0)
       })
