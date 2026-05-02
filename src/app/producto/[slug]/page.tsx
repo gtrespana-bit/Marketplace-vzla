@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { supabase } from '@/lib/supabase'
-import { headers } from 'next/headers'
+import { Suspense } from 'react'
 import ProductoPageClient from './ProductoPageClient'
 
 type Props = {
@@ -125,7 +125,9 @@ export default async function ProductoPage({ params }: Props) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <ProductoPageClient initialProduct={producto} />
+      <Suspense fallback={<div className="max-w-7xl mx-auto px-4 py-20 text-center">Cargando...</div>}>
+        <ProductoPageClient initialProduct={producto} />
+      </Suspense>
     </>
   )
 }
