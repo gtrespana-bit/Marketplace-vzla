@@ -63,8 +63,8 @@ export default function ConfirmEmailPage() {
     <div className="min-h-[80vh] flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <Link href="/" className="text-brand-yellow font-black text-3xl">
-            Vende<span className="text-white">T</span>
+          <Link href="/" className="text-brand-blue font-black text-3xl">
+            Vende<span className="text-brand-yellow">T</span><span className="text-sm ml-1 text-gray-500">-Venezuela</span>
           </Link>
         </div>
 
