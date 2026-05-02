@@ -232,7 +232,7 @@ export default function AdminPage() {
           </div>
           <div>
             <h1 className="text-3xl font-black text-gray-800">Admin Panel</h1>
-            <p className="text-gray-500">Control total de Todo Anuncios</p>
+            <p className="text-gray-500">Control total de VendeT-Venezuela</p>
           </div>
         </div>
         <Link href="/" className="text-sm text-brand-blue hover:underline">
@@ -305,7 +305,7 @@ function TabTransacciones({ perfiles, notify }: { perfiles: Record<string, any>;
     } else {
       notify(`✅ +${monto} créditos aprobados!`)
       // Notificar admin por Telegram
-      const mensaje = `✅ Todo Anuncios\n\nSe aprobaron ${monto} créditos para ${usuarioNombre}.\nTransacción procesada correctamente.`
+      const mensaje = `✅ VendeT-Venezuela\n\nSe aprobaron ${monto} créditos para ${usuarioNombre}.\nTransacción procesada correctamente.`
       try { await fetch('/api/notify', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ mensaje }) }) } catch {}
       await cargar()
     }
@@ -838,7 +838,7 @@ function TabExportar() {
     const blob = new Blob([csv], { type: 'text/csv' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
-    a.href = url; a.download = `productos_todo_anuncios_${new Date().toISOString().split('T')[0]}.csv`
+    a.href = url; a.download = `productos_vendet_${new Date().toISOString().split('T')[0]}.csv`
     a.click()
     URL.revokeObjectURL(url)
     setExportando(false)
@@ -855,7 +855,7 @@ function TabExportar() {
     const blob = new Blob([csv], { type: 'text/csv' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
-    a.href = url; a.download = `usuarios_todo_anuncios_${new Date().toISOString().split('T')[0]}.csv`
+    a.href = url; a.download = `usuarios_vendet_${new Date().toISOString().split('T')[0]}.csv`
     a.click()
     URL.revokeObjectURL(url)
     setExportando(false)
@@ -872,7 +872,7 @@ function TabExportar() {
     const blob = new Blob([csv], { type: 'text/csv' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
-    a.href = url; a.download = `transacciones_todo_anuncios_${new Date().toISOString().split('T')[0]}.csv`
+    a.href = url; a.download = `transacciones_vendet_${new Date().toISOString().split('T')[0]}.csv`
     a.click()
     URL.revokeObjectURL(url)
     setExportando(false)

@@ -1,14 +1,14 @@
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Sobre Nosotros — Todo Anuncios',
-  description: 'Conoce la historia detrás de Todo Anuncios, el marketplace hecho para Venezuela',
+  title: 'Sobre Nosotros — VendeT-Venezuela',
+  description: 'Conoce la historia detrás de VendeT-Venezuela, el marketplace hecho para Venezuela',
 }
 
 export default function SobreNosotrosPage() {
   return (
     <div className="max-w-3xl mx-auto px-4 py-12">
-      <h1 className="text-4xl font-black text-gray-800 mb-2 text-center">Sobre Todo Anuncios</h1>
+      <h1 className="text-4xl font-black text-gray-800 mb-2 text-center">Sobre VendeT-Venezuela</h1>
       <p className="text-center text-gray-500 mb-12 max-w-lg mx-auto">
         Nació de una necesidad real: no había un buen lugar donde comprar y vender en Venezuela.
       </p>
@@ -20,7 +20,7 @@ export default function SobreNosotrosPage() {
             Venezuela es un país de emprendedores. En cada ciudad, en cada pueblo, alguien tiene algo para vender. Pero las opciones eran limitadas: Facebook Marketplace sin filtros, grupos de WhatsApp que se llenan de spam, o plataformas diseñadas para otros mercados.
           </p>
           <p className="text-gray-600 leading-relaxed mt-4">
-            Así nació Todo Anuncios: un marketplace pensado desde y para Venezuela. Con búsqueda en dólares sin intermediarios complicados. Con WhatsApp, porque aquí todos lo usan. Y con un diseño que funciona bien aunque tu internet no sea el mejor.
+            Así nació VendeT-Venezuela: un marketplace pensado desde y para Venezuela. Con búsqueda en dólares sin intermediarios complicados. Con WhatsApp, porque aquí todos lo usan. Y con un diseño que funciona bien aunque tu internet no sea el mejor.
           </p>
         </section>
 

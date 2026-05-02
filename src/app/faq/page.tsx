@@ -1,14 +1,14 @@
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Preguntas Frecuentes — Todo Anuncios',
+  title: 'Preguntas Frecuentes — VendeT-Venezuela',
 }
 
 export default function FAQPage() {
   const faqs = [
     {
-      q: '¿Es seguro usar Todo Anuncios?',
-      a: 'Todo Anuncios conecta compradores y vendedores directamente. Recomendamos siempre encontrarse en lugares públicos, verificar el producto antes de pagar, y desconfiar de precios demasiado bajos. Nunca envíes dinero por adelantado.',
+      q: '¿Es seguro usar VendeT-Venezuela?',
+      a: 'VendeT-Venezuela conecta compradores y vendedores directamente. Recomendamos siempre encontrarse en lugares públicos, verificar el producto antes de pagar, y desconfiar de precios demasiado bajos. Nunca envíes dinero por adelantado.',
     },
     {
       q: '¿Puedo publicar sin registrarme?',
@@ -27,12 +27,12 @@ export default function FAQPage() {
       a: 'Pago Móvil, transferencia bancaria, Zelle, Binance Pay (USDT) y PayPal. Estamos agregando más métodos progresivamente.',
     },
     {
-      q: '¿Todo Anuncios maneja pagos o envíos?',
-      a: 'No. Todo Anuncios es una plataforma de conexión entre compradores y vendedores. El pago y la entrega se acuerdan directamente entre las partes.',
+      q: '¿VendeT-Venezuela maneja pagos o envíos?',
+      a: 'No. VendeT-Venezuela es una plataforma de conexión entre compradores y vendedores. El pago y la entrega se acuerdan directamente entre las partes.',
     },
     {
       q: '¿Cómo reporto un anuncio fraudulento?',
-      a: 'En cada publicación hay un botón "Reportar". También puedes escribirnos a soporte@todo-anuncios.com con los detalles.',
+      a: 'En cada publicación hay un botón "Reportar". También puedes escribirnos a soporte@vendet.online con los detalles.',
     },
     {
       q: '¿En qué moneda se publica?',
@@ -57,8 +57,8 @@ export default function FAQPage() {
       <div className="bg-brand-yellow rounded-xl p-6 mt-8 text-center">
         <h3 className="font-bold text-brand-blue text-lg">¿No encontraste tu respuesta?</h3>
         <p className="text-brand-blue/80 mt-1">Escríbenos y te ayudamos</p>
-        <a href="mailto:soporte@todo-anuncios.com" className="inline-block mt-3 bg-brand-blue text-white px-6 py-2 rounded-lg font-bold hover:bg-blue-900 transition">
-          soporte@todo-anuncios.com
+        <a href="mailto:soporte@vendet.online" className="inline-block mt-3 bg-brand-blue text-white px-6 py-2 rounded-lg font-bold hover:bg-blue-900 transition">
+          soporte@vendet.online
         </a>
       </div>
     </div>

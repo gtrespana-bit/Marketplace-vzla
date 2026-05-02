@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import dynamic from 'next/dynamic'
 
 export const metadata: Metadata = {
-  title: 'Buscar — Todo Anuncios',
+  title: 'Buscar — VendeT-Venezuela',
   description: 'Busca productos en el marketplace venezolano',
 }
 

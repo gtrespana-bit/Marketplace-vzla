@@ -21,17 +21,17 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   title: {
-    template: '%s | Todo Anuncios',
-    default: 'Todo Anuncios — Compra y Venta en Venezuela',
+    template: '%s | VendeT-Venezuela',
+    default: 'VendeT-Venezuela — Compra y Venta en Venezuela',
   },
   description: 'El marketplace venezolano. Compra y vende carros, tecnología, moda, hogar y más. Publica gratis, contacta directo. 🇻🇪',
   manifest: '/manifest.json',
-  metadataBase: new URL('https://todonuncios.vercel.app'),
+  metadataBase: new URL('https://vendet.online'),
   openGraph: {
-    title: 'Todo Anuncios — Compra y Venta en Venezuela',
+    title: 'VendeT-Venezuela — Compra y Venta en Venezuela',
     description: 'El marketplace venezolano. Publica gratis, contacta directo. Sin complicaciones.',
-    url: 'https://todonuncios.vercel.app',
-    siteName: 'Todo Anuncios',
+    url: 'https://vendet.online',
+    siteName: 'VendeT-Venezuela',
     locale: 'es_VE',
     type: 'website',
     images: [
@@ -39,17 +39,17 @@ export const metadata: Metadata = {
         url: '/og-image.png',
         width: 1200,
         height: 630,
-        alt: 'Todo Anuncios — Compra y Venta en Venezuela',
+        alt: 'VendeT-Venezuela — Compra y Venta en Venezuela',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Todo Anuncios — Compra y Venta en Venezuela',
+    title: 'VendeT-Venezuela — Compra y Venta en Venezuela',
     description: 'El marketplace venezolano. Compra y vende lo que quieras, contacta directo.',
   },
   alternates: {
-    canonical: 'https://todonuncios.vercel.app',
+    canonical: 'https://vendet.online',
   },
 }
 

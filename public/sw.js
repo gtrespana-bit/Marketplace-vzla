@@ -1,5 +1,5 @@
-/* Service Worker — Todo Anuncios PWA */
-const CACHE_NAME = 'todo-anuncios-v1'
+/* Service Worker — VendeT PWA */
+const CACHE_NAME = 'vendet-v1'
 const STATIC_ASSETS = [
   '/',
   '/manifest.json',

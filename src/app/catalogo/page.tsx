@@ -2,8 +2,8 @@ import type { Metadata } from 'next'
 import dynamic from 'next/dynamic'
 
 export const metadata: Metadata = {
-  title: 'Catálogo — Compra y Venta en Venezuela | Todo Anuncios',
-  description: 'Explora el catálogo de productos en Todo Anuncios. Carros, tecnología, moda, hogar, herramientas y más.',
+  title: 'Catálogo — Compra y Venta en Venezuela | VendeT-Venezuela',
+  description: 'Explora el catálogo de productos en VendeT-Venezuela. Carros, tecnología, moda, hogar, herramientas y más.',
 }
 
 // Carga en cliente + SSR habilitado — ya no hay bailout

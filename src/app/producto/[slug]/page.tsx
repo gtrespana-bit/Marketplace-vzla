@@ -238,7 +238,7 @@ export default function ProductoPage() {
     const t = contactPhone.replace(/[^0-9]/g, '')
     const t2 = t.startsWith('0') ? t.slice(1) : t
     const finalPhone = t2.startsWith('58') ? t2 : '58' + t2
-    whatsappLink = 'https://wa.me/' + finalPhone + '?text=' + encodeURIComponent('Hola, vi tu publicacion de "' + producto.titulo + '" en Todo Anuncios. Esta disponible?')
+    whatsappLink = 'https://wa.me/' + finalPhone + '?text=' + encodeURIComponent('Hola, vi tu publicacion de "' + producto.titulo + '" en VendeT-Venezuela. Esta disponible?')
   }
 
   return (

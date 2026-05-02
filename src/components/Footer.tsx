@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 
 export const metadata: Metadata = {
-  title: 'Footer — Todo Anuncios',
+  title: 'Footer — VendeT-Venezuela',
 }
 
 export function Footer() {
@@ -44,7 +44,7 @@ export function Footer() {
           </div>
         </div>
         <div className="border-t border-gray-700 mt-8 pt-6 text-center text-sm">
-          <p>© {new Date().getFullYear()} Todo Anuncios. Todos los derechos reservados.</p>
+          <p>© {new Date().getFullYear()} VendeT-Venezuela. Todos los derechos reservados.</p>
         </div>
       </div>
       </div>

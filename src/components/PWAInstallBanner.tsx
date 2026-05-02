@@ -98,7 +98,7 @@ export default function PWAInstallBanner() {
                 <span className="text-brand-yellow font-black text-lg">TA</span>
               </div>
               <div className="flex-1 pr-6">
-                <p className="font-bold text-gray-900 text-sm">Instala Todo Anuncios</p>
+                <p className="font-bold text-gray-900 text-sm">Instala VendeT-Venezuela</p>
                 <p className="text-xs text-gray-500 mt-0.5">Acceso directo desde tu pantalla de inicio. Más rápido, sin abrir el navegador.</p>
               </div>
             </div>
@@ -123,7 +123,7 @@ export default function PWAInstallBanner() {
               <div className="w-14 h-14 bg-brand-blue rounded-xl flex items-center justify-center mx-auto mb-3">
                 <span className="text-brand-yellow font-black text-xl">TA</span>
               </div>
-              <h3 className="font-bold text-lg text-gray-900">Instala Todo Anuncios en tu iPhone</h3>
+              <h3 className="font-bold text-lg text-gray-900">Instala VendeT-Venezuela en tu iPhone</h3>
             </div>
             <div className="space-y-3 bg-gray-50 rounded-xl p-4">
               <div className="flex items-center gap-3 text-sm">

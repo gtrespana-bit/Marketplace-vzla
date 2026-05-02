@@ -3,8 +3,8 @@ import Link from 'next/link'
 import { Check, X as XIcon } from 'lucide-react'
 
 export const metadata: Metadata = {
-  title: '¿Cómo funciona? — Todo Anuncios',
-  description: 'Guía rápida de cómo comprar, vender y destacar productos en Todo Anuncios',
+  title: '¿Cómo funciona? — VendeT-Venezuela',
+  description: 'Guía rápida de cómo comprar, vender y destacar productos en VendeT-Venezuela',
 }
 
 export default function ComoFuncionaPage() {
@@ -69,8 +69,8 @@ export default function ComoFuncionaPage() {
             <p className="text-gray-600 mt-1">Sí, siempre. Puedes publicar todos los productos que quieras sin costo. Si quieres destacar alguna publicación, puedes comprar créditos (opcional).</p>
           </div>
           <div>
-            <h3 className="font-bold text-gray-800">¿Todo Anuncios cobra comisión?</h3>
-            <p className="text-gray-600 mt-1">No. Todo Anuncios no cobra comisión por las transacciones. Los compradores y vendedores cierran el trato directamente entre ellos.</p>
+            <h3 className="font-bold text-gray-800">¿VendeT-Venezuela cobra comisión?</h3>
+            <p className="text-gray-600 mt-1">No. VendeT-Venezuela no cobra comisión por las transacciones. Los compradores y vendedores cierran el trato directamente entre ellos.</p>
           </div>
           <div>
             <h3 className="font-bold text-gray-800">¿Cómo pago los créditos?</h3>
@@ -94,7 +94,7 @@ export default function ComoFuncionaPage() {
               <tr className="border-b-2 border-gray-200">
                 <th className="text-left py-4 px-3 font-semibold text-gray-500 w-[20%]">¿Qué importa?</th>
                 <th className="text-center py-4 px-3 font-bold text-brand-blue bg-green-50 rounded-t-lg w-[27%]">
-                  <span className="text-lg">Todo Anuncios</span>
+                  <span className="text-lg">VendeT-Venezuela</span>
                 </th>
                 <th className="text-center py-4 px-3 font-semibold text-gray-400 w-[27%]">Otros marketplaces</th>
                 <th className="text-center py-4 px-3 font-semibold text-gray-400 w-[27%]">Redes sociales</th>

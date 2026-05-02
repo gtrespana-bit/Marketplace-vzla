@@ -123,11 +123,11 @@ export function Header() {
             {/* Logo */}
             <Link href="/" className="flex items-center gap-3 flex-shrink-0">
               <div className="w-9 h-9 bg-brand-yellow rounded-lg flex items-center justify-center font-black text-brand-blue text-lg">
-                TA
+                V
               </div>
               <span className="hidden sm:block">
                 <span className="text-brand-yellow font-black text-xl tracking-tight">
-                  Todo<span className="text-white">Anuncios</span>
+                  Vende<span className="text-white">T</span>
                 </span>
               </span>
             </Link>

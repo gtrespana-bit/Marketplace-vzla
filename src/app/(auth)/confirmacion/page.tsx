@@ -57,7 +57,7 @@ function ConfirmacionContent() {
 
           <div className="space-y-3 text-sm text-gray-600 mb-6">
             <p>
-              📧 El email debe tener el asunto: <strong>"Confirma tu cuenta en Todo Anuncios"</strong>
+              📧 El email debe tener el asunto: <strong>"Confirma tu cuenta en VendeT-Venezuela"</strong>
             </p>
             <p>
               🔗 Haz clic en el enlace que viene dentro del email para activar tu cuenta

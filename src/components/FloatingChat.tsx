@@ -14,7 +14,7 @@ export function FloatingChat() {
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center font-bold">TA</div>
               <div>
-                <p className="font-bold text-sm">Todo Anuncios Ayuda</p>
+                <p className="font-bold text-sm">VendeT-Venezuela Ayuda</p>
                 <p className="text-xs text-blue-200 flex items-center gap-1">
                   <span className="w-2 h-2 bg-green-400 rounded-full inline-block"></span>
                   En línea
