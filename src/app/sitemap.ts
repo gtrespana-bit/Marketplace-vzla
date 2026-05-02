@@ -41,8 +41,10 @@ const PAGINAS_ESTATICAS = [
   '/creditos',
 ]
 
-const CHANGE_FREQ_PRODUCTO: XML.SitemapElement['changefreq'] = 'daily'
-const CHANGE_FREQ_PAGINA: XML.SitemapElement['changefreq'] = 'monthly'
+type ChangeFreq = 'always' | 'hourly' | 'daily' | 'weekly' | 'monthly' | 'yearly' | 'never'
+
+const CHANGE_FREQ_PRODUCTO: ChangeFreq = 'daily'
+const CHANGE_FREQ_PAGINA: ChangeFreq = 'monthly'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const entries: MetadataRoute.Sitemap = []
