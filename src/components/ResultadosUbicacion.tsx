@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
-import { ESTADOS_VENEZUELA, CIUDADES_POR_ESTADO } from '@/lib/ubicaciones'
+import { ESTADOS, CIUDADES_POR_ESTADO } from '@/lib/ubicaciones'
 import { Search, ChevronRight, MapPin, ChevronDown, X } from 'lucide-react'
 
 type ProductoCat = {
@@ -90,7 +90,7 @@ export default function ResultadosUbicacion({
                 className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-yellow"
               >
                 <option value="">Toda Venezuela</option>
-                {ESTADOS_VENEZUELA.map((e) => (
+                {ESTADOS.map((e) => (
                   <option key={e} value={e}>{e}</option>
                 ))}
               </select>
