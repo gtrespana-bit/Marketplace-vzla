@@ -29,7 +29,7 @@ export async function GET(request: Request) {
     }
 
     // Si tiene éxito, redirigir a la página de confirmación
-    return NextResponse.redirect(new URL('/confirm', request.url))
+    return NextResponse.redirect(new URL('/confirmacion', request.url))
   } catch (err) {
     return NextResponse.redirect(new URL('/confirmacion', request.url))
   }
