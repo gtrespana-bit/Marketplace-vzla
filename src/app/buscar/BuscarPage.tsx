@@ -9,7 +9,6 @@ import { supabase } from '@/lib/supabase'
 import { categoriasData } from '@/lib/categorias'
 import UbicacionSelector from '@/components/UbicacionSelector'
 
-
 type Producto = {
   id: string
   titulo: string
@@ -126,7 +125,6 @@ export default function BuscarClient() {
       if (estadoProd) sq = sq.eq('estado', estadoProd)
 
       // Ubicacion
-      // Ubicacion: ciudad > estado
       if (ubicacionCiudad) {
         sq = sq.eq('ubicacion_ciudad', ubicacionCiudad)
       } else if (ubicacionEstado) {
@@ -264,14 +262,18 @@ export default function BuscarClient() {
               </div>
 
               {/* Ubicacion */}
-              <div>
-                <label className="block text-sm font-bold text-gray-900 mb-1.5">Ubicacion</label>
-                <select value={ubicacion} onChange={(e) => setParam('ubicacion', e.target.value)} className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm text-gray-800 bg-white font-medium focus:outline-none focus:ring-2 focus:ring-brand-yellow">
-                  <option value="">Todo Venezuela</option>
-                  {estadosVenezuela.map((e) => (
-                    <option key={e} value={e}>{e}</option>
-                  ))}
-                </select>
+              <div className="mt-4 pt-4 border-t">
+                <h4 className="text-sm font-bold text-gray-900 mb-3">📍 Ubicación</h4>
+                <UbicacionSelector
+                  estado={ubicacionEstado}
+                  ciudad={ubicacionCiudad}
+                  onChange={(estado, ciudad) => {
+                    const params = new URLSearchParams(searchParams.toString())
+                    if (estado) params.set('estado', estado); else params.delete('estado')
+                    if (ciudad) params.set('ciudad', ciudad); else params.delete('ciudad')
+                    router.push('/buscar?' + params.toString())
+                  }}
+                />
               </div>
 
               {/* Precio */}
