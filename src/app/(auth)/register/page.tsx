@@ -5,35 +5,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { AlertCircle } from 'lucide-react'
-
-const estadosVenezuela = [
-  'Distrito Capital', 'Miranda', 'Carabobo', 'Lara', 'Zulia',
-  'Aragua', 'Anzoátegui', 'Bolívar', 'Mérida', 'Táchira',
-  'Trujillo', 'Portuguesa', 'Barinas', 'Apure', 'Guárico',
-  'Cojedes', 'Yaracuy', 'Sucre', 'Monagas', 'Nueva Esparta',
-  'Amazonas', 'Delta Amacuro', 'Vargas',
-]
-
-const ciudadesPorEstado: Record<string, string[]> = {
-  'Distrito Capital': ['Caracas'],
-  'Miranda': ['Los Teques', 'Guarenas', 'Guatire', 'Petare', 'Baruta'],
-  'Carabobo': ['Valencia', 'Puerto Cabello', 'Guacara', 'Mariara', 'San Joaquín'],
-  'Lara': ['Barquisimeto', 'Cabudare', 'El Tocuyo', 'Carora'],
-  'Zulia': ['Maracaibo', 'San Francisco', 'Cabimas', 'Ciudad Ojeda'],
-  'Aragua': ['Maracay', 'Turmero', 'La Victoria', 'Palo Negro'],
-  'Anzoátegui': ['Barcelona', 'Puerto La Cruz', 'El Tigre', 'Anaco'],
-  'Bolívar': ['Ciudad Guayana', 'Ciudad Bolívar', 'Puerto Ordaz', 'San Félix'],
-  'Mérida': ['Mérida', 'Ejido', 'El Vigía'],
-  'Táchira': ['San Cristóbal', 'Táriba', 'Rubio', 'San Antonio'],
-  'Trujillo': ['Trujillo', 'Valera', 'Boconó'],
-  'Portuguesa': ['Acarigua', 'Araure', 'Guanare'],
-  'Barinas': ['Barinas', 'Ciudad Bolivia'],
-  'Guárico': ['San Juan de los Morros', 'Calabozo', 'Valle de la Pascua'],
-  'Yaracuy': ['San Felipe', 'Yaritagua', 'Chivacoa'],
-  'Sucre': ['Cumaná', 'Carúpano', 'Güiria'],
-  'Monagas': ['Maturín', 'Punta de Mata'],
-  'Nueva Esparta': ['Porlamar', 'La Asunción', 'Pampatar'],
-}
+import { ESTADOS, CIUDADES_POR_ESTADO } from '@/lib/ubicaciones'
 
 export default function RegisterPage() {
   const router = useRouter()
@@ -47,7 +19,7 @@ export default function RegisterPage() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
-  const ciudades = estado ? ciudadesPorEstado[estado] || [] : []
+  const ciudades = estado ? CIUDADES_POR_ESTADO[estado] || [] : []
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -94,7 +66,7 @@ export default function RegisterPage() {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <Link href="/" className="text-brand-yellow font-black text-3xl">
-            Tu<span className="text-brand-blue">Cambalo</span>
+            Vende<span className="text-white">T</span>
           </Link>
           <h1 className="text-2xl font-bold text-gray-800 mt-4">Crea tu cuenta</h1>
           <p className="text-gray-500 mt-1">Únete gratis. Empieza a vender hoy.</p>
@@ -163,7 +135,7 @@ export default function RegisterPage() {
                   className="w-full border rounded-lg px-3 py-3 focus:outline-none focus:ring-2 focus:ring-brand-yellow text-sm"
                 >
                   <option value="">Selecciona...</option>
-                  {estadosVenezuela.map((e) => (
+                  {ESTADOS.map((e) => (
                     <option key={e} value={e}>{e}</option>
                   ))}
                 </select>

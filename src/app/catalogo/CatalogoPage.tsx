@@ -7,6 +7,7 @@ import Image from 'next/image'
 import { Search, ChevronRight, XCircle } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { categoriasData } from '@/lib/categorias'
+import UbicacionSelector from '@/components/UbicacionSelector'
 
 type Producto = {
   id: string
@@ -84,6 +85,8 @@ export default function CatalogoClient() {
   const q = searchParams.get('q') || ''
   const precioMin = searchParams.get('precioMin') || ''
   const precioMax = searchParams.get('precioMax') || ''
+  const ubicacionEstado = searchParams.get('estado') || ''
+  const ubicacionCiudad = searchParams.get('ciudad') || ''
 
   const [productos, setProductos] = useState<Producto[]>([])
   const [loading, setLoading] = useState(false)
@@ -139,6 +142,20 @@ export default function CatalogoClient() {
         query = query.ilike('titulo', `%${ q}%`)
       }
 
+      // Ubicacin
+      if (ubicacionCiudad) {
+        query = query.eq('ubicacion_ciudad', ubicacionCiudad)
+      } else if (ubicacionEstado) {
+        query = query.eq('ubicacion_estado', ubicacionEstado)
+      }
+
+      // Ubicacion
+      if (ubicacionCiudad) {
+        query = query.eq('ubicacion_ciudad', ubicacionCiudad)
+      } else if (ubicacionEstado) {
+        query = query.eq('ubicacion_estado', ubicacionEstado)
+      }
+
       // Rango de precio
       if (precioMin) {
         query = query.gte('precio_usd', parseFloat(precioMin))
@@ -180,7 +197,7 @@ export default function CatalogoClient() {
 
     fetchProductos()
     return () => { cancelled = true }
-  }, [categoria, subcategoria, marca, q, precioMin, precioMax])
+  }, [categoria, subcategoria, marca, q, precioMin, precioMax, ubicacionEstado, ubicacionCiudad])
 
   const tituloMostrar = q
     ? `Resultados para "${q}"`
@@ -298,6 +315,20 @@ export default function CatalogoClient() {
                 <button type="submit" className="bg-brand-yellow text-brand-blue px-4 rounded-lg font-bold text-sm hover:bg-yellow-400">Buscar</button>
               </form>
             </div>
+          </div>
+
+          {/* Ubicacion selector */}
+          <div className="mb-4">
+            <UbicacionSelector
+              estado={ubicacionEstado}
+              ciudad={ubicacionCiudad}
+              onChange={(estado, ciudad) => {
+                const params = new URLSearchParams(searchParams.toString())
+                if (estado) params.set('estado', estado); else params.delete('estado')
+                if (ciudad) params.set('ciudad', ciudad); else params.delete('ciudad')
+                router.push(`${pathname}?${params.toString()}`)
+              }}
+            />
           </div>
 
           {loading ? (
