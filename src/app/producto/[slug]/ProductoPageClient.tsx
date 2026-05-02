@@ -91,7 +91,8 @@ export default function ProductoPageClient({ initialProduct }: ProductoPageClien
             supabase.from('resenas').select('puntuacion').eq('vendedor_id', producto.user_id),
           ])
           const prom = resData && resData.length > 0 ? resData.reduce((s: number, r: any) => s + r.puntuacion, 0) / resData.length : 0
-          setVendedorStats({ vendidas: vendidas || 0, activas: activas || 0, resenasCount: resData?.length || 0, resenasAvg: prom })
+          const anti = producto.user_id ? Math.floor((Date.now() - new Date(producto.creado_en).getTime()) / (1000*60*60*24)) : 0
+          setVendedorStats({ vendidas: vendidas || 0, activas: activas || 0, resenasCount: resData?.length || 0, resenasAvg: prom, antiguedad: anti })
         })(),
 
         // Fetch reseñas count
@@ -253,7 +254,7 @@ export default function ProductoPageClient({ initialProduct }: ProductoPageClien
                 </Link>
                 {vendedorStats && (
                   <div className="mt-2 ml-0">
-                    <SellerReputation nivel={vendedor.nivel_confianza || 0} numResenas={vendedorStats.resenasCount} promedioResenas={vendedorStats.resenasAvg} numPubsActivas={vendedorStats.activas} numPubsVendidas={vendedorStats.vendidas} verificado={vendedor.verificado} badges={vendedor.badges_automaticos || []} size="sm" />
+                    <SellerReputation nivel={vendedor.nivel_confianza || 0} numResenas={vendedorStats.resenasCount} promedioResenas={vendedorStats.resenasAvg} numPubsActivas={vendedorStats.activas} numPubsVendidas={vendedorStats.vendidas} verificado={vendedor.verificado} badges={vendedor.badges_automaticos || []} antiguedadDias={vendedorStats.antiguedad || 0} ultimaActividad={vendedor.ultima_actividad || null} size="sm" />
                   </div>
                 )}
                 {user && user.id !== producto.user_id && (
