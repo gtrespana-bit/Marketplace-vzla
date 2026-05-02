@@ -122,8 +122,8 @@ export function Header() {
             )}
             {/* Logo */}
             <Link href="/" className="flex items-center gap-3 flex-shrink-0">
-              <div className="w-9 h-9 bg-brand-yellow rounded-lg flex items-center justify-center font-black text-brand-blue text-lg">
-                V
+              <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center overflow-hidden">
+                <img src="/icon-192.png" alt="VendeT" className="w-full h-full object-contain" />
               </div>
               <span className="hidden sm:block">
                 <span className="text-brand-yellow font-black text-xl tracking-tight">
