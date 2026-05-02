@@ -23,7 +23,7 @@ function ConfirmacionContent() {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-black text-brand-blue">
-            Todo<span className="text-brand-yellow">Anuncios</span>
+            VendeT-Venezuela
           </h1>
         </div>
 
