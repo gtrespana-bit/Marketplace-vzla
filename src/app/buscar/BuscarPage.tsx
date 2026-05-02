@@ -73,7 +73,7 @@ export default function BuscarClient() {
   const categoria = searchParams.get('categoria') || ''
   const subcategoria = searchParams.get('subcategoria') || ''
   const marca = searchParams.get('marca') || ''
-  const estadoProd = searchParams.get('estado') || ''
+  const condicion = searchParams.get('condicion') || ''
   const ubicacionEstado = searchParams.get('estado') || ''
   const ubicacionCiudad = searchParams.get('ciudad') || ''
   const precioMin = searchParams.get('precio_min') || ''
@@ -121,8 +121,8 @@ export default function BuscarClient() {
       // Marca
       if (marca) sq = sq.eq('marca', marca)
 
-      // Estado
-      if (estadoProd) sq = sq.eq('estado', estadoProd)
+          // Condicion del producto
+      if (condicion) sq = sq.eq('estado', condicion)
 
       // Ubicacion
       if (ubicacionCiudad) {
@@ -174,7 +174,7 @@ export default function BuscarClient() {
 
     buscar()
     return () => { cancelled = true }
-  }, [query, categoria, subcategoria, marca, estadoProd, ubicacionEstado, ubicacionCiudad, precioMin, precioMax, orden])
+  }, [query, categoria, subcategoria, marca, condicion, ubicacionEstado, ubicacionCiudad, precioMin, precioMax, orden])
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
@@ -243,16 +243,16 @@ export default function BuscarClient() {
                 </div>
               )}
 
-              {/* Estado */}
+              {/* Condicion del producto */}
               <div>
-                <label className="block text-sm font-bold text-gray-900 mb-1.5">Estado</label>
+                <label className="block text-sm font-bold text-gray-900 mb-1.5">Condición</label>
                 <div className="space-y-1.5">
                   {['Nuevo', 'Como nuevo', 'Bueno', 'Usado', 'Para repuestos'].map((e) => (
                     <label key={e} className="flex items-center gap-2 text-sm">
                       <input
                         type="checkbox"
-                        checked={estadoProd === e}
-                        onChange={(ev) => setParam('estado', ev.target.checked ? e : '')}
+                        checked={condicion === e}
+                        onChange={(ev) => setParam('condicion', ev.target.checked ? e : '')}
                         className="rounded text-brand-blue"
                       />
                       {e}
@@ -315,6 +315,16 @@ export default function BuscarClient() {
         <div className="flex-1">
           <div className="bg-white rounded-xl p-4 mb-4 shadow-sm">
             <form action="/buscar" method="GET" className="flex gap-2">
+              {/* Campos ocultos para preservar filtros actuales al buscar */}
+              {categoria && <input type="hidden" name="categoria" value={categoria} />}
+              {subcategoria && <input type="hidden" name="subcategoria" value={subcategoria} />}
+              {marca && <input type="hidden" name="marca" value={marca} />}
+              {condicion && <input type="hidden" name="condicion" value={condicion} />}
+              {ubicacionEstado && <input type="hidden" name="estado" value={ubicacionEstado} />}
+              {ubicacionCiudad && <input type="hidden" name="ciudad" value={ubicacionCiudad} />}
+              {precioMin && <input type="hidden" name="precio_min" value={precioMin} />}
+              {precioMax && <input type="hidden" name="precio_max" value={precioMax} />}
+              {orden && <input type="hidden" name="orden" value={orden} />}
               <div className="relative flex-1">
                 <input
                   name="q"
@@ -325,7 +335,7 @@ export default function BuscarClient() {
                 />
                 <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
               </div>
-              <button type="submit" className="bg-brand-yellow text-brand-blue px-6 rounded-lg font-bold hover:bg-yellow-400 transition">Buscar</button>
+              <button type="submit" className="bg-brand-yellow text-brand-blue px-6 rounded-lg font-bold hover:bg-yellow-400 transition shrink-0">Buscar</button>
             </form>
           </div>
 
@@ -364,7 +374,7 @@ export default function BuscarClient() {
             </>
           )}
 
-          {!query && !categoria && !subcategoria && !marca && !estadoProd && !ubicacionEstado && !ubicacionCiudad && !precioMin && !precioMax && productos.length > 0 && (
+          {!query && !categoria && !subcategoria && !marca && !condicion && !ubicacionEstado && !ubicacionCiudad && !precioMin && !precioMax && productos.length > 0 && (
             <p className="text-sm text-gray-500 mb-4">Mostrando todos los productos ({resultCount} resultados)</p>
           )}
         </div>
