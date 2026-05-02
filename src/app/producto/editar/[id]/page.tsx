@@ -5,18 +5,12 @@ import { useRouter, useParams } from 'next/navigation'
 import { supabase, isSupabaseConfigured } from '@/lib/supabase'
 import { useAuth } from '@/components/AuthProvider'
 import { categoriasData } from '@/lib/categorias'
+import { ESTADOS, CIUDADES_POR_ESTADO } from '@/lib/ubicaciones'
 import { Camera, X, ArrowLeft, Save, AlertCircle, Trash2 } from 'lucide-react'
 
 const currentYear = new Date().getFullYear()
 const years = Array.from({ length: 30 }, (_, i) => String(currentYear - i))
 const estadosProducto = ['Nuevo', 'Como nuevo', 'Bueno', 'Usado']
-const estadosVenezuela = [
-  'Distrito Capital', 'Miranda', 'Carabobo', 'Lara', 'Zulia',
-  'Aragua', 'Anzoategui', 'Bolivar', 'Merida', 'Tachira',
-  'Trujillo', 'Portuguesa', 'Barinas', 'Apure', 'Guarico',
-  'Cojedes', 'Yaracuy', 'Sucre', 'Monagas', 'Nueva Esparta',
-  'Amazonas', 'Delta Amacuro', 'Vargas',
-]
 
 export default function EditarPage() {
   const params = useParams()
@@ -296,7 +290,7 @@ export default function EditarPage() {
             <label className="block text-sm font-semibold text-gray-900 mb-1.5">Estado</label>
             <select value={ubicacionEstado} onChange={e => setUbicacionEstado(e.target.value)} className="w-full border rounded-lg px-4 py-3 bg-white">
               <option value="">Estado...</option>
-              {estadosVenezuela.map(e => <option key={e} value={e}>{e}</option>)}
+              {ESTADOS.map(e => <option key={e} value={e}>{e}</option>)}
             </select>
           </div>
           <div>

@@ -6,19 +6,13 @@ import { useRouter } from 'next/navigation'
 import { supabase, isSupabaseConfigured } from '@/lib/supabase'
 import { useAuth } from '@/components/AuthProvider'
 import { categoriasData } from '@/lib/categorias'
+import { ESTADOS, CIUDADES_POR_ESTADO } from '@/lib/ubicaciones'
 import { Camera, X, UploadCloud, AlertCircle, Phone, Mail, MapPin, MessageSquare } from 'lucide-react'
 import { verificarContenido, formatearAlertaModeracion } from '@/lib/moderacion'
 
 const currentYear = new Date().getFullYear()
 const years = Array.from({ length: 30 }, (_, i) => String(currentYear - i))
 const estadosProducto = ['Nuevo', 'Como nuevo', 'Bueno', 'Usado']
-const estadosVenezuela = [
-  'Distrito Capital', 'Miranda', 'Carabobo', 'Lara', 'Zulia',
-  'Aragua', 'Anzoategui', 'Bolivar', 'Merida', 'Tachira',
-  'Trujillo', 'Portuguesa', 'Barinas', 'Apure', 'Guarico',
-  'Cojedes', 'Yaracuy', 'Sucre', 'Monagas', 'Nueva Esparta',
-  'Amazonas', 'Delta Amacuro', 'Vargas',
-]
 
 interface ImageFile {
   file: File
@@ -442,7 +436,7 @@ export default function PublicarPage() {
                 <label className="block text-sm font-semibold text-gray-900 mb-1.5">Estado</label>
                 <select value={ubicacionEstado} onChange={e => setUbicacionEstado(e.target.value)} required className="w-full border border-gray-300 rounded-lg px-3 py-3 bg-white text-gray-800">
                   <option value="">Estado...</option>
-                  {estadosVenezuela.map(e => <option key={e} value={e}>{e}</option>)}
+                  {ESTADOS.map(e => <option key={e} value={e}>{e}</option>)}
                 </select>
               </div>
               <div>
