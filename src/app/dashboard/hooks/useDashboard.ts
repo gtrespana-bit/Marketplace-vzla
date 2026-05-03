@@ -24,17 +24,7 @@ export interface DashboardData {
   loading: boolean
 }
 
-export function useDashboard(): DashboardData & {
-  setProductos: (fn: any[]) => void
-  setCreditos: (n: number) => void
-  setToast: (msg: string | null) => void
-  setNombre: (s: string) => void
-  setTelefono: (s: string) => void
-  setEstado: (s: string) => void
-  setCiudad: (s: string) => void
-  setFotoUrl: (s: string | null) => void
-  refreshAll: () => void
-} {
+export function useDashboard() {
   const { user, loading: authLoading } = useAuth()
   const [productos, setProductos] = useState<any[]>([])
   const [visitasTotales, setVisitasTotales] = useState(0)
