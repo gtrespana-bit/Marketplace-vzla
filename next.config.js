@@ -25,8 +25,8 @@ const nextConfig = {
 }
 
 module.exports = withSentryConfig(nextConfig, {
-  org: "vendet",
-  project: "vendet-nextjs",
+  org: "vendet-venezuela",
+  project: "vendet-venezuela",
   authToken: process.env.SENTRY_AUTH_TOKEN,
   silent: true,
 
