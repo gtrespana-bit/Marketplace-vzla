@@ -1,4 +1,6 @@
 /** @type {import('next').NextConfig} */
+const { withSentryConfig } = require("@sentry/nextjs");
+
 const nextConfig = {
   images: {
     formats: ['image/webp', 'image/avif'],
@@ -16,7 +18,19 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  sentry: {
+    hideSourceMaps: true,
+    widenClientFileUpload: true,
+  },
 }
 
-module.exports = nextConfig
-// trigger deploy
+module.exports = withSentryConfig(nextConfig, {
+  org: "vendet",
+  project: "vendet-nextjs",
+  authToken: process.env.SENTRY_AUTH_TOKEN,
+  silent: true,
+
+  sourcemaps: {
+    deleteSourcemapsAfterUpload: true,
+  },
+});
