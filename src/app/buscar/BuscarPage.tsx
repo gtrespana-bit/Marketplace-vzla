@@ -161,10 +161,9 @@ export default function BuscarClient() {
         .eq('activo', true)
         .or('estado_moderacion.is.null,estado_moderacion.eq.aprobado')
 
-      // Text search: ahora busca en titulo Y descripcion con ilike en ambos
+      // Full-text search usando search_vector (tsvector indexado)
       if (query) {
-        const q = `%${query}%`
-        sq = sq.or(`titulo.ilike.${q},descripcion.ilike.${q}`)
+        sq = sq.textSearch('search_vector', query, { config: 'spanish', type: 'plainto' })
       }
 
       // Categoria
@@ -216,7 +215,7 @@ export default function BuscarClient() {
               if (aDest && !bDest) return -1
               if (!aDest && bDest) return 1
               if (aDest && bDest) return b.destacado_hasta!.localeCompare(a.destacado_hasta!)
-              return b.creado_en.localeCompare(a.creado_en)
+              return new Date(b.creado_en).getTime() - new Date(a.creado_en).getTime()
             })
           }
           setResultCount(count ?? 0)

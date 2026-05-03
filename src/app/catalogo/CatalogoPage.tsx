@@ -148,16 +148,9 @@ export default function CatalogoClient() {
         query = query.eq('marca', marca)
       }
 
-      // Text search
+      // Text search: full-text con search_vector
       if (q) {
-        query = query.ilike('titulo', `%${ q}%`)
-      }
-
-      // Ubicacin
-      if (ubicacionCiudad) {
-        query = query.eq('ubicacion_ciudad', ubicacionCiudad)
-      } else if (ubicacionEstado) {
-        query = query.eq('ubicacion_estado', ubicacionEstado)
+        query = query.textSearch('search_vector', q, { config: 'spanish', type: 'plainto' })
       }
 
       // Ubicacion
