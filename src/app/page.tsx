@@ -91,9 +91,6 @@ function ProductCard({ p, highlighted = false }: { p: any; highlighted?: boolean
           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
           loading="lazy"
           decoding="async"
-          onError={(e) => {
-            (e.target as HTMLImageElement).src = getPlaceholderImage(p.titulo)
-          }}
         />
       </div>
       <div className="p-4">
