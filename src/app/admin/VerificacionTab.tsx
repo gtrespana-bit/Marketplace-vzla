@@ -88,6 +88,14 @@ export default function VerificacionTab({ notify }: { notify: (msg: string) => v
     if (err2) { notify('Error perfil: ' + err2.message); return }
 
     notify('Vendedor verificado correctamente')
+    // EMAIL: Notificar al usuario que fue verificado
+    try {
+      fetch('/api/email-verificacion', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId }),
+      }).catch(() => {})
+    } catch {}
     cargar()
   }
 

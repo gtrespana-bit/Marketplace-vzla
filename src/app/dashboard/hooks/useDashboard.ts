@@ -83,6 +83,49 @@ export function useDashboard() {
     ]).finally(() => setLoading(false))
   }, [user])
 
+  // Realtime level-up notification
+  const prevLevelRef = { current: nivelConfianza }
+
+  useEffect(() => {
+    prevLevelRef.current = nivelConfianza
+  }, [nivelConfianza])
+
+  useEffect(() => {
+    if (!user) return
+    const sub = supabase
+      .channel('level-notif')
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'perfiles', filter: `id=eq.${user.id}` },
+        (payload) => {
+          const newLevel = payload.new?.nivel_confianza
+          const oldLevel = payload.old?.nivel_confianza
+          if (typeof newLevel === 'number' && typeof oldLevel === 'number' && newLevel > oldLevel) {
+            const nombresNivel = ['Bronce', 'Plata', 'Oro', 'Platino', 'Diamante', 'Maestro']
+            const nivelAnterior = nombresNivel[oldLevel] || `Nivel ${oldLevel}`
+            const nivelNuevo = nombresNivel[newLevel] || `Nivel ${newLevel}`
+            setNivelConfianza(newLevel)
+            setBadgesAuto(payload.new?.badges_automaticos || [])
+            setToast(`🎉 Subiste de nivel: ${nivelNuevo}!`)
+            setTimeout(() => setToast(null), 6000)
+            // EMAIL: Trigger level-up email
+            try {
+              fetch('/api/email-verificacion', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId: user.id, nuevoNivel: nivelNuevo, nivelAnterior }),
+              }).catch(() => {})
+            } catch {}
+          } else if (typeof newLevel === 'number') {
+            setNivelConfianza(newLevel)
+          }
+        }
+      )
+      .subscribe()
+    return () => { supabase.removeChannel(sub) }
+  }, [user])
+
+
   useEffect(() => {
     if (authLoading) return
     refreshAll()

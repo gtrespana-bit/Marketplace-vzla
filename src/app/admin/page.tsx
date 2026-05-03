@@ -299,7 +299,7 @@ function TabTransacciones({ perfiles, notify }: { perfiles: Record<string, any>;
 
   useEffect(() => { cargar() }, [])
 
-  async function aprobar(id: string, monto: number, usuarioNombre: string) {
+  async function aprobar(id: string, monto: number, usuarioNombre: string, userId?: string) {
     setProcesando(id)
     const { error } = await supabase.rpc('aprobar_transaccion', { p_transaccion_id: id, p_admin_id: (await supabase.auth.getUser()).data.user?.id })
     setProcesando(null)
@@ -308,8 +308,21 @@ function TabTransacciones({ perfiles, notify }: { perfiles: Record<string, any>;
     } else {
       notify(`✅ +${monto} créditos aprobados!`)
       // Notificar admin por Telegram
-      const mensaje = `✅ VendeT-Venezuela\n\nSe aprobaron ${monto} créditos para ${usuarioNombre}.\nTransacción procesada correctamente.`
+      const mensaje = `✅ VendeT-Venezuela
+
+Se aprobaron ${monto} créditos para ${usuarioNombre}.
+Transacción procesada correctamente.`
       try { await fetch('/api/notify', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ mensaje }) }) } catch {}
+      // EMAIL: Notificar al usuario que se le agregaron créditos
+      if (userId) {
+        try {
+          fetch('/api/email-creditos', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId, cantidad: monto }),
+          }).catch(() => {})
+        } catch {}
+      }
       await cargar()
     }
   }
@@ -363,7 +376,7 @@ function TabTransacciones({ perfiles, notify }: { perfiles: Record<string, any>;
                       )}
                     </div>
                     <div className="flex gap-2 flex-shrink-0">
-                      <button onClick={() => aprobar(t.id, t.monto, perfil.nombre || 'Usuario')} disabled={procesando === t.id} className="flex items-center gap-2 bg-green-500 text-white px-5 py-2.5 rounded-lg font-bold hover:bg-green-600 transition disabled:opacity-50">
+                      <button onClick={() => aprobar(t.id, t.monto, perfil.nombre || 'Usuario', t.user_id)} disabled={procesando === t.id} className="flex items-center gap-2 bg-green-500 text-white px-5 py-2.5 rounded-lg font-bold hover:bg-green-600 transition disabled:opacity-50">
                         {procesando === t.id ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />}
                         Aprobar
                       </button>
