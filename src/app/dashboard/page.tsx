@@ -285,7 +285,6 @@ export default function DashboardPage() {
             <Link href="/creditos" className="block text-center text-sm text-brand-blue hover:underline">¿Necesitas más créditos? Comprar →</Link>
           </div>
         </div>
-      </div>
       )}
 
       {/* ===== CAMBIAR CONTRASEÑA MODAL ===== */}
