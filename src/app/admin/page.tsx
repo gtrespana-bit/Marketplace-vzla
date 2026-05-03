@@ -270,7 +270,7 @@ export default function AdminPage() {
       {tab === 'anuncios' && <TabAnuncios notify={notify} />}
       {tab === 'categorias' && <TabCategorias notify={notify} />}
       {tab === 'creditos' && <TabCreditos perfiles={perfiles} notify={notify} />}
-      {tab === 'exportar' && <TabExportar perfiles={perfiles} />}
+      {tab === 'exportar' && <TabExportar />}
       {tab === 'metricas' && <MetricasTab />}
     </div>
   )
