@@ -34,7 +34,7 @@ export default function DashboardHeader({
   nivelConfianza: number
   resenasCount: number
   promedioResenas: number
-  setToast: (msg: string) => void
+  setToast: (msg: string | null) => void
   setGuardando: (b: boolean) => void
   onPassword: () => void
   onLogout: () => void

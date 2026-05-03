@@ -6,9 +6,8 @@ import { useAuth } from '@/components/AuthProvider'
 import SolicitarVerificacion from '@/components/SolicitarVerificacion'
 import { getTasaBCVClient, actualizarTasaClient } from '@/lib/tasaBCV'
 import {
-  Plus, Package, MessageSquare, CreditCard,
+  Package, MessageSquare, CreditCard,
   Eye, Heart, LogOut, X, Zap, Star, ShieldCheck,
-  Camera
 } from 'lucide-react'
 import Link from 'next/link'
 
