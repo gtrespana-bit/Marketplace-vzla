@@ -25,14 +25,38 @@ type Producto = {
   vendedor_verificado: boolean | null
   }
 
+const PLACEHOLDER_IMAGES = [
+  'https://images.unsplash.com/photo-1558618666-fcd25c85482e?w=400&h=400&fit=crop&q=60',
+  'https://images.unsplash.com/photo-1472851294608-062f824d29cc?w=400&h=400&fit=crop&q=60',
+]
+
+function getPlaceholderImage(titulo: string) {
+  return PLACEHOLDER_IMAGES[Math.abs(titulo.charCodeAt(0)) % PLACEHOLDER_IMAGES.length]
+}
+
+function ProductCardSkeleton() {
+  return (
+    <div className="bg-white rounded-xl overflow-hidden border border-gray-100 shadow-sm animate-pulse">
+      <div className="aspect-square bg-gray-200" />
+      <div className="p-4 space-y-2">
+        <div className="h-4 bg-gray-200 rounded w-3/4" />
+        <div className="h-6 bg-gray-200 rounded w-1/2" />
+        <div className="h-3 bg-gray-200 rounded w-1/3" />
+      </div>
+    </div>
+  )
+}
+
 function ProductCard({ p }: { p: Producto }) {
   const isBoosted = p.boosteado_en != null
   const isFeatured = p.destacado && p.destacado_hasta && new Date(p.destacado_hasta) > new Date()
   const isPromoted = isBoosted || isFeatured
 
   
+  const imgUrl = p.imagen_url || getPlaceholderImage(p.titulo)
+
   return (
-    <Link href={`/producto/${p.id}`} className={`bg-white rounded-xl overflow-hidden hover:shadow-lg transition group block border ${isPromoted ? 'border-2 border-brand-yellow shadow-sm' : 'border-gray-100 shadow-sm'}`}>
+    <Link href={`/producto/${p.id}`} className={`bg-white rounded-xl overflow-hidden transition-all duration-200 group block border ${isPromoted ? 'border-2 border-brand-yellow shadow-md hover:shadow-xl hover:-translate-y-1' : 'border-gray-100 shadow-sm hover:shadow-lg hover:-translate-y-1 hover:border-gray-200'}`}>
       <div className="aspect-square bg-gray-100 relative overflow-hidden">
         {isFeatured && (
           <div className="absolute top-2 left-2 z-10 bg-brand-yellow text-brand-blue text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 shadow-sm">
@@ -44,23 +68,10 @@ function ProductCard({ p }: { p: Producto }) {
             ⚡ Boost
           </div>
         )}
-        {p.imagen_url ? (
-          <Image
-            src={p.imagen_url}
-            alt={p.titulo}
-            width={400}
-            height={400}
-            sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-            loading="lazy"
-            decoding="async"
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center text-gray-300 text-5xl">📦</div>
-        )}
+        <Image src={imgUrl} alt={p.titulo} width={400} height={400} sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" loading="lazy" decoding="async" onError={(e) => { (e.target as HTMLImageElement).src = getPlaceholderImage(p.titulo) }} />
       </div>
       <div className="p-4">
-        <h3 className="font-semibold text-gray-900 truncate">{p.titulo}</h3>
+        <h3 className="font-semibold text-gray-900 truncate group-hover:text-brand-blue transition-colors">{p.titulo}</h3>
         <p className="text-xl font-black text-brand-blue mt-1">${Number(p.precio_usd || 0).toLocaleString()}</p>
         {p.vendedor_verificado && (
           <div className="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded-full mt-1">
@@ -334,14 +345,7 @@ export default function CatalogoClient() {
           {loading ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
               {Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} className="bg-white rounded-xl overflow-hidden shadow-sm border animate-pulse">
-                  <div className="aspect-square bg-gray-200" />
-                  <div className="p-4 space-y-2">
-                    <div className="h-4 bg-gray-200 rounded w-3/4" />
-                    <div className="h-6 bg-gray-200 rounded w-1/2" />
-                    <div className="h-3 bg-gray-200 rounded w-1/3" />
-                  </div>
-                </div>
+                <ProductCardSkeleton key={i} />
               ))}
             </div>
           ) : productos.length === 0 ? (

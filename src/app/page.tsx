@@ -3,6 +3,16 @@ import Image from 'next/image'
 import { Search, ArrowRight, Star, Zap, Eye, TrendingUp } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 
+const PLACEHOLDER_IMAGES = [
+  'https://images.unsplash.com/photo-1558618666-fcd25c85482e?w=400&h=400&fit=crop&q=60',
+  'https://images.unsplash.com/photo-1472851294608-062f824d29cc?w=400&h=400&fit=crop&q=60',
+  'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400&h=400&fit=crop&q=60',
+]
+
+function getPlaceholderImage(titulo: string) {
+  return PLACEHOLDER_IMAGES[Math.abs(titulo.charCodeAt(0)) % PLACEHOLDER_IMAGES.length]
+}
+
 async function getDestacados(limit = 8) {
   try {
     const { data, error } = await supabase
@@ -60,11 +70,11 @@ function ProductCard({ p, highlighted = false }: { p: any; highlighted?: boolean
   return (
     <Link
       href={`/producto/${p.id}`}
-      className={`bg-white rounded-xl overflow-hidden transition group block border ${
-        highlighted
-          ? 'border-2 border-brand-yellow shadow-lg shadow-yellow-50 hover:shadow-brand-yellow/20'
-          : 'shadow-sm border-gray-100 hover:shadow-lg'
-      }`}
+      className={`bg-white rounded-xl overflow-hidden transition-all duration-200 group block border
+        ${highlighted
+          ? 'border-2 border-brand-yellow shadow-lg hover:shadow-xl hover:-translate-y-1'
+          : 'shadow-sm border-gray-100 hover:shadow-lg hover:-translate-y-1 hover:border-gray-200'
+        }`}
     >
       <div className="aspect-square bg-gray-100 relative overflow-hidden">
         {highlighted && (
@@ -72,23 +82,22 @@ function ProductCard({ p, highlighted = false }: { p: any; highlighted?: boolean
             <Star size={10} /> Destacado
           </div>
         )}
-        {p.imagen_url ? (
-          <Image
-            src={p.imagen_url}
-            alt={p.titulo}
-            width={400}
-            height={400}
-            sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-            loading="lazy"
-            decoding="async"
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center text-gray-300 text-4xl">📦</div>
-        )}
+        <Image
+          src={p.imagen_url || getPlaceholderImage(p.titulo)}
+          alt={p.titulo}
+          width={400}
+          height={400}
+          sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
+          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+          loading="lazy"
+          decoding="async"
+          onError={(e) => {
+            (e.target as HTMLImageElement).src = getPlaceholderImage(p.titulo)
+          }}
+        />
       </div>
       <div className="p-4">
-        <h3 className="font-semibold text-gray-900 truncate">{p.titulo}</h3>
+        <h3 className="font-semibold text-gray-900 truncate group-hover:text-brand-blue transition-colors">{p.titulo}</h3>
         <p className="text-xl font-black text-brand-blue mt-1">${Number(p.precio_usd || 0).toLocaleString()}</p>
                 <p className="text-xs text-gray-500 mt-1">{p.estado} · {p.ubicacion_ciudad || 'Venezuela'}</p>
       </div>
