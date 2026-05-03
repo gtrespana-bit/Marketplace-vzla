@@ -1,5 +1,6 @@
-// Todos los estados y ciudades de Venezuela — orden alfabético
-// Fuente: compartido entre registro, filtros de búsqueda y catálogo
+// Estados y municipios reales de Venezuela
+// Fuente: División político-territorial oficial (23 estados + DC)
+// Cada municipio incluye su ciudad capital como referencia
 
 export const ESTADOS = [
   'Amazonas',
@@ -11,7 +12,6 @@ export const ESTADOS = [
   'Carabobo',
   'Cojedes',
   'Delta Amacuro',
-  'Distrito Capital',
   'Falcón',
   'Guárico',
   'Lara',
@@ -23,39 +23,443 @@ export const ESTADOS = [
   'Sucre',
   'Táchira',
   'Trujillo',
-  'Vargas',
   'Yaracuy',
+  'Vargas',
   'Zulia',
-]
+  'Distrito Capital',
+] as const
 
-export const CIUDADES_POR_ESTADO: Record<string, string[]> = {
-  'Amazonas': ['Puerto Ayacucho'],
-  'Anzoátegui': ['Anaco', 'Aragua de Barcelona', 'Barcelona', 'Boca de Uchire', 'Cantaura', 'Clarines', 'El Chaparro', 'El Pao', 'El Tigre', 'El Tigrito', 'Guanape', 'Guanta', 'Lechería', 'Onoto', 'Pariaguán', 'Píritu', 'Puerto La Cruz', 'Puerto Píritu', 'Sabana de Uchire', 'San Mateo', 'San Pablo', 'San Tomé', 'Santa Ana', 'Santa Fe', 'Santa Rosa', 'Soledad', 'Urica'],
-  'Apure': ['Achaguas', 'Biruaca', 'Bruzual', 'El Amparo', 'El Nula', 'Elorza', 'Guasdualito', 'Mantecal', 'Puerto Páez', 'San Fernando de Apure', 'San Juan de Payara'],
-  'Aragua': ['Cagua', 'Camatagua', 'Choroní', 'El Consejo', 'La Victoria', 'Las Tejerías', 'Magdaleno', 'Maracay', 'Ocumare de la Costa', 'Palo Negro', 'San Casimiro', 'San Mateo', 'San Sebastián', 'Tovar', 'Turmero', 'Villa de Cura', 'Zuata'],
-  'Barinas': ['Barinas', 'Barinitas', 'Barrancas', 'Calderas', 'Capitanejo', 'Ciudad Bolivia', 'El Cantón', 'Las Veguitas', 'Libertad', 'Sabaneta', 'Santa Bárbara', 'Socopó'],
-  'Bolívar': ['Caicara del Orinoco', ' Ciudad Bolívar', 'Ciudad Guayana', 'Ciudad Piar', 'El Callao', 'El Dorado', 'El Manteco', 'El Palmar', 'El Pao', 'Guri', 'Guasipati', 'Icabarú', 'La Paragua', 'Santa Elena de Uairén', 'Tumeremo', 'Upata'],
-  'Carabobo': ['Bejuma', 'Belén', 'Campo de Carabobo', 'Canoabo', 'Central Tacarigua', 'Chirgua', 'Ciudad Alianza', 'El Palito', 'Guacara', 'Las Trincheras', 'Los Guayos', 'Mariara', 'Miranda', 'Montalbán', 'Morón', 'Naguanagua', 'Puerto Cabello', 'San Joaquín', 'Tacarigua', 'Tocuyito', 'Urama', 'Valencia'],
-  'Cojedes': ['Anzoátegui', 'Apartaderos', 'Arismendi', 'Camuriquito', 'El Baúl', 'El Limón', 'El Pao', 'El Socorro', 'La Aguadita', 'Las Vegas', 'Libertad de Cojedes', 'Macapo', 'Tinaco', 'Tinaquillo', 'Vallecito'],
-  'Delta Amacuro': ['Curiapo', 'Imataca', 'Pedernales', 'San José', 'Tucupita'],
-  'Distrito Capital': ['Caracas'],
-  'Falcón': ['Adícora', 'Baraived', 'Boconó Falcón', 'Boca del Pozo', 'Capadare', 'Capatárida', 'Chichiriviche', 'Churuguara', 'Coro', 'Cumarebo', 'Dabajuro', 'Judibana', 'La Cruz', 'La Vela de Coro', 'Los Taques', 'Maparari', 'Mirimire', 'Mene de Mauroa', 'Pedregal', 'Pueblo Nuevo Falcón', 'Punta Cardón', 'Píritu Falcón', 'San Juan de los Cayos', 'Santa Ana Falcón', 'Tucacas'],
-  'Guárico': ['Altagracia de Orituco', 'Cabruta', 'Calabozo', 'Camaguán', 'Chaguaramas', 'El Sombrero', 'Las Mercedes', 'Lezama', 'Onoto', 'Ortíz', 'San José de Guaribe', 'San Juan de los Morros', 'San Rafael de Laya', 'Santa María de Ipire', 'Tucupido', 'Valle de la Pascua', 'Zaraza'],
-  'Lara': ['Aguada Grande', 'Atarigua', 'Barquisimeto', 'Bobare', 'Cabudare', 'Carora', 'Cubiro', 'Cují', 'Duaca', 'El Manzano', 'El Tocuyo', 'Guaríco Lara', 'Humocaro Alto', 'Humocaro Bajo', 'La Miel', 'Morán', 'Quíbor', 'Río Claro', 'Sanare', 'Santa Inés', 'Sarare', 'Siquisique', 'Tintorero'],
-  'Mérida': ['Apartaderos', 'Arapuey', 'Bailadores', 'Caja Seca', 'Canaguá', 'Chachopo', 'Ejido', 'El Vigía', 'La Azulita', 'La Playa', 'Lagunillas', 'Mérida', 'Mesa de Bolívar', 'Mucuchíes', 'Mucujepe', 'Mucurubá', 'Nueva Bolivia', 'Pueblo Nuevo Mérida', 'Sabana de Mendoza', 'Santa Cruz de Mora', 'Santa Elena de Arenales', 'Santo Domingo', 'Tabay', 'Timotes', 'Tovar', 'Tucaní', 'Zea'],
-  'Miranda': ['Aragüita', 'Carrizal', 'Caucagüita', 'Chaguaramas Miranda', 'Charallave', 'Chirimire', 'Cúa', 'Cupira', 'El Guapo', 'El Jarillo', 'Filas de Mariche', 'Guarenas', 'Guatire', 'Higuerote', 'Los Anaucos', 'Los Teques', 'Ocumare del Tuy', 'Panamericano', 'Paracotos', 'Petare', 'Río Chico', 'San Antonio de los Altos', 'San Diego', 'San Fernando del Guapo', 'San Francisco de Yare', 'San José de los Altos', 'San José de Río Chico', 'Santa Lucía', 'Santa Teresa del Tuy', 'Tacarigua de la Laguna', 'Tacarigua de Mamporal', 'Turumo'],
-  'Monagas': ['Aguasay', 'Aragua de Maturín', 'Barrancas del Orinoco', 'Caicara de Maturín', 'Caripito', 'Chaguaramas Monagas', 'Chaguaramal', 'El Furrial', 'El Tejero', 'Jusepín', 'La Toscana', 'Maturín', 'Miraflores', 'Punta de Mata', 'Quiriquire', 'San Antonio de Maturín', 'San Vicente', 'Santa Cruz de Maturín', 'Temblador', 'Tos de Tejerías', 'Uverito', 'Uracoa'],
-  'Nueva Esparta': ['Altagracia', 'Boca de Pozo', 'Boca de Río', 'El Espinal', 'El Valle', 'El Yaque', 'Juan Griego', 'La Asunción', 'La Guardia', 'Pedro González', 'Pampatar', 'Porlamar', 'Punta de Piedras', 'San Francisco', 'San Juan Bautista', 'San Pedro de Coche', 'Villa Rosa'],
-  'Portuguesa': ['Agua Blanca', 'Araure', 'Biscucuy', 'Boconoíto', 'Chabasquén', 'Guanare', 'Guanarito', 'La Aparición', 'La Misión', 'Mesa de Cavacas', 'Ospino', 'Papelón', 'Payara', 'Píritu de Portuguesa', 'San Rafael de Onoto', 'Santa Rosalía', 'Turén'],
-  'Sucre': ['Araya', 'Cariaco', 'Carúpano', 'Casanay', 'Cumaná', 'Cumanacoa', 'El Morro', 'El Pao Sucre', 'El Pilar', 'Guaca', 'Güiria', 'Irapa', 'Manicuare', 'Mariguita', 'Río Caribe', 'San Antonio del Golfo', 'San Vicente Sucre', 'Santa Fe Sucre', 'Tunapuy', 'Unare Sucre', 'Yaguaraparo', 'Yoco'],
-  'Táchira': ['Abejales', 'Borota', 'Bramón', 'Capacho', 'Colón', 'Coloncito', 'Cordero', 'El Cobre', 'El Pinal', 'Independencia', 'La Fría', 'La Grita', 'La Tendida', 'Lobatera', 'Michelena', 'Palmira', 'Pregonero', 'Queniquea', 'Rubio', 'San Antonio del Táchira', 'San Cristóbal', 'San José de Bolívar', 'San José del Valle', 'San Pedro del Río', 'Santa Ana del Táchira', 'Seboruco', 'Táriba', 'Ureña'],
-  'Trujillo': ['Batatal', 'Betijoque', 'Boconó', 'Carache', 'Chejendé', 'Chiquinquirá', 'El Dividive', 'El Jagüito', 'Escuque', 'Isnotú', 'Jajó', 'La Concepción', 'La Mesa de Esnujaque', 'La Puerta', 'La Quebrada', 'Mendoza', 'Meseta de Chimpire', 'Monay', 'Motatán', 'Pampán', 'Pampanito', 'Sabana de Mendoza', 'San Lázaro', 'Santa Ana Trujillo', 'Tostós', 'Trujillo', 'Valera'],
-  'Vargas': ['Caraballeda', 'Carayaca', 'La Guaira', 'Macuto', 'Maiquetía', 'Naiguatá', 'Ostional', 'Urimare'],
-  'Yaracuy': ['Aroa', 'Boraure', 'Campo Elías', 'Chivacoa', 'Cocorote', 'Farriar', 'Guama', 'Marín', 'Nirgua', 'Salom', 'San Felipe', 'San Pablo', 'Urachiche', 'Yaritagua'],
-  'Zulia': ['Bachaquero', 'Bobures', 'Cabimas', 'Campo Concepción', 'Campo Mara', 'Campo Rojo', 'Carrasquero', 'Casigua', 'Colón Zulia', 'El Batey', 'El Carmelo', 'El Chivo', 'El Danto', 'El Guasare', 'El Mene', 'Encontrados', 'Gibraltar', 'Isla de Toas', 'La Concepción Zulia', 'La Paz Zulia', 'La Sierrita', 'Lagunillas', 'Machiques', 'Maracaibo', 'Palmarejo', 'Pueblo Nuevo Zulia', 'Puertos de Altagracia', 'Punta Gorda', 'San Francisco', 'San Rafael del Moján', 'Santa Bárbara del Zulia', 'Santa Cruz de Mara', 'Santa Cruz del Zulia', 'Santa Rita', 'Sinamaica', 'Tamare', 'Tía Juana', 'Villa del Rosario'],
+export type Estado = typeof ESTADOS[number]
+
+// Municipios reales de Venezuela con su capital
+// { nombre: nombre del municipio, capital: ciudad principal }
+export interface Municipio {
+  nombre: string
+  capital: string
 }
 
-export function getCiudades(estado: string): string[] {
-  const c = CIUDADES_POR_ESTADO[estado] || []
-  return [...c].sort((a, b) => a.localeCompare(b, 'es'))
+export const MUNICIPIOS_POR_ESTADO: Record<string, Municipio[]> = {
+  'Amazonas': [
+    { nombre: 'Alto Orinoco', capital: 'La Esmeralda' },
+    { nombre: 'Atabapo', capital: 'San Fernando de Atabapo' },
+    { nombre: 'Atures', capital: 'Puerto Ayacucho' },
+    { nombre: 'Autana', capital: 'Isla Ratón' },
+    { nombre: 'Manapiare', capital: 'San Juan de Manapiare' },
+    { nombre: 'Maroa', capital: 'Maroa' },
+    { nombre: 'Río Negro', capital: 'San Carlos de Río Negro' },
+  ],
+
+  'Anzoátegui': [
+    { nombre: 'Anaco', capital: 'Anaco' },
+    { nombre: 'Aragua', capital: 'Aragua de Barcelona' },
+    { nombre: 'Fernando Peñalver', capital: 'Puerto Píritu' },
+    { nombre: 'Francisco de Miranda', capital: 'Pariaguán' },
+    { nombre: 'Francisco del Carmen Carvajal', capital: 'Valle de Guanape' },
+    { nombre: 'Simón Bolívar', capital: 'Barcelona' },
+    { nombre: 'Guanta', capital: 'Guanta' },
+    { nombre: 'Independencia', capital: 'Soledad' },
+    { nombre: 'José Gregorio Monagas', capital: 'Mapire' },
+    { nombre: 'Juan Antonio Sotillo', capital: 'Puerto La Cruz' },
+    { nombre: 'Juan Manuel Cajigal', capital: 'Onoto' },
+    { nombre: 'Libertad', capital: 'San Mateo' },
+    { nombre: 'Manuel Ezequiel Bruzual', capital: 'Clarines' },
+    { nombre: 'Pedro María Freites', capital: 'Cantaura' },
+    { nombre: 'San Juan de Capistrano', capital: 'Boca de Uchire' },
+    { nombre: 'Diego Bautista Urbaneja', capital: 'Lechería' },
+    { nombre: 'Píritu', capital: 'Píritu' },
+    { nombre: 'Santa Ana', capital: 'Santa Ana' },
+    { nombre: 'Simón Rodríguez', capital: 'El Tigre' },
+    { nombre: 'Sir Arthur McGregor', capital: 'El Chaparro' },
+  ],
+
+  'Apure': [
+    { nombre: 'Achaguas', capital: 'Achaguas' },
+    { nombre: 'Biruaca', capital: 'Biruaca' },
+    { nombre: 'Muñoz', capital: 'Bruzual' },
+    { nombre: 'Páez', capital: 'Guasdualito' },
+    { nombre: 'Pedro Camejo', capital: 'San Juan de Payara' },
+    { nombre: 'Rómulo Gallegos', capital: 'Elorza' },
+    { nombre: 'San Fernando', capital: 'San Fernando de Apure' },
+  ],
+
+  'Aragua': [
+    { nombre: 'Bolívar', capital: 'San Mateo' },
+    { nombre: 'Camatagua', capital: 'Camatagua' },
+    { nombre: 'Francisco Linares Alcántara', capital: 'Santa Rita' },
+    { nombre: 'Girardot', capital: 'Maracay' },
+    { nombre: 'José Ángel Lamas', capital: 'Santa Cruz de Aragua' },
+    { nombre: 'José Félix Ribas', capital: 'La Victoria' },
+    { nombre: 'José Rafael Revenga', capital: 'El Consejo' },
+    { nombre: 'Libertador', capital: 'Palo Negro' },
+    { nombre: 'Mario Briceño Iragorry', capital: 'El Limón' },
+    { nombre: 'Ocumare de la Costa de Oro', capital: 'Ocumare de la Costa' },
+    { nombre: 'San Casimiro', capital: 'San Casimiro' },
+    { nombre: 'San Sebastián', capital: 'San Sebastián' },
+    { nombre: 'Santiago Mariño', capital: 'Cagua' },
+    { nombre: 'Santos Michelena', capital: 'Las Tejerías' },
+    { nombre: 'Sucre', capital: 'Cumaná' },
+    { nombre: 'Tovar', capital: 'Colonia Tovar' },
+    { nombre: 'Urdaneta', capital: 'Barbacoas' },
+    { nombre: 'Zamora', capital: 'Villa de Cura' },
+  ],
+
+  'Barinas': [
+    { nombre: 'Alberto Arvelo Torrealba', capital: 'Sabaneta' },
+    { nombre: 'Andrés Eloy Blanco', capital: 'El Cantón' },
+    { nombre: 'Antonio José de Sucre', capital: 'Socopo' },
+    { nombre: 'Arismendi', capital: 'Arismendi' },
+    { nombre: 'Barinas', capital: 'Barinas' },
+    { nombre: 'Bolívar', capital: 'Barinitas' },
+    { nombre: 'Cruz Paredes', capital: 'Barrancas' },
+    { nombre: 'Ezequiel Zamora', capital: 'Santa Bárbara' },
+    { nombre: 'Obispos', capital: 'Obispos' },
+    { nombre: 'Pedraza', capital: 'Ciudad Bolivia' },
+    { nombre: 'Rojas', capital: 'Libertad' },
+    { nombre: 'Sosa', capital: 'Ciudad de Nutrias' },
+  ],
+
+  'Bolívar': [
+    { nombre: 'Angostura', capital: 'San Felix' },
+    { nombre: 'Caroní', capital: 'Ciudad Guayana' },
+    { nombre: 'Cedeño', capital: 'Caicara del Orinoco' },
+    { nombre: 'El Callao', capital: 'El Callao' },
+    { nombre: 'Gran Sabana', capital: 'Santa Elena de Uairén' },
+    { nombre: 'Heres', capital: 'Ciudad Bolívar' },
+    { nombre: 'Padre Pedro Chien', capital: 'El Palmar' },
+    { nombre: 'Piar', capital: 'Upata' },
+    { nombre: 'Roscio', capital: 'Guasipati' },
+    { nombre: 'Sifontes', capital: 'Tumeremo' },
+    { nombre: 'Sucre', capital: 'Maripa' },
+  ],
+
+  'Carabobo': [
+    { nombre: 'Bejuma', capital: 'Bejuma' },
+    { nombre: 'Carlos Arvelo', capital: 'Güigüe' },
+    { nombre: 'Diego Ibarra', capital: 'Mariara' },
+    { nombre: 'Guacara', capital: 'Guacara' },
+    { nombre: 'Juan José Mora', capital: 'Morón' },
+    { nombre: 'Libertador', capital: 'Tocuyito' },
+    { nombre: 'Los Guayos', capital: 'Los Guayos' },
+    { nombre: 'Miranda', capital: 'Miranda' },
+    { nombre: 'Montalbán', capital: 'Montalbán' },
+    { nombre: 'Naguanagua', capital: 'Naguanagua' },
+    { nombre: 'Puerto Cabello', capital: 'Puerto Cabello' },
+    { nombre: 'San Diego', capital: 'San Diego' },
+    { nombre: 'San Joaquín', capital: 'San Joaquín' },
+    { nombre: 'Valencia', capital: 'Valencia' },
+  ],
+
+  'Cojedes': [
+    { nombre: 'Anzoátegui', capital: 'El Pao' },
+    { nombre: 'Girardot', capital: 'Camuriquito' },
+    { nombre: 'Lima Blanco', capital: 'Macapo' },
+    { nombre: 'Pao de San Juan Bautista', capital: 'El Pao' },
+    { nombre: 'Ricaurte', capital: 'Libertad de Cojedes' },
+    { nombre: 'Román', capital: 'El Baúl' },
+    { nombre: 'San Carlos', capital: 'San Carlos' },
+    { nombre: 'Tinaquillo', capital: 'Tinaquillo' },
+    { nombre: 'Tinaco', capital: 'Tinaco' },
+  ],
+
+  'Delta Amacuro': [
+    { nombre: 'Antonio Díaz', capital: 'Curiapo' },
+    { nombre: 'Casacoima', capital: 'Imataca' },
+    { nombre: 'Pedernales', capital: 'Pedernales' },
+    { nombre: 'Tucupita', capital: 'Tucupita' },
+  ],
+
+  'Falcón': [
+    { nombre: 'Acosta', capital: 'San Juan de los Cayos' },
+    { nombre: 'Bolívar', capital: 'San Luis' },
+    { nombre: 'Buchivacoa', capital: 'Capatárida' },
+    { nombre: 'Cacique Manaure', capital: 'Yaracal' },
+    { nombre: 'Carirubana', capital: 'Punto Fijo' },
+    { nombre: 'Colina', capital: 'Churuguara' },
+    { nombre: 'Dabajuro', capital: 'Dabajuro' },
+    { nombre: 'Democracia', capital: 'Pedregal' },
+    { nombre: 'Falcón', capital: 'Píritu' },
+    { nombre: 'Federación', capital: 'Churuguara' },
+    { nombre: 'Jacure', capital: 'Jacure' },
+    { nombre: 'Los Taques', capital: 'Santa Cruz de Los Taques' },
+    { nombre: 'Mauroa', capital: 'Mene de Mauroa' },
+    { nombre: 'Miranda', capital: 'Santa Ana de Coro' },
+    { nombre: 'Monseñor Iturriza', capital: 'Capadare' },
+    { nombre: 'Palto Iturriza', capital: 'Chichiriviche' },
+    { nombre: 'Píritu', capital: 'Píritu' },
+    { nombre: 'San Francisco', capital: 'Mirimire' },
+    { nombre: 'Silva', capital: 'Tucacas' },
+    { nombre: 'Sucre', capital: 'La Cruz de Taratara' },
+    { nombre: 'Tocópero', capital: 'Tocópero' },
+    { nombre: 'Unión', capital: 'Santa Cruz de Bucaral' },
+    { nombre: 'Urumaco', capital: 'Urumaco' },
+    { nombre: 'Zamora', capital: 'Puerto Cumarebo' },
+  ],
+
+  'Guárico': [
+    { nombre: 'Camaguán', capital: 'Camaguán' },
+    { nombre: 'Chaguaramas', capital: 'Chaguaramas' },
+    { nombre: 'El Socorro', capital: 'El Socorro' },
+    { nombre: 'Julián Mellado', capital: 'El Sombrero' },
+    { nombre: 'Las Mercedes', capital: 'Las Mercedes' },
+    { nombre: 'Leonardo Infante', capital: 'Valle de la Pascua' },
+    { nombre: 'José Félix Ribas', capital: 'Tucupido' },
+    { nombre: 'Monagas', capital: 'Querecual' },
+    { nombre: 'Ortiz', capital: 'Ortiz' },
+    { nombre: 'San Gerónimo de Guayabal', capital: 'Guayabal' },
+    { nombre: 'San José de Guaribe', capital: 'San José de Guaribe' },
+    { nombre: 'Santa María de Ipire', capital: 'Santa María de Ipire' },
+    { nombre: 'Pedro Zaraza', capital: 'Zaraza' },
+  ],
+
+  'Lara': [
+    { nombre: 'Andrés Eloy Blanco', capital: 'Sanare' },
+    { nombre: 'Crespo', capital: 'Duaca' },
+    { nombre: 'Iribarren', capital: 'Barquisimeto' },
+    { nombre: 'Jiménez', capital: 'Quíbor' },
+    { nombre: 'Morán', capital: 'El Tocuyo' },
+    { nombre: 'Palavecino', capital: 'Cabudare' },
+    { nombre: 'Simón Planas', capital: 'Sarare' },
+    { nombre: 'Torres', capital: 'Carora' },
+    { nombre: 'Urdaneta', capital: 'Siquisique' },
+  ],
+
+  'Mérida': [
+    { nombre: 'Alberto Adriani', capital: 'El Vigía' },
+    { nombre: 'Andrés Bello', capital: 'Santa Elena de Arenales' },
+    { nombre: 'Antonio Pinto Salinas', capital: 'Santa Cruz de Mora' },
+    { nombre: 'Aricagua', capital: 'Aricagua' },
+    { nombre: 'Arzobispo Chacón', capital: 'Canaguá' },
+    { nombre: 'Campo Elías', capital: 'Ejido' },
+    { nombre: 'Caracciolo Parra Olmedo', capital: 'Tucaní' },
+    { nombre: 'Cardenal Quintero', capital: 'Santo Domingo' },
+    { nombre: 'Guaraque', capital: 'Guaraque' },
+    { nombre: 'Julio César Salas', capital: 'Arapuey' },
+    { nombre: 'Justo Briceño', capital: 'Torondoy' },
+    { nombre: 'Libertador', capital: 'Mérida' },
+    { nombre: 'Miranda', capital: 'Timotes' },
+    { nombre: 'Obispo Ramos de Lora', capital: 'Santa Elena de Arenales' },
+    { nombre: 'Padre Noguera', capital: 'Santa María de Caparo' },
+    { nombre: 'Pueblo Llano', capital: 'Pueblo Llano' },
+    { nombre: 'Rangel', capital: 'Mucuchíes' },
+    { nombre: 'Rivas Dávila', capital: 'Bailadores' },
+    { nombre: 'Santos Marquina', capital: 'Tabay' },
+    { nombre: 'Sucre', capital: 'Lagunillas' },
+    { nombre: 'Tovar', capital: 'Tovar' },
+    { nombre: 'Tulio Febres Cordero', capital: 'Nueva Bolivia' },
+    { nombre: 'Zea', capital: 'Zea' },
+  ],
+
+  'Miranda': [
+    { nombre: 'Acevedo', capital: 'Caucagüita' },
+    { nombre: 'Andrés Bello', capital: 'San José de Barlovento' },
+    { nombre: 'Baruta', capital: 'Nuestra Señora del Rosario de Baruta' },
+    { nombre: 'Brión', capital: 'Higuerote' },
+    { nombre: 'Buroz', capital: 'Mamporal' },
+    { nombre: 'Carrizal', capital: 'Carrizal' },
+    { nombre: 'Chacao', capital: 'Chacao' },
+    { nombre: 'Cristóbal Rojas', capital: 'Charallave' },
+    { nombre: 'El Hatillo', capital: 'Santa Rosalía de Palermo de El Hatillo' },
+    { nombre: 'Guaicaipuro', capital: 'Los Teques' },
+    { nombre: 'Independencia', capital: 'Santa Teresa del Tuy' },
+    { nombre: 'Lander', capital: 'Ocumare del Tuy' },
+    { nombre: 'Los Salias', capital: 'San Antonio de Los Altos' },
+    { nombre: 'Páez', capital: 'Río Chico' },
+    { nombre: 'Paz Castillo', capital: 'Guarenas' },
+    { nombre: 'Pedro Gual', capital: 'Cúpira' },
+    { nombre: 'Plaza', capital: 'Guatire' },
+    { nombre: 'Simón Bolívar', capital: 'San Francisco de Yare' },
+    { nombre: 'Sucre', capital: 'Petare' },
+    { nombre: 'Urdaneta', capital: 'Cúa' },
+    { nombre: 'Zamora', capital: 'Guatire' },
+  ],
+
+  'Monagas': [
+    { nombre: 'Acosta', capital: 'San Antonio de Capayacuar' },
+    { nombre: 'Aguasay', capital: 'Aguasay' },
+    { nombre: 'Bolívar', capital: 'Caripito' },
+    { nombre: 'Caripe', capital: 'Caripe' },
+    { nombre: 'Cedeño', capital: 'Caicara de Maturín' },
+    { nombre: 'Ezequiel Zamora', capital: 'Punta de Mata' },
+    { nombre: 'Libertador', capital: 'Santa Bárbara' },
+    { nombre: 'Maturín', capital: 'Maturín' },
+    { nombre: 'Piar', capital: 'Aragua de Maturín' },
+    { nombre: 'Punceres', capital: 'Quiriquire' },
+    { nombre: 'Santa Bárbara', capital: 'Santa Bárbara' },
+    { nombre: 'Sotillo', capital: 'Barrancas del Orinoco' },
+    { nombre: 'Uracoa', capital: 'Uracoa' },
+  ],
+
+  'Nueva Esparta': [
+    { nombre: 'Arismendi', capital: 'La Asunción' },
+    { nombre: 'Antolín del Campo', capital: 'Paraguachí' },
+    { nombre: 'Díaz', capital: 'San Juan Bautista' },
+    { nombre: 'Gómez', capital: 'Santa Ana' },
+    { nombre: 'Maneiro', capital: 'Pampatar' },
+    { nombre: 'Marcano', capital: 'Juan Griego' },
+    { nombre: 'Mariño', capital: 'Porlamar' },
+    { nombre: 'Península de Macanao', capital: 'Boca de Río' },
+    { nombre: 'Tubores', capital: 'Punta de Piedras' },
+    { nombre: 'Villalba', capital: 'San Pedro de Coche' },
+  ],
+
+  'Portuguesa': [
+    { nombre: 'Agua Blanca', capital: 'Agua Blanca' },
+    { nombre: 'Araure', capital: 'Araure' },
+    { nombre: 'Esteller', capital: 'Píritu' },
+    { nombre: 'Guanare', capital: 'Guanare' },
+    { nombre: 'Guanarito', capital: 'Guanarito' },
+    { nombre: 'Monseñor José Vicente de Unda', capital: 'Boconoíto' },
+    { nombre: 'Ospino', capital: 'Ospino' },
+    { nombre: 'Páez', capital: 'Payara' },
+    { nombre: 'Papelón', capital: 'Papelón' },
+    { nombre: 'San Genaro de Boconoíto', capital: 'Boconoíto' },
+    { nombre: 'San Rafael de Onoto', capital: 'San Rafael de Onoto' },
+    { nombre: 'Santa Rosalía', capital: 'Santa Rosalía' },
+    { nombre: 'Sucre', capital: 'Biscucuy' },
+    { nombre: 'Turén', capital: 'Villa Bruzual' },
+  ],
+
+  'Sucre': [
+    { nombre: 'Andrés Eloy Blanco', capital: 'Casanay' },
+    { nombre: 'Andrés Mata', capital: 'San José de Aerocuar' },
+    { nombre: 'Arismendi', capital: 'Río Caribe' },
+    { nombre: 'Benítez', capital: 'El Pilar' },
+    { nombre: 'Bermúdez', capital: 'Carúpano' },
+    { nombre: 'Bolívar', capital: 'Mariguitar' },
+    { nombre: 'Cajigal', capital: 'Yaguaraparo' },
+    { nombre: 'Cruz Salmerón Acosta', capital: 'Araya' },
+    { nombre: 'Libertador', capital: 'Tunapuy' },
+    { nombre: 'Mariño', capital: 'Irapa' },
+    { nombre: 'Mejía', capital: 'San Antonio del Golfo' },
+    { nombre: 'Montes', capital: 'Cumanacoa' },
+    { nombre: 'Ribas', capital: 'Cumaná' },
+    { nombre: 'Sucre', capital: 'Yaguaraparo' },
+    { nombre: 'Urdaneta', capital: 'Tunapuy' },
+    { nombre: 'Valdez', capital: 'Güiria' },
+  ],
+
+  'Táchira': [
+    { nombre: 'Andrés Bello', capital: 'Borota' },
+    { nombre: 'Antonio Rómulo Costa', capital: 'Las Delicias' },
+    { nombre: 'Ayacucho', capital: 'Colón' },
+    { nombre: 'Bolívar', capital: 'Santa Ana del Táchira' },
+    { nombre: 'Cárdenas', capital: 'Táriba' },
+    { nombre: 'Córdoba', capital: 'Santa Cruz de Mora' },
+    { nombre: 'Fernández Feo', capital: 'San Rafael del Piñal' },
+    { nombre: 'Francisco de Miranda', capital: 'San José de Bolívar' },
+    { nombre: 'García de Hevia', capital: 'La Fría' },
+    { nombre: 'Guásimos', capital: 'Palmira' },
+    { nombre: 'Independencia', capital: 'Capacho' },
+    { nombre: 'Jáuregui', capital: 'La Grita' },
+    { nombre: 'José María Vargas', capital: 'El Cobre' },
+    { nombre: 'Junín', capital: 'Rubio' },
+    { nombre: 'Libertad', capital: 'Capacho' },
+    { nombre: 'Libertador', capital: 'Abejales' },
+    { nombre: 'Lobatera', capital: 'Lobatera' },
+    { nombre: 'Michelena', capital: 'Michelena' },
+    { nombre: 'Panamericano', capital: 'Coloncito' },
+    { nombre: 'Pedro María Ureña', capital: 'Ureña' },
+    { nombre: 'Rafael Urdaneta', capital: 'Delicias' },
+    { nombre: 'Samuel Darío Maldonado', capital: 'La Tendida' },
+    { nombre: 'San Cristóbal', capital: 'San Cristóbal' },
+    { nombre: 'Seboruco', capital: 'Seboruco' },
+    { nombre: 'Simón Rodríguez', capital: 'San Simón' },
+    { nombre: 'Sucre', capital: 'Queniquea' },
+    { nombre: 'Torbes', capital: 'San José de Las Minas' },
+    { nombre: 'Uribante', capital: 'Pregonero' },
+  ],
+
+  'Trujillo': [
+    { nombre: 'Andrés Bello', capital: 'Santa Isabel' },
+    { nombre: 'Boconó', capital: 'Boconó' },
+    { nombre: 'Bolívar', capital: 'Sabana Grande' },
+    { nombre: 'Candelaria', capital: 'Chejendé' },
+    { nombre: 'Carache', capital: 'Carache' },
+    { nombre: 'Escuque', capital: 'Escuque' },
+    { nombre: 'José Felipe Márquez Cañizalez', capital: 'El Carmen' },
+    { nombre: 'Juan Vicente', capital: 'La Concepción' },
+    { nombre: 'La Paz', capital: 'Santa Cruz' },
+    { nombre: 'Monte Carmelo', capital: 'Monte Carmelo' },
+    { nombre: 'Motatán', capital: 'Motatán' },
+    { nombre: 'Pampán', capital: 'Pampán' },
+    { nombre: 'Pampanito', capital: 'Pampanito' },
+    { nombre: 'Rafael Rangel', capital: 'Betijoque' },
+    { nombre: 'San Rafael de Carvajal', capital: 'Carvajal' },
+    { nombre: 'Sucre', capital: 'Sabana de Mendoza' },
+    { nombre: 'Trujillo', capital: 'Trujillo' },
+    { nombre: 'Urdaneta', capital: 'La Quebrada' },
+    { nombre: 'Valera', capital: 'Valera' },
+  ],
+
+  'Yaracuy': [
+    { nombre: 'Arístides Bastidas', capital: 'San Pablo' },
+    { nombre: 'Bolívar', capital: 'Aroa' },
+    { nombre: 'Bruzual', capital: 'Chivacoa' },
+    { nombre: 'Cocorote', capital: 'Cocorote' },
+    { nombre: 'Independencia', capital: 'Independencia' },
+    { nombre: 'José Antonio Páez', capital: 'Yaritagua' },
+    { nombre: 'La Trinidad', capital: 'Boraure' },
+    { nombre: 'Manuel Monge', capital: 'Yumare' },
+    { nombre: 'Nirgua', capital: 'Nirgua' },
+    { nombre: 'Peña', capital: 'Yaritagua' },
+    { nombre: 'San Felipe', capital: 'San Felipe' },
+    { nombre: 'Sucre', capital: 'Guama' },
+    { nombre: 'Urachiche', capital: 'Urachiche' },
+    { nombre: 'Veroes', capital: 'El Guayabo' },
+  ],
+
+  'Vargas': [
+    { nombre: 'Vargas', capital: 'La Guaira' },
+  ],
+
+  'Zulia': [
+    { nombre: 'Almirante Padilla', capital: 'El Toro' },
+    { nombre: 'Baralt', capital: 'San Timoteo' },
+    { nombre: 'Cabimas', capital: 'Cabimas' },
+    { nombre: 'Catatumbo', capital: 'El Zulia' },
+    { nombre: 'Colón', capital: 'San Carlos del Zulia' },
+    { nombre: 'Francisco Javier Pulgar', capital: 'Pueblo Nuevo' },
+    { nombre: 'Jesús Enrique Lossada', capital: 'La Concepción' },
+    { nombre: 'Jesús María Semprúm', capital: 'Casigua' },
+    { nombre: 'La Cañada de Urdaneta', capital: 'Villa del Rosario' },
+    { nombre: 'Lagunillas', capital: 'Ciudad Ojeda' },
+    { nombre: 'Machiques de Perijá', capital: 'Machiques' },
+    { nombre: 'Mara', capital: 'San Rafael del Moján' },
+    { nombre: 'Maracaibo', capital: 'Maracaibo' },
+    { nombre: 'Miranda', capital: 'Los Puertos de Altagracia' },
+    { nombre: 'Rosario de Perijá', capital: 'La Villa del Rosario' },
+    { nombre: 'San Francisco', capital: 'San Francisco' },
+    { nombre: 'Santa Rita', capital: 'Santa Rita' },
+    { nombre: 'Simón Bolívar', capital: 'Tía Juana' },
+    { nombre: 'Sucre', capital: 'Bachaquero' },
+    { nombre: 'Valmore Rodríguez', capital: 'Bachaquero' },
+  ],
+
+  'Distrito Capital': [
+    { nombre: 'Libertador', capital: 'Caracas' },
+  ],
+}
+
+// Helper: obtener municipios de un estado
+export function getMunicipios(estado: string): Municipio[] {
+  return MUNICIPIOS_POR_ESTADO[estado] || []
+}
+
+// Helper: obtener solo los nombres de municipios de un estado
+export function getMunicipiosNombres(estado: string): string[] {
+  const municipios = getMunicipios(estado)
+  return municipios.map(m => m.nombre).sort((a, b) => a.localeCompare(b, 'es'))
+}
+
+// Helper: obtener la capital de un municipio
+export function getCapital(estado: string, municipio: string): string {
+  const municipios = getMunicipios(estado)
+  const m = municipios.find(m => m.nombre === municipio)
+  return m?.capital || ''
+}
+
+// Legacy: mantener compatibilidad con CIUDADES_POR_ESTADO
+export const CIUDADES_POR_ESTADO: Record<string, string[]> = {}
+for (const estado of ESTADOS) {
+  CIUDADES_POR_ESTADO[estado] = getMunicipiosNombres(estado)
 }

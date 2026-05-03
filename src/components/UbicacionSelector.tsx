@@ -1,15 +1,22 @@
 'use client'
 
-import { ESTADOS, getCiudades } from '@/lib/ubicaciones'
+import { ESTADOS, getMunicipiosNombres, getMunicipios, Municipio } from '@/lib/ubicaciones'
 
 interface UbicacionSelectorProps {
   estado: string
-  ciudad: string
+  ciudad: string  // se mantiene como "ciudad" para compatibilidad, pero ahora es el municipio
   onChange: (estado: string, ciudad: string) => void
+  showCapital?: boolean  // mostrar la capital del municipio como hint
 }
 
-export default function UbicacionSelector({ estado, ciudad, onChange }: UbicacionSelectorProps) {
-  const ciudades = estado ? getCiudades(estado) : []
+export default function UbicacionSelector({ estado, ciudad, onChange, showCapital = false }: UbicacionSelectorProps) {
+  const municipios = estado ? getMunicipiosNombres(estado) : []
+  const todosMunicipios = estado ? getMunicipios(estado) : []
+
+  // Encontrar la capital del municipio seleccionado para mostrar como hint
+  const capitalSeleccionada = showCapital && estado && ciudad 
+    ? todosMunicipios.find(m => m.nombre === ciudad)?.capital 
+    : null
 
   return (
     <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
@@ -32,20 +39,28 @@ export default function UbicacionSelector({ estado, ciudad, onChange }: Ubicacio
           </select>
         </div>
 
-        {/* Ciudad */}
+        {/* Municipio (antes Ciudad) */}
         <div>
-          <label className="block text-xs font-medium text-gray-500 mb-1">Ciudad</label>
+          <label className="block text-xs font-medium text-gray-500 mb-1">
+            Municipio
+          </label>
           <select
             value={ciudad}
             onChange={(e) => { onChange(estado, e.target.value) }}
             disabled={!estado}
             className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-800 bg-white focus:outline-none focus:ring-2 focus:ring-brand-yellow disabled:bg-gray-100 disabled:text-gray-400"
           >
-            <option value="">Todas las ciudades</option>
-            {ciudades.map((c) => (
-              <option key={c} value={c}>{c}</option>
+            <option value="">Todos los municipios</option>
+            {municipios.map((m) => (
+              <option key={m} value={m}>
+                {m}
+                {capitalSeleccionada === m && showCapital ? ` (${getMunicipios(estado).find(x => x.nombre === m)?.capital || ''})` : ''}
+              </option>
             ))}
           </select>
+          {capitalSeleccionada && (
+            <p className="text-xs text-gray-400 mt-1">Capital: {capitalSeleccionada}</p>
+          )}
         </div>
 
         {/* Limpiar */}

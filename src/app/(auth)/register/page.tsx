@@ -141,7 +141,7 @@ export default function RegisterPage() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Ciudad</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Municipio</label>
                 <select
                   value={ciudad}
                   onChange={(e) => setCiudad(e.target.value)}
