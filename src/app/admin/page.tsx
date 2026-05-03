@@ -13,6 +13,7 @@ import {
   Search, ShieldCheck
 } from 'lucide-react'
 import VerificacionTab from './VerificacionTab'
+import MetricasTab from './MetricasTab'
 
 // ← TU EMAIL
 const ADMIN_EMAILS = ['gtrespana@gmail.com']
@@ -28,6 +29,7 @@ const TABS = [
   { id: 'categorias', label: 'Categorías', icon: Tag },
   { id: 'exportar', label: 'Exportar', icon: Download },
   { id: 'creditos', label: 'Créditos', icon: PlusCircle },
+  { id: 'metricas', label: 'Métricas', icon: BarChart3 },
 ] as const
 
 // ============================ MODERACIÓN TAB ============================
@@ -268,7 +270,8 @@ export default function AdminPage() {
       {tab === 'anuncios' && <TabAnuncios notify={notify} />}
       {tab === 'categorias' && <TabCategorias notify={notify} />}
       {tab === 'creditos' && <TabCreditos perfiles={perfiles} notify={notify} />}
-      {tab === 'exportar' && <TabExportar />}
+      {tab === 'exportar' && <TabExportar perfiles={perfiles} />}
+      {tab === 'metricas' && <MetricasTab />}
     </div>
   )
 }

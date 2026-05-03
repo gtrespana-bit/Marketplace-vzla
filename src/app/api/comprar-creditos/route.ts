@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { checkRateLimit } from '@/lib/rate-limit'
 
 // POST /api/comprar-creditos
 // Todo pasa a revisión manual + Telegram con botones approve/reject
@@ -22,6 +23,12 @@ export async function POST(req: NextRequest) {
 
   if (!userId || !creditos || !metodoPago || !comprobanteUrl) {
     return NextResponse.json({ ok: false, error: 'Missing fields' }, { status: 400 })
+  }
+
+  // Rate limiting: max 3 compras por hora por usuario
+  const rl = checkRateLimit('creditos:comprar', userId)
+  if (!rl.ok) {
+    return NextResponse.json({ ok: false, error: `Demasiados intentos. Espera ${Math.ceil(rl.resetIn / 60000)} min` }, { status: 429 })
   }
 
   // Guardar como pendiente
