@@ -15,6 +15,10 @@ export default function LoginPage() {
   const [showResend, setShowResend] = useState(false)
   const [resendSuccess, setResendSuccess] = useState(false)
   const [resendLoading, setResendLoading] = useState(false)
+  const [showReset, setShowReset] = useState(false)
+  const [resetSent, setResetSent] = useState(false)
+  const [resetLoading, setResetLoading] = useState(false)
+  const [resetError, setResetError] = useState('')
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -55,6 +59,23 @@ export default function LoginPage() {
       setResendSuccess(true)
     }
     setResendLoading(false)
+  }
+
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setResetError('')
+    setResetLoading(true)
+
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    })
+
+    if (error) {
+      setResetError(error.message)
+    } else {
+      setResetSent(true)
+    }
+    setResetLoading(false)
   }
 
   return (
@@ -100,6 +121,63 @@ export default function LoginPage() {
                 className="w-full border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-yellow text-gray-900 bg-white"
               />
             </div>
+
+            <div className="text-right">
+              <button
+                type="button"
+                onClick={() => setShowReset(!showReset)}
+                className="text-sm text-brand-blue hover:underline font-medium"
+              >
+                ¿Olvidaste tu contraseña?
+              </button>
+            </div>
+
+            {showReset && !resetSent ? (
+              <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 animate-fadeIn">
+                <p className="text-sm text-yellow-800 mb-3 font-medium">Te enviaremos un enlace para restablecer tu contraseña</p>
+                {resetError && (
+                  <p className="text-sm text-red-600 mb-3">{resetError}</p>
+                )}
+                <form onSubmit={handleResetPassword} className="space-y-3">
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="tu@email.com"
+                    required
+                    className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-yellow bg-white"
+                  />
+                  <button
+                    type="submit"
+                    disabled={resetLoading}
+                    className="w-full bg-brand-blue text-white py-2.5 rounded-lg font-semibold hover:bg-blue-900 transition disabled:opacity-50 text-sm"
+                  >
+                    {resetLoading ? 'Enviando...' : 'Enviar enlace de restablecimiento'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowReset(false)}
+                    className="w-full text-sm text-gray-600 hover:text-gray-800"
+                  >
+                    Cancelar
+                  </button>
+                </form>
+              </div>
+            ) : showReset && resetSent ? (
+              <div className="bg-green-50 border border-green-200 rounded-xl p-4 text-center animate-fadeIn">
+                <p className="text-sm text-green-700 font-semibold mb-2">✅ Enlace enviado</p>
+                <p className="text-sm text-green-600">
+                  Revisa tu email en <strong>{email}</strong> y sigue el enlace para crear una nueva contraseña.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => { setShowReset(false); setResetSent(false) }}
+                  className="text-sm text-brand-blue font-semibold hover:underline mt-3"
+                >
+                  Volver al login
+                </button>
+              </div>
+            ) : null}
 
             <button
               type="submit"

@@ -8,7 +8,7 @@ import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/components/AuthProvider'
 import {
   Plus, Package, MessageSquare, CreditCard,
-  Eye, Heart, LogOut, X, Pause, Play, Edit, Zap, Star, ShieldCheck,
+  Eye, Heart, LogOut, X, Pause, Play, Edit, Zap, Star, ShieldCheck, Key,
   Camera, Phone, Mail, MapPin, Save, CheckCircle, Copy, Upload, Loader2
 } from 'lucide-react'
 import SolicitarVerificacion from '@/components/SolicitarVerificacion'
@@ -38,6 +38,12 @@ export default function DashboardPage() {
   const [fotoUrl, setFotoUrl] = useState<string | null>(null)
   const [editando, setEditando] = useState(false)
   const [guardando, setGuardando] = useState(false)
+  const [cambiarPw, setCambiarPw] = useState(false)
+  const [pwActual, setPwActual] = useState('')
+  const [pwNueva, setPwNueva] = useState('')
+  const [pwRepetir, setPwRepetir] = useState('')
+  const [pwError, setPwError] = useState('')
+  const [pwGuardando, setPwGuardando] = useState(false)
 
   // Read tab from URL (for redirect from /mi-perfil)
   useEffect(() => {
@@ -146,6 +152,38 @@ export default function DashboardPage() {
     setTimeout(() => setToast(null), 4000)
   }
 
+  async function handleCambiarPassword(e: React.FormEvent) {
+    e.preventDefault()
+    setPwError('')
+    if (pwNueva !== pwRepetir) { setPwError('Las contraseñas no coinciden'); return }
+    if (pwNueva.length < 8) { setPwError('La contraseña debe tener al menos 8 caracteres'); return }
+    setPwGuardando(true)
+
+    // Primero verificamos que la contraseña actual sea correcta re-login
+    const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+      email: user!.email!,
+      password: pwActual,
+    })
+    if (signInError || !signInData.user) {
+      setPwError('La contraseña actual es incorrecta')
+      setPwGuardando(false)
+      return
+    }
+
+    const { error } = await supabase.auth.updateUser({ password: pwNueva })
+    if (error) {
+      setPwError(error.message)
+    } else {
+      setToast('✅ Contraseña actualizada correctamente')
+      setCambiarPw(false)
+      setPwActual('')
+      setPwNueva('')
+      setPwRepetir('')
+    }
+    setPwGuardando(false)
+    setTimeout(() => setToast(null), 4000)
+  }
+
   async function handleFoto(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file || !user || !file.type.startsWith('image/')) return
@@ -247,6 +285,42 @@ export default function DashboardPage() {
             <Link href="/creditos" className="block text-center text-sm text-brand-blue hover:underline">¿Necesitas más créditos? Comprar →</Link>
           </div>
         </div>
+      </div>
+      )}
+
+      {/* ===== CAMBIAR CONTRASEÑA MODAL ===== */}
+      {cambiarPw && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => setCambiarPw(false)}>
+          <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xl font-bold text-gray-800">Cambiar contraseña</h3>
+              <button onClick={() => { setCambiarPw(false); setPwError(''); setPwActual(''); setPwNueva(''); setPwRepetir('') }} className="p-1 hover:bg-gray-100 rounded-lg"><X size={20} /></button>
+            </div>
+            {pwError && (
+              <div className="bg-red-50 text-red-700 p-3 rounded-lg mb-4 text-sm flex items-center gap-2">
+                ⚠️ {pwError}
+              </div>
+            )}
+            <form onSubmit={handleCambiarPassword} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Contraseña actual</label>
+                <input type="password" value={pwActual} onChange={e => setPwActual(e.target.value)} required className="w-full border rounded-lg px-3 py-2 text-sm bg-white" placeholder="Tu contraseña actual" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Nueva contraseña</label>
+                <input type="password" value={pwNueva} onChange={e => setPwNueva(e.target.value)} required className="w-full border rounded-lg px-3 py-2 text-sm bg-white" placeholder="Mínimo 8 caracteres" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Repetir nueva contraseña</label>
+                <input type="password" value={pwRepetir} onChange={e => setPwRepetir(e.target.value)} required className="w-full border rounded-lg px-3 py-2 text-sm bg-white" placeholder="Repite la nueva contraseña" />
+              </div>
+              <div className="flex gap-3">
+                <button type="button" onClick={() => setCambiarPw(false)} className="flex-1 py-3 border border-gray-200 rounded-lg font-medium text-gray-600 hover:bg-gray-50">Cancelar</button>
+                <button type="submit" disabled={pwGuardando} className="flex-1 py-3 bg-brand-blue text-white rounded-lg font-bold hover:bg-blue-900 disabled:opacity-50">{pwGuardando ? 'Guardando...' : 'Cambiar contraseña'}</button>
+              </div>
+            </form>
+          </div>
+        </div>
       )}
 
       {/* ===== ZONA 1: PERFIL DEL USUARIO ===== */}
@@ -306,6 +380,9 @@ export default function DashboardPage() {
                 <div className="flex gap-2 w-full sm:w-auto">
                   <button onClick={() => setEditando(true)} className="flex-1 sm:flex-none flex items-center justify-center gap-1 border px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-gray-50 transition">
                     <Edit size={14} /> Editar perfil
+                  </button>
+                  <button onClick={() => setCambiarPw(true)} className="flex items-center gap-1 text-brand-blue hover:bg-blue-50 px-3 py-1.5 rounded-lg text-sm font-medium transition">
+                    <Key size={14} /> Cambiar contraseña
                   </button>
                   <button onClick={handleLogout} className="flex items-center gap-1 text-red-600 hover:bg-red-50 px-3 py-1.5 rounded-lg text-sm font-medium transition">
                     <LogOut size={14} /> Salir
