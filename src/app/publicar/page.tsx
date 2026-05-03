@@ -9,6 +9,7 @@ import { categoriasData } from '@/lib/categorias'
 import { ESTADOS, getMunicipiosNombres } from '@/lib/ubicaciones'
 import { Camera, X, UploadCloud, AlertCircle, Phone, Mail, MapPin, MessageSquare } from 'lucide-react'
 import { verificarContenido, formatearAlertaModeracion } from '@/lib/moderacion'
+import { emailProductoPublicado } from '@/lib/server-email'
 
 const currentYear = new Date().getFullYear()
 const years = Array.from({ length: 30 }, (_, i) => String(currentYear - i))
@@ -274,6 +275,10 @@ export default function PublicarPage() {
             setTimeout(() => setShowEmprendedor(false), 6000)
           }
         }
+
+        // EMAIL: notificar que el producto fue publicado
+        const nombrePublicador = user?.email?.split('@')[0] || 'Usuario'
+        emailProductoPublicado(user.email || '', nombrePublicador, titulo, precioUsd, producto.id)
         
         router.push(`/producto/${producto.id}?nuevo=1`)
       }

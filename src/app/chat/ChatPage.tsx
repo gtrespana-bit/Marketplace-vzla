@@ -7,6 +7,7 @@ import { useAuth } from '@/components/AuthProvider'
 import Avatar from '@/components/Avatar'
 import { Send, ArrowLeft, Search, User, Trash2, ExternalLink } from 'lucide-react'
 import Link from 'next/link'
+import { emailMensajeRecibido } from '@/lib/server-email'
 
 type Conversacion = {
   id: string
@@ -18,6 +19,7 @@ type Conversacion = {
   creado_en: string
   otro_nombre: string
   otro_foto: string | null
+  otro_email: string | null
   producto_titulo: string | null
   no_leidos: number
 }
@@ -110,12 +112,12 @@ export default function ChatPageClient() {
     if (productoId && !prodIds.includes(productoId)) prodIds.push(productoId)
 
     const [perfilesRes, productosRes] = await Promise.all([
-      otroIds.length ? supabase.from('perfiles').select('id, nombre, foto_perfil_url').in('id', otroIds) : Promise.resolve({ data: [] }),
+      otroIds.length ? supabase.from('perfiles').select('id, nombre, foto_perfil_url, email').in('id', otroIds) : Promise.resolve({ data: [] }),
       prodIds.length ? supabase.from('productos').select('id, titulo').in('id', prodIds) : Promise.resolve({ data: [] }),
     ])
 
-    const perfilMap = new Map<string, { nombre: string; foto: string | null }>()
-    perfilesRes.data?.forEach(p => perfilMap.set(p.id, { nombre: p.nombre || 'Usuario', foto: p.foto_perfil_url || null }))
+    const perfilMap = new Map<string, { nombre: string; foto: string | null; email: string | null }>()
+    perfilesRes.data?.forEach(p => perfilMap.set(p.id, { nombre: p.nombre || 'Usuario', foto: p.foto_perfil_url || null, email: (p as any).email || null }))
 
     const prodMap = new Map<string, string>()
     productosRes.data?.forEach(p => prodMap.set(p.id, p.titulo || ''))
@@ -142,6 +144,7 @@ export default function ChatPageClient() {
         ...c,
         otro_nombre: p?.nombre || 'Usuario',
         otro_foto: p?.foto || null,
+        otro_email: p?.email || null,
         producto_titulo: c.producto_id ? (prodMap.get(c.producto_id) || null) : null,
         no_leidos: unreadMap.get(c.id) || 0,
       }
@@ -301,6 +304,13 @@ export default function ChatPageClient() {
       setTexto('')
       // Reload messages after send (also realtime will catch it)
       await loadMensajes(convId)
+
+      // EMAIL: notificar al destinatario que recibió un mensaje
+      if (conv.otro_email && user.id !== destinatarioId) {
+        const producto = conv.producto_titulo || 'un producto'
+        const preview = msg.length > 100 ? msg.substring(0, 100) + '...' : msg
+        emailMensajeRecibido(conv.otro_email, conv.otro_nombre, user.email?.split('@')[0] || 'Alguien', producto, preview)
+      }
     }
     setEnviando(false)
   }
