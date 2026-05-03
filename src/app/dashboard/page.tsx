@@ -398,17 +398,11 @@ export default function DashboardPage() {
                   {/* Badges — lo que otros ven de tu perfil */}
                   <div className="mt-2 flex flex-wrap items-center gap-2">
                     {verificado && <BadgeVerificado size="sm" />}
-                    <SellerReputation
+                    {/* Inline nivel badge */}
+                    <NivelBadgeSmall
                       nivel={nivelConfianza}
-                      numResenas={resenas.length}
-                      promedioResenas={promedioResenas}
-                      numPubsActivas={pubCount}
-                      numPubsVendidas={productos.filter((p: any) => !p.activo && p.estado_moderacion !== 'rechazado').length}
-                      antiguedadDias={creadoEn ? Math.floor((Date.now() - new Date(creadoEn).getTime()) / (1000*60*60*24)) : 0}
-                      ultimaActividad={ultimaActividad}
-                      verificado={verificado}
-                      badges={badgesAuto}
-                      size="sm"
+                      resenas={resenas.length}
+                      promedio={promedioResenas}
                     />
                   </div>
                 </div>
@@ -1060,6 +1054,36 @@ function MiReputacion({
           </div>
         </div>
       </div>
+    </div>
+  )
+}
+
+// ====== Inline badge for profile header (compact, una fila) ======
+function NivelBadgeSmall({ nivel, resenas, promedio }: { nivel: number; resenas: number; promedio: number }) {
+  const ICONOS: Record<number, string> = { 0: '🥉', 1: '🥈', 2: '🥇', 3: '💎', 4: '💠', 5: '👑' }
+  const NIVELES: Record<number, { nombre: string; bg: string; text: string; border: string }> = {
+    0: { nombre: 'Bronce', bg: 'bg-orange-50', text: 'text-orange-800', border: 'border-orange-200' },
+    1: { nombre: 'Plata', bg: 'bg-gray-100', text: 'text-gray-700', border: 'border-gray-300' },
+    2: { nombre: 'Oro', bg: 'bg-yellow-50', text: 'text-yellow-800', border: 'border-yellow-300' },
+    3: { nombre: 'Platino', bg: 'bg-sky-50', text: 'text-sky-800', border: 'border-sky-200' },
+    4: { nombre: 'Diamante', bg: 'bg-purple-50', text: 'text-purple-800', border: 'border-purple-200' },
+    5: { nombre: 'Maestro', bg: 'bg-gradient-to-r from-yellow-50 to-purple-50', text: 'text-purple-900', border: 'border-purple-300' },
+  }
+
+  const n = Math.min(nivel, 5)
+  const cfg = NIVELES[n]
+
+  return (
+    <div className="inline-flex items-center gap-1.5 text-xs">
+      <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full border ${cfg.bg} ${cfg.border}`}>
+        <span className="text-sm leading-none">{ICONOS[n]}</span>
+        <span className={`font-semibold ${cfg.text}`}>{cfg.nombre}</span>
+      </span>
+      {resenas > 0 && (
+        <span className="text-gray-500">
+          ⭐ {promedio.toFixed(1)} · {resenas} reseña{resenas !== 1 ? 's' : ''}
+        </span>
+      )}
     </div>
   )
 }

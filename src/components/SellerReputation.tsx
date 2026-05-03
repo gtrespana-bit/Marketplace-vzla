@@ -56,37 +56,38 @@ export default function SellerReputation({
   if (!cfg) return null
 
   return (
-    <div className="space-y-4">
-      {/* Nivel principal */}
-      <div className={`inline-flex items-center gap-2.5 px-3 py-1.5 rounded-full border ${cfg.bg} ${cfg.border}`}>
-        <span className="text-base">{icon}</span>
-        <span className={`text-xs font-bold ${cfg.text}`}>
-          {cfg.nombre} — {cfg.desc}
-        </span>
-        {!isCompact && (nivel > 0) && (
-          <span className={`text-[10px] italic ${cfg.text.replace(/800/g, '500').replace(/700/g, '500').replace(/600/g, '400')}`}>
-            · Nivel {nivel}
+    <div className="space-y-3">
+      {/* Fila 1: Nivel principal + Reseñas inline */}
+      <div className="flex flex-wrap items-center gap-2">
+        <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full border ${cfg.bg} ${cfg.border}`}>
+          <span className="text-base leading-none">{icon}</span>
+          <span className={`text-xs font-bold ${cfg.text}`}>
+            {cfg.nombre} — {cfg.desc}
+          </span>
+          {nivel > 0 && (
+            <span className={`text-[10px] italic ${cfg.text.replace(/800/g, '500').replace(/700/g, '500').replace(/600/g, '400')}`}>
+              · Nivel {nivel}
+            </span>
+          )}
+        </div>
+        {numResenas > 0 && (
+          <span className="inline-flex items-center gap-1 text-xs text-gray-500">
+            <Star size={12} className="text-yellow-400 fill-yellow-400" />
+            {promedioResenas.toFixed(1)} · {numResenas} reseña{numResenas !== 1 ? 's' : ''}
           </span>
         )}
       </div>
 
-      {/* Reseñas (separado del nivel para no confundir) */}
-      {numResenas > 0 && (
-        <div className="text-xs text-gray-500">
-          ⭐ {promedioResenas.toFixed(1)} de 5 · {numResenas} reseña{numResenas !== 1 ? 's' : ''}
-        </div>
-      )}
-
-      {/* Badges automáticos */}
+      {/* Fila 2: Badges automáticos */}
       {badges.length > 0 && (
         <div className="flex flex-wrap gap-1.5">
-          {badges.slice(0, isCompact ? 2 : 6).map(badge => {
+          {badges.slice(0, isCompact ? 4 : 6).map(badge => {
             const bCfg = BADGE_CONFIG[badge]
             if (!bCfg) return null
             return (
               <span
                 key={badge}
-                className={`inline-flex items-center text-[11px] font-bold px-2.5 py-0.5 rounded-full border ${bCfg.color}`}
+                className={`inline-flex items-center text-[11px] font-medium px-2.5 py-0.5 rounded-full border ${bCfg.color}`}
                 title={bCfg.tooltip}
               >
                 {bCfg.label}
@@ -96,14 +97,15 @@ export default function SellerReputation({
         </div>
       )}
 
-      {/* Info adicional (solo md/lg) */}
+      {/* Fila 3: Info adicional (solo md/lg) */}
       {!isCompact && (
-        <div className="grid grid-cols-2 gap-3 text-xs text-gray-500 pt-3 border-t border-gray-100">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs text-gray-500 pt-3 border-t border-gray-100">
+          <div>📦 {numPubsActivas} activas, {numPubsVendidas} vendidas</div>
           <div>
-            📦 {numPubsActivas} activas, {numPubsVendidas} vendidas
+            {verificado ? '✅ Verificado · ' : ''}{getLastActivityText(ultimaActividad) || `Miembro hace ${Math.floor(antiguedadDias / 30 || 0)} meses`}
           </div>
-          <div>
-            {verificado ? '✅ Verificado · ' : ''}{getLastActivityText(ultimaActividad) || `Miembro hace ${Math.floor(antiguedadDias / 30)} meses`}
+          <div className="hidden sm:block">
+            ⭐ {promedioResenas.toFixed(1)} · {numResenas} reseña{numResenas !== 1 ? 's' : ''}
           </div>
         </div>
       )}
