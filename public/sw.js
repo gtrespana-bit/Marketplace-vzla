@@ -1,7 +1,8 @@
 /* Service Worker — VendeT PWA */
-const CACHE_NAME = 'vendet-v1'
+const CACHE_NAME = 'vendet-v2'
 const STATIC_ASSETS = [
   '/',
+  '/offline',
   '/manifest.json',
 ]
 
@@ -23,46 +24,66 @@ self.addEventListener('activate', event => {
   self.clients.claim()
 })
 
-// Fetch: cache-first for static, network-first for API
+// Fetch
 self.addEventListener('fetch', event => {
   const url = new URL(event.request.url)
+  const request = event.request
 
-  // Supabase API — network first, fallback to cache
-  if (url.hostname.includes('supabase.co')) {
+  // Only handle GET requests
+  if (request.method !== 'GET') return
+
+  // Skip non-HTTP(S)
+  if (!url.protocol.startsWith('http')) return
+
+  // ── HTML pages (navigation) ──
+  // Network first, fallback to cache, then offline page
+  if (request.mode === 'navigate' || 
+      (request.headers.get('accept') || '').includes('text/html')) {
     event.respondWith(
-      fetch(event.request)
+      fetch(request)
         .then(response => {
-          const clone = response.clone()
-          caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone))
+          if (response.ok) {
+            const clone = response.clone()
+            caches.open(CACHE_NAME).then(cache => cache.put(request, clone))
+          }
           return response
         })
-        .catch(() => caches.match(event.request))
+        .catch(() => {
+          return caches.match(request)
+            .then(cached => cached || caches.match('/offline'))
+        })
     )
     return
   }
 
-  // Static assets — cache first
-  if (event.request.destination === 'image' || event.request.destination === 'style' || event.request.destination === 'script' || event.request.destination === 'font') {
+  // ── Static assets (images, styles, scripts, fonts) ──
+  // Stale-while-revalidate
+  if (['image', 'style', 'script', 'font'].includes(request.destination)) {
     event.respondWith(
-      caches.match(event.request).then(cached => cached || fetch(event.request).then(response => {
-        const clone = response.clone()
-        caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone))
-        return response
-      }))
+      caches.open(CACHE_NAME).then(cache => 
+        cache.match(request).then(cached => {
+          const fetchPromise = fetch(request).then(response => {
+            if (response.ok) {
+              cache.put(request, response.clone())
+            }
+            return response
+          }).catch(() => cached)
+          return cached || fetchPromise
+        })
+      )
     )
     return
   }
 
-  // HTML pages — network first, fallback to cache
+  // ── Everything else (API calls, etc.) ──
+  // Network first
   event.respondWith(
-    fetch(event.request)
-      .then(response => {
-        if (response.ok) {
-          const clone = response.clone()
-          caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone))
-        }
-        return response
+    fetch(request).catch(() => {
+      // For API calls, return null response
+      return new Response(JSON.stringify({ error: 'offline' }), {
+        status: 503,
+        headers: { 'Content-Type': 'application/json' }
       })
-      .catch(() => caches.match(event.request).then(cached => cached || caches.match('/')))
+    })
   )
 })
