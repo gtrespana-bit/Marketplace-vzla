@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 import { supabase, isSupabaseConfigured } from '@/lib/supabase'
 import { useAuth } from '@/components/AuthProvider'
 import { categoriasData } from '@/lib/categorias'
-import { ESTADOS, CIUDADES_POR_ESTADO } from '@/lib/ubicaciones'
+import { ESTADOS, getMunicipiosNombres } from '@/lib/ubicaciones'
 import { Camera, X, UploadCloud, AlertCircle, Phone, Mail, MapPin, MessageSquare } from 'lucide-react'
 import { verificarContenido, formatearAlertaModeracion } from '@/lib/moderacion'
 
@@ -440,8 +440,11 @@ export default function PublicarPage() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-900 mb-1.5">Ciudad</label>
-                <input type="text" value={ubicacionCiudad} onChange={e => setUbicacionCiudad(e.target.value)} placeholder="Ciudad" required className="w-full border border-gray-300 rounded-lg px-3 py-3 text-gray-800 bg-white" />
+                <label className="block text-sm font-semibold text-gray-900 mb-1.5">Municipio</label>
+                <select value={ubicacionCiudad} onChange={e => setUbicacionCiudad(e.target.value)} required disabled={!ubicacionEstado} className="w-full border border-gray-300 rounded-lg px-3 py-3 bg-white text-gray-800">
+                  <option value="">Municipio...</option>
+                  {(ubicacionEstado ? getMunicipiosNombres(ubicacionEstado) : []).map(m => <option key={m} value={m}>{m}</option>)}
+                </select>
               </div>
             </div>
 

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
-import { ESTADOS, CIUDADES_POR_ESTADO } from '@/lib/ubicaciones'
+import { ESTADOS, getMunicipiosNombres } from '@/lib/ubicaciones'
 import { Search, ChevronRight, MapPin, ChevronDown, X } from 'lucide-react'
 
 type ProductoCat = {
@@ -36,7 +36,7 @@ export default function ResultadosUbicacion({
   const [ciudades, setCiudades] = useState<string[]>([])
 
   useEffect(() => {
-    setCiudades(estadoParam ? (CIUDADES_POR_ESTADO[estadoParam] || []).sort((a, b) => a.localeCompare(b, 'es')) : [])
+    setCiudades(estadoParam ? getMunicipiosNombres(estadoParam) : [])
   }, [estadoParam])
 
   const textoUbicacion = ciudadParam
@@ -96,14 +96,14 @@ export default function ResultadosUbicacion({
               </select>
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-500 mb-1">Ciudad</label>
+              <label className="block text-xs font-medium text-gray-500 mb-1">Municipio</label>
               <select
                 value={ciudadParam}
                 onChange={(e) => onUbicacionChange(estadoParam, e.target.value)}
                 disabled={!estadoParam}
                 className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-yellow disabled:bg-gray-100 disabled:text-gray-400"
               >
-                <option value="">Todas las ciudades</option>
+                <option value="">Todos los municipios</option>
                 {ciudades.map((c) => (
                   <option key={c} value={c}>{c}</option>
                 ))}

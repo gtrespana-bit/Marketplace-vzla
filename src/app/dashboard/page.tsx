@@ -13,6 +13,7 @@ import {
 } from 'lucide-react'
 import SolicitarVerificacion from '@/components/SolicitarVerificacion'
 import Avatar from '@/components/Avatar'
+import { getMunicipiosNombres, ESTADOS } from '@/lib/ubicaciones'
 
 export default function DashboardPage() {
   const { user, session, loading: authLoading } = useAuth()
@@ -203,12 +204,7 @@ export default function DashboardPage() {
     router.push('/')
   }
 
-  const estadosVE = [
-    'Amazonas', 'Anzoátegui', 'Apure', 'Aragua', 'Barinas', 'Bolívar',
-    'Carabobo', 'Cojedes', 'Delta Amacuro', 'Distrito Capital', 'Falcón',
-    'Guárico', 'Lara', 'Mérida', 'Miranda', 'Monagas', 'Nueva Esparta',
-    'Portuguesa', 'Sucre', 'Táchira', 'Trujillo', 'Vargas', 'Yaracuy', 'Zulia',
-  ]
+  const municipiosDisponibles = estado ? getMunicipiosNombres(estado) : []
 
   if (!session) {
     return (
@@ -350,12 +346,15 @@ export default function DashboardPage() {
                     <label className="block text-xs font-medium text-gray-500 mb-1 flex items-center gap-1"><MapPin size={12} /> Estado</label>
                     <select value={estado} onChange={e => setEstado(e.target.value)} className="w-full border rounded-lg px-3 py-2 text-sm bg-white">
                       <option value="">Selecciona...</option>
-                      {estadosVE.map(e => <option key={e} value={e}>{e}</option>)}
+                      {ESTADOS.map(e => <option key={e} value={e}>{e}</option>)}
                     </select>
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-gray-500 mb-1">Ciudad</label>
-                    <input type="text" value={ciudad} onChange={e => setCiudad(e.target.value)} className="w-full border rounded-lg px-3 py-2 text-sm" placeholder="Tu ciudad" />
+                    <label className="block text-xs font-medium text-gray-500 mb-1">Municipio</label>
+                    <select value={ciudad} onChange={e => setCiudad(e.target.value)} className="w-full border rounded-lg px-3 py-2 text-sm bg-white" disabled={!estado}>
+                      <option value="">Selecciona...</option>
+                      {municipiosDisponibles.map(m => <option key={m} value={m}>{m}</option>)}
+                    </select>
                   </div>
                 </div>
                 <div className="flex gap-2">
