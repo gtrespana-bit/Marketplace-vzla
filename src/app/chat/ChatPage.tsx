@@ -309,7 +309,7 @@ export default function ChatPageClient() {
       if (conv.otro_email && user && user.id !== destinatarioId) {
         const producto = conv.producto_titulo || 'un producto'
         const preview = msg.length > 100 ? msg.substring(0, 100) + '...' : msg
-        emailMensajeRecibido(conv.otro_email, conv.otro_nombre, user.email?.split('@')[0] || 'Alguien', producto, preview)
+        emailMensajeRecibido(conv.otro_email, conv.otro_nombre, user?.email?.split('@')[0] || 'Alguien', producto, preview).catch(e => console.error('Error email mensaje:', e))
       }
     }
     setEnviando(false)

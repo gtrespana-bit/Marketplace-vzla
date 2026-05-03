@@ -278,7 +278,11 @@ export default function PublicarPage() {
 
         // EMAIL: notificar que el producto fue publicado
         const nombrePublicador = user?.email?.split('@')[0] || 'Usuario'
-        emailProductoPublicado(user?.email || '', nombrePublicador, titulo, precioUsd, producto.id)
+        try {
+          await emailProductoPublicado(user?.email || '', nombrePublicador, titulo, precioUsd, producto.id)
+        } catch (e) {
+          console.error('Error email publicación:', e)
+        }
         
         router.push(`/producto/${producto.id}?nuevo=1`)
       }
