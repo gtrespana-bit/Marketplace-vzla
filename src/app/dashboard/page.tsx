@@ -9,9 +9,11 @@ import { useAuth } from '@/components/AuthProvider'
 import {
   Plus, Package, MessageSquare, CreditCard,
   Eye, Heart, LogOut, X, Pause, Play, Edit, Zap, Star, ShieldCheck, Key,
-  Camera, Phone, Mail, MapPin, Save, CheckCircle, Copy, Upload, Loader2
+  Camera, Phone, Mail, MapPin, Save, CheckCircle, Copy, Upload, Loader2, Activity
 } from 'lucide-react'
 import SolicitarVerificacion from '@/components/SolicitarVerificacion'
+import BadgeVerificado from '@/components/BadgeVerificado'
+import SellerReputation from '@/components/SellerReputation'
 import Avatar from '@/components/Avatar'
 import { getMunicipiosNombres, ESTADOS } from '@/lib/ubicaciones'
 
@@ -37,6 +39,13 @@ export default function DashboardPage() {
   const [estado, setEstado] = useState('')
   const [ciudad, setCiudad] = useState('')
   const [fotoUrl, setFotoUrl] = useState<string | null>(null)
+  const [verificado, setVerificado] = useState(false)
+  const [nivelConfianza, setNivelConfianza] = useState(0)
+  const [badgesAuto, setBadgesAuto] = useState<string[]>([])
+  const [ultimaActividad, setUltimaActividad] = useState<string | null>(null)
+  const [creadoEn, setCreadoEn] = useState<string | null>(null)
+  const [resenas, setResenas] = useState<any[]>([])
+  const [promedioResenas, setPromedioResenas] = useState(0)
   const [editando, setEditando] = useState(false)
   const [guardando, setGuardando] = useState(false)
   const [cambiarPw, setCambiarPw] = useState(false)
@@ -72,7 +81,7 @@ export default function DashboardPage() {
         setFavoritos(data || [])
         setFavoritosCount(data?.length || 0)
       }),
-      supabase.from('perfiles').select('credito_balance, nombre, telefono, estado, ciudad, foto_perfil_url').eq('id', user.id).single().then(({ data }) => {
+      supabase.from('perfiles').select('credito_balance, nombre, telefono, estado, ciudad, foto_perfil_url, verificado, nivel_confianza, badges_automaticos, ultima_actividad, creado_en').eq('id', user.id).single().then(({ data }) => {
         setCreditos(data?.credito_balance ?? 0)
         if (data) {
           setNombre(data.nombre || '')
@@ -80,9 +89,21 @@ export default function DashboardPage() {
           setEstado(data.estado || '')
           setCiudad(data.ciudad || '')
           setFotoUrl(data.foto_perfil_url || null)
+          setVerificado(data.verificado || false)
+          setNivelConfianza(data.nivel_confianza ?? 0)
+          setBadgesAuto(data.badges_automaticos || [])
+          setUltimaActividad(data.ultima_actividad || null)
+          setCreadoEn(data.creado_en || null)
         }
       }),
       supabase.from('productos').select('*', { count: 'exact' }).eq('user_id', user.id).eq('activo', true).then(({ count }) => setPubCount(count || 0)),
+      supabase.from('resenas').select('*').eq('vendedor_id', user.id).order('creado_en', { ascending: false }).then(({ data }) => {
+        setResenas(data || [])
+        if (data && data.length > 0) {
+          const avg = data.reduce((sum: number, r: any) => sum + r.puntuacion, 0) / data.length
+          setPromedioResenas(Math.round(avg * 10) / 10)
+        }
+      }),
     ]).finally(() => setLoading(false))
   }, [user, authLoading])
 
@@ -374,6 +395,15 @@ export default function DashboardPage() {
                   </h2>
                   {user?.email && <p className="text-sm text-gray-500 flex items-center gap-1 mt-1"><Mail size={12} /> {user.email}</p>}
                   {(ciudad || estado) && <p className="text-sm text-gray-500 flex items-center gap-1"><MapPin size={12} /> {[ciudad, estado].filter(Boolean).join(', ')}</p>}
+                  {/* Badges — lo que otros ven de tu perfil */}
+                  {(verificado || resenas.length > 0) && (
+                    <div className="mt-2 flex flex-wrap items-center gap-2">
+                      {verificado && <BadgeVerificado size="sm" />}
+                      <span className="text-xs text-gray-500">
+                        ⭐ {promedioResenas.toFixed(1)} de 5 · {resenas.length} reseña{resenas.length !== 1 ? 's' : ''}
+                      </span>
+                    </div>
+                  )}
                 </div>
                 <div className="flex gap-2 w-full sm:w-auto">
                   <button onClick={() => setEditando(true)} className="flex-1 sm:flex-none flex items-center justify-center gap-1 border px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-gray-50 transition">
@@ -444,6 +474,7 @@ export default function DashboardPage() {
           { id: 'creditos', label: 'Créditos', icon: CreditCard },
           { id: 'favoritos', label: 'Favoritos', icon: Heart },
           { id: 'verificacion', label: 'Verificación', icon: ShieldCheck },
+          { id: 'reputacion', label: 'Mi reputación', icon: Star },
         ].map((item) => (
           <button
             key={item.id}
@@ -471,6 +502,17 @@ export default function DashboardPage() {
       )}
       {activeTab === 'favoritos' && <FavoritosPlaceholder favoritos={favoritos} />}
       {activeTab === 'verificacion' && <SolicitarVerificacion />}
+      {activeTab === 'reputacion' && <MiReputacion
+        verificado={verificado}
+        nivelConfianza={nivelConfianza}
+        badgesAuto={badgesAuto}
+        resenas={resenas}
+        promedioResenas={promedioResenas}
+        numPubsActivas={pubCount}
+        numPubsVendidas={productos.filter((p: any) => !p.activo && p.estado_moderacion !== 'rechazado').length}
+        creadoEn={creadoEn}
+        ultimaActividad={ultimaActividad}
+      />}
 
     </div>
   )
@@ -895,6 +937,121 @@ function FavoritosPlaceholder({ favoritos }: { favoritos: any[] }) {
             </div>
           )
         })}
+      </div>
+    </div>
+  )
+}
+
+// ====== MI REPUTACIÓN TAB ======
+function MiReputacion({
+  verificado,
+  nivelConfianza,
+  badgesAuto,
+  resenas,
+  promedioResenas,
+  numPubsActivas,
+  numPubsVendidas,
+  creadoEn,
+  ultimaActividad,
+}: {
+  verificado: boolean
+  nivelConfianza: number
+  badgesAuto: string[]
+  resenas: any[]
+  promedioResenas: number
+  numPubsActivas: number
+  numPubsVendidas: number
+  creadoEn: string | null
+  ultimaActividad: string | null
+}) {
+  const antiguedadDias = creadoEn
+    ? Math.floor((Date.now() - new Date(creadoEn).getTime()) / (1000 * 60 * 60 * 24))
+    : 0
+
+  const estrellasRender = (rating: number, size = 16) => {
+    return Array.from({ length: 5 }).map((_, i) => (
+      <Star
+        key={i}
+        size={size}
+        className={i < Math.round(rating) ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}
+      />
+    ))
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Resumen: lo que otros ven */}
+      <div className="bg-white rounded-2xl shadow-sm border p-6">
+        <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+          <ShieldCheck size={20} className="text-brand-blue" />
+          Tu reputación como vendedor
+        </h3>
+        <SellerReputation
+          nivel={nivelConfianza}
+          numResenas={resenas.length}
+          promedioResenas={promedioResenas}
+          numPubsActivas={numPubsActivas}
+          numPubsVendidas={numPubsVendidas}
+          antiguedadDias={antiguedadDias}
+          ultimaActividad={ultimaActividad}
+          verificado={verificado}
+          badges={badgesAuto}
+          size="lg"
+        />
+      </div>
+
+      {/* Reseñas recibidas */}
+      <div className="bg-white rounded-2xl shadow-sm border p-6">
+        <h3 className="text-lg font-bold flex items-center gap-2 mb-4">
+          <Star size={20} className="text-yellow-400 fill-yellow-400" />
+          Reseñas ({resenas.length})
+        </h3>
+        {resenas.length === 0 ? (
+          <p className="text-gray-500 text-sm text-center py-8">Aún no tienes reseñas. ¡Los compradores podrán dejarte una después de una transacción!</p>
+        ) : (
+          <div className="space-y-4">
+            {resenas.map((r: any) => (
+              <div key={r.id} className="border rounded-xl p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-1">
+                    {estrellasRender(r.puntuacion, 14)}
+                    <span className="text-sm font-medium ml-2">{r.puntuacion}/5</span>
+                  </div>
+                  <span className="text-xs text-gray-400">
+                    {new Date(r.creado_en).toLocaleDateString('es-VE', { day: '2-digit', month: 'short', year: 'numeric' })}
+                  </span>
+                </div>
+                {r.comentario && <p className="text-sm text-gray-600">{r.comentario}</p>}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Estadísticas */}
+      <div className="bg-white rounded-2xl shadow-sm border p-6">
+        <h3 className="text-lg font-bold flex items-center gap-2 mb-4">
+          <Activity size={20} className="text-brand-blue" />
+          Estadísticas
+        </h3>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
+          <div className="bg-gray-50 rounded-xl p-4">
+            <p className="text-3xl font-black text-brand-blue">{numPubsActivas}</p>
+            <p className="text-xs text-gray-500 mt-1">Publicaciones activas</p>
+          </div>
+          <div className="bg-gray-50 rounded-xl p-4">
+            <p className="text-3xl font-black text-green-600">{numPubsVendidas}</p>
+            <p className="text-xs text-gray-500 mt-1">Vendidas/pausadas</p>
+          </div>
+          <div className="bg-gray-50 rounded-xl p-4">
+            <p className="text-3xl font-black text-yellow-500">{antiguedadDias}</p>
+            <p className="text-xs text-gray-500 mt-1">Días en VendeT</p>
+          </div>
+          <div className="bg-gray-50 rounded-xl p-4">
+            <p className="text-3xl font-black text-purple-600">{verificado ? '✅' : '⏳'}</p>
+            <p className="text-xs text-gray-500 mt-1">Verificación</p>
+          </div>
+        </div>
       </div>
     </div>
   )
