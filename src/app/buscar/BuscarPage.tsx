@@ -163,7 +163,7 @@ export default function BuscarClient() {
 
       // Full-text search usando search_vector (tsvector indexado)
       if (query) {
-        sq = sq.textSearch('search_vector', query, { config: 'spanish', type: 'plainto' })
+        sq = sq.textSearch('search_vector', query, { config: 'spanish', type: 'plain' })
       }
 
       // Categoria

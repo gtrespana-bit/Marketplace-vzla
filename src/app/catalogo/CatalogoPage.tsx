@@ -150,7 +150,7 @@ export default function CatalogoClient() {
 
       // Text search: full-text con search_vector
       if (q) {
-        query = query.textSearch('search_vector', q, { config: 'spanish', type: 'plainto' })
+        query = query.textSearch('search_vector', q, { config: 'spanish', type: 'plain' })
       }
 
       // Ubicacion
