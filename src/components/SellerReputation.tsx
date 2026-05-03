@@ -1,5 +1,7 @@
 'use client'
 
+import { Star } from 'lucide-react'
+
 interface SellerReputationProps {
   nivel: number           // 0-5
   numResenas: number
