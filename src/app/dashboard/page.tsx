@@ -396,14 +396,21 @@ export default function DashboardPage() {
                   {user?.email && <p className="text-sm text-gray-500 flex items-center gap-1 mt-1"><Mail size={12} /> {user.email}</p>}
                   {(ciudad || estado) && <p className="text-sm text-gray-500 flex items-center gap-1"><MapPin size={12} /> {[ciudad, estado].filter(Boolean).join(', ')}</p>}
                   {/* Badges — lo que otros ven de tu perfil */}
-                  {(verificado || resenas.length > 0) && (
-                    <div className="mt-2 flex flex-wrap items-center gap-2">
-                      {verificado && <BadgeVerificado size="sm" />}
-                      <span className="text-xs text-gray-500">
-                        ⭐ {promedioResenas.toFixed(1)} de 5 · {resenas.length} reseña{resenas.length !== 1 ? 's' : ''}
-                      </span>
-                    </div>
-                  )}
+                  <div className="mt-2 flex flex-wrap items-center gap-2">
+                    {verificado && <BadgeVerificado size="sm" />}
+                    <SellerReputation
+                      nivel={nivelConfianza}
+                      numResenas={resenas.length}
+                      promedioResenas={promedioResenas}
+                      numPubsActivas={pubCount}
+                      numPubsVendidas={productos.filter((p: any) => !p.activo && p.estado_moderacion !== 'rechazado').length}
+                      antiguedadDias={creadoEn ? Math.floor((Date.now() - new Date(creadoEn).getTime()) / (1000*60*60*24)) : 0}
+                      ultimaActividad={ultimaActividad}
+                      verificado={verificado}
+                      badges={badgesAuto}
+                      size="sm"
+                    />
+                  </div>
                 </div>
                 <div className="flex gap-2 w-full sm:w-auto">
                   <button onClick={() => setEditando(true)} className="flex-1 sm:flex-none flex items-center justify-center gap-1 border px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-gray-50 transition">

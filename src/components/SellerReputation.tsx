@@ -13,13 +13,13 @@ interface SellerReputationProps {
   size?: 'sm' | 'md' | 'lg'
 }
 
-const NIVELES: Record<number, { nombre: string; desc: string; bg: string; text: string; border: string; dot: string }> = {
-  0: { nombre: 'Nuevo', desc: 'Recién registrado', bg: 'bg-gray-50', text: 'text-gray-500', border: 'border-gray-200', dot: 'bg-gray-300' },
-  1: { nombre: 'Nuevo', desc: 'Recién registrado', bg: 'bg-gray-50', text: 'text-gray-600', border: 'border-gray-200', dot: 'bg-gray-400' },
-  2: { nombre: 'Confiado', desc: 'Actividad verificada', bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200', dot: 'bg-blue-500' },
-  3: { nombre: 'Destacado', desc: '10+ ventas positivas', bg: 'bg-yellow-50', text: 'text-yellow-800', border: 'border-yellow-200', dot: 'bg-yellow-500' },
-  4: { nombre: 'Experto', desc: 'Vendedor experimentado', bg: 'bg-orange-50', text: 'text-orange-800', border: 'border-orange-200', dot: 'bg-orange-500' },
-  5: { nombre: 'Leyenda', desc: 'Lo mejor del marketplace', bg: 'bg-purple-50', text: 'text-purple-800', border: 'border-purple-200', dot: 'bg-purple-600' },
+const NIVELES: Record<number, { nombre: string; desc: string; bg: string; text: string; border: string }> = {
+  0: { nombre: 'Bronce', desc: 'Vendedor Novel', bg: 'bg-orange-50', text: 'text-orange-800', border: 'border-orange-200' },
+  1: { nombre: 'Plata', desc: 'Vendedor en Ascenso', bg: 'bg-gray-100', text: 'text-gray-700', border: 'border-gray-300' },
+  2: { nombre: 'Oro', desc: 'Vendedor Confiable', bg: 'bg-yellow-50', text: 'text-yellow-800', border: 'border-yellow-300' },
+  3: { nombre: 'Platino', desc: 'Vendedor Premium', bg: 'bg-sky-50', text: 'text-sky-800', border: 'border-sky-200' },
+  4: { nombre: 'Diamante', desc: 'Vendedor Élite', bg: 'bg-purple-50', text: 'text-purple-800', border: 'border-purple-200' },
+  5: { nombre: 'Maestro', desc: 'Vendedor Legendario', bg: 'bg-gradient-to-r from-yellow-50 to-purple-50', text: 'text-purple-900', border: 'border-purple-300' },
 }
 
 const BADGE_CONFIG: Record<string, { label: string; color: string; tooltip: string }> = {
@@ -50,20 +50,22 @@ export default function SellerReputation({
   verificado, badges, size = 'md',
 }: SellerReputationProps) {
   const isCompact = size === 'sm'
+  const ICONOS: Record<number, string> = { 0: '🥉', 1: '🥈', 2: '🥇', 3: '💎', 4: '💠', 5: '👑' }
   const cfg = NIVELES[Math.min(nivel, 5)]
+  const icon = ICONOS[Math.min(nivel, 5)]
   if (!cfg) return null
 
   return (
     <div className="space-y-4">
       {/* Nivel principal */}
       <div className={`inline-flex items-center gap-2.5 px-3 py-1.5 rounded-full border ${cfg.bg} ${cfg.border}`}>
-        <span className={`w-2.5 h-2.5 rounded-full ${cfg.dot}`} />
+        <span className="text-base">{icon}</span>
         <span className={`text-xs font-bold ${cfg.text}`}>
-          Nivel {nivel} — {cfg.nombre}
+          {cfg.nombre} — {cfg.desc}
         </span>
-        {!isCompact && (
+        {!isCompact && (nivel > 0) && (
           <span className={`text-[10px] italic ${cfg.text.replace(/800/g, '500').replace(/700/g, '500').replace(/600/g, '400')}`}>
-            · {cfg.desc}
+            · Nivel {nivel}
           </span>
         )}
       </div>
