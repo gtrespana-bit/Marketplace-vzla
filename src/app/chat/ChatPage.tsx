@@ -427,10 +427,10 @@ export default function ChatPageClient() {
                     >
                       <Trash2 size={14} />
                     </button>
-                    {/* Contenido */}
+                    {/* Contenido: zona clickeable solo nombre+avatar */}
                     <button
                       onClick={() => seleccionarConv(c.id)}
-                      className="flex items-start gap-3 w-full cursor-pointer"
+                      className="flex items-start gap-3 w-full cursor-pointer text-left"
                     >
                       <Avatar nombre={c.otro_nombre} fotoUrl={c.otro_foto} size="md" />
                       <div className="flex-1 min-w-0">
@@ -440,17 +440,19 @@ export default function ChatPageClient() {
                             <span className="text-xs text-gray-400 ml-2 flex-shrink-0">{formatTime(c.ultimo_mensaje_en)}</span>
                           )}
                         </div>
-                        {c.producto_titulo && c.producto_id && (
-                          <Link
-                            href={`/producto/${c.producto_id}`}
-                            className="text-xs text-blue-600 truncate hover:underline flex items-center gap-0.5"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            {c.producto_titulo}
-                            <ExternalLink size={9} />
-                          </Link>
-                        )}
                         <p className="text-sm text-gray-500 truncate mt-0.5">{c.ultimo_mensaje || 'Sin mensajes'}</p>
+                        {c.producto_titulo && c.producto_id && (
+                          <a
+                            href={`/producto/${c.producto_id}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-[11px] text-blue-500 mt-0.5 inline-flex items-center gap-0.5 hover:underline max-w-[90%] truncate"
+                            onClick={(e) => e.stopPropagation()}
+                            title="Ver producto (nueva pestaña)"
+                          >
+                            📦 {c.producto_titulo}
+                          </a>
+                        )}
                       </div>
                       {c.no_leidos > 0 && (
                         <span className="bg-brand-dark text-white text-xs rounded-full w-5 h-5 flex items-center justify-center flex-shrink-0">{c.no_leidos}</span>
