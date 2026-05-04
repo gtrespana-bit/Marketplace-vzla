@@ -272,37 +272,37 @@ export default function PublicarPage() {
         return
       }
       
-      const producto = apiResult.data else {
-        // Check Pack Emprendedor (10+ publicaciones = 5 creditos gratis)
-        const { count: pubCount } = await supabase
-          .from('productos')
-          .select('*', { count: 'exact' })
-          .eq('user_id', user?.id)
-          .eq('activo', true)
-        
-        if (pubCount && pubCount >= 10) {
-          const { data: perfil } = await supabase
-            .from('perfiles')
-            .select('emprendedor_dado, credito_balance')
-            .eq('id', user?.id)
-            .single()
-          
-          if (perfil && !perfil.emprendedor_dado) {
-            setShowEmprendedor(true)
-            setTimeout(() => setShowEmprendedor(false), 6000)
-          }
-        }
+      const producto = apiResult.data
 
-        // EMAIL: notificar que el producto fue publicado
-        const nombrePublicador = user?.email?.split('@')[0] || 'Usuario'
-        try {
-          await emailProductoPublicado(user?.email || '', nombrePublicador, titulo, precioUsd, producto.id)
-        } catch (e) {
-          console.error('Error email publicación:', e)
-        }
+      // Check Pack Emprendedor (10+ publicaciones = 5 creditos gratis)
+      const { count: pubCount } = await supabase
+        .from('productos')
+        .select('*', { count: 'exact' })
+        .eq('user_id', user?.id)
+        .eq('activo', true)
+      
+      if (pubCount && pubCount >= 10) {
+        const { data: perfil } = await supabase
+          .from('perfiles')
+          .select('emprendedor_dado, credito_balance')
+          .eq('id', user?.id)
+          .single()
         
-        router.push(`/producto/${producto.id}?nuevo=1`)
+        if (perfil && !perfil.emprendedor_dado) {
+          setShowEmprendedor(true)
+          setTimeout(() => setShowEmprendedor(false), 6000)
+        }
       }
+
+      // EMAIL: notificar que el producto fue publicado
+      const nombrePublicador = user?.email?.split('@')[0] || 'Usuario'
+      try {
+        await emailProductoPublicado(user?.email || '', nombrePublicador, titulo, precioUsd, producto.id)
+      } catch (e) {
+        console.error('Error email publicación:', e)
+      }
+      
+      router.push(`/producto/${producto.id}?nuevo=1`)
     } catch (err) {
       console.error('Unexpected error:', err)
       setError('Error inesperado, intentalo de nuevo.')
