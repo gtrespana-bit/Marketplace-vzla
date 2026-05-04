@@ -112,13 +112,21 @@ export default function ChatPageClient() {
     if (vendedorId && !otroIds.includes(vendedorId)) otroIds.push(vendedorId)
     if (productoId && !prodIds.includes(productoId)) prodIds.push(productoId)
 
-    const [perfilesRes, productosRes] = await Promise.all([
-      otroIds.length ? supabase.from('perfiles').select('id, nombre, foto_perfil_url, email').in('id', otroIds) : Promise.resolve({ data: [] }),
+    // Fetch perfiles via API server-side (bypass RLS) / productos via supabase client
+    let perfilMap = new Map<string, { nombre: string; foto: string | null; email: string | null }>()
+    if (otroIds.length) {
+      try {
+        const resp = await fetch(`/api/user-bulk?ids=${encodeURIComponent(otroIds.join(','))}`)
+        const json = await resp.json()
+        json.profiles?.forEach((p: { id: string; nombre: string; foto_perfil_url: string | null; email: string | null }) => {
+          perfilMap.set(p.id, { nombre: p.nombre || 'Usuario', foto: p.foto_perfil_url || null, email: p.email || null })
+        })
+      } catch (e) { console.error('Error fetching user-bulk:', e) }
+    }
+    const [, productosRes] = await Promise.all([
+      Promise.resolve(null),
       prodIds.length ? supabase.from('productos').select('id, titulo').in('id', prodIds) : Promise.resolve({ data: [] }),
     ])
-
-    const perfilMap = new Map<string, { nombre: string; foto: string | null; email: string | null }>()
-    perfilesRes.data?.forEach(p => perfilMap.set(p.id, { nombre: p.nombre || 'Usuario', foto: p.foto_perfil_url || null, email: (p as any).email || null }))
 
     const prodMap = new Map<string, string>()
     productosRes.data?.forEach(p => prodMap.set(p.id, p.titulo || ''))
