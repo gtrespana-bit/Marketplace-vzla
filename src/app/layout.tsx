@@ -85,6 +85,7 @@ export default function RootLayout({
           </main>
           <Footer />
           <PWAInstallBanner />
+          <PushNotificationBanner />
           <BottomTabNav />
         </AuthProvider>
         <script src="/sw-register.js" />
