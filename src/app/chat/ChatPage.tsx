@@ -87,9 +87,8 @@ export default function ChatPageClient() {
   const [ratingResena, setRatingResena] = useState(5)
   const [comentarioResena, setComentarioResena] = useState('')
   const [enviandoResena, setEnviandoResena] = useState(false)
-  const [muestraResenaId, setMuestraResenaId] = useState<string | null>(null)
+  const [productoOwnerId, setProductoOwnerId] = useState<string | null>(null)
   const [yaDejoResena, setYaDejoResena] = useState(false)
-  const [userEsComprador, setUserEsComprador] = useState(false)
 
   // BroadcastChannel para sincronizar badge con Header
   useEffect(() => {
@@ -110,34 +109,35 @@ export default function ChatPageClient() {
     chatContainerRef.current?.scrollTo({ top: chatContainerRef.current.scrollHeight, behavior: 'smooth' })
   }, [mensajes])
 
-  // ─── Verificar si soy comprador y si ya deje reseña ───
+  // ─── Cargar owner del producto y verificar reseña comprador ───
   useEffect(() => {
-    (async () => {
-      if (!convId || !user) return
-      const conv = conversaciones.find(c => c.id === convId)
-      if (!conv || !conv.producto_id) return
-      setUserEsComprador(false)
-      setYaDejoResena(false)
+    if (!convId || !user) return
+    const conv = conversaciones.find(c => c.id === convId)
+    if (!conv || !conv.producto_id) return
+    setProductoOwnerId(null)
+    setYaDejoResena(false)
 
+    const load = async () => {
       const { data: prod } = await supabase
         .from('productos')
         .select('user_id')
         .eq('id', conv.producto_id)
         .single()
       if (!prod) return
-      const sellerId = prod.user_id
-      if (user.id === sellerId) return // vendedor
-      setUserEsComprador(true)
+      setProductoOwnerId(prod.user_id)
 
-      const { data: resenas } = await supabase
+      // Si soy el dueño del producto = vendedor, no aplica
+      if (user.id === prod.user_id) return
+
+      const { data: res } = await supabase
         .from('resenas')
-        .select('id')
+        .select('id', { count: 'exact', head: true })
         .eq('comprador_id', user.id)
-        .eq('vendedor_id', sellerId)
-        .limit(1)
-      if (resenas && resenas.length > 0) setYaDejoResena(true)
-    })()
-  }, [convId, user, conversaciones])
+        .eq('vendedor_id', prod.user_id)
+      setYaDejoResena((res?.length ?? 0) > 0)
+    }
+    load()
+  }, [convId, user])
 
   // ─── Cargar conversaciones ───
   const loadConversaciones = useCallback(async () => {
@@ -584,8 +584,6 @@ export default function ChatPageClient() {
                   {mensajes.map(m => {
                     const esMio = m.remitente_id === user?.id
                     const isCompraExitosa = m.contenido?.includes('compra exitosa') || m.contenido?.includes('fue exitosa')
-                    const mostrarBtnResena = isCompraExitosa && convActual?.producto_id && !yaDejoResena && 
-                      user?.id && convActual.user1_id !== user.id && convActual.user2_id !== user.id
                     return (
                       <div key={m.id} className={`flex ${esMio ? 'justify-end' : 'justify-start'}`}>
                         <div className={`max-w-[75%] px-4 py-2.5 rounded-2xl ${
@@ -600,7 +598,7 @@ export default function ChatPageClient() {
                     )
                   })}
                   {/* Boton reseña comprador */}
-                  {userEsComprador && !yaDejoResena &&
+                  {user && productoOwnerId && user.id !== productoOwnerId && !yaDejoResena &&
                    mensajes.some(m => m.contenido?.includes('compra exitosa') || m.contenido?.includes('experiencia')) && (
                     <div className="flex justify-center">
                       <button
