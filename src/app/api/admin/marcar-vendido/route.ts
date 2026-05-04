@@ -1,6 +1,22 @@
 import { createClient } from '@supabase/supabase-js'
 import { NextRequest, NextResponse } from 'next/server'
 
+interface Conversacion {
+  id: string
+  user1_id: string | null
+  user2_id: string | null
+}
+
+interface PerfilBasico {
+  id: string
+  nombre: string | null
+}
+
+interface MensajeBasico {
+  remitente_id: string
+  contenido: string | null
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
@@ -15,7 +31,6 @@ export async function POST(request: NextRequest) {
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     )
 
-    // Verificar que el usuario es el dueño
     const { data: producto } = await supabaseAdmin
       .from('productos')
       .select('user_id, activo, vendido')
@@ -30,7 +45,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'El producto ya está marcado como vendido' }, { status: 400 })
     }
 
-    // Marcar como vendido
     const updateData: Record<string, any> = {
       activo: false,
       vendido: true,
@@ -70,7 +84,6 @@ export async function GET(request: NextRequest) {
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     )
 
-    // Verificar que el usuario es el dueño
     const { data: producto } = await supabaseAdmin
       .from('productos')
       .select('user_id')
@@ -82,45 +95,51 @@ export async function GET(request: NextRequest) {
     }
 
     // Buscar conversaciones de este producto
-    const { data: conversaciones }: { data: { id: string; user1_id: string; user2_id: string }[] | null } = await supabaseAdmin
+    const { data: conversacionesList } = await supabaseAdmin
       .from('conversaciones')
       .select('id, user1_id, user2_id')
       .eq('producto_id', productoId)
+      .returns<Conversacion[]>()
 
-    if (!conversaciones || conversaciones.length === 0) {
+    if (!conversacionesList || conversacionesList.length === 0) {
       return NextResponse.json({ ok: true, interesados: [] })
     }
 
-    // Identificar los IDs de los compradores potenciales (el que NO es el vendedor)
+    // Identificar los IDs de los compradores potenciales
     const compradorIds = new Set<string>()
-    for (const conv of conversaciones) {
+    for (let i = 0; i < conversacionesList.length; i++) {
+      const conv = conversacionesList[i]
       const otro = conv.user1_id === userId ? conv.user2_id : conv.user1_id
-      if (otro && otro !== userId) compradorIds.add(otro)
+      if (otro && otro !== userId) {
+        compradorIds.add(otro)
+      }
     }
 
     if (compradorIds.size === 0) {
       return NextResponse.json({ ok: true, interesados: [] })
     }
 
-    // Obtener información de esos usuarios
+    const idsArray = Array.from(compradorIds)
+
     const { data: perfiles } = await supabaseAdmin
       .from('perfiles')
       .select('id, nombre')
-      .in('id', Array.from(compradorIds))
+      .in('id', idsArray)
+      .returns<PerfilBasico[]>()
 
-    // Obtener último mensaje de cada uno
-    const idsArray = Array.from(compradorIds)
     const { data: ultimosMensajes } = await supabaseAdmin
       .from('mensajes')
       .select('remitente_id, contenido')
       .in('remitente_id', idsArray)
       .order('creado_en', { ascending: false })
+      .returns<MensajeBasico[]>()
 
     const ultimoMsgMap = new Map<string, string>()
     if (ultimosMensajes) {
-      for (const m of ultimosMensajes) {
+      for (let i = 0; i < ultimosMensajes.length; i++) {
+        const m = ultimosMensajes[i]
         if (!ultimoMsgMap.has(m.remitente_id)) {
-          ultimoMsgMap.set(m.remitente_id, m.contenido?.substring(0, 60) || '')
+          ultimoMsgMap.set(m.remitente_id, m.contenido ? m.contenido.substring(0, 60) : '')
         }
       }
     }
