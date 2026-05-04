@@ -89,6 +89,7 @@ export default function ChatPageClient() {
   const [enviandoResena, setEnviandoResena] = useState(false)
   const [muestraResenaId, setMuestraResenaId] = useState<string | null>(null)
   const [yaDejoResena, setYaDejoResena] = useState(false)
+  const [userEsComprador, setUserEsComprador] = useState(false)
 
   // BroadcastChannel para sincronizar badge con Header
   useEffect(() => {
@@ -109,26 +110,35 @@ export default function ChatPageClient() {
     chatContainerRef.current?.scrollTo({ top: chatContainerRef.current.scrollHeight, behavior: 'smooth' })
   }, [mensajes])
 
-  // ─── Verificar si comprador ya dejo reseña ───
+  // ─── Verificar si soy comprador y si ya deje reseña ───
   useEffect(() => {
     if (!convId || !user) return
     const conv = conversaciones.find(c => c.id === convId)
     if (!conv || !conv.producto_id) return
-    // Si yo soy el vendedor, no aplica
-    if (conv.user1_id === user.id || conv.user2_id === user.id) {
-      const vendedorId = conv.user1_id === user.id ? conv.user2_id : conv.user1_id
-      if (user.id === vendedorId) return // soy vendedor, no comprador
-    }
-    // Verificar si ya existe reseña con yo como comprador
+    setUserEsComprador(false)
+    setYaDejoResena(false)
+    
     supabase
-      .from('resenas')
-      .select('id')
-      .eq('comprador_id', user.id)
-      .eq('vendedor_id', conv.user1_id === user.id ? conv.user2_id : conv.user1_id)
-      .limit(1)
-      .then(({ data }) => {
-        setYaDejoResena((data && data.length > 0) || false)
+      .from('productos')
+      .select('user_id')
+      .eq('id', conv.producto_id)
+      .single()
+      .then(({ data: prod }) => {
+        if (!prod) return
+        const sellerId = prod.user_id
+        if (user.id === sellerId) return // vendedor
+        setUserEsComprador(true)
+        return supabase
+          .from('resenas')
+          .select('id')
+          .eq('comprador_id', user.id)
+          .eq('vendedor_id', sellerId)
+          .limit(1)
       })
+      .then(({ data }) => {
+        if (data && data.length > 0) setYaDejoResena(true)
+      })
+      .catch(() => {})
   }, [convId, user, conversaciones])
 
   // ─── Cargar conversaciones ───
@@ -592,13 +602,12 @@ export default function ChatPageClient() {
                     )
                   })}
                   {/* Boton reseña comprador */}
-                  {!yaDejoResena && convActual?.producto_id && 
-                   user && convActual.user1_id !== user.id && convActual.user2_id !== user.id &&
-                   mensajes.some(m => m.contenido?.includes('compra exitosa') || m.contenido?.includes('fue exitosa')) && (
+                  {userEsComprador && !yaDejoResena &&
+                   mensajes.some(m => m.contenido?.includes('compra exitosa') || m.contenido?.includes('experiencia')) && (
                     <div className="flex justify-center">
                       <button
                         onClick={() => setMostrarResena(true)}
-                        className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white text-sm font-semibold px-6 py-3 rounded-xl hover:brightness-105 transition shadow-lg flex items-center gap-2 animate-bounce"
+                        className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white text-sm font-semibold px-6 py-3 rounded-xl hover:brightness-105 transition shadow-lg flex items-center gap-2"
                       >
                         ⭐ Deja tu reseña al vendedor
                       </button>
