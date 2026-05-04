@@ -24,11 +24,11 @@ const TABS = [
 ]
 
 const QUICK_LINKS = [
-  { label: 'Moderación', href: '/admin?tab=moderacion', icon: Shield },
-  { label: 'Transacciones', href: '/admin?tab=transacciones', icon: CreditCard },
-  { label: 'Anuncios', href: '/admin?tab=anuncios', icon: Megaphone },
-  { label: 'Categorías', href: '/admin?tab=categorias', icon: ChevronDown },
-  { label: 'Exportar', href: '/admin?tab=exportar', icon: Download },
+  { label: 'Moderación', target: 'moderacion', icon: Shield },
+  { label: 'Transacciones', target: 'transacciones', icon: CreditCard },
+  { label: 'Anuncios', target: 'anuncios', icon: Megaphone },
+  { label: 'Categorías', target: 'categorias', icon: ChevronDown },
+  { label: 'Exportar', target: 'exportar', icon: Download },
 ]
 
 interface Notifier {
@@ -1095,13 +1095,13 @@ export default function AdminPage() {
         ))}
       </nav>
 
-      {/* Quick links */}
+      {/* Quick links — botones que cambian tab directamente */}
       <div className="flex gap-1.5 mb-6 flex-wrap">
         {QUICK_LINKS.map(q => (
-          <Link key={q.label} href={q.href}
+          <button key={q.label} onClick={() => setTab(q.target)}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-white border hover:bg-gray-50 text-gray-600 transition">
             <q.icon size={12} /> {q.label}
-          </Link>
+          </button>
         ))}
       </div>
 
