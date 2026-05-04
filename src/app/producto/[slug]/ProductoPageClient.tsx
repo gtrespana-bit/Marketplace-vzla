@@ -7,25 +7,12 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/components/AuthProvider'
-import { MapPin, Tag, MessageCircle, Phone, Mail, ChevronRight, Shield, Clock, Star, X, Send, Heart, Share2 } from 'lucide-react'
+import { MapPin, Tag, MessageCircle, Phone, Mail, ChevronRight, Shield, Clock, Star, Heart, Share2 } from 'lucide-react'
 import Avatar from '@/components/Avatar'
 import ReportarButton from '@/components/ReportarButton'
 import BadgeVerificado from '@/components/BadgeVerificado'
 import ImageGallery from '@/components/ImageGallery'
 import SellerReputation from '@/components/SellerReputation'
-
-// Helper component for star rating
-function StarRating({ value, onChange, size = 24, readonly = false }: { value: number; onChange?: (v: number) => void; size?: number; readonly?: boolean }) {
-  return (
-    <div className={`flex gap-1 ${readonly ? '' : 'cursor-pointer'}`}>
-      {[1, 2, 3, 4, 5].map(i => (
-        <button key={i} type="button" onClick={() => onChange?.(i)} disabled={readonly} className={readonly ? 'cursor-default' : 'hover:scale-110 transition'}>
-          <Star size={size} className={i <= value ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'} />
-        </button>
-      ))}
-    </div>
-  )
-}
 
 interface ProductoPageClientProps {
   initialProduct: any
@@ -53,10 +40,7 @@ export default function ProductoPageClient({ initialProduct }: ProductoPageClien
   const [vendedor, setVendedor] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [totalResenas, setTotalResenas] = useState(0)
-  const [mostrarResena, setMostrarResena] = useState(false)
-  const [rating, setRating] = useState(5)
-  const [comentario, setComentario] = useState('')
-  const [enviandoResena, setEnviandoResena] = useState(false)
+  // Reseñas ahora solo se pueden dejar tras una compra/venta verificada
   const [esFavorito, setEsFavorito] = useState(false)
   const [toggleandoFav, setToggleandoFav] = useState(false)
   const [tasaBs, setTasaBs] = useState(0)
@@ -291,11 +275,7 @@ export default function ProductoPageClient({ initialProduct }: ProductoPageClien
                     <SellerReputation nivel={vendedor.nivel_confianza || 0} numResenas={vendedorStats.resenasCount} promedioResenas={vendedorStats.resenasAvg} numPubsActivas={vendedorStats.activas} numPubsVendidas={vendedorStats.vendidas} verificado={vendedor.verificado} badges={vendedor.badges_automaticos || []} antiguedadDias={vendedorStats.antiguedad || 0} ultimaActividad={vendedor.ultima_actividad || null} size="sm" />
                   </div>
                 )}
-                {user && user.id !== producto.user_id && (
-                  <button onClick={() => setMostrarResena(true)} className="text-xs text-brand-primary hover:underline mt-2">
-                    {totalResenas === 0 ? 'Dejar primera reseña →' : 'Escribir reseña →'}
-                  </button>
-                )}
+                user && user.id !== producto.user_id && null /* Reseñas ahora solo tras compra/venta */}
               </div>
             )}
 
@@ -341,41 +321,5 @@ export default function ProductoPageClient({ initialProduct }: ProductoPageClien
           </div>
         </div>
       </div>
-
-      {mostrarResena && user && vendedor && (
-        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 animate-fadeIn">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-bold">Reseña para {vendedor.nombre || 'el vendedor'}</h3>
-              <button onClick={() => setMostrarResena(false)} className="p-1 hover:bg-gray-100 rounded-full"><X size={20} /></button>
-            </div>
-            <p className="text-sm text-gray-500 mb-2">¿Cómo fue tu experiencia?</p>
-            <StarRating value={rating} onChange={setRating} size={32} />
-            <textarea value={comentario} onChange={e => setComentario(e.target.value)} maxLength={500} rows={3} className="w-full border rounded-lg px-3 py-2 mt-4 resize-none" placeholder="Cuéntanos tu experiencia (opcional)..." />
-            <p className="text-xs text-gray-400 mt-1">{comentario.length}/500</p>
-            <button
-              onClick={async () => {
-                if (!user || !producto || !vendedor) return
-                setEnviandoResena(true)
-                const { error: err } = await supabase.from('resenas').insert({ producto_id: producto.id, vendedor_id: vendedor.id, comprador_id: user.id, puntuacion: rating, comentario: comentario.trim() || null })
-                setEnviandoResena(false)
-                if (err) {
-                  alert('Error al enviar la reseña: ' + err.message)
-                } else {
-                  setMostrarResena(false)
-                  setComentario('')
-                  setRating(5)
-                  setTotalResenas(prev => prev + 1)
-                }
-              }}
-              disabled={enviandoResena}
-              className="w-full mt-4 bg-brand-primary text-white py-2.5 rounded-lg font-bold hover:bg-brand-dark transition flex items-center justify-center gap-2 disabled:opacity-50"
-            >
-              <Send size={16} /> {enviandoResena ? 'Enviando...' : 'Enviar reseña'}
-            </button>
-          </div>
-        </div>
-      )}
-    </div>
   )
 }

@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { Package, X, Pause, Play, Edit, Zap, Star, CheckCircle2, ArrowLeft, Send } from 'lucide-react'
+import { Package, X, Pause, Play, Edit, Zap, Star, CheckCircle2, ChevronDown, ArrowLeft, Send } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 
 export default function TabProductos({
@@ -25,8 +25,15 @@ export default function TabProductos({
   const [rating, setRating] = useState(5)
   const [comentarioResena, setComentarioResena] = useState('')
 
+  // Gestión de menús desplegables
+  const [menuGestion, setMenuGestion] = useState<string | null>(null)
+  const [menuPromocionar, setMenuPromocionar] = useState<string | null>(null)
+
+  const cerrarMenus = () => { setMenuGestion(null); setMenuPromocionar(null) }
+
   // Abrir modal de vendido
   const abrirVendido = async (productoId: string) => {
+    cerrarMenus()
     setVendidoModal(productoId)
     setVendidoPaso('tipo')
     setCompradorInfo(null)
@@ -44,6 +51,14 @@ export default function TabProductos({
       // fail silently
     }
     setCargandoVendidos(false)
+  }
+
+  // Reactivar vendido
+  const reactivarVendido = async (productoId: string) => {
+    cerrarMenus()
+    if (!confirm('¿Reactivar esta publicacion como no vendida?')) return
+    await supabase.from('productos').update({ activo: true, vendido: false, vendido_en: null, comprador_id: null }).eq('id', productoId)
+    window.location.reload()
   }
 
   // Marcar como vendido (simple — sin comprador, sin reseña)
@@ -70,6 +85,8 @@ export default function TabProductos({
   // Marcar vendido con comprador pero SIN reseña
   const venderSinResena = async () => {
     if (!vendidoModal || !compradorInfo) return
+    cerrarMenus()
+
     const res = await fetch('/api/admin/marcar-vendido', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -80,18 +97,24 @@ export default function TabProductos({
         compradorId: compradorInfo.id,
       }),
     })
+
     if (!res.ok) {
       const d = await res.json()
       alert('Error: ' + d.error)
       return
     }
+
+    // Enviar mensaje de chat al comprador notificando y invitando a reseñar
+    await enviarMensajeComprador(compradorInfo.id)
+
     setVendidoPaso('confirmado')
   }
 
-  // Enviar reseña al comprador
+  // Enviar reseña al comprador (primero marca vendido, luego notifica)
   const enviarResena = async () => {
     if (!vendidoModal || !compradorInfo) return
     setEnviandoResena(true)
+    cerrarMenus()
 
     // Primero marcar como vendido con comprador
     const res1 = await fetch('/api/admin/marcar-vendido', {
@@ -129,11 +152,58 @@ export default function TabProductos({
 
     const data2 = await res2.json()
     if (!res2.ok) {
-      // Si la reseña falla pero el vendido sí fue, mostrar confirmado de todos modos
       console.warn('Reseña falló:', data2.error)
     }
 
+    // Enviar mensaje de chat al comprador
+    await enviarMensajeComprador(compradorInfo.id)
+
     setVendidoPaso('confirmado')
+  }
+
+  // Enviar mensaje directo al comprador del chat de este producto
+  const enviarMensajeComprador = async (compradorId: string) => {
+    if (!vendidoModal) return
+    try {
+      // Buscar o crear conversacion
+      const u1 = userId < compradorId ? userId : compradorId
+      const u2 = userId < compradorId ? compradorId : userId
+      const { data: convExist } = await supabase
+        .from('conversaciones')
+        .select('id')
+        .eq('user1_id', u1)
+        .eq('user2_id', u2)
+        .eq('producto_id', vendidoModal)
+        .maybeSingle()
+
+      let convId = convExist?.id
+      if (!convId) {
+        const { data: convNew } = await supabase
+          .from('conversaciones')
+          .insert({ user1_id: u1, user2_id: u2, producto_id: vendidoModal })
+          .select('id')
+          .single()
+        convId = convNew?.id
+      }
+
+      if (convId) {
+        await supabase.from('mensajes').insert({
+          conversacion_id: convId,
+          remitente_id: userId,
+          destinatario_id: compradorId,
+          producto_id: vendidoModal,
+          contenido: '✅ ¡Tu compra fue exitosa! El vendedor ha confirmado la venta. ¿Cómo fue tu experiencia? Déjale una reseña para ayudar a la comunidad. ⭐',
+        })
+      }
+    } catch {
+      // fail silently
+    }
+  }
+
+  const pausarActivar = async (id: string, activoActual: boolean) => {
+    cerrarMenus()
+    await supabase.from('productos').update({ activo: !activoActual }).eq('id', id)
+    window.location.reload()
   }
 
   if (productos.length === 0) {
@@ -159,8 +229,10 @@ export default function TabProductos({
           const isBoosted = p.boosteado_en != null
           const isFeatured = p.destacado && p.destacado_hasta && p.destacado_hasta > now
           const isVendido = p.vendido === true
+          const gestionAbierto = menuGestion === p.id
+          const promoAbierto = menuPromocionar === p.id
           return (
-            <div key={p.id} className={`group flex items-center gap-4 p-3 rounded-lg border border-gray-100 transition ${isVendido ? 'bg-green-50/50 border-green-200' : 'hover:bg-gray-50'}`}>
+            <div key={p.id} className={`group flex items-start gap-4 p-3 rounded-lg border border-gray-100 transition ${isVendido ? 'bg-green-50/50 border-green-200' : 'hover:bg-gray-50'}`}>
               <Link href={`/producto/${p.id}`} className="flex items-center gap-4 flex-1 min-w-0">
                 <div className="w-16 h-16 rounded-lg bg-gray-100 flex-shrink-0 overflow-hidden relative">
                   {p.imagen_url ? (
@@ -193,61 +265,86 @@ export default function TabProductos({
                   </div>
                 </div>
               </Link>
-              <div className="flex gap-1 flex-shrink-0">
-                <Link href={`/producto/editar/${p.id}`} className="p-2 hover:bg-blue-50 rounded-lg transition text-brand-primary" title="Editar">
-                  <Edit size={16} />
-                </Link>
-                {p.activo && !isVendido && (
+
+              {/* Menús desplegables */}
+              <div className="flex gap-2 flex-shrink-0 relative" onClick={e => e.stopPropagation()}>
+                {/* GESTIONAR */}
+                <div className="relative">
                   <button
-                    onClick={() => abrirVendido(p.id)}
-                    className="p-2 hover:bg-green-100 rounded-lg transition text-green-700 font-bold"
-                    title="Marcar como Vendido"
+                    onClick={() => { cerrarMenus(); setMenuGestion(gestionAbierto ? null : p.id) }}
+                    className="px-3 py-1.5 bg-gray-100 text-gray-700 rounded-lg text-xs font-medium hover:bg-gray-200 flex items-center gap-1"
                   >
-                    <CheckCircle2 size={16} />
+                    Gestionar <ChevronDown size={12} />
                   </button>
+                  {gestionAbierto && (
+                    <div className="absolute right-0 top-full mt-1 bg-white border rounded-lg shadow-lg py-1 w-48 z-20">
+                      <Link
+                        href={`/producto/editar/${p.id}`}
+                        onClick={cerrarMenus}
+                        className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-gray-50"
+                      >
+                        <Edit size={14} /> Editar
+                      </Link>
+                      {!isVendido && p.activo && (
+                        <button
+                          onClick={() => abrirVendido(p.id)}
+                          className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-gray-50 w-full text-left"
+                        >
+                          <CheckCircle2 size={14} className="text-green-600" /> Marcar como vendido
+                        </button>
+                      )}
+                      {isVendido && (
+                        <button
+                          onClick={() => reactivarVendido(p.id)}
+                          className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-gray-50 w-full text-left"
+                        >
+                          <Play size={14} className="text-orange-500" /> Reactivar
+                        </button>
+                      )}
+                      <button
+                        onClick={() => pausarActivar(p.id, p.activo)}
+                        disabled={isVendido}
+                        className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-gray-50 w-full text-left disabled:opacity-40"
+                      >
+                        {p.activo ? <Pause size={14} /> : <Play size={14} />} {p.activo ? 'Pausar' : 'Activar'}
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                {/* PROMOCIONAR */}
+                {!isVendido && p.activo && (
+                  <div className="relative">
+                    <button
+                      onClick={() => { cerrarMenus(); setMenuPromocionar(promoAbierto ? null : p.id) }}
+                      className="px-3 py-1.5 bg-brand-accent/20 text-brand-primary rounded-lg text-xs font-bold hover:bg-brand-accent/30 flex items-center gap-1"
+                    >
+                      Promocionar <ChevronDown size={12} />
+                    </button>
+                    {promoAbierto && (
+                      <div className="absolute right-0 top-full mt-1 bg-white border rounded-lg shadow-lg py-1 w-52 z-20">
+                        <button
+                          onClick={() => {
+                            onBoost({ productId: p.id, titulo: p.titulo })
+                            cerrarMenus()
+                          }}
+                          className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-gray-50 w-full text-left"
+                        >
+                          <Zap size={14} className="text-yellow-500" /> Boost (visibilidad extra)
+                        </button>
+                        <button
+                          onClick={() => {
+                            onDestacar({ productId: p.id, titulo: p.titulo })
+                            cerrarMenus()
+                          }}
+                          className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-gray-50 w-full text-left"
+                        >
+                          <Star size={14} className="text-brand-primary" /> Destacar (12h / 24h / 48h)
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 )}
-                {isVendido && (
-                  <button
-                    onClick={async () => {
-                      if (!confirm('¿Reactivar esta publicacion como no vendida?')) return
-                      await supabase.from('productos').update({ activo: true, vendido: false, vendido_en: null, comprador_id: null }).eq('id', p.id)
-                      window.location.reload()
-                    }}
-                    className="p-2 hover:bg-orange-50 rounded-lg transition text-orange-600"
-                    title="Reactivar (ya no vendido)"
-                  >
-                    <Play size={16} />
-                  </button>
-                )}
-                <button
-                  onClick={async () => {
-                    const ns = !p.activo
-                    await supabase.from('productos').update({ activo: ns }).eq('id', p.id)
-                    window.location.reload()
-                  }}
-                  className="p-2 hover:bg-gray-100 rounded-lg transition"
-                  title={p.activo ? 'Pausar' : 'Activar'}
-                >
-                  {p.activo ? <Pause size={16} /> : <Play size={16} />}
-                </button>
-                <button onClick={() => onBoost({ productId: p.id, titulo: p.titulo })} className="p-2 hover:bg-yellow-50 rounded-lg transition text-yellow-600" title="Boost">
-                  <Zap size={16} />
-                </button>
-                <button onClick={() => onDestacar({ productId: p.id, titulo: p.titulo })} className="p-2 hover:bg-yellow-50 rounded-lg transition text-brand-primary" title="Destacar">
-                  <Star size={16} />
-                </button>
-                <button
-                  onClick={async () => {
-                    if (confirm('¿Eliminar esta publicacion permanentemente?')) {
-                      await supabase.from('productos').delete().eq('id', p.id)
-                      window.location.reload()
-                    }
-                  }}
-                  className="p-2 hover:bg-red-50 rounded-lg transition text-red-500"
-                  title="Eliminar"
-                >
-                  <X size={16} />
-                </button>
               </div>
             </div>
           )
@@ -392,7 +489,7 @@ export default function TabProductos({
                     onClick={venderSinResena}
                     className="flex-1 px-4 py-2.5 border rounded-lg text-sm font-medium hover:bg-gray-50"
                   >
-                    Omitir reseña
+                    Sin reseña
                   </button>
                   <button
                     onClick={enviarResena}
@@ -412,7 +509,7 @@ export default function TabProductos({
                   <CheckCircle2 size={32} className="text-green-600" />
                 </div>
                 <h3 className="text-xl font-bold text-green-800 mb-2">¡Vendido!</h3>
-                <p className="text-gray-500 mb-6">Tu anuncio ya está marcado como vendido.</p>
+                <p className="text-gray-500 mb-6">Tu anuncio ya está marcado como vendido. El comprador recibió un mensaje.</p>
                 <button
                   onClick={() => { setVendidoModal(null); window.location.reload() }}
                   className="bg-brand-primary text-white px-8 py-3 rounded-xl font-bold hover:bg-brand-dark transition"
