@@ -369,7 +369,7 @@ export default function ChatPageClient() {
     return (
       <div className="max-w-6xl mx-auto px-4 py-8">
         <h1 className="text-3xl font-bold text-gray-800 mb-6">💬 Mensajes</h1>
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 h-[600px] flex items-center justify-center">
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 h-[600px] md:h-auto flex items-center justify-center">
           <div className="text-center text-gray-400">
             <div className="w-12 h-12 border-4 border-brand-accent border-t-brand-primary rounded-full animate-spin mx-auto mb-3" />
             <p>Cargando mensajes...</p>
@@ -390,7 +390,7 @@ export default function ChatPageClient() {
       <h1 className="text-3xl font-bold text-gray-800 mb-6">💬 Mensajes</h1>
 
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-        <div className="flex flex-col md:flex-row h-[600px]">
+        <div className="flex flex-col md:flex-row md:h-[600px] h-[calc(100dvh-140px)]">
           {/* ─── Sidebar ─── */}
           <div className={`${showMobileChat ? 'hidden md:flex' : 'flex'} flex-col w-full md:w-80 border-r border-gray-100`}>
             <div className="p-3 border-b">
