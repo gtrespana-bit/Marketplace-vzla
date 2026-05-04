@@ -82,7 +82,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Buscar conversaciones de este producto
-    const { data: conversaciones } = await supabaseAdmin
+    const { data: conversaciones }: { data: { id: string; user1_id: string; user2_id: string }[] | null } = await supabaseAdmin
       .from('conversaciones')
       .select('id, user1_id, user2_id')
       .eq('producto_id', productoId)
