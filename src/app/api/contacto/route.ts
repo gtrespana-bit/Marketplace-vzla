@@ -85,7 +85,20 @@ export async function POST(req: NextRequest) {
       </div>
     `
 
-    await getTransporter().sendMail({
+    console.log('📧 Enviando email a soporte@vendet.online:', { nombre, email, asunto })
+    console.log('SMTP config:', {
+      host: process.env.ZOHO_SMTP_HOST,
+      port: process.env.ZOHO_SMTP_PORT,
+      user: process.env.ZOHO_SMTP_USER,
+      hasPass: !!process.env.ZOHO_SMTP_PASS,
+    })
+
+    const transporter = getTransporter()
+    // Verify connection before sending
+    await transporter.verify()
+    console.log('✅ SMTP conexión verificada')
+
+    await transporter.sendMail({
       from: '"VendeT-Venezuela" <soporte@vendet.online>',
       to: 'soporte@vendet.online',
       replyTo: email,
@@ -93,12 +106,15 @@ export async function POST(req: NextRequest) {
       html,
     })
 
+    console.log('✅ Email enviado correctamente')
+
     // Telegram notification
     await sendTelegramAlert(asunto, nombre, email, mensaje)
 
     return NextResponse.json({ success: true })
-  } catch (e) {
-    console.error('❌ Error enviando email de contacto:', e)
-    return NextResponse.json({ error: 'Error al enviar el mensaje' }, { status: 500 })
+  } catch (e: any) {
+    console.error('❌ Error enviando email de contacto:', e?.message || e)
+    console.error('Full error:', JSON.stringify(e, null, 2))
+    return NextResponse.json({ error: e?.message || 'Error al enviar el mensaje' }, { status: 500 })
   }
 }
