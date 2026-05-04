@@ -350,11 +350,9 @@ export default function ChatPageClient() {
 
   // ─── Enviar reseña comprador → vendedor ───
   const enviarResenaComprador = async () => {
-    if (!convId || !user || enviandoResena) return
+    if (!convId || !user || enviandoResena || !productoOwnerId) return
     const conv = conversaciones.find(c => c.id === convId)
     if (!conv || !conv.producto_id) return
-    const vendedorId = conv.user1_id === user.id ? conv.user2_id : conv.user1_id
-    if (user.id === vendedorId) return // solo compradores
 
     setEnviandoResena(true)
     try {
@@ -362,7 +360,7 @@ export default function ChatPageClient() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          vendedor_id: vendedorId,
+          vendedor_id: productoOwnerId,
           comprador_id: user.id,
           producto_id: conv.producto_id,
           puntuacion: ratingResena,
