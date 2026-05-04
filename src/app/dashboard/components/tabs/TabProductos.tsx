@@ -40,14 +40,18 @@ export default function TabProductos({
     setVendidoModal(productoId)
     setVendidoPaso('tipo')
     setCompradorSel(null)
+    setInteresados([])
 
     // Precargar interesados
+    if (!userId) return
     setCargandoVendidos(true)
     try {
       const res = await fetch(`/api/admin/marcar-vendido?productoId=${productoId}&userId=${userId}`)
       const data = await res.json()
-      if (data.ok) setInteresados(data.interesados)
-    } catch {}
+      if (data.ok && data.interesados) setInteresados(data.interesados)
+    } catch {
+      // Fail silently
+    }
     setCargandoVendidos(false)
   }
 

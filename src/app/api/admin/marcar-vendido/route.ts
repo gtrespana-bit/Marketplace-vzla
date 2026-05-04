@@ -82,7 +82,7 @@ export async function GET(request: NextRequest) {
       .eq('producto_id', productoId)
 
     if (!conversacionesList || conversacionesList.length === 0) {
-      return NextResponse.json({ ok: true, interesado: [] })
+      return NextResponse.json({ ok: true, interesados: [] })
     }
 
     const compradorIds = new Set<string>()
