@@ -72,6 +72,7 @@ export default function ChatPageClient() {
   const [busqueda, setBusqueda] = useState('')
   const [showMobileChat, setShowMobileChat] = useState(false)
   const [enviando, setEnviando] = useState(false)
+  const [toastMsg, setToastMsg] = useState<string | null>(null)
 
   const mensajesEndRef = useRef<HTMLDivElement>(null)
   const chatContainerRef = useRef<HTMLDivElement>(null)
@@ -290,17 +291,33 @@ export default function ChatPageClient() {
     if (!conv) { setEnviando(false); return }
     const destinatarioId = conv.user1_id === user.id ? conv.user2_id : conv.user1_id
 
-    // Insert directly in DB — the trigger creates the conversation if needed
-    const { error } = await supabase.from('mensajes').insert({
-      conversacion_id: convId,
-      remitente_id: user.id,
-      destinatario_id: destinatarioId,
-      contenido: msg,
+    // Send via API route with rate limiting
+    const res = await fetch('/api/enviar-mensaje', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        conversacion_id: convId,
+        remitente_id: user.id,
+        destinatario_id: destinatarioId,
+        contenido: msg,
+      }),
     })
+    const result = await res.json()
 
-    if (error) {
-      console.error('Error enviando mensaje:', error)
-    } else {
+    if (res.status === 429) {
+      setToastMsg(result.error || 'Demasiados mensajes')
+      setTimeout(() => setToastMsg(null), 4000)
+      setEnviando(false)
+      return
+    }
+
+    if (!res.ok) {
+      console.error('Error enviando mensaje:', result.error)
+      setEnviando(false)
+      return
+    }
+
+    if (result.ok) {
       setTexto('')
       // Reload messages after send (also realtime will catch it)
       await loadMensajes(convId)

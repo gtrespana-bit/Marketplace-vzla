@@ -227,10 +227,16 @@ export default function PublicarPage() {
         }
       }
 
-      // Insert product
-      const { error: dbError, data: producto } = await supabase
-        .from('productos')
-        .insert({
+      // Insert product via API route with rate limiting
+      const res = await fetch('/api/publicar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: user?.id,
+          moderacionAlerta: estadoModeracion === 'pendiente' ? {
+            nivel: 'sospechoso', titulo, palabras: resultado.palabras,
+            userName: user?.email || 'Desconocido',
+          } : undefined,
           user_id: user?.id,
           titulo,
           estado_moderacion: estadoModeracion,
@@ -248,14 +254,25 @@ export default function PublicarPage() {
           metodos_contacto: Object.keys(metodosContacto).length > 0 ? metodosContacto : null,
           activo: true,
           destacado: false,
-        })
-        .select()
-        .single()
-
-      if (dbError) {
-        console.error('DB error:', dbError)
-        setError('Error al guardar: ' + dbError.message)
-      } else {
+        }),
+      })
+      
+      const apiResult = await res.json()
+      
+      if (res.status === 429) {
+        setError(apiResult.error || 'Demasiadas publicaciones. Espera unos minutos.')
+        setLoading(false)
+        return
+      }
+      
+      if (!res.ok || !apiResult.ok) {
+        console.error('API error:', apiResult)
+        setError('Error al guardar: ' + (apiResult.error || 'Error desconocido'))
+        setLoading(false)
+        return
+      }
+      
+      const producto = apiResult.data else {
         // Check Pack Emprendedor (10+ publicaciones = 5 creditos gratis)
         const { count: pubCount } = await supabase
           .from('productos')

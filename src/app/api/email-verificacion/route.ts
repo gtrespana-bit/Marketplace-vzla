@@ -1,14 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { emailVerificacionAprobada, emailSubidaNivel } from '@/lib/server-email'
-import { createClient } from '@supabase/supabase-js'
 
-// POST /api/email-verificacion — send verification or level-up notification
 export async function POST(req: NextRequest) {
   try {
     const { userId, nuevoNivel, nivelAnterior } = await req.json()
     if (!userId) return NextResponse.json({ ok: false, error: 'Missing userId' }, { status: 400 })
 
-    const sb = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
+    const sb = (await import('@supabase/supabase-js')).createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    )
     const { data: authUsers } = await sb.auth.admin.listUsers()
     const user = authUsers.users.find((u: any) => u.id === userId)
     if (!user?.email) return NextResponse.json({ ok: false, error: 'Email not found' }, { status: 404 })
