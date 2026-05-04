@@ -190,11 +190,18 @@ function UsuariosTab({ notify }: Notifier) {
   }
 
   async function toggleVerificado(userId: string, estado: boolean) {
-    const { error } = await supabase.from('perfiles').update({ verificado: estado }).eq('id', userId)
-    if (!error) {
-      notify(estado ? '✅ Usuario verificado' : '⏸️ Verificación removida')
-      setUsuarios(prev => prev.map(u => u.id === userId ? { ...u, verificado: estado } : u))
+    const res = await fetch('/api/admin/toggle-verificado', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId, verificado: estado }),
+    })
+    const result = await res.json()
+    if (!res.ok) {
+      notify('❌ Error: ' + (result.error || 'desconocido'))
+      return
     }
+    notify(estado ? '✅ Usuario verificado' : '⏸️ Verificación removida')
+    setUsuarios(prev => prev.map(u => u.id === userId ? { ...u, verificado: estado } : u))
   }
 
   const SortIcon = ({ field }: { field: SortField }) => {

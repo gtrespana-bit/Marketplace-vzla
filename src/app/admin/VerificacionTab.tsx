@@ -41,12 +41,15 @@ export default function VerificacionTab({ notify }: { notify: (msg: string) => v
     const userIds = (sols || []).map((s: any) => s.user_id).filter(Boolean)
     let perfilesMap: Record<string, any> = {}
     if (userIds.length > 0) {
-      const { data: perfiles } = await supabase
-        .from('perfiles')
-        .select('id, nombre, telefono, cedula_numero, pago_movil_telefono, pago_movil_cedula, pago_movil_banco')
-        .in('id', userIds)
-      if (perfiles) {
-        perfiles.forEach((p: any) => { perfilesMap[p.id] = p })
+      // Server-side fetch (RLS) para tener datos completos de todos los perfiles
+      const res = await fetch('/api/admin/perfiles-ids', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userIds }),
+      })
+      const result = await res.json()
+      if (result.ok && result.perfiles) {
+        result.perfiles.forEach((p: any) => { perfilesMap[p.id] = p })
       }
     }
 
@@ -73,19 +76,23 @@ export default function VerificacionTab({ notify }: { notify: (msg: string) => v
       .eq('id', id)
     if (err1) { notify('Error aprobando: ' + err1.message); return }
 
-    // 2. Perfil verificado
-    const { error: err2 } = await supabase
-      .from('perfiles')
-      .update({
-        verificado: true,
-        verificado_desde: new Date().toISOString(),
+    // 2. Perfil verificado via server-side endpoint (bypass RLS)
+    const res = await fetch('/api/admin/verificar-venta', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        userId,
         cedula_numero: sol.pago_movil_cedula || '',
         pago_movil_telefono: sol.pago_movil_telefono || '',
         pago_movil_cedula: sol.pago_movil_cedula || '',
         pago_movil_banco: sol.pago_movil_banco || '',
-      })
-      .eq('id', userId)
-    if (err2) { notify('Error perfil: ' + err2.message); return }
+      }),
+    })
+    const result = await res.json()
+    if (!res.ok) {
+      notify('Error perfil: ' + result.error)
+      return
+    }
 
     notify('Vendedor verificado correctamente')
     // EMAIL: Notificar al usuario que fue verificado
