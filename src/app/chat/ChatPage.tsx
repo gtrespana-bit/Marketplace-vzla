@@ -360,8 +360,8 @@ export default function ChatPageClient() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          vendedor_id: productoOwnerId,
-          comprador_id: user.id,
+          evaluador_id: user.id,
+          evaluado_id: productoOwnerId,
           producto_id: conv.producto_id,
           puntuacion: ratingResena,
           comentario: comentarioResena.trim() || null,
