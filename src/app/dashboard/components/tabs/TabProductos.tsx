@@ -206,6 +206,19 @@ export default function TabProductos({
                     <CheckCircle2 size={16} />
                   </button>
                 )}
+                {isVendido && (
+                  <button
+                    onClick={async () => {
+                      if (!confirm('¿Reactivar esta publicacion como no vendida?')) return
+                      await supabase.from('productos').update({ activo: true, vendido: false, vendido_en: null, comprador_id: null }).eq('id', p.id)
+                      window.location.reload()
+                    }}
+                    className="p-2 hover:bg-orange-50 rounded-lg transition text-orange-600"
+                    title="Reactivar (ya no vendido)"
+                  >
+                    <Play size={16} />
+                  </button>
+                )}
                 <button
                   onClick={async () => {
                     const ns = !p.activo

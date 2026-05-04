@@ -19,6 +19,8 @@ export async function POST(request: NextRequest) {
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     )
 
+    // Invertimos: el evaluador (vendedor que vendió) reseña al evaluado (comprador)
+    // Guardamos como reseña normal pero con campos invertidos
     const { error } = await supabaseAdmin.from('resenas').insert({
       producto_id,
       vendedor_id: evaluado_id,
@@ -28,11 +30,31 @@ export async function POST(request: NextRequest) {
     })
 
     if (error) {
-      // Si la columna no existe (42703) o la tabla no existe (42P01), avisar
       if (error.code === '42P01' || error.code === '42703') {
-        return NextResponse.json({ error: 'La tabla o columna no existe. Necesitas ejecutar la migración.', details: error.message }, { status: 400 })
+        return NextResponse.json({ error: 'Falta columna en DB. Ejecuta: ALTER TABLE productos ADD COLUMN IF NOT EXISTS vendido BOOLEAN DEFAULT FALSE, ADD COLUMN IF NOT EXISTS vendido_en TEXT, ADD COLUMN IF NOT EXISTS comprador_id UUID;', details: error.message }, { status: 400 })
       }
       return NextResponse.json({ error: error.message }, { status: 500 })
+    }
+
+    // Notificar al comprador que el vendedor le dio reseña + invitar a que también deje la suya
+    try {
+      const { data: vendedor } = await supabaseAdmin
+        .from('perfiles')
+        .select('nombre')
+        .eq('id', evaluador_id)
+        .single()
+
+      await supabaseAdmin.from('notificaciones_push').insert({
+        target_user_id: evaluado_id,
+        tipo: 'resena_recibida',
+        titulo: `${vendedor?.nombre || 'Tu vendedor'} te dejó una reseña ⭐`,
+        cuerpo: puntuacion >= 4
+          ? `¡Reseña positiva! Toca aquí para ver detalles o dejar tu reseña también.`
+          : `Toca aquí para ver la reseña y dejar la tuya también.`,
+        click_url: `/dashboard?tab=resenas`,
+      })
+    } catch {
+      // fail silently
     }
 
     return NextResponse.json({ ok: true })

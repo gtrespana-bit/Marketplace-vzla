@@ -99,7 +99,7 @@ export default function EditarPage() {
 
       const existingSpecs: Record<string, string> = {}
       campos.forEach((campo: any) => {
-        existingSpecs[campo.label] = prod.especificaciones?.[campo.label] || ''
+        existingSpecs[campo.label] = (prod.especificaciones && typeof prod.especificaciones === 'object' ? (prod.especificaciones as any)[campo.label] : null) || ''
       })
       setSpecs(existingSpecs)
 
@@ -157,7 +157,6 @@ export default function EditarPage() {
         activo,
         imagen_url: uploadedUrls[0] || null,
         imagenes: uploadedUrls,
-        especificaciones: Object.keys(specs).length > 0 ? specs : null,
         metodos_contacto: Object.keys(metodosContacto).length > 0 ? metodosContacto : null,
       }
 
