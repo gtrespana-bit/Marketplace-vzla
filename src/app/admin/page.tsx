@@ -98,7 +98,7 @@ function MetricasTab() {
 }
 
 // ============================ USUARIOS TAB ============================
-type SortField = 'nombre' | 'creado_en' | 'credito_balance' | 'ultima_actividad'
+type SortField = 'nombre' | 'creado_en' | 'credito_balance' | 'verificado' | 'ultima_actividad'
 type SortDir = 'asc' | 'desc'
 
 function UsuariosTab({ notify }: Notifier) {
