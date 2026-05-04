@@ -5,16 +5,6 @@ import Link from 'next/link'
 import { Package, X, Pause, Play, Edit, Zap, Star, CheckCircle2, ArrowLeft, Send } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 
-function StarRating({ value, size = 20 }: { value: number; size?: number }) {
-  return (
-    <div className="flex gap-0.5">
-      {[1, 2, 3, 4, 5].map(i => (
-        <Star key={i} size={size} className={i <= value ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'} />
-      ))}
-    </div>
-  )
-}
-
 export default function TabProductos({
   productos,
   onBoost,
@@ -29,7 +19,7 @@ export default function TabProductos({
   const [vendidoModal, setVendidoModal] = useState<string | null>(null)
   const [vendidoPaso, setVendidoPaso] = useState<'tipo' | 'comprador' | 'reseña' | 'confirmado'>('tipo')
   const [interesados, setInteresados] = useState<any[]>([])
-  const [compradorSel, setCompradorSel] = useState<any>(null)
+  const [compradorInfo, setCompradorInfo] = useState<{ id: string; nombre: string } | null>(null)
   const [cargandoVendidos, setCargandoVendidos] = useState(false)
   const [enviandoResena, setEnviandoResena] = useState(false)
   const [rating, setRating] = useState(5)
@@ -39,10 +29,11 @@ export default function TabProductos({
   const abrirVendido = async (productoId: string) => {
     setVendidoModal(productoId)
     setVendidoPaso('tipo')
-    setCompradorSel(null)
+    setCompradorInfo(null)
     setInteresados([])
+    setRating(5)
+    setComentarioResena('')
 
-    // Precargar interesados
     if (!userId) return
     setCargandoVendidos(true)
     try {
@@ -50,71 +41,98 @@ export default function TabProductos({
       const data = await res.json()
       if (data.ok && data.interesados) setInteresados(data.interesados)
     } catch {
-      // Fail silently
+      // fail silently
     }
     setCargandoVendidos(false)
   }
 
-  // Marcar como vendido sin comprador especificado
+  // Marcar como vendido (simple — sin comprador, sin reseña)
   const marcarVendidoSimple = async (productoId: string, vendidoEn: string) => {
     const res = await fetch('/api/admin/marcar-vendido', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ productoId, userId, vendidoEn }),
     })
-    const data = await res.json()
     if (!res.ok) {
-      alert('Error: ' + data.error)
+      const d = await res.json()
+      alert('Error: ' + d.error)
       return
     }
-    // Recargar
-    window.location.reload()
+    setVendidoPaso('confirmado')
   }
 
-  // Marcar vendido con comprador
-  const marcarVendidoConComprador = async (productoId: string, compradorId: string) => {
+  // Seleccionar comprador → ir a "¿quieres dejar reseña?"
+  const seleccionarComprador = (comprador: { userId: string; nombre: string }) => {
+    setCompradorInfo({ id: comprador.userId, nombre: comprador.nombre })
+    setVendidoPaso('reseña')
+  }
+
+  // Marcar vendido con comprador pero SIN reseña
+  const venderSinResena = async () => {
+    if (!vendidoModal || !compradorInfo) return
     const res = await fetch('/api/admin/marcar-vendido', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ productoId, userId, vendidoEn: 'plataforma', compradorId }),
+      body: JSON.stringify({
+        productoId: vendidoModal,
+        userId,
+        vendidoEn: 'plataforma',
+        compradorId: compradorInfo.id,
+      }),
     })
-    const data = await res.json()
     if (!res.ok) {
-      alert('Error: ' + data.error)
+      const d = await res.json()
+      alert('Error: ' + d.error)
       return
     }
-    // Ir a paso de reseña
-    setCompradorSel(compradorId)
-    setVendidoPaso('reseña')
+    setVendidoPaso('confirmado')
   }
 
   // Enviar reseña al comprador
   const enviarResena = async () => {
-    if (!vendidoModal || !compradorSel) return
+    if (!vendidoModal || !compradorInfo) return
     setEnviandoResena(true)
-    try {
-      const res = await fetch('/api/admin/enviar-resena', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          producto_id: vendidoModal,
-          evaluador_id: userId,
-          evaluado_id: compradorSel,
-          puntuacion: rating,
-          comentario: comentarioResena.trim() || null,
-        }),
-      })
-      const data = await res.json()
+
+    // Primero marcar como vendido con comprador
+    const res1 = await fetch('/api/admin/marcar-vendido', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        productoId: vendidoModal,
+        userId,
+        vendidoEn: 'plataforma',
+        compradorId: compradorInfo.id,
+      }),
+    })
+
+    if (!res1.ok) {
+      const d = await res1.json()
       setEnviandoResena(false)
-      if (!res.ok) {
-        alert('Error: ' + data.error)
-        return
-      }
-    } catch (e: any) {
-      setEnviandoResena(false)
-      alert('Error al enviar: ' + e.message)
+      alert('Error al marcar vendido: ' + d.error)
       return
     }
+
+    // Ahora enviar la reseña
+    const res2 = await fetch('/api/admin/enviar-resena', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        producto_id: vendidoModal,
+        evaluador_id: userId,
+        evaluado_id: compradorInfo.id,
+        puntuacion: rating,
+        comentario: comentarioResena.trim() || null,
+      }),
+    })
+
+    setEnviandoResena(false)
+
+    const data2 = await res2.json()
+    if (!res2.ok) {
+      // Si la reseña falla pero el vendido sí fue, mostrar confirmado de todos modos
+      console.warn('Reseña falló:', data2.error)
+    }
+
     setVendidoPaso('confirmado')
   }
 
@@ -179,7 +197,6 @@ export default function TabProductos({
                 <Link href={`/producto/editar/${p.id}`} className="p-2 hover:bg-blue-50 rounded-lg transition text-brand-primary" title="Editar">
                   <Edit size={16} />
                 </Link>
-                {/* Botón VENDIDO solo si está activo */}
                 {p.activo && !isVendido && (
                   <button
                     onClick={() => abrirVendido(p.id)}
@@ -239,9 +256,10 @@ export default function TabProductos({
               </button>
             </div>
 
+            {/* PASO 1: ¿Cómo se vendió? */}
             {vendidoPaso === 'tipo' && (
               <>
-                <h3 className="text-lg font-bold mb-4">¿Cómo se vendió?</h3>
+                <h3 className="text-lg font-bold mb-2">¿Cómo se vendió?</h3>
                 <p className="text-sm text-gray-500 mb-6">Esto marca tu anuncio como vendido y ya no aparecerá activo.</p>
                 <div className="space-y-3">
                   <button
@@ -249,8 +267,7 @@ export default function TabProductos({
                       if (interesados.length > 0) {
                         setVendidoPaso('comprador')
                       } else {
-                        marcarVendidoConComprador(vendidoModal, '')
-                        setVendidoPaso('confirmado')
+                        marcarVendidoSimple(vendidoModal, 'plataforma')
                       }
                     }}
                     className="w-full text-left p-4 border-2 border-green-200 bg-green-50 rounded-xl hover:bg-green-100 transition"
@@ -281,21 +298,22 @@ export default function TabProductos({
               </>
             )}
 
+            {/* PASO 2: ¿A quién le vendiste? */}
             {vendidoPaso === 'comprador' && (
               <>
-                <h3 className="text-lg font-bold mb-2">¿A quién se lo vendiste?</h3>
+                <h3 className="text-lg font-bold mb-2">¿A quién le vendiste?</h3>
                 <p className="text-sm text-gray-500 mb-4">Selecciona a la persona que te contactó por este producto.</p>
                 <div className="space-y-2 max-h-64 overflow-y-auto">
                   {cargandoVendidos ? (
                     <p className="text-center text-gray-400 py-8">Cargando...</p>
                   ) : interesados.length === 0 ? (
-                    <p className="text-center text-gray-400 py-8">Nadie te contactó por este producto</p>
+                    <p className="text-center text-gray-400 py-4">Nadie te contactó por este producto</p>
                   ) : (
                     <>
                       {interesados.map((inter) => (
                         <button
                           key={inter.userId}
-                          onClick={() => marcarVendidoConComprador(vendidoModal, inter.userId)}
+                          onClick={() => seleccionarComprador(inter)}
                           className="w-full text-left p-3 border rounded-xl hover:bg-green-50 hover:border-green-200 transition"
                         >
                           <p className="font-semibold text-gray-900">{inter.nombre}</p>
@@ -305,7 +323,10 @@ export default function TabProductos({
                         </button>
                       ))}
                       <button
-                        onClick={() => marcarVendidoConComprador(vendidoModal, '')}
+                        onClick={() => {
+                          setCompradorInfo({ id: '', nombre: '' })
+                          setVendidoPaso('reseña')
+                        }}
                         className="w-full text-center p-3 text-sm text-gray-500 hover:text-brand-primary hover:underline"
                       >
                         Omitir (no fue ninguno de estos)
@@ -316,6 +337,7 @@ export default function TabProductos({
               </>
             )}
 
+            {/* PASO 3: ¿Quieres dejar reseña al comprador? */}
             {vendidoPaso === 'reseña' && (
               <>
                 <div className="text-center mb-4">
@@ -325,7 +347,13 @@ export default function TabProductos({
                   <h3 className="text-lg font-bold">¡Venta registrada!</h3>
                 </div>
                 <div className="bg-gray-50 rounded-xl p-4 mb-4">
-                  <p className="text-sm font-semibold text-gray-700 mb-3">¿Cómo fue tu experiencia con <span className="text-brand-primary">el comprador</span>?</p>
+                  <p className="text-sm font-semibold text-gray-700 mb-3">
+                    ¿Quieres dejarle una reseña a{' '}
+                    <span className="text-brand-primary">
+                      {compradorInfo && compradorInfo.nombre ? compradorInfo.nombre : 'este comprador'}
+                    </span>
+                    ?
+                  </p>
                   <div className="flex justify-center mb-2">
                     <div className="flex gap-1">
                       {[1, 2, 3, 4, 5].map(i => (
@@ -348,10 +376,10 @@ export default function TabProductos({
                 <p className="text-xs text-gray-400 mt-1 text-right">{comentarioResena.length}/300</p>
                 <div className="flex gap-2 mt-3">
                   <button
-                    onClick={() => setVendidoPaso('confirmado')}
+                    onClick={venderSinResena}
                     className="flex-1 px-4 py-2.5 border rounded-lg text-sm font-medium hover:bg-gray-50"
                   >
-                    Omitir
+                    Omitir reseña
                   </button>
                   <button
                     onClick={enviarResena}
@@ -364,6 +392,7 @@ export default function TabProductos({
               </>
             )}
 
+            {/* PASO 4: Confirmación */}
             {vendidoPaso === 'confirmado' && (
               <div className="text-center py-6">
                 <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
