@@ -390,7 +390,7 @@ export default function ChatPageClient() {
       <h1 className="text-3xl font-bold text-gray-800 mb-6">💬 Mensajes</h1>
 
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-        <div className="flex flex-col md:flex-row md:h-[600px] h-[calc(100dvh-140px)]">
+        <div className="flex flex-col md:flex-row md:h-[600px] max-h-[calc(100dvh-140px)]">
           {/* ─── Sidebar ─── */}
           <div className={`${showMobileChat ? 'hidden md:flex' : 'flex'} flex-col w-full md:w-80 border-r border-gray-100`}>
             <div className="p-3 border-b">
@@ -503,7 +503,7 @@ export default function ChatPageClient() {
                 </div>
 
                 {/* Mensajes */}
-                <div ref={chatContainerRef} className="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50">
+                <div ref={chatContainerRef} className="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50 min-h-0">
                   {mensajes.map(m => {
                     const esMio = m.remitente_id === user?.id
                     return (
