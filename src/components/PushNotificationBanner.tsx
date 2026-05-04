@@ -1,43 +1,109 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { usePushNotification } from '@/hooks/usePushNotification'
+import { useAuth } from '@/components/AuthProvider'
 import { Bell, X } from 'lucide-react'
 
-export default function PushNotificationBanner() {
-  const { enabled, supported, enable } = usePushNotification()
-  const [visible, setVisible] = useState(false)
-  const [dismissed, setDismissed] = useState(false)
+const VAPID_PUBLIC = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || ''
+
+/**
+ * Hook para push notifications en la PWA.
+ * Solo debe usarse dentro de AuthProvider.
+ */
+function usePushNotification() {
+  const { user } = useAuth()
+  const [enabled, setEnabled] = useState(false)
+  const [supported, setSupported] = useState(false)
 
   useEffect(() => {
     if (typeof window === 'undefined') return
+    const swReady = 'serviceWorker' in navigator && 'PushManager' in window
+    setSupported(swReady && 'Notification' in window)
+    if (swReady) {
+      setEnabled(Notification.permission === 'granted')
+    }
+  }, [])
+
+  async function enable() {
+    if (!supported || !user) return false
+    try {
+      const permission = await Notification.requestPermission()
+      if (permission !== 'granted') return false
+
+      const reg = await navigator.serviceWorker.ready
+      const subscription = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC),
+      })
+
+      const { data } = await supabase.auth.getSession()
+      if (!data.session) return false
+
+      const res = await fetch('/api/push-subscribe', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${data.session.access_token}`,
+        },
+        body: JSON.stringify({ subscription }),
+      })
+
+      if (!res.ok) return false
+      setEnabled(true)
+      return true
+    } catch (e) {
+      console.error('Push enable error:', e)
+      return false
+    }
+  }
+
+  return { enabled, supported, enable }
+}
+
+function urlBase64ToUint8Array(base64: string) {
+  const padding = '='.repeat((4 - (base64.length % 4)) % 4)
+  const base64Str = (base64 + padding).replace(/-/g, '+').replace(/_/g, '/')
+  const rawData = atob(base64Str)
+  return new Uint8Array([...rawData].map(c => c.charCodeAt(0)))
+}
+
+export default function PushNotificationBanner() {
+  const { user } = useAuth()
+  const { supported, enabled, enable } = usePushNotification()
+  const [visible, setVisible] = useState(false)
+
+  useEffect(() => {
+    if (!user) return
     if (!supported) return
     if (enabled) return
 
-    // Don't show too soon after page load
-    const timer = setTimeout(() => {
-      const dismissedAt = localStorage.getItem('push_banner_dismissed')
-      if (dismissedAt) {
-        const hoursSince = (Date.now() - parseInt(dismissedAt)) / 3600000
-        if (hoursSince < 24) return // Don't show again for 24h
-      }
-      setVisible(true)
-    }, 3000)
+    const dismissedAt = localStorage.getItem('push_banner_dismissed')
+    if (dismissedAt) {
+      const hoursSince = (Date.now() - parseInt(dismissedAt)) / 3600000
+      if (hoursSince < 24) return
+    }
 
+    const timer = setTimeout(() => setVisible(true), 5000)
     return () => clearTimeout(timer)
-  }, [supported, enabled])
+  }, [user, supported, enabled])
 
-  if (!visible) return null
+  if (!visible || !user) return null
+
+  function handleDismiss() {
+    setVisible(false)
+    localStorage.setItem('push_banner_dismissed', Date.now().toString())
+  }
+
+  async function handleEnable() {
+    const ok = await enable()
+    if (ok) handleDismiss()
+  }
 
   return (
-    <div className="fixed bottom-20 left-4 right-4 md:bottom-8 md:left-auto md:right-8 md:w-96 z-40 animate-slide-up">
+    <div className="fixed bottom-20 left-4 right-4 md:bottom-8 md:left-auto md:right-8 md:w-96 z-40">
       <div className="bg-white rounded-2xl shadow-2xl border border-gray-200 p-5 relative">
         <button
-          onClick={() => {
-            setVisible(false)
-            setDismissed(true)
-            localStorage.setItem('push_banner_dismissed', Date.now().toString())
-          }}
+          onClick={handleDismiss}
           className="absolute top-3 right-3 p-1 rounded-full hover:bg-gray-100 text-gray-400 transition"
         >
           <X size={16} />
@@ -55,12 +121,7 @@ export default function PushNotificationBanner() {
             </p>
 
             <button
-              onClick={async () => {
-                const ok = await enable()
-                if (ok) {
-                  setVisible(false)
-                }
-              }}
+              onClick={handleEnable}
               className="w-full bg-brand-primary text-white py-2.5 rounded-xl font-bold text-sm hover:bg-brand-dark transition flex items-center justify-center gap-2"
             >
               <Bell size={14} />
