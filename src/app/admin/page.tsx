@@ -16,9 +16,7 @@ import VerificacionTab from './VerificacionTab'
 // ← TU EMAIL
 const ADMIN_EMAILS = ['gtrespana@gmail.com']
 
-type TabId = 'dashboard' | 'usuarios' | 'publicaciones' | 'verificacion'
-
-const TABS: { id: TabId; label: string; icon: any; badge?: number }[] = [
+const TABS = [
   { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
   { id: 'publicaciones', label: 'Publicaciones', icon: Package },
   { id: 'usuarios', label: 'Usuarios', icon: Users },
@@ -1017,7 +1015,7 @@ export default function AdminPage() {
   const { user, session } = useAuth()
   const router = useRouter()
   const searchParams = useSearchParams()
-  const [tab, setTab] = useState<TabId>('dashboard')
+  const [tab, setTab] = useState('dashboard')
   const [toast, setToast] = useState<string | null>(null)
   const [perfiles, setPerfiles] = useState<Record<string, any>>({})
 
