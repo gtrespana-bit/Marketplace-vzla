@@ -525,12 +525,501 @@ function PublicacionesTab({ notify }: Notifier) {
 }
 
 // ============================ ADMIN PAGE ============================
+function TabTransacciones({ perfiles, notify }: { perfiles: Record<string, any>; notify: (m: string) => void }) {
+  const [pendientes, setPendientes] = useState<any[]>([])
+  const [historial, setHistorial] = useState<any[]>([])
+  const [procesando, setProcesando] = useState<string | null>(null)
+
+  async function cargar() {
+    const { data: trans } = await supabase
+      .from('transacciones_creditos')
+      .select('*')
+      .eq('tipo', 'compra')
+      .order('creado_en', { ascending: false })
+      .limit(50)
+
+    if (!trans) return
+    setPendientes(trans.filter(t => t.estado === 'pendiente'))
+    setHistorial(trans.filter(t => t.estado !== 'pendiente'))
+  }
+
+  useEffect(() => { cargar() }, [])
+
+  async function aprobar(id: string, monto: number, usuarioNombre: string, userId?: string) {
+    setProcesando(id)
+    const { error } = await supabase.rpc('aprobar_transaccion', { p_transaccion_id: id, p_admin_id: (await supabase.auth.getUser()).data.user?.id })
+    setProcesando(null)
+    if (error) {
+      notify(`Error: ${error.message}`)
+    } else {
+      notify(`✅ +${monto} créditos aprobados!`)
+      // Notificar admin por Telegram
+      const mensaje = `✅ VendeT-Venezuela
+
+Se aprobaron ${monto} créditos para ${usuarioNombre}.
+Transacción procesada correctamente.`
+      try { await fetch('/api/notify', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ mensaje }) }) } catch {}
+      // EMAIL: Notificar al usuario que se le agregaron créditos
+      if (userId) {
+        try {
+          fetch('/api/email-creditos', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId, cantidad: monto }),
+          }).catch(() => {})
+        } catch {}
+      }
+      await cargar()
+    }
+  }
+
+  async function rechazar(id: string) {
+    setProcesando(id)
+    await supabase.from('transacciones_creditos').update({ estado: 'rechazado' }).eq('id', id)
+    setProcesando(null)
+    notify('Transacción rechazada')
+    await cargar()
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Pendientes */}
+      <div>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
+            🔴 Pendientes
+            <span className="bg-red-100 text-red-700 text-sm px-2 py-0.5 rounded-full">{pendientes.length}</span>
+          </h2>
+          <button onClick={cargar} className="p-2 rounded-lg hover:bg-gray-100 text-gray-500" title="Refrescar"><RefreshCw size={16} /></button>
+        </div>
+
+        {pendientes.length === 0 ? (
+          <div className="bg-white rounded-xl p-8 text-center border border-gray-100">
+            <p className="text-gray-500">No hay transacciones pendientes 🎉</p>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {pendientes.map((t) => {
+              const perfil = perfiles[t.user_id] || {}
+              return (
+                <div key={t.id} className="bg-white rounded-xl border-2 border-yellow-200 p-5 shadow-sm">
+                  <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
+                    <div className="flex-1 space-y-2">
+                      <div className="flex items-center gap-3">
+                        <span className="text-2xl font-black text-brand-primary">+{t.monto} créditos</span>
+                        <span className="text-[10px] font-bold bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded-full">PENDIENTE</span>
+                      </div>
+                      <div className="text-sm text-gray-600 space-y-1">
+                        <p>👤 <strong>{perfil.nombre || 'Sin nombre'}</strong></p>
+                        {perfil.telefono && <p>📱 {perfil.telefono}</p>}
+                        <p>💳 Método: <strong>{t.metodo_pago}</strong></p>
+                        <p>📅 {new Date(t.creado_en).toLocaleString('es-VE')}</p>
+                      </div>
+                      {t.comprobante_url && (
+                        <a href={t.comprobante_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-sm text-brand-primary hover:underline">
+                          <Eye size={14} /> Ver comprobante <ExternalLink size={12} />
+                        </a>
+                      )}
+                    </div>
+                    <div className="flex gap-2 flex-shrink-0">
+                      <button onClick={() => aprobar(t.id, t.monto, perfil.nombre || 'Usuario', t.user_id)} disabled={procesando === t.id} className="flex items-center gap-2 bg-green-500 text-white px-5 py-2.5 rounded-lg font-bold hover:bg-green-600 transition disabled:opacity-50">
+                        {procesando === t.id ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />}
+                        Aprobar
+                      </button>
+                      <button onClick={() => rechazar(t.id)} disabled={procesando === t.id} className="flex items-center gap-2 bg-red-500 text-white px-5 py-2.5 rounded-lg font-bold hover:bg-red-600 transition disabled:opacity-50">
+                        <X size={16} /> Rechazar
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* Historial */}
+      <div>
+        <h2 className="text-xl font-bold text-gray-800 mb-4">📋 Historial</h2>
+        {historial.length === 0 ? (
+          <div className="bg-white rounded-xl p-8 text-center border border-gray-100">
+            <p className="text-gray-500">Sin transacciones aún</p>
+          </div>
+        ) : (
+          <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
+            <table className="w-full text-sm">
+              <thead className="bg-gray-50 border-b">
+                <tr>
+                  <th className="text-left py-3 px-4 font-bold">Usuario</th>
+                  <th className="text-left py-3 px-4 font-bold">Método</th>
+                  <th className="text-center py-3 px-4 font-bold">Créditos</th>
+                  <th className="text-center py-3 px-4 font-bold">Estado</th>
+                  <th className="text-center py-3 px-4 font-bold">Fecha</th>
+                </tr>
+              </thead>
+              <tbody>
+                {historial.map((t) => {
+                  const perfil = perfiles[t.user_id] || {}
+                  return (
+                    <tr key={t.id} className="border-b border-gray-50 hover:bg-gray-50">
+                      <td className="py-3 px-4">{perfil.nombre || '...'}</td>
+                      <td className="py-3 px-4">{t.metodo_pago || '—'}</td>
+                      <td className="py-3 px-4 text-center font-bold text-brand-primary">+{t.monto}</td>
+                      <td className="py-3 px-4 text-center">
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${t.estado === 'aprobado' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                          {t.estado}
+                        </span>
+                      </td>
+                      <td className="py-3 px-4 text-center text-gray-500">{new Date(t.creado_en).toLocaleDateString('es-VE')}</td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+// ============================================================
+// TAB: MODERACIÓN DE PUBLICACIONES
+// ============================================================
+function TabAnuncios({ notify }: { notify: (m: string) => void }) {
+  const [anuncio, setAnuncio] = useState('')
+
+  const anunciosGuardados = [
+    { texto: '🎉 ¡Nuevo! Ahora puedes destacar tus publicaciones con créditos', fecha: new Date().toLocaleDateString('es-VE') },
+  ]
+
+  return (
+    <div className="space-y-6">
+      <div className="bg-white rounded-xl border border-gray-100 p-6">
+        <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
+          <Megaphone size={20} /> Publicar anuncio global
+        </h3>
+        <p className="text-sm text-gray-500 mb-4">Añade un mensaje que aparecerá en la página principal (banner informativo).</p>
+        <textarea
+          value={anuncio}
+          onChange={e => setAnuncio(e.target.value)}
+          placeholder="Escribe tu anuncio..."
+          className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm min-h-[100px] resize-y bg-white"
+        />
+        <div className="flex gap-2 mt-3">
+          <button
+            onClick={() => { if (anuncio.trim()) { notify('✅ Anuncio publicado! (falta conectar con la web)'); setAnuncio('') } }}
+            className="bg-brand-primary text-white px-6 py-2.5 rounded-lg font-bold hover:bg-brand-dark transition"
+          >
+            Publicar anuncio
+          </button>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-xl border border-gray-100 p-6">
+        <h3 className="font-bold text-lg mb-4">📢 Anuncios anteriores</h3>
+        {anunciosGuardados.map((a, i) => (
+          <div key={i} className="bg-gray-50 rounded-xl p-4 mb-3">
+            <p className="text-sm text-gray-800">{a.texto}</p>
+            <p className="text-xs text-gray-400 mt-1">{a.fecha}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+// ============================================================
+// TAB: CATEGORÍAS
+// ============================================================
+function TabCategorias({ notify }: { notify: (m: string) => void }) {
+  const [categorias, setCategorias] = useState<any[]>([])
+  const [cargando, setCargando] = useState(true)
+  const [nuevaCat, setNuevaCat] = useState('')
+
+  useEffect(() => {
+    async function load() {
+      const { data } = await supabase.from('categorias').select('*').order('id')
+      if (data) setCategorias(data)
+      setCargando(false)
+    }
+    load()
+  }, [])
+
+  async function agregarCategoria() {
+    if (!nuevaCat.trim()) return
+    await supabase.from('categorias').insert([{ nombre: nuevaCat.trim().toLowerCase() }])
+    notify('✅ Categoría añadida')
+    setNuevaCat('')
+    const { data } = await supabase.from('categorias').select('*').order('id')
+    if (data) setCategorias(data)
+  }
+
+  if (cargando) return <div className="text-center py-12 text-gray-400">Cargando...</div>
+
+  return (
+    <div className="space-y-6">
+      <div className="bg-white rounded-xl border border-gray-100 p-6">
+        <h3 className="font-bold text-lg mb-4"><Tag size={20} className="inline mr-2" />Categorías actuales ({categorias.length})</h3>
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 mb-4">
+          {categorias.map((c) => (
+            <div key={c.id} className="bg-gray-50 rounded-xl p-4 text-center">
+              <p className="font-bold text-gray-800 capitalize">{c.nombre}</p>
+              <p className="text-xs text-gray-400">ID: {c.id}</p>
+            </div>
+          ))}
+        </div>
+
+        <div className="flex gap-2">
+          <input
+            type="text"
+            value={nuevaCat}
+            onChange={e => setNuevaCat(e.target.value)}
+            placeholder="Nombre de nueva categoría"
+            className="flex-1 border border-gray-300 rounded-xl px-4 py-2.5 text-sm bg-white"
+            onKeyDown={e => e.key === 'Enter' && agregarCategoria()}
+          />
+          <button onClick={agregarCategoria} className="bg-brand-primary text-white px-5 py-2.5 rounded-lg font-bold hover:bg-brand-dark transition">
+            Añadir
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ============================================================
+// TAB: EXPORTAR
+function TabExportar() {
+  const [exportando, setExportando] = useState(false)
+
+  async function exportarProductos() {
+    setExportando(true)
+    const { data } = await supabase.from('productos').select('*')
+    if (!data) { setExportando(false); return }
+
+    const headers = ['id', 'titulo', 'precio_usd', 'estado', 'categoria_id', 'subcategoria', 'marca', 'ubicacion_ciudad', 'activo', 'visitas', 'creado_en']
+    const csv = [headers.join(','), ...data.map(p => headers.map(h => `"${(p as any)[h] || ''}"`).join(','))].join('\n')
+
+    const blob = new Blob([csv], { type: 'text/csv' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url; a.download = `productos_vendet_${new Date().toISOString().split('T')[0]}.csv`
+    a.click()
+    URL.revokeObjectURL(url)
+    setExportando(false)
+  }
+
+  async function exportarUsuarios() {
+    setExportando(true)
+    const { data } = await supabase.from('perfiles').select('*')
+    if (!data) { setExportando(false); return }
+
+    const headers = ['id', 'nombre', 'telefono', 'estado', 'ciudad', 'credito_balance', 'creado_en']
+    const csv = [headers.join(','), ...data.map(u => headers.map(h => `"${(u as any)[h] || ''}"`).join(','))].join('\n')
+
+    const blob = new Blob([csv], { type: 'text/csv' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url; a.download = `usuarios_vendet_${new Date().toISOString().split('T')[0]}.csv`
+    a.click()
+    URL.revokeObjectURL(url)
+    setExportando(false)
+  }
+
+  async function exportarTransacciones() {
+    setExportando(true)
+    const { data } = await supabase.from('transacciones_creditos').select('*')
+    if (!data) { setExportando(false); return }
+
+    const headers = ['id', 'user_id', 'tipo', 'monto', 'metodo_pago', 'estado', 'creado_en']
+    const csv = [headers.join(','), ...data.map(t => headers.map(h => `"${(t as any)[h] || ''}"`).join(','))].join('\n')
+
+    const blob = new Blob([csv], { type: 'text/csv' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url; a.download = `transacciones_vendet_${new Date().toISOString().split('T')[0]}.csv`
+    a.click()
+    URL.revokeObjectURL(url)
+    setExportando(false)
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="bg-white rounded-xl border border-gray-100 p-6">
+        <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
+          <Download size={20} /> Exportar datos a CSV
+        </h3>
+        <p className="text-sm text-gray-500 mb-6">Descarga toda la información de tu plataforma en formato CSV, compatible con Excel y Google Sheets.</p>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <button onClick={exportarProductos} disabled={exportando} className="bg-white border-2 border-gray-200 rounded-xl p-5 text-center hover:border-brand-primary transition disabled:opacity-50">
+            <Package size={24} className="mx-auto mb-2 text-gray-400" />
+            <p className="font-bold text-gray-800">Productos</p>
+            <p className="text-xs text-gray-400">Todas las publicaciones</p>
+          </button>
+          <button onClick={exportarUsuarios} disabled={exportando} className="bg-white border-2 border-gray-200 rounded-xl p-5 text-center hover:border-brand-primary transition disabled:opacity-50">
+            <Users size={24} className="mx-auto mb-2 text-gray-400" />
+            <p className="font-bold text-gray-800">Usuarios</p>
+            <p className="text-xs text-gray-400">Perfiles registrados</p>
+          </button>
+          <button onClick={exportarTransacciones} disabled={exportando} className="bg-white border-2 border-gray-200 rounded-xl p-5 text-center hover:border-brand-primary transition disabled:opacity-50">
+            <CreditCard size={24} className="mx-auto mb-2 text-gray-400" />
+            <p className="font-bold text-gray-800">Transacciones</p>
+            <p className="text-xs text-gray-400">Pagos y créditos</p>
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ============================================================
+// TAB: CREDITOS (añadir manualmente)
+
+function ModeracionTab({ notify }: { notify: (msg: string) => void }) {
+  const [denuncias, setDenuncias] = useState<any[]>([])
+  const [productosPendientes, setProductosPendientes] = useState<any[]>([])
+  const [tabM, setTabM] = useState<'denuncias' | 'pendientes'>('denuncias')
+  const [cargando, setCargando] = useState(false)
+
+  useEffect(() => {
+    cargar()
+  }, [])
+
+  async function cargar() {
+    setCargando(true)
+    const [{ data: denies }, { data: pends }] = await Promise.all([
+      supabase
+        .from('denuncias')
+        .select(`*, producto:productos(titulo, user_id, precio_usd, imagen_url), reportante:perfiles!denuncias_reportante_id_fkey(nombre)`)
+        .eq('estado', 'activa')
+        .order('creada_en', { ascending: false }),
+      supabase
+        .from('productos')
+        .select('*')
+        .eq('estado_moderacion', 'pendiente')
+        .order('creado_en', { ascending: false }),
+    ])
+    setDenuncias(denies || [])
+    setProductosPendientes(pends || [])
+    setCargando(false)
+  }
+
+  async function invalidarDenuncia(id: string) {
+    const { error } = await supabase.from('denuncias').update({ estado: 'invalidada' }).eq('id', id)
+    if (error) notify('Error: ' + error.message)
+    else { notify('Denuncia invalidada'); cargar() }
+  }
+
+  async function aprobarDenuncia(id: string, productoId: string) {
+    await supabase.from('denuncias').update({ estado: 'resuelta' }).eq('id', id)
+    await supabase.from('productos').update({ estado_moderacion: 'rechazado', motivo_moderacion: 'Bloqueado por admin', activo: false }).eq('id', productoId)
+    notify('Producto bloqueado'); cargar()
+  }
+
+  async function aprobarProducto(id: string) {
+    const { error } = await supabase.from('productos').update({ estado_moderacion: 'aprobado', motivo_moderacion: null }).eq('id', id)
+    if (error) notify('Error: ' + error.message)
+    else { notify('Producto aprobado'); cargar() }
+  }
+
+  async function rechazarProducto(id: string) {
+    const { error } = await supabase.from('productos').update({ estado_moderacion: 'rechazado', motivo_moderacion: 'Bloqueado por admin', activo: false }).eq('id', id)
+    if (error) notify('Error: ' + error.message)
+    else { notify('Producto rechazado'); cargar() }
+  }
+
+  if (cargando) return <div className="flex justify-center py-12"><Loader2 className="animate-spin text-brand-primary" /></div>
+
+  return (
+    <div className="space-y-6">
+      <div className="flex gap-2">
+        <button onClick={() => setTabM('denuncias')} className={`px-4 py-2 rounded-lg text-sm font-medium transition ${tabM === 'denuncias' ? 'bg-brand-primary text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}>
+          🚨 Denuncias ({denuncias.length})
+        </button>
+        <button onClick={() => setTabM('pendientes')} className={`px-4 py-2 rounded-lg text-sm font-medium transition ${tabM === 'pendientes' ? 'bg-brand-primary text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}>
+          ⏳ Pendientes ({productosPendientes.length})
+        </button>
+      </div>
+
+      {tabM === 'denuncias' && (
+        <div className="bg-white rounded-xl border border-gray-100">
+          {denuncias.length === 0 ? (
+            <div className="text-center py-12 text-gray-400">
+              <p className="text-4xl mb-2">✅</p>
+              <p className="font-medium">Sin denuncias activas</p>
+            </div>
+          ) : (
+            <div className="divide-y">
+              {denuncias.map(d => (
+                <div key={d.id} className="p-4 hover:bg-gray-50">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <p className="font-semibold text-sm">{d.producto?.titulo || 'N/A'}</p>
+                      <div className="flex gap-2 mt-1">
+                        <span className="text-xs bg-gray-100 px-2 py-0.5 rounded">{d.motivo}</span>
+                        <span className="text-xs text-gray-400">{new Date(d.creada_en).toLocaleDateString('es-ES')} — {d.reportante?.nombre || 'Desconocido'}</span>
+                      </div>
+                      {d.descripcion && <p className="text-xs text-gray-500 mt-1">{d.descripcion}</p>}
+                    </div>
+                    <div className="flex gap-1.5">
+                      <button onClick={() => { window.open(`/producto/${d.producto_id}`, '_blank') }} className="text-xs px-2 py-1 border rounded hover:bg-gray-100">Ver</button>
+                      <button onClick={() => invalidarDenuncia(d.id)} className="text-xs px-2 py-1 bg-gray-200 rounded hover:bg-gray-300">Ignorar</button>
+                      <button onClick={() => aprobarDenuncia(d.id, d.producto_id)} className="text-xs px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600">Bloquear</button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {tabM === 'pendientes' && (
+        <div className="bg-white rounded-xl border border-gray-100">
+          {productosPendientes.length === 0 ? (
+            <div className="text-center py-12 text-gray-400">
+              <p className="text-4xl mb-2">✅</p>
+              <p className="font-medium">Sin productos pendientes</p>
+            </div>
+          ) : (
+            <div className="divide-y">
+              {productosPendientes.map(p => (
+                <div key={p.id} className="p-4 hover:bg-gray-50">
+                  <div className="flex items-start justify-between">
+                    <div className="flex gap-3">
+                      {p.imagen_url ? <img src={p.imagen_url} alt="" className="w-16 h-16 rounded-lg object-cover" loading="lazy" decoding="async" /> : null}
+                      <div>
+                        <p className="font-semibold">{p.titulo}</p>
+                        {p.precio_usd && <p className="text-brand-primary font-bold">${Number(p.precio_usd).toLocaleString()}</p>}
+                        {p.motivo_moderacion && <p className="text-xs text-orange-600 mt-1">⚠️ {p.motivo_moderacion}</p>}
+                        <span className="text-xs text-gray-400">{new Date(p.creado_en).toLocaleDateString('es-ES')}</span>
+                      </div>
+                    </div>
+                    <div className="flex gap-1.5">
+                      <button onClick={() => { window.open(`/producto/${p.id}`, '_blank') }} className="text-xs px-2 py-1 border rounded hover:bg-gray-100">Ver</button>
+                      <button onClick={() => aprobarProducto(p.id)} className="text-xs px-2 py-1 bg-green-500 text-white rounded hover:bg-green-600">Aprobar</button>
+                      <button onClick={() => rechazarProducto(p.id)} className="text-xs px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600">Rechazar</button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
 export default function AdminPage() {
   const { user, session } = useAuth()
   const router = useRouter()
   const searchParams = useSearchParams()
   const [tab, setTab] = useState<TabId>('dashboard')
   const [toast, setToast] = useState<string | null>(null)
+  const [perfiles, setPerfiles] = useState<Record<string, any>>({})
 
   const isAdmin = ADMIN_EMAILS.includes(user?.email || '')
 
@@ -541,12 +1030,22 @@ export default function AdminPage() {
       setTimeout(() => router.push('/'), 2000)
       return
     }
+    cargarPerfiles()
     // Read tab from URL
     const urlTab = searchParams?.get('tab')
     if (urlTab && TABS.some(t => t.id === urlTab)) {
       setTab(urlTab as TabId)
     }
   }, [user, session, isAdmin, searchParams])
+
+  async function cargarPerfiles() {
+    const { data } = await supabase.from('perfiles').select('id, nombre, telefono')
+    if (data) {
+      const m: Record<string, any> = {}
+      data.forEach(p => { m[p.id] = p })
+      setPerfiles(m)
+    }
+  }
 
   function notify(msg: string) {
     setToast(msg)
@@ -613,6 +1112,11 @@ export default function AdminPage() {
       {tab === 'usuarios' && <UsuariosTab notify={notify} />}
       {tab === 'publicaciones' && <PublicacionesTab notify={notify} />}
       {tab === 'verificacion' && <VerificacionTab notify={notify} />}
+      {tab === 'moderacion' && <ModeracionTab notify={notify} />}
+      {tab === 'transacciones' && <TabTransacciones perfiles={perfiles} notify={notify} />}
+      {tab === 'anuncios' && <TabAnuncios notify={notify} />}
+      {tab === 'categorias' && <TabCategorias notify={notify} />}
+      {tab === 'exportar' && <TabExportar />}
     </div>
   )
 }
