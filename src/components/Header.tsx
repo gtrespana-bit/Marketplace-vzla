@@ -122,7 +122,11 @@ export function Header() {
             )}
             {/* Logo */}
             <Link href="/" className="flex items-center gap-3 flex-shrink-0">
-              <img src="/logo-vendet.png" alt="VendeT" className="h-11 w-auto" />
+              <div className="bg-white rounded-xl p-2 shadow-lg">
+                <div className="bg-white rounded-lg p-1.5 shadow-md border border-white/20">
+                <img src="/logo-vendet.png" alt="VendeT" className="h-11 w-auto" />
+              </div>
+              </div>
               <span className="hidden sm:block">
                 <span className="font-black text-xl tracking-tight">
                   <span className="text-yellow-400">Vende</span><span className="text-white">T</span><span className="text-yellow-400 font-bold text-base ml-1">-Venezuela</span>
