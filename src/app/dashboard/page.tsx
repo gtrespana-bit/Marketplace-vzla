@@ -10,9 +10,11 @@ import {
   Eye, Heart, LogOut, X, Zap, Star, ShieldCheck,
 } from 'lucide-react'
 import Link from 'next/link'
+import { Package, MessageSquare, CreditCard, Heart, ShieldCheck, Star, BarChart3, Settings } from 'lucide-react'
 
 // Components
 import DashboardHeader from './components/DashboardHeader'
+import TabResumen from './components/TabResumen'
 import TabProductos from './components/tabs/TabProductos'
 import TabMensajes from './components/tabs/TabMensajes'
 import TabCreditos from './components/tabs/TabCreditos'
@@ -94,7 +96,7 @@ export default function DashboardPage() {
   const { user, session, loading: authLoading } = useAuth()
   const router = useRouter()
   const data = useDashboard()
-  const [activeTab, setActiveTab] = useState('productos')
+  const [activeTab, setActiveTab] = useState('resumen')
   const [cambiarPw, setCambiarPw] = useState(false)
   const [guardandoPerfil, setGuardandoPerfil] = useState(false)
   const [boostTarget, setBoostTarget] = useState<{ productId: string; titulo: string } | null>(null)
@@ -272,6 +274,7 @@ export default function DashboardPage() {
       {/* Tabs */}
       <div className="flex gap-1 overflow-x-auto hide-scrollbar mb-6 bg-gray-100 p-1 rounded-xl">
         {[
+          { id: 'resumen', label: 'Resumen', icon: BarChart3 },
           { id: 'productos', label: 'Mis publicaciones', icon: Package },
           { id: 'mensajes', label: 'Mensajes', icon: MessageSquare },
           { id: 'creditos', label: 'Créditos', icon: CreditCard },
@@ -293,6 +296,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Tab Content */}
+      {activeTab === 'resumen' && <TabResumen userId={user!.id} />}
       {activeTab === 'productos' && (
         <TabProductos
           productos={data.productos}

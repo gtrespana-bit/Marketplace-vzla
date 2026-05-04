@@ -61,6 +61,7 @@ export default function ProductoPageClient({ initialProduct }: ProductoPageClien
   const [toggleandoFav, setToggleandoFav] = useState(false)
   const [tasaBs, setTasaBs] = useState(0)
   const [vendedorStats, setVendedorStats] = useState<any>(null)
+  const [historial, setHistorial] = useState<any[]>([])
 
   // Tasa BCV
   useEffect(() => {
@@ -112,6 +113,17 @@ export default function ProductoPageClient({ initialProduct }: ProductoPageClien
         // Increment views (fire and forget)
         (async () => {
           supabase.from('productos').update({ visitas: (producto.visitas || 0) + 1 }).eq('id', producto.id).then()
+        })(),
+
+        // Fetch historial de precios
+        (async () => {
+          const { data: hist } = await supabase
+            .from('historial_precios')
+            .select('*')
+            .eq('producto_id', producto.id)
+            .order('creado_en', { ascending: false })
+            .limit(10)
+          if (hist) setHistorial(hist)
         })(),
       ])
       setLoading(false)
@@ -239,6 +251,28 @@ export default function ProductoPageClient({ initialProduct }: ProductoPageClien
                 {producto.visitas || 0} vistas
               </span>
             </div>
+
+            {historial.length > 0 && (
+              <div className="mb-4 bg-gray-50 rounded-xl p-3">
+                <p className="text-xs font-bold text-gray-600 mb-2 flex items-center gap-1.5">📈 Historial de precios</p>
+                <div className="space-y-1.5">
+                  {historial.slice(0, 3).map((h: any) => {
+                    const pct = ((h.precio_nuevo - h.precio_anterior) / h.precio_anterior * 100).toFixed(0)
+                    const subio = Number(pct) > 0
+                    return (
+                      <div key={h.id} className="flex items-center justify-between text-xs">
+                        <span className="text-gray-400">{new Date(h.creado_en).toLocaleDateString('es-VE')}</span>
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-gray-400 line-through">${Number(h.precio_anterior).toLocaleString()}</span>
+                          <span className="font-bold text-brand-primary">${Number(h.precio_nuevo).toLocaleString()}</span>
+                          <span className={`px-1 rounded font-bold ${subio ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'}`}>↓${Math.abs(Number(pct))}%</span>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
 
             {vendedor && (
               <div className="bg-gray-50 rounded-xl p-4 mb-5">

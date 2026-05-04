@@ -36,6 +36,18 @@ async function getDestacados(limit = 8) {
   }
 }
 
+
+async function getTrending(limit = 8) {
+  const { data } = await supabase
+    .from('productos')
+    .select('id, titulo, precio_usd, imagen_url, ubicacion_ciudad, visitas')
+    .eq('activo', true)
+    .or('estado_moderacion.is.null,estado_moderacion.eq.aprobado')
+    .order('visitas', { ascending: false })
+    .limit(limit)
+  return data || []
+}
+
 async function getRecentProducts(limit = 8) {
   const { data, error } = await supabase
     .from('productos')
@@ -104,6 +116,7 @@ function ProductCard({ p, highlighted = false }: { p: any; highlighted?: boolean
 
 export default async function HomePage() {
   const destacados = await getDestacados()
+  const trending = await getTrending()
   const productos = await getRecentProducts()
 
   return (
@@ -316,6 +329,46 @@ export default async function HomePage() {
           ))}
         </div>
       </section>
+
+      {/* ============ TRENDING ============ */}
+      {trending.length > 0 && (
+      <section className="max-w-7xl mx-auto px-4 py-8">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-2xl font-black text-gray-900">🔥 Lo más visto</h2>
+          <span className="text-xs text-gray-500">Últimos 7 días</span>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          {trending.map((p) => (
+            <Link key={p.id} href={`/producto/${p.id}`}
+              className="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-lg hover:-translate-y-1 transition group block">
+              <div className="aspect-square bg-gray-100 relative overflow-hidden">
+                <Image
+                  src={p.imagen_url || getPlaceholderImage(p.titulo)}
+                  alt={p.titulo}
+                  width={400}
+                  height={400}
+                  sizes="(max-width: 768px) 50vw, 25vw"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  loading="lazy"
+                />
+                <div className="absolute top-2 left-2 z-10 bg-gradient-to-r from-orange-500 to-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 shadow-sm">
+                  🔥 Trending
+                </div>
+              </div>
+              <div className="p-4">
+                <h3 className="font-semibold text-gray-900 truncate group-hover:text-brand-primary transition-colors">{p.titulo}</h3>
+                <p className="text-xl font-black text-brand-primary mt-1">${Number(p.precio_usd || 0).toLocaleString()}</p>
+                <div className="flex items-center gap-1 mt-1">
+                  <Eye size={11} className="text-gray-400" />
+                  <p className="text-xs text-gray-500">{p.visitas || 0} vistas</p>
+                </div>
+              </div>
+            </Link>
+          ))}
+        </div>
+      </section>
+      )}
 
       {/* ============ PRODUCTOS RECIENTES ============ */}
       <section className="max-w-7xl mx-auto px-4 py-8">
