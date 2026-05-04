@@ -22,7 +22,7 @@ function ConfirmacionContent() {
     <div className="min-h-[80vh] flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-black text-brand-blue">
+          <h1 className="text-3xl font-black text-brand-primary">
             VendeT-Venezuela
           </h1>
         </div>
@@ -80,7 +80,7 @@ function ConfirmacionContent() {
             </p>
             <Link
               href="/login"
-              className="w-full bg-yellow-500 text-brand-dark font-bold py-3 rounded-lg hover:bg-yellow-400 transition flex items-center justify-center gap-2"
+              className="w-full bg-yellow-500 text-brand-dark font-bold py-3 rounded-lg hover:bg-accent/90 transition flex items-center justify-center gap-2"
             >
               <ExternalLink size={16} />
               Ir al login
@@ -91,7 +91,7 @@ function ConfirmacionContent() {
           <div className="space-y-3">
             <button
               onClick={handleConfirmClick}
-              className="w-full bg-brand-blue text-white py-4 rounded-lg font-bold hover:bg-blue-900 transition flex items-center justify-center gap-2 text-lg"
+              className="w-full bg-brand-primary text-white py-4 rounded-lg font-bold hover:bg-brand-dark transition flex items-center justify-center gap-2 text-lg"
             >
               Ya confirmé mi email
               <ArrowRight size={20} />

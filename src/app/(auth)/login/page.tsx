@@ -82,8 +82,8 @@ export default function LoginPage() {
     <div className="min-h-[80vh] flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <Link href="/" className="text-brand-blue font-black text-3xl">
-            Vende<span className="text-brand-yellow">T</span><span className="text-sm ml-1 text-gray-500">-Venezuela</span>
+          <Link href="/" className="text-brand-primary font-black text-3xl">
+            Vende<span className="text-brand-accent">T</span><span className="text-sm ml-1 text-gray-500">-Venezuela</span>
           </Link>
           <h1 className="text-2xl font-bold text-gray-800 mt-4">Bienvenido de vuelta</h1>
           <p className="text-gray-500 mt-1">Inicia sesión para gestionar tus publicaciones</p>
@@ -106,7 +106,7 @@ export default function LoginPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="tu@email.com"
                 required
-                className="w-full border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-yellow text-gray-900 bg-white"
+                className="w-full border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-accent text-gray-900 bg-white"
               />
             </div>
 
@@ -118,7 +118,7 @@ export default function LoginPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Tu contraseña"
                 required
-                className="w-full border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-yellow text-gray-900 bg-white"
+                className="w-full border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-accent text-gray-900 bg-white"
               />
             </div>
 
@@ -126,7 +126,7 @@ export default function LoginPage() {
               <button
                 type="button"
                 onClick={() => setShowReset(!showReset)}
-                className="text-sm text-brand-blue hover:underline font-medium"
+                className="text-sm text-brand-primary hover:underline font-medium"
               >
                 ¿Olvidaste tu contraseña?
               </button>
@@ -145,12 +145,12 @@ export default function LoginPage() {
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="tu@email.com"
                     required
-                    className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-yellow bg-white"
+                    className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-accent bg-white"
                   />
                   <button
                     type="submit"
                     disabled={resetLoading}
-                    className="w-full bg-brand-blue text-white py-2.5 rounded-lg font-semibold hover:bg-blue-900 transition disabled:opacity-50 text-sm"
+                    className="w-full bg-brand-primary text-white py-2.5 rounded-lg font-semibold hover:bg-brand-dark transition disabled:opacity-50 text-sm"
                   >
                     {resetLoading ? 'Enviando...' : 'Enviar enlace de restablecimiento'}
                   </button>
@@ -172,7 +172,7 @@ export default function LoginPage() {
                 <button
                   type="button"
                   onClick={() => { setShowReset(false); setResetSent(false) }}
-                  className="text-sm text-brand-blue font-semibold hover:underline mt-3"
+                  className="text-sm text-brand-primary font-semibold hover:underline mt-3"
                 >
                   Volver al login
                 </button>
@@ -182,7 +182,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-brand-blue text-white py-3 rounded-lg font-bold hover:bg-blue-900 transition disabled:opacity-50"
+              className="w-full bg-brand-primary text-white py-3 rounded-lg font-bold hover:bg-brand-dark transition disabled:opacity-50"
             >
               {loading ? 'Iniciando sesión...' : 'Iniciar sesión'}
             </button>
@@ -190,7 +190,7 @@ export default function LoginPage() {
 
           <p className="text-center text-sm text-gray-500 mt-6">
             ¿No tienes cuenta?{' '}
-            <Link href="/register" className="text-brand-blue font-semibold hover:underline">
+            <Link href="/register" className="text-brand-primary font-semibold hover:underline">
               Regístrate gratis
             </Link>
           </p>
@@ -202,7 +202,7 @@ export default function LoginPage() {
               <button
                 type="button"
                 onClick={() => setShowResend(true)}
-                className="text-brand-blue font-semibold hover:underline ml-1"
+                className="text-brand-primary font-semibold hover:underline ml-1"
               >
                 Reenviarlo
               </button>
@@ -221,7 +221,7 @@ export default function LoginPage() {
                   <button
                     type="button"
                     onClick={() => setShowResend(false)}
-                    className="text-brand-blue font-semibold hover:underline text-sm"
+                    className="text-brand-primary font-semibold hover:underline text-sm"
                   >
                     Volver al login
                   </button>
@@ -238,13 +238,13 @@ export default function LoginPage() {
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="tu@email.com"
                       required
-                      className="w-full border rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-brand-yellow bg-white text-sm"
+                      className="w-full border rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-brand-accent bg-white text-sm"
                     />
                   </div>
                   <button
                     type="submit"
                     disabled={resendLoading}
-                    className="w-full bg-brand-blue text-white py-2.5 rounded-lg font-semibold hover:bg-blue-900 transition disabled:opacity-50 text-sm"
+                    className="w-full bg-brand-primary text-white py-2.5 rounded-lg font-semibold hover:bg-brand-dark transition disabled:opacity-50 text-sm"
                   >
                     {resendLoading ? 'Enviando...' : 'Reenviar email de confirmación'}
                   </button>

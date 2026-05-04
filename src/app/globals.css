@@ -83,7 +83,7 @@ body {
 
 /* ===== HERO ===== */
 .hero-gradient {
-  background: linear-gradient(135deg, #003DA5 0%, #001845 50%, #0a0a2e 100%);
+  background: linear-gradient(135deg, #7B2D3B 0%, #5C1E2B 50%, #2d1017 100%);
   position: relative;
   overflow: hidden;
 }
@@ -95,7 +95,7 @@ body {
   right: -20%;
   width: 600px;
   height: 600px;
-  background: radial-gradient(circle, rgba(252,209,22,0.15) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(201,168,76,0.15) 0%, transparent 70%);
   animation: hero-pulse 4s ease-in-out infinite;
 }
 
@@ -106,7 +106,7 @@ body {
   left: -10%;
   width: 400px;
   height: 400px;
-  background: radial-gradient(circle, rgba(207,20,43,0.1) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(123,45,59,0.1) 0%, transparent 70%);
   animation: hero-pulse 3s ease-in-out infinite reverse;
 }
 
@@ -150,7 +150,7 @@ body {
 
 .btn-primary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0,61,165,0.3);
+  box-shadow: 0 4px 12px rgba(123,45,59,0.3);
 }
 
 .btn-primary:active {
@@ -233,7 +233,7 @@ body {
 
 /* ===== FEATURED CARD ===== */
 .featured-card {
-  border: 2px solid #FCD116;
+  border: 2px solid #C9A84C;
   position: relative;
 }
 
@@ -242,8 +242,8 @@ body {
   position: absolute;
   top: -10px;
   left: 12px;
-  background: #FCD116;
-  color: #003DA5;
+  background: #C9A84C;
+  color: #7B2D3B;
   font-size: 0.7rem;
   font-weight: 700;
   padding: 2px 8px;
@@ -266,7 +266,7 @@ body {
 
 /* ===== PULSE ANIM FOR CTA ===== */
 @keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(252,209,22,0.4); }
+  0%, 100% { box-shadow: 0 0 0 0 rgba(201,168,76,0.4); }
   50% { box-shadow: 0 0 0 12px rgba(252,209,22,0); }
 }
 

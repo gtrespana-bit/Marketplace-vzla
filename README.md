@@ -75,8 +75,8 @@ supabase/
 
 ## 🎨 Diseño
 
-- **Primario:** Amarillo bandera `#FCD116`
-- **Secundario:** Azul bandera `#003DA5`
+- **Primario:** Amarillo bandera `#C9A84C`
+- **Secundario:** Azul bandera `#7B2D3B`
 - **Acento:** Rojo bandera `#CF142B`
 
 ## 🚀 Deploy a Vercel

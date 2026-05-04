@@ -39,7 +39,7 @@ export default function PrivacidadPage() {
 
         <section>
           <h2 className="text-xl font-bold text-gray-800 mb-3">5. Tus derechos</h2>
-          <p>Puedes solicitar la eliminación de tu cuenta y todos tus datos en cualquier momento desde la configuración de tu perfil o escribiéndonos a <a href="mailto:privacidad@vendet.online" className="text-brand-blue underline">privacidad@vendet.online</a>.</p>
+          <p>Puedes solicitar la eliminación de tu cuenta y todos tus datos en cualquier momento desde la configuración de tu perfil o escribiéndonos a <a href="mailto:privacidad@vendet.online" className="text-brand-primary underline">privacidad@vendet.online</a>.</p>
         </section>
 
         <section>
@@ -49,7 +49,7 @@ export default function PrivacidadPage() {
 
         <section>
           <h2 className="text-xl font-bold text-gray-800 mb-3">7. Contacto</h2>
-          <p>Para preguntas sobre privacidad: <a href="mailto:privacidad@vendet.online" className="text-brand-blue underline">privacidad@vendet.online</a></p>
+          <p>Para preguntas sobre privacidad: <a href="mailto:privacidad@vendet.online" className="text-brand-primary underline">privacidad@vendet.online</a></p>
         </section>
       </div>
     </div>

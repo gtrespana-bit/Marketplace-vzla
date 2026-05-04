@@ -22,7 +22,7 @@
         <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
           <!-- Header -->
           <tr>
-            <td style="background: linear-gradient(135deg, #FCD116 0%, #F59E0B 100%); padding: 40px 30px; text-align: center;">
+            <td style="background: linear-gradient(135deg, #C9A84C 0%, #F59E0B 100%); padding: 40px 30px; text-align: center;">
               <h1 style="margin: 0; font-size: 28px; font-weight: 900; color: #1a1a2e;">
                 Vende<span style="color: #fff;">T</span>-Venezuela
               </h1>
@@ -40,14 +40,14 @@
               </h2>
               
               <p style="margin: 0 0 16px 0; font-size: 16px; color: #4b5563; line-height: 1.6;">
-                Hola, <span style="color: #003DA5;">{{ .Email }}</span>
+                Hola, <span style="color: #7B2D3B;">{{ .Email }}</span>
               </p>
               
               <p style="margin: 0 0 16px 0; font-size: 16px; color: #4b5563; line-height: 1.6;">
                 Hemos recibido una solicitud para restablecer tu contraseña de VendeT-Venezuela.
               </p>
               
-              <div style="background-color: #fffbeb; border-left: 4px solid #FCD116; border-radius: 8px; padding: 20px; margin: 24px 0;">
+              <div style="background-color: #fffbeb; border-left: 4px solid #C9A84C; border-radius: 8px; padding: 20px; margin: 24px 0;">
                 <p style="margin: 0 0 12px 0; font-size: 15px; color: #92400e; font-weight: 600;">
                   ⚠️ Seguridad importante:
                 </p>
@@ -67,7 +67,7 @@
                 
                 <div style="text-align: center;">
                   <a href="{{ .ConfirmationURL }}" 
-                     style="display: inline-block; background-color: #003DA5; color: #ffffff; text-decoration: none; padding: 16px 32px; border-radius: 8px; font-size: 16px; font-weight: 700; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
+                     style="display: inline-block; background-color: #7B2D3B; color: #ffffff; text-decoration: none; padding: 16px 32px; border-radius: 8px; font-size: 16px; font-weight: 700; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
                     REESTABLECER CONTRASEÑA ➜
                   </a>
                 </div>
@@ -114,7 +114,7 @@
                   El marketplace de Venezuela 🇻🇪
                 </p>
                 <p style="margin: 0; font-size: 12px; color: #9ca3af;">
-                  ¿Necesitas ayuda? Escríbenos a <a href="mailto:gtrespana@gmail.com" style="color: #003DA5; text-decoration: none;">gtrespana@gmail.com</a>
+                  ¿Necesitas ayuda? Escríbenos a <a href="mailto:gtrespana@gmail.com" style="color: #7B2D3B; text-decoration: none;">gtrespana@gmail.com</a>
                 </p>
               </div>
             </td>
@@ -232,8 +232,8 @@ El marketplace de Venezuela 🇻🇪
 | Elemento | Valor |
 |---|---|
 | **Nombre** | VendeT-Venezuela |
-| **Amarillo** | #FCD116 |
-| **Azul** | #003DA5 |
+| **Amarillo** | #C9A84C |
+| **Azul** | #7B2D3B |
 | **Logo en email** | Texto "VendeT-Venezuela" con gradient |
 | **Emojis** | Moderados (🔐, ⚠️, 🔄, 📋) |
 | **Idioma** | Español |

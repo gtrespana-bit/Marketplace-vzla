@@ -87,7 +87,7 @@ export default async function ProductoPage({ params }: Props) {
       <div className="max-w-7xl mx-auto px-4 py-20 text-center">
         <h1 className="text-3xl font-bold text-gray-800 mb-4">Producto no encontrado</h1>
         <p className="text-gray-500 mb-8">Este producto ya no está disponible.</p>
-        <a href="/" className="inline-block bg-brand-blue text-white px-8 py-3 rounded-lg font-bold">Volver al inicio</a>
+        <a href="/" className="inline-block bg-brand-primary text-white px-8 py-3 rounded-lg font-bold">Volver al inicio</a>
       </div>
     )
   }

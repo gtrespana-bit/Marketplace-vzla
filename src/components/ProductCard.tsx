@@ -36,14 +36,14 @@ export default function ProductCard({ p }: { p: ProductCardData }) {
       href={`/producto/${p.id}`}
       className={`bg-white rounded-xl overflow-hidden transition-all duration-200 group block border
         ${isPromoted
-          ? 'border-2 border-brand-yellow shadow-md hover:shadow-xl hover:-translate-y-1'
+          ? 'border-2 border-brand-accent shadow-md hover:shadow-xl hover:-translate-y-1'
           : 'border-gray-100 shadow-sm hover:shadow-lg hover:-translate-y-1 hover:border-gray-200'
         }`
       }
     >
       <div className="aspect-square bg-gray-100 relative overflow-hidden">
         {isFeatured && (
-          <div className="absolute top-2 left-2 z-10 bg-brand-yellow text-brand-blue text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm">
+          <div className="absolute top-2 left-2 z-10 bg-brand-accent text-brand-primary text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm">
             ⭐ Destacado
           </div>
         )}
@@ -67,10 +67,10 @@ export default function ProductCard({ p }: { p: ProductCardData }) {
         />
       </div>
       <div className="p-4">
-        <h3 className="font-semibold text-gray-900 truncate group-hover:text-brand-blue transition-colors">
+        <h3 className="font-semibold text-gray-900 truncate group-hover:text-brand-primary transition-colors">
           {p.titulo}
         </h3>
-        <p className="text-xl font-black text-brand-blue mt-1">
+        <p className="text-xl font-black text-brand-primary mt-1">
           ${Number(p.precio_usd || 0).toLocaleString()}
         </p>
         {p.vendedor_verificado && (

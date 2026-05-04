@@ -54,10 +54,10 @@ export default function FAQPage() {
         ))}
       </div>
 
-      <div className="bg-brand-yellow rounded-xl p-6 mt-8 text-center">
-        <h3 className="font-bold text-brand-blue text-lg">¿No encontraste tu respuesta?</h3>
-        <p className="text-brand-blue/80 mt-1">Escríbenos y te ayudamos</p>
-        <a href="mailto:soporte@vendet.online" className="inline-block mt-3 bg-brand-blue text-white px-6 py-2 rounded-lg font-bold hover:bg-blue-900 transition">
+      <div className="bg-brand-accent rounded-xl p-6 mt-8 text-center">
+        <h3 className="font-bold text-brand-primary text-lg">¿No encontraste tu respuesta?</h3>
+        <p className="text-brand-primary/80 mt-1">Escríbenos y te ayudamos</p>
+        <a href="mailto:soporte@vendet.online" className="inline-block mt-3 bg-brand-primary text-white px-6 py-2 rounded-lg font-bold hover:bg-brand-dark transition">
           soporte@vendet.online
         </a>
       </div>

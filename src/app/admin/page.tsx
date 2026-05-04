@@ -86,15 +86,15 @@ function ModeracionTab({ notify }: { notify: (msg: string) => void }) {
     else { notify('Producto rechazado'); cargar() }
   }
 
-  if (cargando) return <div className="flex justify-center py-12"><Loader2 className="animate-spin text-brand-blue" /></div>
+  if (cargando) return <div className="flex justify-center py-12"><Loader2 className="animate-spin text-brand-primary" /></div>
 
   return (
     <div className="space-y-6">
       <div className="flex gap-2">
-        <button onClick={() => setTabM('denuncias')} className={`px-4 py-2 rounded-lg text-sm font-medium transition ${tabM === 'denuncias' ? 'bg-brand-blue text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}>
+        <button onClick={() => setTabM('denuncias')} className={`px-4 py-2 rounded-lg text-sm font-medium transition ${tabM === 'denuncias' ? 'bg-brand-primary text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}>
           🚨 Denuncias ({denuncias.length})
         </button>
-        <button onClick={() => setTabM('pendientes')} className={`px-4 py-2 rounded-lg text-sm font-medium transition ${tabM === 'pendientes' ? 'bg-brand-blue text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}>
+        <button onClick={() => setTabM('pendientes')} className={`px-4 py-2 rounded-lg text-sm font-medium transition ${tabM === 'pendientes' ? 'bg-brand-primary text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}>
           ⏳ Pendientes ({productosPendientes.length})
         </button>
       </div>
@@ -148,7 +148,7 @@ function ModeracionTab({ notify }: { notify: (msg: string) => void }) {
                       {p.imagen_url ? <img src={p.imagen_url} alt="" className="w-16 h-16 rounded-lg object-cover" loading="lazy" decoding="async" /> : null}
                       <div>
                         <p className="font-semibold">{p.titulo}</p>
-                        {p.precio_usd && <p className="text-brand-blue font-bold">${Number(p.precio_usd).toLocaleString()}</p>}
+                        {p.precio_usd && <p className="text-brand-primary font-bold">${Number(p.precio_usd).toLocaleString()}</p>}
                         {p.motivo_moderacion && <p className="text-xs text-orange-600 mt-1">⚠️ {p.motivo_moderacion}</p>}
                         <span className="text-xs text-gray-400">{new Date(p.creado_en).toLocaleDateString('es-ES')}</span>
                       </div>
@@ -212,7 +212,7 @@ export default function AdminPage() {
         <div className="text-center">
           <h2 className="text-2xl font-bold text-gray-800 mb-4">🔒 Acceso denegado</h2>
           <p className="text-gray-500">No tienes permisos para esta página.</p>
-          <button onClick={() => router.push('/')} className="mt-4 text-brand-blue hover:underline">Volver al inicio</button>
+          <button onClick={() => router.push('/')} className="mt-4 text-brand-primary hover:underline">Volver al inicio</button>
         </div>
       </div>
     )
@@ -229,15 +229,15 @@ export default function AdminPage() {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-4">
-          <div className="bg-brand-yellow p-3 rounded-xl">
-            <Shield size={24} className="text-brand-blue" />
+          <div className="bg-brand-accent p-3 rounded-xl">
+            <Shield size={24} className="text-brand-primary" />
           </div>
           <div>
             <h1 className="text-3xl font-black text-gray-800">Admin Panel</h1>
             <p className="text-gray-500">Control total de VendeT-Venezuela</p>
           </div>
         </div>
-        <Link href="/" className="text-sm text-brand-blue hover:underline">
+        <Link href="/" className="text-sm text-brand-primary hover:underline">
           ← Volver al sitio
         </Link>
       </div>
@@ -250,7 +250,7 @@ export default function AdminPage() {
             onClick={() => setTab(t.id)}
             className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium whitespace-nowrap transition ${
               tab === t.id
-                ? 'bg-brand-blue text-white'
+                ? 'bg-brand-primary text-white'
                 : 'text-gray-600 hover:bg-gray-50'
             }`}
           >
@@ -360,7 +360,7 @@ Transacción procesada correctamente.`
                   <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
                     <div className="flex-1 space-y-2">
                       <div className="flex items-center gap-3">
-                        <span className="text-2xl font-black text-brand-blue">+{t.monto} créditos</span>
+                        <span className="text-2xl font-black text-brand-primary">+{t.monto} créditos</span>
                         <span className="text-[10px] font-bold bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded-full">PENDIENTE</span>
                       </div>
                       <div className="text-sm text-gray-600 space-y-1">
@@ -370,7 +370,7 @@ Transacción procesada correctamente.`
                         <p>📅 {new Date(t.creado_en).toLocaleString('es-VE')}</p>
                       </div>
                       {t.comprobante_url && (
-                        <a href={t.comprobante_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-sm text-brand-blue hover:underline">
+                        <a href={t.comprobante_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-sm text-brand-primary hover:underline">
                           <Eye size={14} /> Ver comprobante <ExternalLink size={12} />
                         </a>
                       )}
@@ -418,7 +418,7 @@ Transacción procesada correctamente.`
                     <tr key={t.id} className="border-b border-gray-50 hover:bg-gray-50">
                       <td className="py-3 px-4">{perfil.nombre || '...'}</td>
                       <td className="py-3 px-4">{t.metodo_pago || '—'}</td>
-                      <td className="py-3 px-4 text-center font-bold text-brand-blue">+{t.monto}</td>
+                      <td className="py-3 px-4 text-center font-bold text-brand-primary">+{t.monto}</td>
                       <td className="py-3 px-4 text-center">
                         <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${t.estado === 'aprobado' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
                           {t.estado}
@@ -539,11 +539,11 @@ function TabPublicaciones({ perfiles, notify }: { perfiles: Record<string, any>;
                   {/* Info */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <Link href={`/producto/${p.id}`} className="font-semibold text-gray-800 hover:text-brand-blue truncate">
+                      <Link href={`/producto/${p.id}`} className="font-semibold text-gray-800 hover:text-brand-primary truncate">
                         {p.titulo}
                       </Link>
                       {p.destacado && p.destacado_hasta > new Date().toISOString() && (
-                        <span className="text-[10px] bg-brand-yellow/20 text-brand-blue px-2 py-0.5 rounded-full">⭐ Destacado</span>
+                        <span className="text-[10px] bg-brand-accent/20 text-brand-primary px-2 py-0.5 rounded-full">⭐ Destacado</span>
                       )}
                       {p.boosteado_en && (
                         <span className="text-[10px] bg-green-100 text-green-700 px-2 py-0.5 rounded-full">⚡ Boosted</span>
@@ -559,7 +559,7 @@ function TabPublicaciones({ perfiles, notify }: { perfiles: Record<string, any>;
                     <button onClick={() => toggleActivo(p.id, !p.activo)} disabled={procesando === p.id} className="p-2 rounded-lg hover:bg-gray-100 text-gray-500" title={p.activo ? 'Pausar' : 'Activar'}>
                       {p.activo ? <Pause size={16} /> : <Play size={16} />}
                     </button>
-                    <button onClick={() => toggleDestacado(p.id, !p.destacado)} disabled={procesando === p.id} className={`p-2 rounded-lg transition ${p.destacado ? 'bg-brand-yellow/20 text-brand-yellow' : 'hover:bg-gray-100 text-yellow-500'}`} title={p.destacado ? 'Quitar destacado' : 'Destacar 48h'}>
+                    <button onClick={() => toggleDestacado(p.id, !p.destacado)} disabled={procesando === p.id} className={`p-2 rounded-lg transition ${p.destacado ? 'bg-brand-accent/20 text-brand-accent' : 'hover:bg-gray-100 text-yellow-500'}`} title={p.destacado ? 'Quitar destacado' : 'Destacar 48h'}>
                       <Star size={16} />
                     </button>
                     <button onClick={() => eliminar(p.id)} disabled={procesando === p.id} className="p-2 rounded-lg hover:bg-red-50 text-red-500" title="Eliminar">
@@ -646,7 +646,7 @@ function TabUsuarios({ perfiles, notify }: { perfiles: Record<string, any>; noti
                       <td className="py-3 px-4 font-medium">{u.nombre || 'Sin nombre'}</td>
                       <td className="py-3 px-4 hidden sm:table-cell">{u.telefono || '—'}</td>
                       <td className="py-3 px-4 hidden md:table-cell">{u.ciudad && u.estado ? `${u.ciudad}, ${u.estado}` : '—'}</td>
-                      <td className="py-3 px-4 text-center font-bold text-brand-blue">{u.credito_balance || 0}</td>
+                      <td className="py-3 px-4 text-center font-bold text-brand-primary">{u.credito_balance || 0}</td>
                       <td className="py-3 px-4 text-center text-gray-500 hidden sm:table-cell">{new Date(u.creado_en).toLocaleDateString('es-VE')}</td>
                     </tr>
                   ))}
@@ -701,9 +701,9 @@ function TabDashboard({ perfiles }: { perfiles: Record<string, any> }) {
     <div className="space-y-6">
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          { label: 'Usuarios', value: stats.totalUsuarios, icon: Users, color: 'bg-blue-50 text-brand-blue' },
+          { label: 'Usuarios', value: stats.totalUsuarios, icon: Users, color: 'bg-blue-50 text-brand-primary' },
           { label: 'Publicaciones', value: stats.productosActivos, icon: Package, color: 'bg-green-50 text-green-700' },
-          { label: 'Créditos vendidos', value: stats.creditosVendidos, icon: CreditCard, color: 'bg-yellow-50 text-brand-yellow' },
+          { label: 'Créditos vendidos', value: stats.creditosVendidos, icon: CreditCard, color: 'bg-yellow-50 text-brand-accent' },
           { label: 'Ingresos (est.)', value: `$${stats.ingresosUSD}`, icon: BarChart3, color: 'bg-purple-50 text-purple-700' },
         ].map((s) => (
           <div key={s.label} className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
@@ -758,7 +758,7 @@ function TabAnuncios({ notify }: { notify: (m: string) => void }) {
         <div className="flex gap-2 mt-3">
           <button
             onClick={() => { if (anuncio.trim()) { notify('✅ Anuncio publicado! (falta conectar con la web)'); setAnuncio('') } }}
-            className="bg-brand-blue text-white px-6 py-2.5 rounded-lg font-bold hover:bg-blue-900 transition"
+            className="bg-brand-primary text-white px-6 py-2.5 rounded-lg font-bold hover:bg-brand-dark transition"
           >
             Publicar anuncio
           </button>
@@ -828,7 +828,7 @@ function TabCategorias({ notify }: { notify: (m: string) => void }) {
             className="flex-1 border border-gray-300 rounded-xl px-4 py-2.5 text-sm bg-white"
             onKeyDown={e => e.key === 'Enter' && agregarCategoria()}
           />
-          <button onClick={agregarCategoria} className="bg-brand-blue text-white px-5 py-2.5 rounded-lg font-bold hover:bg-blue-900 transition">
+          <button onClick={agregarCategoria} className="bg-brand-primary text-white px-5 py-2.5 rounded-lg font-bold hover:bg-brand-dark transition">
             Añadir
           </button>
         </div>
@@ -903,17 +903,17 @@ function TabExportar() {
         <p className="text-sm text-gray-500 mb-6">Descarga toda la información de tu plataforma en formato CSV, compatible con Excel y Google Sheets.</p>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <button onClick={exportarProductos} disabled={exportando} className="bg-white border-2 border-gray-200 rounded-xl p-5 text-center hover:border-brand-blue transition disabled:opacity-50">
+          <button onClick={exportarProductos} disabled={exportando} className="bg-white border-2 border-gray-200 rounded-xl p-5 text-center hover:border-brand-primary transition disabled:opacity-50">
             <Package size={24} className="mx-auto mb-2 text-gray-400" />
             <p className="font-bold text-gray-800">Productos</p>
             <p className="text-xs text-gray-400">Todas las publicaciones</p>
           </button>
-          <button onClick={exportarUsuarios} disabled={exportando} className="bg-white border-2 border-gray-200 rounded-xl p-5 text-center hover:border-brand-blue transition disabled:opacity-50">
+          <button onClick={exportarUsuarios} disabled={exportando} className="bg-white border-2 border-gray-200 rounded-xl p-5 text-center hover:border-brand-primary transition disabled:opacity-50">
             <Users size={24} className="mx-auto mb-2 text-gray-400" />
             <p className="font-bold text-gray-800">Usuarios</p>
             <p className="text-xs text-gray-400">Perfiles registrados</p>
           </button>
-          <button onClick={exportarTransacciones} disabled={exportando} className="bg-white border-2 border-gray-200 rounded-xl p-5 text-center hover:border-brand-blue transition disabled:opacity-50">
+          <button onClick={exportarTransacciones} disabled={exportando} className="bg-white border-2 border-gray-200 rounded-xl p-5 text-center hover:border-brand-primary transition disabled:opacity-50">
             <CreditCard size={24} className="mx-auto mb-2 text-gray-400" />
             <p className="font-bold text-gray-800">Transacciones</p>
             <p className="text-xs text-gray-400">Pagos y créditos</p>
@@ -1030,7 +1030,7 @@ function TabCreditos({ perfiles, notify }: { perfiles: Record<string, any>; noti
       {/* Añadir créditos */}
       <div className="bg-white rounded-xl border border-gray-100 p-6">
         <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
-          <PlusCircle size={20} className="text-brand-blue" /> Añadir créditos manualmente
+          <PlusCircle size={20} className="text-brand-primary" /> Añadir créditos manualmente
         </h3>
 
         <div className="space-y-4 max-w-lg">
@@ -1056,7 +1056,7 @@ function TabCreditos({ perfiles, notify }: { perfiles: Record<string, any>; noti
                     key={u.id}
                     onClick={() => { setUsuarioSel(u.id); setBusqueda(u.nombre || u.id) }}
                     className={`w-full text-left px-3 py-2 text-sm hover:bg-white border-b last:border-b-0 flex justify-between items-center ${
-                      usuarioSel === u.id ? 'bg-blue-50 border-l-2 border-l-brand-blue' : ''
+                      usuarioSel === u.id ? 'bg-blue-50 border-l-2 border-l-brand-primary' : ''
                     }`}
                   >
                     <span className="font-medium truncate">{u.nombre || u.id}</span>
@@ -1067,7 +1067,7 @@ function TabCreditos({ perfiles, notify }: { perfiles: Record<string, any>; noti
             )}
             {usuarioSel && (
               <div className="mt-2 flex items-center justify-between bg-blue-50 border border-blue-200 rounded-lg px-3 py-2">
-                <span className="text-sm font-medium text-brand-blue">
+                <span className="text-sm font-medium text-brand-primary">
                   ✅ {perfiles[usuarioSel]?.nombre || 'Usuario seleccionado'}
                 </span>
                 <button onClick={() => { setUsuarioSel(''); setBusqueda('') }} className="text-gray-400 hover:text-gray-600">

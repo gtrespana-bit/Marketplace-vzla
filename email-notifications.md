@@ -159,7 +159,7 @@ async function enviarProductoPublicado(resend, from, { nombre, email, productoUr
       <td align="center">
         <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
           <tr>
-            <td style="background: linear-gradient(135deg, #FCD116 0%, #F59E0B 100%); padding: 40px 30px; text-align: center;">
+            <td style="background: linear-gradient(135deg, #C9A84C 0%, #F59E0B 100%); padding: 40px 30px; text-align: center;">
               <h1 style="margin: 0; font-size: 28px; font-weight: 900; color: #1a1a2e;">
                 Vende<span style="color: #fff;">T</span>-Venezuela
               </h1>
@@ -188,7 +188,7 @@ async function enviarProductoPublicado(resend, from, { nombre, email, productoUr
                   Ver mi anuncio
                 </a>
               </div>
-              <div style="background-color: #fffbeb; border-left: 4px solid #FCD116; border-radius: 8px; padding: 20px; margin: 24px 0;">
+              <div style="background-color: #fffbeb; border-left: 4px solid #C9A84C; border-radius: 8px; padding: 20px; margin: 24px 0;">
                 <p style="margin: 0 0 8px 0; font-size: 15px; color: #92400e; font-weight: 600;">
                   💡 Tips para vender más rápido:
                 </p>
@@ -240,7 +240,7 @@ async function enviarMensajeRecibido(resend, from, { mensajeUrl, vendedorNombre,
       <td align="center">
         <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
           <tr>
-            <td style="background: linear-gradient(135deg, #FCD116 0%, #F59E0B 100%); padding: 40px 30px; text-align: center;">
+            <td style="background: linear-gradient(135deg, #C9A84C 0%, #F59E0B 100%); padding: 40px 30px; text-align: center;">
               <h1 style="margin: 0; font-size: 28px; font-weight: 900; color: #1a1a2e;">
                 Vende<span style="color: #fff;">T</span>-Venezuela
               </h1>
@@ -270,7 +270,7 @@ async function enviarMensajeRecibido(resend, from, { mensajeUrl, vendedorNombre,
               </div>
               <div style="text-align: center; margin: 28px 0;">
                 <a href="${mensajeUrl}" 
-                   style="display: inline-block; background-color: #003DA5; color: #ffffff; text-decoration: none; padding: 16px 32px; border-radius: 8px; font-size: 16px; font-weight: 700;">
+                   style="display: inline-block; background-color: #7B2D3B; color: #ffffff; text-decoration: none; padding: 16px 32px; border-radius: 8px; font-size: 16px; font-weight: 700;">
                   Ver mensaje ahora
                 </a>
               </div>
@@ -393,7 +393,7 @@ async function handlePublish(productoData) {
       <td align="center">
         <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
           <tr>
-            <td style="background: linear-gradient(135deg, #FCD116 0%, #F59E0B 100%); padding: 40px 30px; text-align: center;">
+            <td style="background: linear-gradient(135deg, #C9A84C 0%, #F59E0B 100%); padding: 40px 30px; text-align: center;">
               <h1 style="margin: 0; font-size: 28px; font-weight: 900; color: #1a1a2e;">
                 Vende<span style="color: #fff;">T</span>-Venezuela
               </h1>
@@ -410,7 +410,7 @@ async function handlePublish(productoData) {
               </div>
               <div style="text-align: center; margin: 28px 0;">
                 <a href="https://vendet.online/dashboard" 
-                   style="display: inline-block; background-color: #003DA5; color: #ffffff; text-decoration: none; padding: 16px 32px; border-radius: 8px; font-size: 16px; font-weight: 700;">
+                   style="display: inline-block; background-color: #7B2D3B; color: #ffffff; text-decoration: none; padding: 16px 32px; border-radius: 8px; font-size: 16px; font-weight: 700;">
                   Ver mi saldo de créditos
                 </a>
               </div>

@@ -53,16 +53,16 @@ export default function SobreNosotrosPage() {
           </div>
         </section>
 
-        <section className="bg-brand-yellow rounded-2xl p-8 text-center">
-          <h2 className="text-2xl font-bold text-brand-blue mb-4">¿Quieres ser parte?</h2>
-          <p className="text-brand-blue/80 max-w-md mx-auto mb-6">
+        <section className="bg-brand-accent rounded-2xl p-8 text-center">
+          <h2 className="text-2xl font-bold text-brand-primary mb-4">¿Quieres ser parte?</h2>
+          <p className="text-brand-primary/80 max-w-md mx-auto mb-6">
             Estamos construyendo algo grande. Únete como usuario early adopter o escríbenos si quieres colaborar.
           </p>
           <div className="flex flex-wrap justify-center gap-3">
-            <a href="/register" className="bg-brand-blue text-white px-8 py-3 rounded-lg font-bold hover:bg-blue-900 transition">
+            <a href="/register" className="bg-brand-primary text-white px-8 py-3 rounded-lg font-bold hover:bg-brand-dark transition">
               Regístrate
             </a>
-            <a href="/contacto" className="border border-brand-blue text-brand-blue px-8 py-3 rounded-lg font-bold hover:bg-brand-yellow/50 transition">
+            <a href="/contacto" className="border border-brand-primary text-brand-primary px-8 py-3 rounded-lg font-bold hover:bg-brand-accent/50 transition">
               Contáctanos
             </a>
           </div>

@@ -20,7 +20,7 @@ export default function Avatar({ nombre, fotoUrl, size = 'md', className = '' }:
   const s = sizeMap[size]
   const initials = nombre ? nombre.charAt(0).toUpperCase() : '?'
   const bgColors = [
-    'bg-brand-blue', 'bg-green-600', 'bg-purple-600',
+    'bg-brand-primary', 'bg-green-600', 'bg-purple-600',
     'bg-orange-500', 'bg-pink-600', 'bg-teal-600', 'bg-indigo-600',
   ]
   const colorIndex = (nombre || '').charCodeAt(0) % bgColors.length

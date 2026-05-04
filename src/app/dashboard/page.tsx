@@ -82,7 +82,7 @@ function PasswordModal({ user, setToast, onClose }: { user: any; setToast: (s: s
           </div>
           <div className="flex gap-3">
             <button type="button" onClick={onClose} className="flex-1 py-3 border border-gray-200 rounded-lg font-medium text-gray-600 hover:bg-gray-50">Cancelar</button>
-            <button type="submit" disabled={pwGuardando} className="flex-1 py-3 bg-brand-blue text-white rounded-lg font-bold hover:bg-blue-900 disabled:opacity-50">{pwGuardando ? 'Guardando...' : 'Cambiar contraseña'}</button>
+            <button type="submit" disabled={pwGuardando} className="flex-1 py-3 bg-brand-primary text-white rounded-lg font-bold hover:bg-brand-dark disabled:opacity-50">{pwGuardando ? 'Guardando...' : 'Cambiar contraseña'}</button>
           </div>
         </form>
       </div>
@@ -169,7 +169,7 @@ export default function DashboardPage() {
         <div className="text-center">
           <h2 className="text-2xl font-bold text-gray-800 mb-4">Inicia sesión</h2>
           <p className="text-gray-500 mb-6">Necesitas una cuenta para acceder al panel</p>
-          <Link href="/login" className="inline-block bg-brand-blue text-white px-8 py-3 rounded-lg font-bold hover:bg-blue-900 transition">Iniciar sesión</Link>
+          <Link href="/login" className="inline-block bg-brand-primary text-white px-8 py-3 rounded-lg font-bold hover:bg-brand-dark transition">Iniciar sesión</Link>
         </div>
       </div>
     )
@@ -226,7 +226,7 @@ export default function DashboardPage() {
       />
 
       {/* Resumen */}
-      <div className="bg-gradient-to-r from-brand-blue to-blue-800 rounded-xl p-5 text-white mb-6">
+      <div className="bg-gradient-to-r from-brand-primary to-blue-800 rounded-xl p-5 text-white mb-6">
         <h3 className="font-bold text-lg mb-3 flex items-center gap-2">📊 Resumen de rendimiento</h3>
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
           <div>
@@ -262,7 +262,7 @@ export default function DashboardPage() {
             <div className="flex items-center gap-2 text-sm">
               <span>🎯 {data.pubCount}/10 publicaciones → 5 créditos gratis</span>
               <div className="w-24 bg-white/30 rounded-full h-1.5">
-                <div className="bg-brand-yellow h-1.5 rounded-full transition-all" style={{ width: `${Math.min((data.pubCount / 10) * 100, 100)}%` }} />
+                <div className="bg-brand-accent h-1.5 rounded-full transition-all" style={{ width: `${Math.min((data.pubCount / 10) * 100, 100)}%` }} />
               </div>
             </div>
           </div>
@@ -283,7 +283,7 @@ export default function DashboardPage() {
             key={item.id}
             onClick={() => setActiveTab(item.id)}
             className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition whitespace-nowrap ${
-              activeTab === item.id ? 'bg-brand-blue text-white shadow-sm' : 'text-gray-600 hover:bg-white/50'
+              activeTab === item.id ? 'bg-brand-primary text-white shadow-sm' : 'text-gray-600 hover:bg-white/50'
             }`}
           >
             <item.icon size={16} />

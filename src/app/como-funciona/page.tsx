@@ -47,12 +47,12 @@ export default function ComoFuncionaPage() {
       <div className="space-y-6 mb-12">
         {pasos.map((p, i) => (
           <div key={i} className="flex gap-6 items-start bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-            <div className="w-14 h-14 bg-brand-blue text-white rounded-xl flex items-center justify-center text-3xl flex-shrink-0">
+            <div className="w-14 h-14 bg-brand-primary text-white rounded-xl flex items-center justify-center text-3xl flex-shrink-0">
               {p.icon}
             </div>
             <div>
               <h3 className="text-xl font-bold text-gray-800 mb-1">
-                <span className="text-brand-blue">Paso {p.num}:</span> {p.titulo}
+                <span className="text-brand-primary">Paso {p.num}:</span> {p.titulo}
               </h3>
               <p className="text-gray-600">{p.desc}</p>
             </div>
@@ -93,7 +93,7 @@ export default function ComoFuncionaPage() {
             <thead>
               <tr className="border-b-2 border-gray-200">
                 <th className="text-left py-4 px-3 font-semibold text-gray-500 w-[20%]">¿Qué importa?</th>
-                <th className="text-center py-4 px-3 font-bold text-brand-blue bg-green-50 rounded-t-lg w-[27%]">
+                <th className="text-center py-4 px-3 font-bold text-brand-primary bg-green-50 rounded-t-lg w-[27%]">
                   <span className="text-lg">VendeT-Venezuela</span>
                 </th>
                 <th className="text-center py-4 px-3 font-semibold text-gray-400 w-[27%]">Otros marketplaces</th>
@@ -126,7 +126,7 @@ export default function ComoFuncionaPage() {
       </div>
 
       <div className="text-center mt-12">
-        <Link href="/publicar" className="inline-block bg-brand-yellow text-brand-blue px-8 py-3 rounded-xl font-bold text-lg hover:bg-yellow-400 transition">
+        <Link href="/publicar" className="inline-block bg-brand-accent text-brand-primary px-8 py-3 rounded-xl font-bold text-lg hover:bg-accent/90 transition">
           🚀 Publica ahora — Es gratis
         </Link>
       </div>

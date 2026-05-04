@@ -81,7 +81,7 @@ export default function AprobacionPage() {
         <div className="text-center">
           <h2 className="text-2xl font-bold text-gray-800 mb-4">🔒 Acceso denegado</h2>
           <p className="text-gray-500">No tienes permisos.</p>
-          <Link href="/" className="mt-4 text-brand-blue hover:underline">Volver</Link>
+          <Link href="/" className="mt-4 text-brand-primary hover:underline">Volver</Link>
         </div>
       </div>
     )
@@ -92,8 +92,8 @@ export default function AprobacionPage() {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
-          <div className="bg-brand-yellow p-2 rounded-xl">
-            <Shield size={20} className="text-brand-blue" />
+          <div className="bg-brand-accent p-2 rounded-xl">
+            <Shield size={20} className="text-brand-primary" />
           </div>
           <div>
             <h1 className="text-2xl font-black text-gray-800">Aprobación rápida</h1>
@@ -104,7 +104,7 @@ export default function AprobacionPage() {
           <button onClick={cargar} className="p-2 rounded-lg hover:bg-gray-100 text-gray-500" title="Refrescar">
             <RefreshCw size={16} />
           </button>
-          <Link href="/admin" className="text-sm text-brand-blue hover:underline px-3 py-2 bg-white rounded-lg border">
+          <Link href="/admin" className="text-sm text-brand-primary hover:underline px-3 py-2 bg-white rounded-lg border">
             ← Admin completo
           </Link>
         </div>
@@ -113,7 +113,7 @@ export default function AprobacionPage() {
       {/* Content */}
       {cargando ? (
         <div className="text-center py-20">
-          <Loader2 size={32} className="mx-auto text-brand-blue animate-spin" />
+          <Loader2 size={32} className="mx-auto text-brand-primary animate-spin" />
           <p className="text-gray-400 mt-4">Cargando...</p>
         </div>
       ) : pendientes.length === 0 ? (

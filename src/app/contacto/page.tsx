@@ -21,15 +21,15 @@ export default function ContactPage() {
           <form className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Nombre</label>
-              <input type="text" required className="w-full border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-yellow" />
+              <input type="text" required className="w-full border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-accent" />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-              <input type="email" required className="w-full border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-yellow" />
+              <input type="email" required className="w-full border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-accent" />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Asunto</label>
-              <select className="w-full border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-yellow">
+              <select className="w-full border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-accent">
                 <option>Pregunta general</option>
                 <option>Reportar un anuncio</option>
                 <option>Problema con mi cuenta</option>
@@ -39,9 +39,9 @@ export default function ContactPage() {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Mensaje</label>
-              <textarea rows={5} required className="w-full border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-yellow resize-none"></textarea>
+              <textarea rows={5} required className="w-full border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-accent resize-none"></textarea>
             </div>
-            <button type="submit" className="w-full bg-brand-blue text-white py-3 rounded-lg font-bold hover:bg-blue-900 transition">
+            <button type="submit" className="w-full bg-brand-primary text-white py-3 rounded-lg font-bold hover:bg-brand-dark transition">
               Enviar mensaje
             </button>
           </form>
@@ -53,7 +53,7 @@ export default function ContactPage() {
             <h3 className="font-bold text-gray-800 mb-4">Otras formas de contacto</h3>
             <div className="space-y-4">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center text-brand-blue">
+                <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center text-brand-primary">
                   <Mail size={20} />
                 </div>
                 <div>
@@ -71,7 +71,7 @@ export default function ContactPage() {
                 </div>
               </div>
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center text-brand-yellow">
+                <div className="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center text-brand-accent">
                   <Phone size={20} />
                 </div>
                 <div>
@@ -82,9 +82,9 @@ export default function ContactPage() {
             </div>
           </div>
 
-          <div className="bg-brand-yellow rounded-2xl p-6 text-center">
-            <h3 className="font-bold text-brand-blue text-lg">Horario de atención</h3>
-            <p className="text-brand-blue/80 mt-2">
+          <div className="bg-brand-accent rounded-2xl p-6 text-center">
+            <h3 className="font-bold text-brand-primary text-lg">Horario de atención</h3>
+            <p className="text-brand-primary/80 mt-2">
               Lunes a sábado<br />
               8:00 AM – 10:00 PM (hora Venezuela)
             </p>

@@ -92,7 +92,7 @@ export default function MetricasTab() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <div className="w-10 h-10 border-4 border-brand-blue border-t-transparent rounded-full animate-spin" />
+        <div className="w-10 h-10 border-4 border-brand-primary border-t-transparent rounded-full animate-spin" />
       </div>
     )
   }
@@ -174,7 +174,7 @@ export default function MetricasTab() {
                     <p className="text-xs text-gray-400">{s.activeProducts} activos de {s.totalProducts}</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-1.5 text-sm font-bold text-brand-blue">
+                <div className="flex items-center gap-1.5 text-sm font-bold text-brand-primary">
                   <Eye size={14} />
                   {s.totalVisits.toLocaleString()}
                 </div>

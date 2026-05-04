@@ -161,7 +161,7 @@ export default function ReportarButton({ productoId }: { productoId: string }) {
                 <button
                   onClick={handleSubmit}
                   disabled={!motivo || enviando}
-                  className="w-full mt-4 bg-blue-950 text-white py-2.5 rounded-lg font-bold hover:bg-blue-900 transition flex items-center justify-center gap-2 disabled:opacity-50"
+                  className="w-full mt-4 bg-blue-950 text-white py-2.5 rounded-lg font-bold hover:bg-brand-dark transition flex items-center justify-center gap-2 disabled:opacity-50"
                 >
                   <Send size={16} /> {enviando ? 'Enviando...' : 'Enviar denuncia'}
                 </button>

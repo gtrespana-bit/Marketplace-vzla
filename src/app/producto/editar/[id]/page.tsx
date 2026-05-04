@@ -201,7 +201,7 @@ export default function EditarPage() {
   const removeCurrentImage = (i: number) => setCurrentImages(prev => prev.filter((_, idx) => idx !== i))
 
   if (loading) return <div className="max-w-3xl mx-auto px-4 py-12 text-center"><p>Cargando...</p></div>
-  if (error && !titulo) return <div className="max-w-3xl mx-auto px-4 py-12 text-center"><h2 className="text-2xl font-bold mb-4">{error}</h2><button onClick={() => router.push('/dashboard')} className="bg-brand-blue text-white px-6 py-2 rounded-lg">Volver</button></div>
+  if (error && !titulo) return <div className="max-w-3xl mx-auto px-4 py-12 text-center"><h2 className="text-2xl font-bold mb-4">{error}</h2><button onClick={() => router.push('/dashboard')} className="bg-brand-primary text-white px-6 py-2 rounded-lg">Volver</button></div>
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-8">
@@ -385,7 +385,7 @@ export default function EditarPage() {
         {/* Agregar nuevas imágenes */}
         <div>
           <label className="block text-sm font-semibold text-gray-900 mb-2">Agregar imágenes</label>
-          <label className="flex items-center gap-2 p-4 border-2 border-dashed rounded-lg cursor-pointer hover:border-brand-yellow transition">
+          <label className="flex items-center gap-2 p-4 border-2 border-dashed rounded-lg cursor-pointer hover:border-brand-accent transition">
             <Camera size={20} className="text-gray-400" />
             <span className="text-sm text-gray-500">Seleccionar fotos...</span>
             <input type="file" accept="image/*" multiple onChange={handleNewImages} className="hidden" />
@@ -412,7 +412,7 @@ export default function EditarPage() {
 
         {/* Actions */}
         <div className="flex items-center gap-3 pt-4 border-t">
-          <button onClick={handleSubmit} disabled={guardando} className="flex items-center gap-2 bg-brand-yellow text-brand-blue px-6 py-3 rounded-lg font-bold hover:bg-yellow-400 transition disabled:opacity-50">
+          <button onClick={handleSubmit} disabled={guardando} className="flex items-center gap-2 bg-brand-accent text-brand-primary px-6 py-3 rounded-lg font-bold hover:bg-accent/90 transition disabled:opacity-50">
             <Save size={16} /> {guardando ? 'Guardando...' : 'Guardar cambios'}
           </button>
           <button onClick={() => router.push(`/producto/${productoId}`)} className="px-4 py-3 border rounded-lg hover:bg-gray-50">Cancelar</button>

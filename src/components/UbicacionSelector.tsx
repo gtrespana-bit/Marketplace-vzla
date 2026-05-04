@@ -30,7 +30,7 @@ export default function UbicacionSelector({ estado, ciudad, onChange, showCapita
           <select
             value={estado}
             onChange={(e) => { onChange(e.target.value, '') }}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-800 bg-white focus:outline-none focus:ring-2 focus:ring-brand-yellow"
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-800 bg-white focus:outline-none focus:ring-2 focus:ring-brand-accent"
           >
             <option value="">Toda Venezuela</option>
             {ESTADOS.map((e) => (
@@ -48,7 +48,7 @@ export default function UbicacionSelector({ estado, ciudad, onChange, showCapita
             value={ciudad}
             onChange={(e) => { onChange(estado, e.target.value) }}
             disabled={!estado}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-800 bg-white focus:outline-none focus:ring-2 focus:ring-brand-yellow disabled:bg-gray-100 disabled:text-gray-400"
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-800 bg-white focus:outline-none focus:ring-2 focus:ring-brand-accent disabled:bg-gray-100 disabled:text-gray-400"
           >
             <option value="">Todos los municipios</option>
             {municipios.map((m) => (

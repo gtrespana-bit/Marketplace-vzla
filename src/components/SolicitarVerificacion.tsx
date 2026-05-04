@@ -243,7 +243,7 @@ export default function SolicitarVerificacion() {
         {/* Re-apply form */}
         <div className="bg-white rounded-2xl shadow-sm border p-6">
           <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
-            <Shield size={20} className="text-brand-blue" /> Solicitar verificacion de nuevo
+            <Shield size={20} className="text-brand-primary" /> Solicitar verificacion de nuevo
           </h3>
 
           <form onSubmit={(e) => { e.preventDefault(); handleEnviar() }} className="space-y-4">
@@ -268,7 +268,7 @@ export default function SolicitarVerificacion() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Foto de frente</label>
-                <label className="flex items-center gap-2 border-2 border-dashed border-gray-300 rounded-lg p-4 cursor-pointer hover:border-brand-blue transition">
+                <label className="flex items-center gap-2 border-2 border-dashed border-gray-300 rounded-lg p-4 cursor-pointer hover:border-brand-primary transition">
                   <Camera size={20} className="text-gray-400" />
                   <span className="text-sm text-gray-500">{frenteFile ? frenteFile.name : 'Seleccionar...'}</span>
                   <input type="file" accept="image/*" onChange={handleFrenteFile} className="hidden" />
@@ -277,7 +277,7 @@ export default function SolicitarVerificacion() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Foto del dorso</label>
-                <label className="flex items-center gap-2 border-2 border-dashed border-gray-300 rounded-lg p-4 cursor-pointer hover:border-brand-blue transition">
+                <label className="flex items-center gap-2 border-2 border-dashed border-gray-300 rounded-lg p-4 cursor-pointer hover:border-brand-primary transition">
                   <Camera size={20} className="text-gray-400" />
                   <span className="text-sm text-gray-500">{dorsoFile ? dorsoFile.name : 'Seleccionar...'}</span>
                   <input type="file" accept="image/*" onChange={handleDorsoFile} className="hidden" />
@@ -300,7 +300,7 @@ export default function SolicitarVerificacion() {
             <button
               type="submit"
               disabled={subiendo || enviando || !pagoMovilTelefono || !pagoMovilCedula || !pagoMovilBanco || !frenteFile || !dorsoFile}
-              className="bg-brand-blue text-white px-6 py-2.5 rounded-lg font-bold hover:bg-blue-900 transition disabled:opacity-50 flex items-center gap-2"
+              className="bg-brand-primary text-white px-6 py-2.5 rounded-lg font-bold hover:bg-brand-dark transition disabled:opacity-50 flex items-center gap-2"
             >
               {subiendo ? <><Upload size={16} /> Subiendo fotos...</> : enviando ? <><CheckCircle2 size={16} /> Enviando...</> : <><BadgeCheck size={16} /> Solicitar verificacion</>}
             </button>
@@ -316,7 +316,7 @@ export default function SolicitarVerificacion() {
       {/* Banner informativo */}
       <div className="bg-gradient-to-r from-blue-50 to-emerald-50 border border-blue-100 rounded-2xl p-6 mb-6">
         <div className="flex items-start gap-3">
-          <Shield size={24} className="text-brand-blue flex-shrink-0 mt-0.5" />
+          <Shield size={24} className="text-brand-primary flex-shrink-0 mt-0.5" />
           <div>
             <h3 className="text-lg font-bold text-gray-900 mb-1">Conviertete en Vendedor Verificado</h3>
             <p className="text-gray-600 text-sm leading-relaxed">
@@ -367,7 +367,7 @@ export default function SolicitarVerificacion() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Foto de frente</label>
-              <label className="flex items-center gap-2 border-2 border-dashed border-gray-300 rounded-lg p-4 cursor-pointer hover:border-brand-blue transition">
+              <label className="flex items-center gap-2 border-2 border-dashed border-gray-300 rounded-lg p-4 cursor-pointer hover:border-brand-primary transition">
                 <Camera size={20} className="text-gray-400" />
                 <span className="text-sm text-gray-500">{frenteFile ? frenteFile.name : 'Seleccionar...'}</span>
                 <input type="file" accept="image/*" onChange={handleFrenteFile} className="hidden" />
@@ -376,7 +376,7 @@ export default function SolicitarVerificacion() {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Foto del dorso</label>
-              <label className="flex items-center gap-2 border-2 border-dashed border-gray-300 rounded-lg p-4 cursor-pointer hover:border-brand-blue transition">
+              <label className="flex items-center gap-2 border-2 border-dashed border-gray-300 rounded-lg p-4 cursor-pointer hover:border-brand-primary transition">
                 <Camera size={20} className="text-gray-400" />
                 <span className="text-sm text-gray-500">{dorsoFile ? dorsoFile.name : 'Seleccionar...'}</span>
                 <input type="file" accept="image/*" onChange={handleDorsoFile} className="hidden" />
@@ -399,7 +399,7 @@ export default function SolicitarVerificacion() {
           <button
             type="submit"
             disabled={subiendo || enviando || !pagoMovilTelefono || !pagoMovilCedula || !pagoMovilBanco || !frenteFile || !dorsoFile}
-            className="bg-brand-blue text-white px-6 py-2.5 rounded-lg font-bold hover:bg-blue-900 transition disabled:opacity-50 flex items-center gap-2"
+            className="bg-brand-primary text-white px-6 py-2.5 rounded-lg font-bold hover:bg-brand-dark transition disabled:opacity-50 flex items-center gap-2"
           >
             {subiendo ? <><Upload size={16} /> Subiendo fotos...</> : enviando ? <><CheckCircle2 size={16} /> Enviando...</> : <><BadgeCheck size={16} /> Solicitar verificacion</>}
           </button>

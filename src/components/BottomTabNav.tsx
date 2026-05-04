@@ -44,18 +44,18 @@ export default function BottomTabNav() {
               }`}
             >
               {item.highlight ? (
-                <div className="w-14 h-14 bg-brand-yellow rounded-full flex items-center justify-center shadow-lg shadow-yellow-200 active:scale-95 transition-transform">
-                  <Icon size={26} className="text-brand-blue" />
+                <div className="w-14 h-14 bg-brand-accent rounded-full flex items-center justify-center shadow-lg shadow-yellow-200 active:scale-95 transition-transform">
+                  <Icon size={26} className="text-brand-primary" />
                 </div>
               ) : (
                 <div className="flex flex-col items-center">
                   <Icon
                     size={22}
-                    className={isActive ? 'text-brand-blue' : 'text-gray-400'}
+                    className={isActive ? 'text-brand-primary' : 'text-gray-400'}
                   />
                   <span
                     className={`text-[10px] mt-0.5 font-medium ${
-                      isActive ? 'text-brand-blue' : 'text-gray-400'
+                      isActive ? 'text-brand-primary' : 'text-gray-400'
                     }`}
                   >
                     {item.label}

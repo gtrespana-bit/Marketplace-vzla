@@ -110,7 +110,7 @@ export default function ImageGallery({ images, alt }: ImageGalleryProps) {
               key={i}
               onClick={() => setActiveIndex(i)}
               className={`w-20 h-20 rounded-lg overflow-hidden flex-shrink-0 border-2 transition ${
-                i === activeIndex ? 'border-brand-yellow shadow-sm' : 'border-transparent hover:border-gray-300'
+                i === activeIndex ? 'border-brand-accent shadow-sm' : 'border-transparent hover:border-gray-300'
               }`}
             >
               <Image
@@ -189,7 +189,7 @@ export default function ImageGallery({ images, alt }: ImageGalleryProps) {
                   key={i}
                   onClick={e => { e.stopPropagation(); setActiveIndex(i) }}
                   className={`w-16 h-16 rounded-lg overflow-hidden flex-shrink-0 border-2 transition ${
-                    i === activeIndex ? 'border-brand-yellow' : 'border-transparent opacity-50 hover:opacity-100'
+                    i === activeIndex ? 'border-brand-accent' : 'border-transparent opacity-50 hover:opacity-100'
                   }`}
                 >
                   <Image

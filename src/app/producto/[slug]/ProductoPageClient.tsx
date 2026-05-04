@@ -153,7 +153,7 @@ export default function ProductoPageClient({ initialProduct }: ProductoPageClien
   if (!producto) return (
     <div className="max-w-7xl mx-auto px-4 py-20 text-center">
       <h1 className="text-3xl font-bold text-gray-800 mb-4">Producto no encontrado</h1>
-      <Link href="/" className="inline-block bg-brand-blue text-white px-8 py-3 rounded-lg font-bold">Volver al inicio</Link>
+      <Link href="/" className="inline-block bg-brand-primary text-white px-8 py-3 rounded-lg font-bold">Volver al inicio</Link>
     </div>
   )
 
@@ -191,9 +191,9 @@ export default function ProductoPageClient({ initialProduct }: ProductoPageClien
     <div className="max-w-7xl mx-auto px-4 py-8">
       <SuccessBanner />
       <nav className="flex items-center gap-1.5 text-sm text-gray-500 mb-6 overflow-x-auto hide-scrollbar">
-        <Link href="/" className="hover:text-brand-blue flex-shrink-0">Inicio</Link>
+        <Link href="/" className="hover:text-brand-primary flex-shrink-0">Inicio</Link>
         <ChevronRight size={14} className="flex-shrink-0" />
-        <Link href="/catalogo" className="hover:text-brand-blue flex-shrink-0">Catalogo</Link>
+        <Link href="/catalogo" className="hover:text-brand-primary flex-shrink-0">Catalogo</Link>
         {producto.subcategoria && (<><ChevronRight size={14} className="flex-shrink-0" /><span className="capitalize flex-shrink-0">{producto.subcategoria}</span></>)}
         <ChevronRight size={14} className="flex-shrink-0" />
         <span className="text-gray-800 font-medium truncate flex-shrink-0">{producto.titulo}</span>
@@ -218,7 +218,7 @@ export default function ProductoPageClient({ initialProduct }: ProductoPageClien
             {producto.descripcion && <p className="text-gray-600 whitespace-pre-line leading-relaxed">{producto.descripcion}</p>}
           </div>
           <div className="bg-blue-50 border border-blue-100 rounded-2xl p-6">
-            <h3 className="font-bold text-brand-blue mb-3 flex items-center gap-2"><Shield size={18} /> Compra seguro</h3>
+            <h3 className="font-bold text-brand-primary mb-3 flex items-center gap-2"><Shield size={18} /> Compra seguro</h3>
             <ul className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-blue-800">
               <li>Encuentrate al vendedor en un lugar publico</li>
               <li>Verifica el producto antes de pagar</li>
@@ -230,7 +230,7 @@ export default function ProductoPageClient({ initialProduct }: ProductoPageClien
 
         <div>
           <div className="bg-white rounded-2xl shadow-sm border p-6 sticky top-20">
-            <p className="text-4xl font-black text-brand-blue">${Number(producto.precio_usd || 0).toLocaleString()}</p>
+            <p className="text-4xl font-black text-brand-primary">${Number(producto.precio_usd || 0).toLocaleString()}</p>
             {precioBs && <p className="text-sm text-gray-500 mt-1">Bs. {precioBs} <span className="text-[10px] text-gray-400">· tasa BCV {tasaBs > 0 ? tasaBs : 'ref.'}</span></p>}
             <div className="flex items-center gap-4 text-xs text-gray-500 my-4 pb-4 border-b">
               <span className="flex items-center gap-1"><Clock size={14} /> Publicado</span>
@@ -258,7 +258,7 @@ export default function ProductoPageClient({ initialProduct }: ProductoPageClien
                   </div>
                 )}
                 {user && user.id !== producto.user_id && (
-                  <button onClick={() => setMostrarResena(true)} className="text-xs text-brand-blue hover:underline mt-2">
+                  <button onClick={() => setMostrarResena(true)} className="text-xs text-brand-primary hover:underline mt-2">
                     {totalResenas === 0 ? 'Dejar primera reseña →' : 'Escribir reseña →'}
                   </button>
                 )}
@@ -268,7 +268,7 @@ export default function ProductoPageClient({ initialProduct }: ProductoPageClien
             <div className="space-y-3">
               <div className="grid grid-cols-2 gap-2">
                 {metodos.chat && (
-                  <button onClick={handleContacto} className="bg-brand-blue text-white py-3 rounded-xl font-bold hover:bg-blue-900 transition flex items-center justify-center gap-2 text-sm">
+                  <button onClick={handleContacto} className="bg-brand-primary text-white py-3 rounded-xl font-bold hover:bg-brand-dark transition flex items-center justify-center gap-2 text-sm">
                     <MessageCircle size={18} /> Chat
                   </button>
                 )}
@@ -335,7 +335,7 @@ export default function ProductoPageClient({ initialProduct }: ProductoPageClien
                 }
               }}
               disabled={enviandoResena}
-              className="w-full mt-4 bg-brand-blue text-white py-2.5 rounded-lg font-bold hover:bg-blue-900 transition flex items-center justify-center gap-2 disabled:opacity-50"
+              className="w-full mt-4 bg-brand-primary text-white py-2.5 rounded-lg font-bold hover:bg-brand-dark transition flex items-center justify-center gap-2 disabled:opacity-50"
             >
               <Send size={16} /> {enviandoResena ? 'Enviando...' : 'Enviar reseña'}
             </button>

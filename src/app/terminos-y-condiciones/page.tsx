@@ -54,7 +54,7 @@ export default function TerminosPage() {
 
         <section>
           <h2 className="text-xl font-bold text-gray-800 mb-3">8. Contacto</h2>
-          <p>Para dudas sobre estos términos: <a href="mailto:legal@vendet.online" className="text-brand-blue underline">legal@vendet.online</a></p>
+          <p>Para dudas sobre estos términos: <a href="mailto:legal@vendet.online" className="text-brand-primary underline">legal@vendet.online</a></p>
         </section>
       </div>
     </div>

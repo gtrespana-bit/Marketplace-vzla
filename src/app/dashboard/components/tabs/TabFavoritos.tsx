@@ -33,7 +33,7 @@ export default function TabFavoritos({ favoritos }: { favoritos: any[] }) {
                 </div>
                 <div className="flex-1 min-w-0">
                   <h4 className="font-medium text-gray-800 truncate">{p.titulo}</h4>
-                  <p className="text-sm text-brand-blue font-bold">${p.precio_usd?.toLocaleString()}</p>
+                  <p className="text-sm text-brand-primary font-bold">${p.precio_usd?.toLocaleString()}</p>
                   {p.ubicacion_ciudad && <p className="text-xs text-gray-500">{p.ubicacion_ciudad}</p>}
                 </div>
               </Link>

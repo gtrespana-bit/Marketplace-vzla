@@ -70,7 +70,7 @@ export default function VendedorPage() {
   if (loading) {
     return (
       <div className="max-w-4xl mx-auto px-4 py-12 text-center">
-        <div className="w-16 h-16 border-4 border-brand-blue border-t-transparent rounded-full animate-spin mx-auto" />
+        <div className="w-16 h-16 border-4 border-brand-primary border-t-transparent rounded-full animate-spin mx-auto" />
       </div>
     )
   }
@@ -163,7 +163,7 @@ export default function VendedorPage() {
               )}
               <button
                 onClick={() => router.push(`/chat?vendedor=${vendedorId}`)}
-                className="flex items-center gap-1.5 bg-brand-blue text-white px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-blue-900 transition"
+                className="flex items-center gap-1.5 bg-brand-primary text-white px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-brand-dark transition"
               >
                 <MessageSquare size={14} /> Enviar mensaje
               </button>
@@ -220,7 +220,7 @@ export default function VendedorPage() {
                 </div>
                 <div className="p-3">
                   <h3 className="font-semibold text-gray-800 text-sm truncate">{p.titulo}</h3>
-                  <p className="text-brand-blue font-bold mt-1">${p.precio_usd?.toLocaleString()}</p>
+                  <p className="text-brand-primary font-bold mt-1">${p.precio_usd?.toLocaleString()}</p>
                 </div>
               </Link>
             ))}

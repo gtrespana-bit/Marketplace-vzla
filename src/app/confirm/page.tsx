@@ -63,8 +63,8 @@ export default function ConfirmEmailPage() {
     <div className="min-h-[80vh] flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <Link href="/" className="text-brand-blue font-black text-3xl">
-            Vende<span className="text-brand-yellow">T</span><span className="text-sm ml-1 text-gray-500">-Venezuela</span>
+          <Link href="/" className="text-brand-primary font-black text-3xl">
+            Vende<span className="text-brand-accent">T</span><span className="text-sm ml-1 text-gray-500">-Venezuela</span>
           </Link>
         </div>
 
@@ -72,7 +72,7 @@ export default function ConfirmEmailPage() {
           {status === 'loading' && (
             <>
               <div className="flex justify-center mb-6">
-                <Loader2 className="text-brand-blue animate-spin" size={48} />
+                <Loader2 className="text-brand-primary animate-spin" size={48} />
               </div>
               <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center">
                 Confirmando tu cuenta...
@@ -96,7 +96,7 @@ export default function ConfirmEmailPage() {
               </p>
               <Link
                 href="/login"
-                className="block w-full bg-brand-blue text-white py-3 rounded-lg font-bold hover:bg-blue-900 transition text-center"
+                className="block w-full bg-brand-primary text-white py-3 rounded-lg font-bold hover:bg-brand-dark transition text-center"
               >
                 Ir al login ahora
               </Link>
@@ -118,7 +118,7 @@ export default function ConfirmEmailPage() {
               </p>
               <Link
                 href="/login"
-                className="block w-full bg-brand-blue text-white py-3 rounded-lg font-bold hover:bg-blue-900 transition text-center"
+                className="block w-full bg-brand-primary text-white py-3 rounded-lg font-bold hover:bg-brand-dark transition text-center"
               >
                 Ir al login para reenviar
               </Link>

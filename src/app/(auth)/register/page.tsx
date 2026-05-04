@@ -65,8 +65,8 @@ export default function RegisterPage() {
     <div className="min-h-[80vh] flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <Link href="/" className="text-brand-blue font-black text-3xl">
-            Vende<span className="text-brand-yellow">T</span><span className="text-sm ml-1 text-gray-500">-Venezuela</span>
+          <Link href="/" className="text-brand-primary font-black text-3xl">
+            Vende<span className="text-brand-accent">T</span><span className="text-sm ml-1 text-gray-500">-Venezuela</span>
           </Link>
           <h1 className="text-2xl font-bold text-gray-800 mt-4">Crea tu cuenta</h1>
           <p className="text-gray-500 mt-1">Únete gratis. Empieza a vender hoy.</p>
@@ -98,7 +98,7 @@ export default function RegisterPage() {
                 onChange={(e) => setNombre(e.target.value)}
                 placeholder="Tu nombre"
                 required
-                className="w-full border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-yellow bg-white text-gray-900"
+                className="w-full border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-accent bg-white text-gray-900"
               />
             </div>
 
@@ -110,7 +110,7 @@ export default function RegisterPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="tu@email.com"
                 required
-                className="w-full border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-yellow bg-white text-gray-900"
+                className="w-full border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-accent bg-white text-gray-900"
               />
             </div>
 
@@ -121,7 +121,7 @@ export default function RegisterPage() {
                 value={telefono}
                 onChange={(e) => setTelefono(e.target.value)}
                 placeholder="+58 412 1234567"
-                className="w-full border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-yellow bg-white text-gray-900"
+                className="w-full border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-accent bg-white text-gray-900"
               />
             </div>
 
@@ -132,7 +132,7 @@ export default function RegisterPage() {
                   value={estado}
                   onChange={(e) => { setEstado(e.target.value); setCiudad('') }}
                   required
-                  className="w-full border rounded-lg px-3 py-3 focus:outline-none focus:ring-2 focus:ring-brand-yellow text-sm"
+                  className="w-full border rounded-lg px-3 py-3 focus:outline-none focus:ring-2 focus:ring-brand-accent text-sm"
                 >
                   <option value="">Selecciona...</option>
                   {ESTADOS.map((e) => (
@@ -146,7 +146,7 @@ export default function RegisterPage() {
                   value={ciudad}
                   onChange={(e) => setCiudad(e.target.value)}
                   required
-                  className="w-full border rounded-lg px-3 py-3 focus:outline-none focus:ring-2 focus:ring-brand-yellow text-sm"
+                  className="w-full border rounded-lg px-3 py-3 focus:outline-none focus:ring-2 focus:ring-brand-accent text-sm"
                 >
                   <option value="">Selecciona...</option>
                   {ciudades.map((c) => (
@@ -164,7 +164,7 @@ export default function RegisterPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Mínimo 8 caracteres"
                 required
-                className="w-full border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-yellow bg-white text-gray-900"
+                className="w-full border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-accent bg-white text-gray-900"
               />
             </div>
 
@@ -176,14 +176,14 @@ export default function RegisterPage() {
                 onChange={(e) => setRepeatPassword(e.target.value)}
                 placeholder="Repite tu contraseña"
                 required
-                className="w-full border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-yellow bg-white text-gray-900"
+                className="w-full border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-accent bg-white text-gray-900"
               />
             </div>
 
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-brand-blue text-white py-3 rounded-lg font-bold hover:bg-blue-900 transition disabled:opacity-50"
+              className="w-full bg-brand-primary text-white py-3 rounded-lg font-bold hover:bg-brand-dark transition disabled:opacity-50"
             >
               {loading ? 'Creando cuenta...' : 'Crear cuenta gratis'}
             </button>
@@ -191,7 +191,7 @@ export default function RegisterPage() {
 
           <p className="text-center text-sm text-gray-500 mt-6">
             ¿Ya tienes cuenta?{' '}
-            <Link href="/login" className="text-brand-blue font-semibold hover:underline">
+            <Link href="/login" className="text-brand-primary font-semibold hover:underline">
               Inicia sesión
             </Link>
           </p>

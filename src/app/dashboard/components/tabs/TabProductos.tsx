@@ -19,7 +19,7 @@ export default function TabProductos({
         <Package size={48} className="text-gray-300 mx-auto mb-4" />
         <h3 className="text-xl font-bold text-gray-800 mb-2">Aún no tienes publicaciones</h3>
         <p className="text-gray-500 mb-6">Publica tu primer producto en segundos. ¡Es gratis!</p>
-        <Link href="/publicar" className="inline-block bg-brand-yellow text-brand-blue px-8 py-3 rounded-lg font-bold hover:bg-yellow-400 transition">Publicar ahora</Link>
+        <Link href="/publicar" className="inline-block bg-brand-accent text-brand-primary px-8 py-3 rounded-lg font-bold hover:bg-accent/90 transition">Publicar ahora</Link>
       </div>
     )
   }
@@ -46,21 +46,21 @@ export default function TabProductos({
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h4 className="font-medium text-gray-800 truncate group-hover:text-brand-blue transition">
+                  <h4 className="font-medium text-gray-800 truncate group-hover:text-brand-primary transition">
                     {isBoosted && '⚡ '}{isFeatured && !isBoosted && '⭐ '}{p.titulo}
                   </h4>
-                  <p className="text-sm text-brand-blue font-bold">${p.precio_usd?.toLocaleString()}</p>
+                  <p className="text-sm text-brand-primary font-bold">${p.precio_usd?.toLocaleString()}</p>
                   <div className="flex items-center gap-3 mt-1 text-xs text-gray-500">
                     <span>👀 {p.visitas || 0} vistas</span>
                     {p.activo ? '✅ Activo' : '⏸️ Pausado'}
                     {isFeatured && (
-                      <span className="text-brand-blue">⭐ Hasta {new Date(p.destacado_hasta).toLocaleDateString('es-VE')}</span>
+                      <span className="text-brand-primary">⭐ Hasta {new Date(p.destacado_hasta).toLocaleDateString('es-VE')}</span>
                     )}
                   </div>
                 </div>
               </Link>
               <div className="flex gap-1 flex-shrink-0">
-                <Link href={`/producto/editar/${p.id}`} className="p-2 hover:bg-blue-50 rounded-lg transition text-brand-blue" title="Editar">
+                <Link href={`/producto/editar/${p.id}`} className="p-2 hover:bg-blue-50 rounded-lg transition text-brand-primary" title="Editar">
                   <Edit size={16} />
                 </Link>
                 <button onClick={async () => { const ns = !p.activo; await supabase.from('productos').update({ activo: ns }).eq('id', p.id); window.location.reload() }} className="p-2 hover:bg-gray-100 rounded-lg transition" title={p.activo ? 'Pausar' : 'Activar'}>
@@ -69,7 +69,7 @@ export default function TabProductos({
                 <button onClick={() => onBoost({ productId: p.id, titulo: p.titulo })} className="p-2 hover:bg-yellow-50 rounded-lg transition text-yellow-600" title="Boost">
                   <Zap size={16} />
                 </button>
-                <button onClick={() => onDestacar({ productId: p.id, titulo: p.titulo })} className="p-2 hover:bg-yellow-50 rounded-lg transition text-brand-blue" title="Destacar">
+                <button onClick={() => onDestacar({ productId: p.id, titulo: p.titulo })} className="p-2 hover:bg-yellow-50 rounded-lg transition text-brand-primary" title="Destacar">
                   <Star size={16} />
                 </button>
                 <button onClick={async () => { if (confirm('¿Eliminar esta publicacion permanentemente?')) { await supabase.from('productos').delete().eq('id', p.id); window.location.reload() } }} className="p-2 hover:bg-red-50 rounded-lg transition text-red-500" title="Eliminar">

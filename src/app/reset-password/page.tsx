@@ -79,7 +79,7 @@ export default function ResetPasswordPage() {
     return (
       <div className="min-h-[80vh] flex items-center justify-center px-4">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-10 w-10 border-4 border-brand-blue border-t-transparent mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-10 w-10 border-4 border-brand-primary border-t-transparent mx-auto mb-4"></div>
           <p className="text-gray-500">Verificando enlace de restablecimiento...</p>
         </div>
       </div>
@@ -90,8 +90,8 @@ export default function ResetPasswordPage() {
     <div className="min-h-[80vh] flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <Link href="/" className="text-brand-blue font-black text-3xl">
-            Vende<span className="text-brand-yellow">T</span><span className="text-sm ml-1 text-gray-500">-Venezuela</span>
+          <Link href="/" className="text-brand-primary font-black text-3xl">
+            Vende<span className="text-brand-accent">T</span><span className="text-sm ml-1 text-gray-500">-Venezuela</span>
           </Link>
           <h1 className="text-2xl font-bold text-gray-800 mt-4">
             {success ? '¡Contraseña actualizada!' : 'Restablecer contraseña'}
@@ -117,7 +117,7 @@ export default function ResetPasswordPage() {
               <p className="text-green-700 font-semibold text-lg">Tu contraseña se actualizó correctamente</p>
               <Link
                 href="/login"
-                className="inline-block mt-6 bg-brand-blue text-white px-8 py-3 rounded-lg font-bold hover:bg-blue-900 transition"
+                className="inline-block mt-6 bg-brand-primary text-white px-8 py-3 rounded-lg font-bold hover:bg-brand-dark transition"
               >
                 Ir al login
               </Link>
@@ -133,7 +133,7 @@ export default function ResetPasswordPage() {
                   placeholder="Mínimo 8 caracteres"
                   required
                   minLength={8}
-                  className="w-full border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-yellow text-gray-900 bg-white"
+                  className="w-full border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-accent text-gray-900 bg-white"
                 />
               </div>
 
@@ -146,20 +146,20 @@ export default function ResetPasswordPage() {
                   placeholder="Repite la nueva contraseña"
                   required
                   minLength={8}
-                  className="w-full border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-yellow text-gray-900 bg-white"
+                  className="w-full border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-accent text-gray-900 bg-white"
                 />
               </div>
 
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-brand-blue text-white py-3 rounded-lg font-bold hover:bg-blue-900 transition disabled:opacity-50"
+                className="w-full bg-brand-primary text-white py-3 rounded-lg font-bold hover:bg-brand-dark transition disabled:opacity-50"
               >
                 {loading ? 'Guardando...' : 'Restablecer contraseña'}
               </button>
 
               <p className="text-center text-sm text-gray-500 mt-4">
-                <Link href="/login" className="text-brand-blue font-semibold hover:underline">
+                <Link href="/login" className="text-brand-primary font-semibold hover:underline">
                   Volver al login
                 </Link>
               </p>

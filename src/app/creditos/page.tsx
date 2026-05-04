@@ -100,13 +100,13 @@ function ModalPago({ paquete, tasa, onClose }: { paquete: any; tasa: number; onC
       <div className="fixed inset-0 z-50 bg-black/60 flex items-end md:items-center justify-center">
         <div className="bg-white w-full md:max-w-lg md:rounded-2xl rounded-t-2xl p-6 text-center">
           <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <CheckCircle size={32} className="text-brand-blue" />
+            <CheckCircle size={32} className="text-brand-primary" />
           </div>
-          <h3 className="text-xl font-bold text-brand-blue mb-2">¡Comprobante enviado!</h3>
+          <h3 className="text-xl font-bold text-brand-primary mb-2">¡Comprobante enviado!</h3>
           <p className="text-sm text-gray-600 mb-4">
             Tu pago será revisado en breve. Recibirás <strong>{paquete.creditos} créditos</strong> cuando se confirme.
           </p>
-          <button onClick={onClose} className="w-full bg-brand-blue text-white py-3 rounded-xl font-bold hover:bg-blue-900 transition">Cerrar</button>
+          <button onClick={onClose} className="w-full bg-brand-primary text-white py-3 rounded-xl font-bold hover:bg-brand-dark transition">Cerrar</button>
         </div>
       </div>
     )
@@ -130,7 +130,7 @@ function ModalPago({ paquete, tasa, onClose }: { paquete: any; tasa: number; onC
             <div className="grid grid-cols-2 gap-3">
               {metodosPago.map(m => (
                 <button key={m.id} onClick={() => setMetodo(m.id)}
-                  className={`p-4 rounded-xl border-2 text-center transition ${metodo === m.id ? 'border-brand-yellow bg-yellow-50' : 'border-gray-200 hover:border-gray-300'}`}>
+                  className={`p-4 rounded-xl border-2 text-center transition ${metodo === m.id ? 'border-brand-accent bg-yellow-50' : 'border-gray-200 hover:border-gray-300'}`}>
                   <span className="text-3xl block">{m.emoji}</span>
                   <span className="text-sm font-medium text-gray-700 mt-1 block">{m.nombre}</span>
                 </button>
@@ -140,13 +140,13 @@ function ModalPago({ paquete, tasa, onClose }: { paquete: any; tasa: number; onC
 
           {/* Monto a pagar en Bs — solo Pago Móvil */}
           {isPagoMovil && (
-            <div className="bg-brand-blue/5 border-2 border-brand-blue/20 rounded-xl p-4">
+            <div className="bg-brand-primary/5 border-2 border-brand-primary/20 rounded-xl p-4">
               <p className="text-xs text-gray-500 mb-1 text-center">Monto a pagar (Pago Móvil)</p>
               <div className="flex items-center justify-center gap-3">
-                <p className="text-3xl font-black text-brand-blue">Bs. {precioBs}</p>
+                <p className="text-3xl font-black text-brand-primary">Bs. {precioBs}</p>
                 <button
                   onClick={() => copyToClipboard(precioBs, 'precioBs')}
-                  className="flex items-center gap-1 bg-white border border-brand-blue/30 rounded-lg px-3 py-2 text-sm text-brand-blue hover:bg-brand-blue/5 transition"
+                  className="flex items-center gap-1 bg-white border border-brand-primary/30 rounded-lg px-3 py-2 text-sm text-brand-primary hover:bg-brand-primary/5 transition"
                 >
                   {copiado === 'precioBs' ? '✓' : 'Copiar'}
                 </button>
@@ -182,7 +182,7 @@ function ModalPago({ paquete, tasa, onClose }: { paquete: any; tasa: number; onC
           {selectedMetodo && (
             <div>
               <h4 className="font-bold text-gray-800 mb-3">3. Sube tu comprobante de pago</h4>
-              <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:border-brand-blue transition cursor-pointer"
+              <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:border-brand-primary transition cursor-pointer"
                 onClick={() => document.getElementById('comprobante-input')?.click()}>
                 <input type="file" accept="image/*" id="comprobante-input" onChange={handleFileChange} className="hidden" />
                 {comprobantePreview ? (
@@ -199,7 +199,7 @@ function ModalPago({ paquete, tasa, onClose }: { paquete: any; tasa: number; onC
                 )}
               </div>
               <button onClick={procesarCompra} disabled={enviando || !comprobanteFile}
-                className="w-full mt-4 bg-brand-blue text-white py-3.5 rounded-xl font-bold hover:bg-blue-900 transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
+                className="w-full mt-4 bg-brand-primary text-white py-3.5 rounded-xl font-bold hover:bg-brand-dark transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
                 {enviando ? <><Loader2 size={18} className="animate-spin" /> Enviando...</> : <><Upload size={18} /> Enviar comprobante</>}
               </button>
             </div>
@@ -228,7 +228,7 @@ export default function CreditosPage() {
   return (
     <div className="max-w-5xl mx-auto px-4 py-12">
       <div className="text-center mb-12">
-        <h1 className="text-3xl md:text-4xl font-black text-gray-800 mb-4">Compra créditos y <span className="text-brand-yellow">destaca</span></h1>
+        <h1 className="text-3xl md:text-4xl font-black text-gray-800 mb-4">Compra créditos y <span className="text-brand-accent">destaca</span></h1>
         <p className="text-lg text-gray-500 max-w-2xl mx-auto">Publicar siempre es <strong>gratis</strong>. Los créditos son opcionales para dar visibilidad.</p>
       </div>
 
@@ -236,26 +236,26 @@ export default function CreditosPage() {
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 md:p-8 mb-8">
         <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">¿Para qué sirven los créditos?</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="border border-gray-200 rounded-xl p-6 hover:border-brand-yellow transition">
+          <div className="border border-gray-200 rounded-xl p-6 hover:border-brand-accent transition">
             <div className="flex items-start gap-4">
-              <div className="p-3 rounded-xl bg-yellow-50 text-brand-yellow"><Zap size={28} /></div>
+              <div className="p-3 rounded-xl bg-yellow-50 text-brand-accent"><Zap size={28} /></div>
               <div>
                 <h3 className="font-bold text-gray-800 text-lg mb-1">⚡ Boost — Subir al #1</h3>
                 <p className="text-sm text-gray-500 mb-3">Tu publicación aparece <strong>primera</strong> en la lista.</p>
-                <span className="text-brand-blue font-bold text-2xl">1 crédito</span>
+                <span className="text-brand-primary font-bold text-2xl">1 crédito</span>
               </div>
             </div>
           </div>
-          <div className="border border-gray-200 rounded-xl p-6 hover:border-brand-yellow transition">
+          <div className="border border-gray-200 rounded-xl p-6 hover:border-brand-accent transition">
             <div className="flex items-start gap-4">
-              <div className="p-3 rounded-xl bg-blue-50 text-brand-blue"><Star size={28} /></div>
+              <div className="p-3 rounded-xl bg-blue-50 text-brand-primary"><Star size={28} /></div>
               <div>
                 <h3 className="font-bold text-gray-800 text-lg mb-1">⭐ Destacar — 2 en 1</h3>
                 <p className="text-sm text-gray-500 mb-3"><strong>Página principal</strong> + prioridad en <strong>búsqueda</strong>.</p>
                 <div className="space-y-1 text-sm">
-                  <p className="text-brand-blue font-bold">4 créditos → 12h</p>
-                  <p className="text-brand-blue font-bold">6 créditos → 24h</p>
-                  <p className="text-brand-blue font-bold">10 créditos → 48h</p>
+                  <p className="text-brand-primary font-bold">4 créditos → 12h</p>
+                  <p className="text-brand-primary font-bold">6 créditos → 24h</p>
+                  <p className="text-brand-primary font-bold">10 créditos → 48h</p>
                 </div>
               </div>
             </div>
@@ -269,7 +269,7 @@ export default function CreditosPage() {
         {tasaCargando ? (
           <p className="text-center text-sm text-gray-400 mb-4 animate-pulse">Cargando tasa BCV...</p>
         ) : (
-          <p className="text-center text-sm text-gray-500 mb-4">Tasa BCV: <span className="font-bold text-brand-blue">Bs. {tasa.toFixed(2)} por $</span></p>
+          <p className="text-center text-sm text-gray-500 mb-4">Tasa BCV: <span className="font-bold text-brand-primary">Bs. {tasa.toFixed(2)} por $</span></p>
         )}
 
         <div className="creditos-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -277,9 +277,9 @@ export default function CreditosPage() {
             const porCredito = (pkg.precio / pkg.creditos).toFixed(2)
             const precioBs = (pkg.precio * tasa).toFixed(2)
             return (
-              <div key={pkg.creditos} className={`bg-white rounded-2xl shadow-lg overflow-hidden border-2 transition hover:-translate-y-1 ${pkg.popular ? 'border-brand-yellow' : 'border-transparent'}`}>
-                {pkg.popular && <div className="bg-brand-yellow text-brand-blue text-center py-1.5 text-xs font-bold">⭐ MÁS POPULAR</div>}
-                <div className="bg-gradient-to-br from-brand-blue to-blue-800 p-6 text-white text-center">
+              <div key={pkg.creditos} className={`bg-white rounded-2xl shadow-lg overflow-hidden border-2 transition hover:-translate-y-1 ${pkg.popular ? 'border-brand-accent' : 'border-transparent'}`}>
+                {pkg.popular && <div className="bg-brand-accent text-brand-primary text-center py-1.5 text-xs font-bold">⭐ MÁS POPULAR</div>}
+                <div className="bg-gradient-to-br from-brand-primary to-blue-800 p-6 text-white text-center">
                   <p className="text-5xl font-black">{pkg.creditos}</p>
                   <p className="text-sm opacity-80">créditos</p>
                 </div>
@@ -292,7 +292,7 @@ export default function CreditosPage() {
                     <li className="flex items-center gap-2"><CheckCircle size={14} className="text-green-500 flex-shrink-0" />o {Math.floor(pkg.creditos / 4)}× destacado 12h</li>
                     <li className="flex items-center gap-2"><CheckCircle size={14} className="text-green-500 flex-shrink-0" />Sin expiración</li>
                   </ul>
-                  <button onClick={() => setPaqueteSeleccionado(pkg)} className="w-full bg-brand-blue text-white py-3 rounded-lg font-bold hover:bg-blue-900 transition cursor-pointer">Comprar</button>
+                  <button onClick={() => setPaqueteSeleccionado(pkg)} className="w-full bg-brand-primary text-white py-3 rounded-lg font-bold hover:bg-brand-dark transition cursor-pointer">Comprar</button>
                 </div>
               </div>
             )
@@ -318,7 +318,7 @@ export default function CreditosPage() {
         </div>
 
         <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mt-6">
-          <h3 className="font-bold text-brand-blue text-sm mb-2">ℹ️ Cómo funciona</h3>
+          <h3 className="font-bold text-brand-primary text-sm mb-2">ℹ️ Cómo funciona</h3>
           <ol className="text-sm text-blue-800 space-y-1 list-decimal list-inside">
             <li>Selecciona tu paquete y realiza el pago</li>
             <li>Sube la captura del comprobante aquí</li>

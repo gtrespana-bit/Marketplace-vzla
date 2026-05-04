@@ -357,9 +357,9 @@ export default function PublicarPage() {
       <div className="flex items-center gap-2 mb-8 overflow-x-auto pb-2">
         {[{ num: 1, label: 'Categoria' }, { num: 2, label: 'Detalles' }, { num: 3, label: 'Fotos' }, { num: 4, label: 'Revisar' }].map(s => (
           <div key={s.num} className="flex items-center gap-2 flex-shrink-0">
-            <button onClick={() => setStep(s.num)} className={`w-10 h-10 rounded-full font-bold text-sm transition ${step >= s.num ? 'bg-brand-blue text-white' : 'bg-gray-200 text-gray-500'}`}>{s.num}</button>
+            <button onClick={() => setStep(s.num)} className={`w-10 h-10 rounded-full font-bold text-sm transition ${step >= s.num ? 'bg-brand-primary text-white' : 'bg-gray-200 text-gray-500'}`}>{s.num}</button>
             <span className={`text-sm font-medium hidden sm:inline ${step >= s.num ? 'text-gray-900' : 'text-gray-400'}`}>{s.label}</span>
-            {s.num < 4 && <div className={`w-6 sm:w-8 h-0.5 ${step > s.num ? 'bg-brand-blue' : 'bg-gray-200'}`} />}
+            {s.num < 4 && <div className={`w-6 sm:w-8 h-0.5 ${step > s.num ? 'bg-brand-primary' : 'bg-gray-200'}`} />}
           </div>
         ))}
       </div>
@@ -375,7 +375,7 @@ export default function PublicarPage() {
               <label className="block text-sm font-semibold text-gray-900 mb-1.5">Categoria</label>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 {Object.entries(categoriasData).map(([key, cfg]) => (
-                  <button key={key} onClick={() => handleCatChange(key)} className={`p-4 rounded-xl border-2 text-center transition ${categoria === key ? 'border-brand-blue bg-blue-50' : 'border-gray-200 hover:border-brand-yellow'}`}>
+                  <button key={key} onClick={() => handleCatChange(key)} className={`p-4 rounded-xl border-2 text-center transition ${categoria === key ? 'border-brand-primary bg-blue-50' : 'border-gray-200 hover:border-brand-accent'}`}>
                     <span className="text-3xl block mb-2">{cfg.icon}</span>
                     <span className="text-sm font-bold text-gray-800">{cfg.label}</span>
                   </button>
@@ -402,7 +402,7 @@ export default function PublicarPage() {
               </>
             )}
 
-            <button onClick={() => setStep(2)} disabled={!canGoToStep2} className="w-full bg-brand-blue text-white py-3 rounded-lg font-bold hover:bg-blue-900 transition disabled:opacity-50">Siguiente</button>
+            <button onClick={() => setStep(2)} disabled={!canGoToStep2} className="w-full bg-brand-primary text-white py-3 rounded-lg font-bold hover:bg-brand-dark transition disabled:opacity-50">Siguiente</button>
           </div>
         )}
 
@@ -446,7 +446,7 @@ export default function PublicarPage() {
               <label className="block text-sm font-semibold text-gray-900 mb-1.5">Estado</label>
               <div className="grid grid-cols-2 gap-2">
                 {estadosProducto.map(e => (
-                  <button key={e} onClick={() => setEstadoProd(e)} className={`px-4 py-3 rounded-lg text-sm font-medium border transition ${estadoProd === e ? 'bg-brand-blue text-white border-brand-blue' : 'bg-white text-gray-700 border-gray-200 hover:border-brand-yellow'}`}>{e}</button>
+                  <button key={e} onClick={() => setEstadoProd(e)} className={`px-4 py-3 rounded-lg text-sm font-medium border transition ${estadoProd === e ? 'bg-brand-primary text-white border-brand-primary' : 'bg-white text-gray-700 border-gray-200 hover:border-brand-accent'}`}>{e}</button>
                 ))}
               </div>
             </div>
@@ -485,7 +485,7 @@ export default function PublicarPage() {
               <div className="space-y-3">
                 {/* WhatsApp */}
                 <div className="flex items-start gap-3 bg-white border border-gray-200 rounded-lg p-3">
-                  <input type="checkbox" id="useWhatsApp" checked={!!contactWhatsApp} onChange={e => setContactWhatsApp(e.target.checked ? '+' : '')} className="mt-1 rounded text-brand-blue" />
+                  <input type="checkbox" id="useWhatsApp" checked={!!contactWhatsApp} onChange={e => setContactWhatsApp(e.target.checked ? '+' : '')} className="mt-1 rounded text-brand-primary" />
                   <label htmlFor="useWhatsApp" className="flex-1">
                     <span className="text-sm font-medium flex items-center gap-1.5">💚 WhatsApp</span>
                     {contactWhatsApp && <input type="tel" value={contactWhatsApp} onChange={e => setContactWhatsApp(e.target.value)} placeholder="+58 412 1234567" className="mt-1 w-full border border-gray-200 rounded px-2 py-1.5 text-sm" />}
@@ -494,7 +494,7 @@ export default function PublicarPage() {
 
                 {/* Telefono */}
                 <div className="flex items-start gap-3 bg-white border border-gray-200 rounded-lg p-3">
-                  <input type="checkbox" id="usePhone" checked={!!contactPhone} onChange={e => setContactPhone(e.target.checked ? '+' : '')} className="mt-1 rounded text-brand-blue" />
+                  <input type="checkbox" id="usePhone" checked={!!contactPhone} onChange={e => setContactPhone(e.target.checked ? '+' : '')} className="mt-1 rounded text-brand-primary" />
                   <label htmlFor="usePhone" className="flex-1">
                     <span className="text-sm font-medium flex items-center gap-1.5"><Phone size={14} /> Llamadas</span>
                     {contactPhone && <input type="tel" value={contactPhone} onChange={e => setContactPhone(e.target.value)} placeholder="+58 412 1234567" className="mt-1 w-full border border-gray-200 rounded px-2 py-1.5 text-sm" />}
@@ -503,7 +503,7 @@ export default function PublicarPage() {
 
                 {/* Email */}
                 <div className="flex items-start gap-3 bg-white border border-gray-200 rounded-lg p-3">
-                  <input type="checkbox" id="useEmail" checked={!!contactEmail} onChange={e => setContactEmail(e.target.checked ? '+' : '')} className="mt-1 rounded text-brand-blue" />
+                  <input type="checkbox" id="useEmail" checked={!!contactEmail} onChange={e => setContactEmail(e.target.checked ? '+' : '')} className="mt-1 rounded text-brand-primary" />
                   <label htmlFor="useEmail" className="flex-1">
                     <span className="text-sm font-medium flex items-center gap-1.5"><Mail size={14} /> Email</span>
                     {contactEmail && <input type="email" value={contactEmail} onChange={e => setContactEmail(e.target.value)} placeholder="tu@email.com" className="mt-1 w-full border border-gray-200 rounded px-2 py-1.5 text-sm" />}
@@ -512,7 +512,7 @@ export default function PublicarPage() {
 
                 {/* Messenger */}
                 <div className="flex items-start gap-3 bg-white border border-gray-200 rounded-lg p-3">
-                  <input type="checkbox" id="useMessenger" checked={!!contactMessenger} onChange={e => setContactMessenger(e.target.checked ? '+' : '')} className="mt-1 rounded text-brand-blue" />
+                  <input type="checkbox" id="useMessenger" checked={!!contactMessenger} onChange={e => setContactMessenger(e.target.checked ? '+' : '')} className="mt-1 rounded text-brand-primary" />
                   <label htmlFor="useMessenger" className="flex-1">
                     <span className="text-sm font-medium flex items-center gap-1.5"><MessageSquare size={14} /> Facebook Messenger</span>
                     {contactMessenger && <input type="url" value={contactMessenger} onChange={e => setContactMessenger(e.target.value)} placeholder="https://m.me/tuusuario" className="mt-1 w-full border border-gray-200 rounded px-2 py-1.5 text-sm" />}
@@ -529,7 +529,7 @@ export default function PublicarPage() {
 
             <div className="flex gap-3">
               <button onClick={() => setStep(1)} className="px-6 py-3 rounded-lg font-medium border border-gray-200 hover:bg-gray-50"> atras</button>
-              <button onClick={() => setStep(3)} disabled={!canGoToStep3} className="flex-1 bg-brand-blue text-white py-3 rounded-lg font-bold hover:bg-blue-900 transition disabled:opacity-50">Siguiente</button>
+              <button onClick={() => setStep(3)} disabled={!canGoToStep3} className="flex-1 bg-brand-primary text-white py-3 rounded-lg font-bold hover:bg-brand-dark transition disabled:opacity-50">Siguiente</button>
             </div>
           </div>
         )}
@@ -543,7 +543,7 @@ export default function PublicarPage() {
               {imagenes.map((img, i) => (
                 <div key={i} className="aspect-square relative rounded-lg overflow-hidden group border border-gray-200">
                   <img src={img.preview} alt="" className="w-full h-full object-cover" />
-                  {i === 0 && img.uploadedUrl && <span className="absolute top-1 left-1 bg-brand-yellow text-brand-blue text-[10px] font-bold px-1.5 py-0.5 rounded">Portada</span>}
+                  {i === 0 && img.uploadedUrl && <span className="absolute top-1 left-1 bg-brand-accent text-brand-primary text-[10px] font-bold px-1.5 py-0.5 rounded">Portada</span>}
                   {img.uploading && (
                     <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
                       <div className="w-8 h-8 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -562,7 +562,7 @@ export default function PublicarPage() {
                 </div>
               ))}
               {imagenes.length < 10 && (
-                <label className="aspect-square rounded-lg border-2 border-dashed border-gray-300 flex flex-col items-center justify-center cursor-pointer hover:border-brand-yellow hover:bg-yellow-50 transition">
+                <label className="aspect-square rounded-lg border-2 border-dashed border-gray-300 flex flex-col items-center justify-center cursor-pointer hover:border-brand-accent hover:bg-yellow-50 transition">
                   <Camera size={24} className="text-gray-400" /><span className="text-xs text-gray-500 mt-1">Anadir</span>
                   <input type="file" accept="image/*" multiple onChange={handleImageUpload} className="hidden" />
                 </label>
@@ -586,14 +586,14 @@ export default function PublicarPage() {
               <div>
                 <p className="text-sm text-gray-500 mb-2">Subiendo imagenes: {uploadProgress}%</p>
                 <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div className="bg-brand-blue h-2 rounded-full transition-all" style={{ width: `${uploadProgress}%` }} />
+                  <div className="bg-brand-primary h-2 rounded-full transition-all" style={{ width: `${uploadProgress}%` }} />
                 </div>
               </div>
             )}
 
             <div className="flex gap-3">
               <button onClick={() => setStep(2)} className="px-6 py-3 rounded-lg font-medium border border-gray-200 hover:bg-gray-50"> atras</button>
-              <button onClick={() => setStep(4)} className="flex-1 bg-brand-blue text-white py-3 rounded-lg font-bold hover:bg-blue-900 transition">Revisar</button>
+              <button onClick={() => setStep(4)} className="flex-1 bg-brand-primary text-white py-3 rounded-lg font-bold hover:bg-brand-dark transition">Revisar</button>
             </div>
           </div>
         )}
@@ -610,7 +610,7 @@ export default function PublicarPage() {
                 {marca && <p><span className="text-gray-500">Marca:</span> {marca}</p>}
                 {Object.entries(specs).filter(([,v]) => v).map(([k,v]) => <p key={k}><span className="text-gray-500">{k}:</span> {v}</p>)}
                 <p><span className="text-gray-500">Estado:</span> {estadoProd}</p>
-                <p><span className="text-gray-500">Precio:</span> <strong className="text-brand-blue text-lg">${precioUsd}</strong></p>
+                <p><span className="text-gray-500">Precio:</span> <strong className="text-brand-primary text-lg">${precioUsd}</strong></p>
                 <p><span className="text-gray-500">Ubicacion:</span> {ubicacionCiudad}, {ubicacionEstado}</p>
               </div>
 
@@ -674,14 +674,14 @@ export default function PublicarPage() {
               <div>
                 <p className="text-sm text-gray-500 mb-2">Publicando: {uploadProgress}%</p>
                 <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div className="bg-brand-blue h-2 rounded-full transition-all" style={{ width: `${uploadProgress}%` }} />
+                  <div className="bg-brand-primary h-2 rounded-full transition-all" style={{ width: `${uploadProgress}%` }} />
                 </div>
               </div>
             )}
 
             <div className="flex gap-3">
               <button onClick={() => setStep(3)} className="px-6 py-3 rounded-lg font-medium border border-gray-200 hover:bg-gray-50">Editar</button>
-              <button onClick={handleSubmit} disabled={loading} className="flex-1 bg-brand-yellow text-brand-blue py-3 rounded-lg font-bold hover:bg-yellow-400 transition disabled:opacity-50">{loading ? 'Publicando...' : 'Publicar gratis'}</button>
+              <button onClick={handleSubmit} disabled={loading} className="flex-1 bg-brand-accent text-brand-primary py-3 rounded-lg font-bold hover:bg-accent/90 transition disabled:opacity-50">{loading ? 'Publicando...' : 'Publicar gratis'}</button>
             </div>
           </div>
         )}

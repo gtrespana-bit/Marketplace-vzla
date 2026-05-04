@@ -33,7 +33,7 @@ export default function LandingCiudad({ slug, nombre }: Props) {
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
       <nav className="flex items-center gap-1.5 text-sm text-gray-500 mb-6">
-        <Link href="/" className="hover:text-brand-blue">Inicio</Link>
+        <Link href="/" className="hover:text-brand-primary">Inicio</Link>
         <ChevronRight size={14} />
         <span className="text-gray-800 font-medium">{nombre}</span>
       </nav>
@@ -51,7 +51,7 @@ export default function LandingCiudad({ slug, nombre }: Props) {
             <Link key={p.id} href={`/producto/${p.id}`} className="bg-white rounded-xl overflow-hidden shadow-sm border hover:shadow-lg transition group block">
               <div className="aspect-square bg-gray-100 relative overflow-hidden">
                 {p.destacado && new Date(p.destacado_hasta) > new Date() && (
-                  <div className="absolute top-2 left-2 z-10 bg-brand-yellow text-brand-blue text-[10px] font-bold px-2 py-0.5 rounded-full">⭐ Destacado</div>
+                  <div className="absolute top-2 left-2 z-10 bg-brand-accent text-brand-primary text-[10px] font-bold px-2 py-0.5 rounded-full">⭐ Destacado</div>
                 )}
                 {p.imagen_url ? (
                   <Image src={p.imagen_url} alt={p.titulo} width={300} height={300} className="w-full h-full object-cover group-hover:scale-105 transition-transform" loading="lazy" />
@@ -61,7 +61,7 @@ export default function LandingCiudad({ slug, nombre }: Props) {
               </div>
               <div className="p-3">
                 <h3 className="font-semibold text-gray-900 text-sm truncate">{p.titulo}</h3>
-                <p className="text-lg font-black text-brand-blue mt-1">${Number(p.precio_usd || 0).toLocaleString()}</p>
+                <p className="text-lg font-black text-brand-primary mt-1">${Number(p.precio_usd || 0).toLocaleString()}</p>
                 <p className="text-xs text-gray-500">{p.estado}</p>
                 {p.ubicacion_ciudad && (
                   <p className="text-xs text-gray-400 flex items-center gap-1"><MapPin size={10} />{p.ubicacion_ciudad}</p>
@@ -74,7 +74,7 @@ export default function LandingCiudad({ slug, nombre }: Props) {
         <div className="text-center py-16 text-gray-400">
           <p className="text-xl mb-2">No hay anuncios en {nombre} todavía</p>
           <p className="mb-4">¡Sé el primero en publicar!</p>
-          <Link href="/publicar" className="inline-block bg-brand-blue text-white px-6 py-3 rounded-lg font-bold">Publicar gratis</Link>
+          <Link href="/publicar" className="inline-block bg-brand-primary text-white px-6 py-3 rounded-lg font-bold">Publicar gratis</Link>
         </div>
       )}
 

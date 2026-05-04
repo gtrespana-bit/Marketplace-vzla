@@ -112,7 +112,7 @@ export default function VerificacionTab({ notify }: { notify: (msg: string) => v
     cargar()
   }
 
-  if (cargando) return <div className="flex justify-center py-12"><Loader2 className="animate-spin text-brand-blue" /></div>
+  if (cargando) return <div className="flex justify-center py-12"><Loader2 className="animate-spin text-brand-primary" /></div>
 
   return (
     <div className="space-y-6">
@@ -123,7 +123,7 @@ export default function VerificacionTab({ notify }: { notify: (msg: string) => v
             key={f}
             onClick={() => setFiltro(f)}
             className={`px-4 py-2 rounded-lg text-sm font-medium capitalize transition ${
-              filtro === f ? 'bg-brand-blue text-white' : 'bg-white text-gray-600 hover:bg-gray-50 border'
+              filtro === f ? 'bg-brand-primary text-white' : 'bg-white text-gray-600 hover:bg-gray-50 border'
             }`}
           >
             {f === 'pendiente' && `Pendientes (${stats.pendientes})`}

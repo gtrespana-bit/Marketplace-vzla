@@ -339,7 +339,7 @@ export default function ChatPageClient() {
         <h1 className="text-3xl font-bold text-gray-800 mb-6">💬 Mensajes</h1>
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 h-[600px] flex items-center justify-center">
           <div className="text-center text-gray-400">
-            <div className="w-12 h-12 border-4 border-brand-yellow border-t-brand-blue rounded-full animate-spin mx-auto mb-3" />
+            <div className="w-12 h-12 border-4 border-brand-accent border-t-brand-primary rounded-full animate-spin mx-auto mb-3" />
             <p>Cargando mensajes...</p>
           </div>
         </div>
@@ -369,7 +369,7 @@ export default function ChatPageClient() {
                   value={busqueda}
                   onChange={e => setBusqueda(e.target.value)}
                   placeholder="Buscar conversacion..."
-                  className="w-full pl-9 pr-3 py-2 border rounded-lg text-sm bg-gray-50 focus:bg-white focus:border-brand-yellow outline-none transition"
+                  className="w-full pl-9 pr-3 py-2 border rounded-lg text-sm bg-gray-50 focus:bg-white focus:border-brand-accent outline-none transition"
                 />
               </div>
             </div>
@@ -385,7 +385,7 @@ export default function ChatPageClient() {
                 filtradas.map(c => (
                   <div
                     key={c.id}
-                    className={`group w-full flex items-start gap-3 p-3 border-b border-gray-50 transition text-left relative ${convId === c.id ? 'bg-blue-50 border-l-2 border-l-brand-blue' : 'bg-white hover:bg-gray-50'}`}
+                    className={`group w-full flex items-start gap-3 p-3 border-b border-gray-50 transition text-left relative ${convId === c.id ? 'bg-blue-50 border-l-2 border-l-brand-primary' : 'bg-white hover:bg-gray-50'}`}
                   >
                     {/* Eliminar */}
                     <button
@@ -421,7 +421,7 @@ export default function ChatPageClient() {
                         <p className="text-sm text-gray-500 truncate mt-0.5">{c.ultimo_mensaje || 'Sin mensajes'}</p>
                       </div>
                       {c.no_leidos > 0 && (
-                        <span className="bg-brand-red text-white text-xs rounded-full w-5 h-5 flex items-center justify-center flex-shrink-0">{c.no_leidos}</span>
+                        <span className="bg-brand-dark text-white text-xs rounded-full w-5 h-5 flex items-center justify-center flex-shrink-0">{c.no_leidos}</span>
                       )}
                     </button>
                   </div>
@@ -475,7 +475,7 @@ export default function ChatPageClient() {
                     return (
                       <div key={m.id} className={`flex ${esMio ? 'justify-end' : 'justify-start'}`}>
                         <div className={`max-w-[75%] px-4 py-2.5 rounded-2xl ${
-                          esMio ? 'bg-brand-blue text-white rounded-br-sm' : 'bg-white text-gray-800 border border-gray-100 rounded-bl-sm'
+                          esMio ? 'bg-brand-primary text-white rounded-br-sm' : 'bg-white text-gray-800 border border-gray-100 rounded-bl-sm'
                         }`}>
                           <p className="text-sm break-words">{m.contenido}</p>
                           <p className={`text-[10px] mt-1 ${esMio ? 'text-blue-200' : 'text-gray-400'}`}>
@@ -503,13 +503,13 @@ export default function ChatPageClient() {
                     onChange={e => setTexto(e.target.value)}
                     onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); enviarMensaje() } }}
                     placeholder="Escribe un mensaje..."
-                    className="flex-1 border rounded-full px-4 py-2.5 text-sm outline-none focus:border-brand-yellow transition disabled:opacity-50"
+                    className="flex-1 border rounded-full px-4 py-2.5 text-sm outline-none focus:border-brand-accent transition disabled:opacity-50"
                     disabled={enviando}
                   />
                   <button
                     onClick={enviarMensaje}
                     disabled={!texto.trim() || enviando}
-                    className="w-10 h-10 bg-brand-blue text-white rounded-full flex items-center justify-center hover:bg-blue-900 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-10 h-10 bg-brand-primary text-white rounded-full flex items-center justify-center hover:bg-brand-dark transition disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {enviando ? (
                       <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />

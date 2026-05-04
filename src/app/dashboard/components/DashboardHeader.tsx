@@ -101,7 +101,7 @@ export default function DashboardHeader({
                 </div>
               </div>
               <div className="flex gap-2">
-                <button onClick={handleGuardar} className="flex items-center gap-2 bg-brand-blue text-white px-4 py-2 rounded-lg text-sm font-medium">
+                <button onClick={handleGuardar} className="flex items-center gap-2 bg-brand-primary text-white px-4 py-2 rounded-lg text-sm font-medium">
                   <Save size={14} /> Guardar
                 </button>
                 <button onClick={() => setEditando(false)} className="flex items-center gap-2 border px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-50">
@@ -113,7 +113,7 @@ export default function DashboardHeader({
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
               <div>
                 <h2 className="text-xl font-bold text-gray-900">
-                  {nombre || <button onClick={() => setEditando(true)} className="text-sm font-medium text-brand-blue hover:underline">Añadir nombre →</button>}
+                  {nombre || <button onClick={() => setEditando(true)} className="text-sm font-medium text-brand-primary hover:underline">Añadir nombre →</button>}
                 </h2>
                 {user?.email && <p className="text-sm text-gray-500 flex items-center gap-1 mt-1"><Mail size={12} /> {user.email}</p>}
                 {(ciudad || estado) && <p className="text-sm text-gray-500 flex items-center gap-1"><MapPin size={12} /> {[ciudad, estado].filter(Boolean).join(', ')}</p>}
@@ -135,7 +135,7 @@ export default function DashboardHeader({
                 <button onClick={() => setEditando(true)} className="flex-1 sm:flex-none flex items-center justify-center gap-1 border px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-gray-50 transition">
                   <Edit size={14} /> Editar perfil
                 </button>
-                <button onClick={onPassword} className="flex items-center gap-1 text-brand-blue hover:bg-blue-50 px-3 py-1.5 rounded-lg text-sm font-medium transition">
+                <button onClick={onPassword} className="flex items-center gap-1 text-brand-primary hover:bg-blue-50 px-3 py-1.5 rounded-lg text-sm font-medium transition">
                   <Key size={14} /> Contraseña
                 </button>
                 <button onClick={onLogout} className="flex items-center gap-1 text-red-600 hover:bg-red-50 px-3 py-1.5 rounded-lg text-sm font-medium transition">

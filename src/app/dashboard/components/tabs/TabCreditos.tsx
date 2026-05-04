@@ -20,7 +20,7 @@ export default function TabCreditos({ creditos, tasaBs, refreshCreditos }: { cre
   return (
     <div className="space-y-6">
       {/* Balance */}
-      <div className="bg-gradient-to-r from-brand-blue to-blue-900 rounded-2xl p-6 text-white flex items-center justify-between">
+      <div className="bg-gradient-to-r from-brand-primary to-blue-900 rounded-2xl p-6 text-white flex items-center justify-between">
         <div>
           <p className="text-sm opacity-80">Tu balance actual</p>
           <p className="text-4xl font-black">{creditos} créditos</p>
@@ -33,11 +33,11 @@ export default function TabCreditos({ creditos, tasaBs, refreshCreditos }: { cre
         <h3 className="font-bold text-lg mb-3">¿Para qué sirven?</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
-            <p className="font-bold text-brand-blue flex items-center gap-2"><Zap size={18} className="text-yellow-500" /> Boost — 1 crédito</p>
+            <p className="font-bold text-brand-primary flex items-center gap-2"><Zap size={18} className="text-yellow-500" /> Boost — 1 crédito</p>
             <p className="text-sm text-gray-600 mt-1">Sube tu publicación al #1 de la lista</p>
           </div>
           <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
-            <p className="font-bold text-brand-blue flex items-center gap-2"><Star size={18} className="text-brand-yellow" /> Destacado</p>
+            <p className="font-bold text-brand-primary flex items-center gap-2"><Star size={18} className="text-brand-accent" /> Destacado</p>
             <p className="text-sm text-gray-600 mt-1">4cr/12h · 6cr/24h · 10cr/48h</p>
           </div>
         </div>
@@ -45,7 +45,7 @@ export default function TabCreditos({ creditos, tasaBs, refreshCreditos }: { cre
 
       {/* Paquetes */}
       <h3 className="text-xl font-bold text-gray-800 text-center">Elige tu paquete</h3>
-      <p className="text-center text-sm text-gray-500">Tasa BCV: <span className="font-bold text-brand-blue">Bs. {tasa.toFixed(2)} por $</span></p>
+      <p className="text-center text-sm text-gray-500">Tasa BCV: <span className="font-bold text-brand-primary">Bs. {tasa.toFixed(2)} por $</span></p>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {[
           { creditos: 2, precio: 1, descripcion: 'Para empezar', popular: false },
@@ -56,9 +56,9 @@ export default function TabCreditos({ creditos, tasaBs, refreshCreditos }: { cre
           const porCredito = (pkg.precio / pkg.creditos).toFixed(2)
           const precioBs = (pkg.precio * tasa).toFixed(2)
           return (
-            <div key={pkg.creditos} className={`bg-white rounded-2xl shadow-lg overflow-hidden border-2 transition hover:-translate-y-1 ${pkg.popular ? 'border-brand-yellow' : 'border-transparent'}`}>
-              {pkg.popular && <div className="bg-brand-yellow text-brand-blue text-center py-1.5 text-xs font-bold">⭐ MÁS POPULAR</div>}
-              <div className="bg-gradient-to-br from-brand-blue to-blue-800 p-6 text-white text-center">
+            <div key={pkg.creditos} className={`bg-white rounded-2xl shadow-lg overflow-hidden border-2 transition hover:-translate-y-1 ${pkg.popular ? 'border-brand-accent' : 'border-transparent'}`}>
+              {pkg.popular && <div className="bg-brand-accent text-brand-primary text-center py-1.5 text-xs font-bold">⭐ MÁS POPULAR</div>}
+              <div className="bg-gradient-to-br from-brand-primary to-blue-800 p-6 text-white text-center">
                 <p className="text-5xl font-black">{pkg.creditos}</p>
                 <p className="text-sm opacity-80">créditos</p>
               </div>
@@ -71,7 +71,7 @@ export default function TabCreditos({ creditos, tasaBs, refreshCreditos }: { cre
                   <li className="flex items-center gap-2"><CheckCircle size={14} className="text-green-500 flex-shrink-0" />o {Math.floor(pkg.creditos / 4)}× destacado 12h</li>
                   <li className="flex items-center gap-2"><CheckCircle size={14} className="text-green-500 flex-shrink-0" />Sin expiración</li>
                 </ul>
-                <button onClick={() => setPaqueteSeleccionado(pkg)} className="w-full bg-brand-blue text-white py-3 rounded-lg font-bold hover:bg-blue-900 transition cursor-pointer">Comprar</button>
+                <button onClick={() => setPaqueteSeleccionado(pkg)} className="w-full bg-brand-primary text-white py-3 rounded-lg font-bold hover:bg-brand-dark transition cursor-pointer">Comprar</button>
               </div>
             </div>
           )
@@ -183,13 +183,13 @@ function ModalCompraCreditos({ paquete, tasa, onClose, onCompraExitosa }: { paqu
       <div className="fixed inset-0 z-50 bg-black/60 flex items-end md:items-center justify-center">
         <div className="bg-white w-full md:max-w-lg md:rounded-2xl rounded-t-2xl p-6 text-center">
           <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <CheckCircle size={32} className="text-brand-blue" />
+            <CheckCircle size={32} className="text-brand-primary" />
           </div>
-          <h3 className="text-xl font-bold text-brand-blue mb-2">¡Comprobante enviado!</h3>
+          <h3 className="text-xl font-bold text-brand-primary mb-2">¡Comprobante enviado!</h3>
           <p className="text-sm text-gray-600 mb-4">
             Tu pago será revisado en breve. Recibirás <strong>{paquete.creditos} créditos</strong> cuando se confirme.
           </p>
-          <button onClick={onClose} className="w-full bg-brand-blue text-white py-3 rounded-xl font-bold hover:bg-blue-900 transition">Cerrar</button>
+          <button onClick={onClose} className="w-full bg-brand-primary text-white py-3 rounded-xl font-bold hover:bg-brand-dark transition">Cerrar</button>
         </div>
       </div>
     )
@@ -213,7 +213,7 @@ function ModalCompraCreditos({ paquete, tasa, onClose, onCompraExitosa }: { paqu
             <div className="grid grid-cols-2 gap-3">
               {metodosPagoCreditos.map(m => (
                 <button key={m.id} onClick={() => setMetodo(m.id)}
-                  className={`p-4 rounded-xl border-2 text-center transition ${metodo === m.id ? 'border-brand-yellow bg-yellow-50' : 'border-gray-200 hover:border-gray-300'}`}>
+                  className={`p-4 rounded-xl border-2 text-center transition ${metodo === m.id ? 'border-brand-accent bg-yellow-50' : 'border-gray-200 hover:border-gray-300'}`}>
                   <span className="text-3xl block">{m.emoji}</span>
                   <span className="text-sm font-medium text-gray-700 mt-1 block">{m.nombre}</span>
                 </button>
@@ -223,11 +223,11 @@ function ModalCompraCreditos({ paquete, tasa, onClose, onCompraExitosa }: { paqu
 
           {/* Monto a pagar en Bs */}
           {isPagoMovil && (
-            <div className="bg-brand-blue/5 border-2 border-brand-blue/20 rounded-xl p-4">
+            <div className="bg-brand-primary/5 border-2 border-brand-primary/20 rounded-xl p-4">
               <p className="text-xs text-gray-500 mb-1 text-center">Monto a pagar (Pago Móvil)</p>
               <div className="flex items-center justify-center gap-3">
-                <p className="text-3xl font-black text-brand-blue">Bs. {precioBs}</p>
-                <button onClick={() => copyToClipboard(precioBs, 'precioBs')} className="flex items-center gap-1 bg-white border border-brand-blue/30 rounded-lg px-3 py-2 text-sm text-brand-blue hover:bg-brand-blue/5 transition">
+                <p className="text-3xl font-black text-brand-primary">Bs. {precioBs}</p>
+                <button onClick={() => copyToClipboard(precioBs, 'precioBs')} className="flex items-center gap-1 bg-white border border-brand-primary/30 rounded-lg px-3 py-2 text-sm text-brand-primary hover:bg-brand-primary/5 transition">
                   {copiado === 'precioBs' ? '✓' : 'Copiar'}
                 </button>
               </div>
@@ -262,7 +262,7 @@ function ModalCompraCreditos({ paquete, tasa, onClose, onCompraExitosa }: { paqu
           {selectedMetodo && (
             <div>
               <h4 className="font-bold text-gray-800 mb-3">3. Sube tu comprobante de pago</h4>
-              <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:border-brand-blue transition cursor-pointer"
+              <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:border-brand-primary transition cursor-pointer"
                 onClick={() => document.getElementById('comprobante-input-dash')?.click()}>
                 <input type="file" accept="image/*" id="comprobante-input-dash" onChange={handleFileChange} className="hidden" />
                 {comprobantePreview ? (
@@ -279,7 +279,7 @@ function ModalCompraCreditos({ paquete, tasa, onClose, onCompraExitosa }: { paqu
                 )}
               </div>
               <button onClick={procesarCompra} disabled={enviando || !comprobanteFile}
-                className="w-full mt-4 bg-brand-blue text-white py-3.5 rounded-xl font-bold hover:bg-blue-900 transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
+                className="w-full mt-4 bg-brand-primary text-white py-3.5 rounded-xl font-bold hover:bg-brand-dark transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
                 {enviando ? <><Loader2 size={18} className="animate-spin" /> Enviando...</> : <><Upload size={18} /> Enviar comprobante</>}
               </button>
             </div>

@@ -56,10 +56,10 @@ function ProductCard({ p }: { p: Producto }) {
   const imgUrl = p.imagen_url || getPlaceholderImage(p.titulo)
 
   return (
-    <Link href={`/producto/${p.id}`} className={`bg-white rounded-xl overflow-hidden transition-all duration-200 group block border ${isPromoted ? 'border-2 border-brand-yellow shadow-md hover:shadow-xl hover:-translate-y-1' : 'border-gray-100 shadow-sm hover:shadow-lg hover:-translate-y-1 hover:border-gray-200'}`}>
+    <Link href={`/producto/${p.id}`} className={`bg-white rounded-xl overflow-hidden transition-all duration-200 group block border ${isPromoted ? 'border-2 border-brand-accent shadow-md hover:shadow-xl hover:-translate-y-1' : 'border-gray-100 shadow-sm hover:shadow-lg hover:-translate-y-1 hover:border-gray-200'}`}>
       <div className="aspect-square bg-gray-100 relative overflow-hidden">
         {isFeatured && (
-          <div className="absolute top-2 left-2 z-10 bg-brand-yellow text-brand-blue text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 shadow-sm">
+          <div className="absolute top-2 left-2 z-10 bg-brand-accent text-brand-primary text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 shadow-sm">
             ⭐ Destacado
           </div>
         )}
@@ -71,8 +71,8 @@ function ProductCard({ p }: { p: Producto }) {
         <Image src={imgUrl} alt={p.titulo} width={400} height={400} sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" loading="lazy" decoding="async" onError={(e) => { (e.target as HTMLImageElement).src = getPlaceholderImage(p.titulo) }} />
       </div>
       <div className="p-4">
-        <h3 className="font-semibold text-gray-900 truncate group-hover:text-brand-blue transition-colors">{p.titulo}</h3>
-        <p className="text-xl font-black text-brand-blue mt-1">${Number(p.precio_usd || 0).toLocaleString()}</p>
+        <h3 className="font-semibold text-gray-900 truncate group-hover:text-brand-primary transition-colors">{p.titulo}</h3>
+        <p className="text-xl font-black text-brand-primary mt-1">${Number(p.precio_usd || 0).toLocaleString()}</p>
         {p.vendedor_verificado && (
           <div className="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded-full mt-1">
             <svg width={10} height={10} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
@@ -214,7 +214,7 @@ export default function CatalogoClient() {
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
       <nav className="flex items-center gap-2 text-sm text-gray-500 mb-6 flex-wrap">
-        <Link href="/" className="hover:text-brand-blue">Inicio</Link>
+        <Link href="/" className="hover:text-brand-primary">Inicio</Link>
         <ChevronRight size={14} />
         <span className="text-gray-800 font-medium">Catálogo</span>
         {categoria && (<><ChevronRight size={14} /><span className="text-gray-900 font-semibold">{cat?.icon} {cat?.label}</span></>)}
@@ -231,7 +231,7 @@ export default function CatalogoClient() {
             {/* Categoría */}
             <div className="mb-4">
               <label className="block text-sm font-bold text-gray-900 mb-1.5">Categoría</label>
-              <select value={categoria} onChange={e => setParam('categoria', e.target.value)} className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm text-gray-800 bg-white font-medium focus:outline-none focus:ring-2 focus:ring-brand-yellow">
+              <select value={categoria} onChange={e => setParam('categoria', e.target.value)} className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm text-gray-800 bg-white font-medium focus:outline-none focus:ring-2 focus:ring-brand-accent">
                 <option value="">Todas</option>
                 {Object.entries(categoriasData).map(([key, c]) => (
                   <option key={key} value={key}>{c.icon} {c.label}</option>
@@ -243,7 +243,7 @@ export default function CatalogoClient() {
             {subs.length > 0 && (
               <div className="mb-4">
                 <label className="block text-sm font-bold text-gray-900 mb-1.5">Subcategoría</label>
-                <select value={subcategoria} onChange={e => setParam('subcategoria', e.target.value)} className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm text-gray-800 bg-white font-medium focus:outline-none focus:ring-2 focus:ring-brand-yellow">
+                <select value={subcategoria} onChange={e => setParam('subcategoria', e.target.value)} className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm text-gray-800 bg-white font-medium focus:outline-none focus:ring-2 focus:ring-brand-accent">
                   <option value="">Todas</option>
                   {subs.map(s => (
                     <option key={s.label} value={s.label}>{s.icon} {s.label}</option>
@@ -263,7 +263,7 @@ export default function CatalogoClient() {
                     </button>
                   )}
                 </div>
-                <select value={marca} onChange={e => setParam('marca', e.target.value)} className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm text-gray-800 bg-white font-medium focus:outline-none focus:ring-2 focus:ring-brand-yellow">
+                <select value={marca} onChange={e => setParam('marca', e.target.value)} className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm text-gray-800 bg-white font-medium focus:outline-none focus:ring-2 focus:ring-brand-accent">
                   <option value="">Todas las marcas</option>
                   {allMarcas.map(m => (
                     <option key={m} value={m}>{m}</option>
@@ -282,7 +282,7 @@ export default function CatalogoClient() {
                   onChange={e => setParam('precioMin', e.target.value)}
                   placeholder="Min"
                   min="0"
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm text-gray-800 bg-white focus:outline-none focus:ring-2 focus:ring-brand-yellow"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm text-gray-800 bg-white focus:outline-none focus:ring-2 focus:ring-brand-accent"
                 />
                 <input
                   type="number"
@@ -290,7 +290,7 @@ export default function CatalogoClient() {
                   onChange={e => setParam('precioMax', e.target.value)}
                   placeholder="Max"
                   min="0"
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm text-gray-800 bg-white focus:outline-none focus:ring-2 focus:ring-brand-yellow"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm text-gray-800 bg-white focus:outline-none focus:ring-2 focus:ring-brand-accent"
                 />
               </div>
             </div>
@@ -316,7 +316,7 @@ export default function CatalogoClient() {
               </div>
               <form action="/buscar" method="GET" className="flex gap-2 w-full sm:w-auto">
                 <input name="q" defaultValue={q} placeholder="Buscar..." className="w-full sm:w-60 border rounded-lg px-4 py-2 text-sm" />
-                <button type="submit" className="bg-brand-yellow text-brand-blue px-4 rounded-lg font-bold text-sm hover:bg-yellow-400">Buscar</button>
+                <button type="submit" className="bg-brand-accent text-brand-primary px-4 rounded-lg font-bold text-sm hover:bg-accent/90">Buscar</button>
               </form>
             </div>
           </div>
@@ -346,7 +346,7 @@ export default function CatalogoClient() {
               <Search size={48} className="text-gray-300 mx-auto mb-4" />
               <h3 className="text-xl font-bold text-gray-800 mb-2">No hay productos en esta categoría</h3>
               <p className="text-gray-500 mb-4">Sé el primero en publicar aquí</p>
-              <Link href="/publicar" className="inline-block bg-brand-yellow text-brand-blue px-6 py-3 rounded-lg font-bold hover:bg-yellow-400 transition">
+              <Link href="/publicar" className="inline-block bg-brand-accent text-brand-primary px-6 py-3 rounded-lg font-bold hover:bg-accent/90 transition">
                 Publicar gratis
               </Link>
             </div>

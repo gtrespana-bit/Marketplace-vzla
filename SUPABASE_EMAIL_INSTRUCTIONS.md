@@ -36,7 +36,7 @@
         <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
           <!-- Header -->
           <tr>
-            <td style="background: linear-gradient(135deg, #FCD116 0%, #F59E0B 100%); padding: 40px 30px; text-align: center;">
+            <td style="background: linear-gradient(135deg, #C9A84C 0%, #F59E0B 100%); padding: 40px 30px; text-align: center;">
               <h1 style="margin: 0; font-size: 28px; font-weight: 900; color: #1a1a2e;">
                 Todo<span style="color: #fff;">Anuncios</span>
               </h1>
@@ -50,7 +50,7 @@
           <tr>
             <td style="padding: 40px 30px;">
               <h2 style="margin: 0 0 20px 0; font-size: 24px; color: #1f2937; font-weight: 700;">
-                👋 ¡Bienvenido a Todo Anuncios, <span style="color: #003DA5;">{{ .Email }}</span>!
+                👋 ¡Bienvenido a Todo Anuncios, <span style="color: #7B2D3B;">{{ .Email }}</span>!
               </h2>
               
               <p style="margin: 0 0 16px 0; font-size: 16px; color: #4b5563; line-height: 1.6;">
@@ -78,7 +78,7 @@
                 
                 <div style="text-align: center;">
                   <a href="{{ .ConfirmationURL }}" 
-                     style="display: inline-block; background-color: #003DA5; color: #ffffff; text-decoration: none; padding: 16px 32px; border-radius: 8px; font-size: 16px; font-weight: 700; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
+                     style="display: inline-block; background-color: #7B2D3B; color: #ffffff; text-decoration: none; padding: 16px 32px; border-radius: 8px; font-size: 16px; font-weight: 700; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
                     CONFIRMAR MI CUENTA ➜
                   </a>
                 </div>
@@ -113,7 +113,7 @@
                   El marketplace de Venezuela 🇻🇪
                 </p>
                 <p style="margin: 0; font-size: 12px; color: #9ca3af;">
-                  ¿Necesitas ayuda? Escríbenos a <a href="mailto:gtrespana@gmail.com" style="color: #003DA5; text-decoration: none;">gtrespana@gmail.com</a>
+                  ¿Necesitas ayuda? Escríbenos a <a href="mailto:gtrespana@gmail.com" style="color: #7B2D3B; text-decoration: none;">gtrespana@gmail.com</a>
                 </p>
               </div>
             </td>
