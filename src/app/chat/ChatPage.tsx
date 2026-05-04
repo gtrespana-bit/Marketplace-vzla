@@ -1,35 +1,725 @@
-import { useState, useEffect } from 'react'
-import { useParams, useRouter } from 'next/navigation'
-import toast from 'react-hot-toast'
-import Chat from '@/components/Chat'
-import Footer from '@/components/Footer'
-import Avatar, { getAvatarColor } from '@/components/Avatar'
+'use client'
+
+import { useState, useEffect, useCallback } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/components/AuthProvider'
-import { StarRating } from '@/components/StarRating'
+import Avatar from '@/components/Avatar'
+import { Send, ArrowLeft, Search, User, Trash2, ExternalLink, Star } from 'lucide-react'
+import Link from 'next/link'
+import { emailMensajeRecibido } from '@/lib/server-email'
 
-// Al inicio del componente:
-const [mostrarModalResena, setMostrarModalResena] = useState(false)
-const [ratingResena, setRatingResena] = useState(5)
-const [comentarioResena, setComentarioResena] = useState('')
-const [esperandoResena, setEsperandoResena] = useState(false)
+type Conversacion = {
+  id: string
+  user1_id: string
+  user2_id: string
+  producto_id: string | null
+  ultimo_mensaje: string | null
+  ultimo_mensaje_en: string | null
+  creado_en: string
+  otro_nombre: string
+  otro_foto: string | null
+  otro_email: string | null
+  producto_titulo: string | null
+  no_leidos: number
+}
 
-// Nuevo hook para verificar si comprador needs review:
-efecto(() => {
-  if (!conversacion.id || !user) return
-  setEsperandoResena(false)
-  
-  // Si el usuario es un comprador de este producto,
-  // y no ha dejado reseña ainda
-  buscador.get('active_conversation')
-    .then(meta => {
-      if (meta && meta.tipo.includes('resena_comprador')) {
-        setEsperandoResena(true)
+type Mensaje = {
+  id: string
+  conversacion_id: string
+  remitente_id: string
+  destinatario_id: string | null
+  contenido: string
+  leido: boolean
+  creado_en: string
+}
+
+function formatTime(iso: string | null): string {
+  if (!iso) return ''
+  const d = new Date(iso)
+  const now = new Date()
+  const diffMs = now.getTime() - d.getTime()
+  const diffMin = Math.floor(diffMs / 60000)
+  if (diffMin < 1) return 'Ahora'
+  if (diffMin < 60) return `${diffMin}m`
+  const diffH = Math.floor(diffMin / 60)
+  if (diffH < 24) return `${diffH}h`
+  const diffD = Math.floor(diffH / 24)
+  if (diffD < 7) return `${diffD}d`
+  return d.toLocaleDateString('es-VE', { day: '2-digit', month: 'short' })
+}
+
+function formatHora(iso: string): string {
+  return new Date(iso).toLocaleTimeString('es-VE', { hour: '2-digit', minute: '2-digit' })
+}
+
+function slugProducto(titulo: string, id: string): string {
+  return titulo.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/(^\-|-$)/g, '') + '-' + id.substring(0, 8)
+}
+
+export default function ChatPageClient() {
+  const { user, loading: authLoading } = useAuth()
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const productoId = searchParams?.get('producto_id')
+  const vendedorId = searchParams?.get('vendedor_id')
+
+  const [conversaciones, setConversaciones] = useState<Conversacion[]>([])
+  const [convId, setConvId] = useState<string | null>(null)
+  const [mensajes, setMensajes] = useState<Mensaje[]>([])
+  const [texto, setTexto] = useState('')
+  const loadingRef = useRef(false)
+  const [busqueda, setBusqueda] = useState('')
+  const [showMobileChat, setShowMobileChat] = useState(false)
+  const [enviando, setEnviando] = useState(false)
+  const [toastMsg, setToastMsg] = useState<string | null>(null)
+  const bcRef = useRef<BroadcastChannel | null>(null)
+
+  const mensajesEndRef = useRef<HTMLDivElement>(null)
+  const chatContainerRef = useRef<HTMLDivElement>(null)
+  const userRef = useRef(user)
+  const convIdRef = useRef(convId)
+  userRef.current = user
+  convIdRef.current = convId
+
+  // ─── Estados reseña comprador ───
+  const [mostrarResena, setMostrarResena] = useState(false)
+  const [ratingResena, setRatingResena] = useState(5)
+  const [comentarioResena, setComentarioResena] = useState('')
+  const [enviandoResena, setEnviandoResena] = useState(false)
+  const [muestraResenaId, setMuestraResenaId] = useState<string | null>(null)
+  const [yaDejoResena, setYaDejoResena] = useState(false)
+
+  // BroadcastChannel para sincronizar badge con Header
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const bc = new BroadcastChannel('vendete_unread_sync')
+    bcRef.current = bc
+    return () => bc.close()
+  }, [])
+
+  // ─── Auth guard ───
+  useEffect(() => {
+    if (authLoading) return
+    if (!user) router.push('/login')
+  }, [user, authLoading, router])
+
+  // ─── Auto-scroll ───
+  useEffect(() => {
+    chatContainerRef.current?.scrollTo({ top: chatContainerRef.current.scrollHeight, behavior: 'smooth' })
+  }, [mensajes])
+
+  // ─── Verificar si comprador ya dejo reseña ───
+  useEffect(() => {
+    if (!convId || !user) return
+    const conv = conversaciones.find(c => c.id === convId)
+    if (!conv || !conv.producto_id) return
+    // Si yo soy el vendedor, no aplica
+    if (conv.user1_id === user.id || conv.user2_id === user.id) {
+      const vendedorId = conv.user1_id === user.id ? conv.user2_id : conv.user1_id
+      if (user.id === vendedorId) return // soy vendedor, no comprador
+    }
+    // Verificar si ya existe reseña con yo como comprador
+    supabase
+      .from('resenas')
+      .select('id')
+      .eq('comprador_id', user.id)
+      .eq('vendedor_id', conv.user1_id === user.id ? conv.user2_id : conv.user1_id)
+      .limit(1)
+      .then(({ data }) => {
+        setYaDejoResena((data && data.length > 0) || false)
+      })
+  }, [convId, user, conversaciones])
+
+  // ─── Cargar conversaciones ───
+  const loadConversaciones = useCallback(async () => {
+    const uid = userRef.current?.id
+    if (!uid) return
+
+    const { data: convs, error } = await supabase
+      .from('conversaciones')
+      .select('*')
+      .or(`user1_id.eq.${uid},user2_id.eq.${uid}`)
+      .order('ultimo_mensaje_en', { ascending: false })
+
+    if (error) { console.error('Error loading convs:', error); return }
+
+    const otroIds = [...new Set(convs?.map(c => c.user1_id === uid ? c.user2_id : c.user1_id).filter(Boolean) || [])]
+    const prodIds = [...new Set(convs?.filter(c => c.producto_id).map(c => c.producto_id as string) || [])]
+
+    // Also fetch profiles/products for URL params if they exist
+    if (vendedorId && !otroIds.includes(vendedorId)) otroIds.push(vendedorId)
+    if (productoId && !prodIds.includes(productoId)) prodIds.push(productoId)
+
+    // Fetch perfiles via API server-side (bypass RLS) / productos via supabase client
+    let perfilMap = new Map<string, { nombre: string; foto: string | null; email: string | null }>()
+    if (otroIds.length) {
+      try {
+        const resp = await fetch(`/api/user-bulk?ids=${encodeURIComponent(otroIds.join(','))}`)
+        const json = await resp.json()
+        json.profiles?.forEach((p: { id: string; nombre: string; foto_perfil_url: string | null }) => {
+          perfilMap.set(p.id, { nombre: p.nombre || 'Usuario', foto: p.foto_perfil_url || null, email: null })
+        })
+      } catch (e) { console.error('Error fetching user-bulk:', e) }
+    }
+    const [, productosRes] = await Promise.all([
+      Promise.resolve(null),
+      prodIds.length ? supabase.from('productos').select('id, titulo').in('id', prodIds) : Promise.resolve({ data: [] }),
+    ])
+
+    const prodMap = new Map<string, string>()
+    productosRes.data?.forEach(p => prodMap.set(p.id, p.titulo || ''))
+
+    // Unread count
+    const unreadMap = new Map<string, number>()
+    if (convs && convs.length > 0) {
+      const { data: unreadData } = await supabase
+        .from('mensajes')
+        .select('conversacion_id')
+        .eq('destinatario_id', uid)
+        .eq('leido', false)
+        .in('conversacion_id', convs.map(c => c.id))
+      unreadData?.forEach((m: { conversacion_id: string }) => {
+        const count = unreadMap.get(m.conversacion_id) || 0
+        unreadMap.set(m.conversacion_id, count + 1)
+      })
+    }
+
+    const enriched: Conversacion[] = (convs || []).map(c => {
+      const otroId = c.user1_id === uid ? c.user2_id : c.user1_id
+      const p = perfilMap.get(otroId)
+      return {
+        ...c,
+        otro_nombre: p?.nombre || 'Usuario',
+        otro_foto: p?.foto || null,
+        otro_email: p?.email || null,
+        producto_titulo: c.producto_id ? (prodMap.get(c.producto_id) || null) : null,
+        no_leidos: unreadMap.get(c.id) || 0,
       }
     })
-})
 
-// Al final, reutilizamos endpoint:
-if (esperandoResena && mostrarModalResena) {
-  // Devuelve botón de reseña al final del UI:
-  <div className=
+    setConversaciones(enriched)
+
+    // If URL has producto_id + vendedor_id, try to find or create conv
+    if (productoId && vendedorId && vendedorId !== uid) {
+      const match = enriched.find(c =>
+        c.producto_id === productoId &&
+        ((c.user1_id === uid && c.user2_id === vendedorId) ||
+         (c.user1_id === vendedorId && c.user2_id === uid))
+      )
+      if (match) {
+        setConvId(match.id)
+        setShowMobileChat(true)
+      } else {
+        // Create conversation directly in DB
+        const u1 = uid < vendedorId ? uid : vendedorId
+        const u2 = uid < vendedorId ? vendedorId : uid
+        const { data: newConv, error: insErr } = await supabase
+          .from('conversaciones')
+          .insert({ user1_id: u1, user2_id: u2, producto_id: productoId })
+          .select()
+          .single()
+
+        if (insErr || !newConv) {
+          console.error('Error creating conversation:', insErr)
+        } else {
+          const perfil = perfilMap.get(vendedorId)
+          setConversaciones(prev => [{
+            ...newConv,
+            otro_nombre: perfil?.nombre || 'Usuario',
+            otro_foto: perfil?.foto || null,
+            producto_titulo: prodMap.get(productoId) || null,
+            no_leidos: 0,
+          }, ...prev])
+          setConvId(newConv.id)
+          setShowMobileChat(true)
+        }
+      }
+    }
+  }, [productoId, vendedorId])
+
+  // Load once
+  useEffect(() => {
+    if (authLoading || !user) return
+    loadingRef.current = true
+    loadConversaciones().then(() => { loadingRef.current = false })
+  }, [user, authLoading, loadConversaciones])
+
+  // ─── Cargar mensajes ───
+  const loadMensajes = useCallback(async (id: string) => {
+    const { data, error } = await supabase
+      .from('mensajes')
+      .select('*')
+      .eq('conversacion_id', id)
+      .order('creado_en', { ascending: true })
+
+    if (error) { console.error('Error loading msgs:', error); return }
+    setMensajes(data || [])
+  }, [])
+
+  // Poll for new messages every 3 seconds when conversation is open
+  useEffect(() => {
+    if (!convId) return
+    loadMensajes(convId)
+    const interval = setInterval(() => loadMensajes(convId), 3000)
+    return () => clearInterval(interval)
+  }, [convId, loadMensajes])
+
+  // ─── Realtime: listen for new inserts en mensajes ───
+  useEffect(() => {
+    if (!user) return
+    const sub = supabase
+      .channel('chat-msgs')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'mensajes' }, (payload) => {
+        const nuevo = payload.new as any
+        if (nuevo.conversacion_id === convIdRef.current) {
+          setMensajes(prev => {
+            if (prev.some(m => m.id === nuevo.id)) return prev
+            return [...prev, nuevo]
+          })
+        }
+      })
+      .subscribe()
+    return () => { supabase.removeChannel(sub) }
+  }, [user])
+
+  // ─── Realtime: actualizar sidebar ───
+  useEffect(() => {
+    if (!user) return
+    const sub = supabase
+      .channel('chat-convs')
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'conversaciones' }, (payload) => {
+        const updated = payload.new as any
+        if (updated.user1_id !== user.id && updated.user2_id !== user.id) return
+        setConversaciones(prev => {
+          const idx = prev.findIndex(c => c.id === updated.id)
+          if (idx < 0) return prev
+          const arr = [...prev]
+          arr[idx] = { ...arr[idx], ultimo_mensaje: updated.ultimo_mensaje, ultimo_mensaje_en: updated.ultimo_mensaje_en }
+          return arr.sort((a, b) => (b.ultimo_mensaje_en || '').localeCompare(a.ultimo_mensaje_en || ''))
+        })
+      })
+      .subscribe()
+    return () => { supabase.removeChannel(sub) }
+  }, [user])
+
+  // ─── Seleccionar conversacion ───
+  const seleccionarConv = async (id: string) => {
+    setConvId(id)
+    setShowMobileChat(true)
+    // Marcar como leido via API server-side (evita RLS bloqueante)
+    try {
+      const resp = await fetch('/api/mensajes-leidos', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ conversacion_id: id, destinatario_id: user!.id })
+      })
+      if (resp.ok) {
+        // Señal al Header para refrescar badge
+        bcRef.current?.postMessage({ action: 'refresh-unread' })
+        localStorage.setItem('vendete_unread_refresh', Date.now().toString())
+      }
+    } catch (e) {
+      console.error('Error marcando leidos:', e)
+    }
+    setConversaciones(prev => prev.map(c => c.id === id ? { ...c, no_leidos: 0 } : c))
+    await loadMensajes(id)
+  }
+
+  // ─── Eliminar conversacion ───
+  const eliminarConv = async (id: string, e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (!confirm('¿Eliminar esta conversación?')) return
+    await supabase.from('mensajes').delete().eq('conversacion_id', id)
+    await supabase.from('conversaciones').delete().eq('id', id)
+    setConversaciones(prev => prev.filter(c => c.id !== id))
+    if (convId === id) {
+      setConvId(null)
+      setShowMobileChat(false)
+      setMensajes([])
+    }
+  }
+
+  // ─── Enviar reseña comprador → vendedor ───
+  const enviarResenaComprador = async () => {
+    if (!convId || !user || enviandoResena) return
+    const conv = conversaciones.find(c => c.id === convId)
+    if (!conv || !conv.producto_id) return
+    const vendedorId = conv.user1_id === user.id ? conv.user2_id : conv.user1_id
+    if (user.id === vendedorId) return // solo compradores
+
+    setEnviandoResena(true)
+    const resp = await fetch('/api/admin/enviar-resena', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        vendedor_id: vendedorId,
+        comprador_id: user.id,
+        producto_id: conv.producto_id,
+        puntuacion: ratingResena,
+        comentario: comentarioResena.trim() || null,
+      }),
+    })
+    const json = await resp.json()
+    setEnviandoResena(false)
+    if (!resp.ok) {
+      console.error('Error enviando reseña:', json)
+      alert('Error al enviar reseña: ' + (json.error || json._error || 'desconocido'))
+      return
+    }
+    setMostrarResena(false)
+    setYaDejoResena(true)
+    setComentarioResena('')
+    setRatingResena(5)
+  }
+
+  // ─── Enviar reseña comprador → vendedor ───
+  const enviarResenaComprador = async () => {
+    if (!convId || !user || enviandoResena) return
+    const conv = conversaciones.find(c => c.id === convId)
+    if (!conv || !conv.producto_id) return
+    const vendedorId = conv.user1_id === user.id ? conv.user2_id : conv.user1_id
+    if (user.id === vendedorId) return // solo compradores
+
+    setEnviandoResena(true)
+    try {
+      const resp = await fetch('/api/admin/enviar-resena', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          vendedor_id: vendedorId,
+          comprador_id: user.id,
+          producto_id: conv.producto_id,
+          puntuacion: ratingResena,
+          comentario: comentarioResena.trim() || null,
+        }),
+      })
+      const json = await resp.json()
+      if (!resp.ok) {
+        console.error('Error enviando reseña:', json)
+        alert('Error al enviar reseña: ' + (json.error || json._error || 'desconocido'))
+        setEnviandoResena(false)
+        return
+      }
+      setMostrarResena(false)
+      setYaDejoResena(true)
+      setComentarioResena('')
+      setRatingResena(5)
+    } catch (e) {
+      console.error('Error enviando reseña:', e)
+      alert('Error de conexión')
+    }
+    setEnviandoResena(false)
+  }
+
+  // ─── Enviar mensaje ───
+  const enviarMensaje = async () => {
+    const msg = texto.trim()
+    if (!msg || !convId || !user || enviando) return
+    setEnviando(true)
+
+    // Get conversation to find recipient
+    const conv = conversaciones.find(c => c.id === convId)
+    if (!conv) { console.error('ChatPage: conversacion no encontrada', convId); setEnviando(false); return }
+    const destinatarioId = conv.user1_id === user.id ? conv.user2_id : conv.user1_id
+
+    // Insert directly via Supabase (always worked this way)
+    const { error } = await supabase.from('mensajes').insert({
+      conversacion_id: convId,
+      remitente_id: user.id,
+      destinatario_id: destinatarioId,
+      contenido: msg,
+    })
+
+    if (error) {
+      console.error('Error enviando mensaje:', error.message)
+      setToastMsg('Error al enviar: ' + error.message)
+      setTimeout(() => setToastMsg(null), 4000)
+      setEnviando(false)
+      return
+    }
+
+    // Success
+    setTexto('')
+    await loadMensajes(convId)
+
+    // Push notification al destinatario
+    try {
+      await fetch('/api/push/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          targetUserId: destinatarioId,
+          titulo: `💬 ${conv.otro_nombre || 'Alguien'} te escribió`,
+          cuerpo: msg.length > 100 ? msg.slice(0, 100) + '...' : msg,
+          click_url: `/chat?conversation=${convId}`,
+        }),
+      })
+    } catch (e) { console.error('Push send failed:', e) }
+
+    // Email notification
+      if (conv.otro_email && user && user.id !== destinatarioId) {
+        const producto = conv.producto_titulo || 'un producto'
+        const preview = msg.length > 100 ? msg.substring(0, 100) + '...' : msg
+        emailMensajeRecibido(conv.otro_email, conv.otro_nombre, user?.email?.split('@')[0] || 'Alguien', producto, preview).catch(e => console.error('Error email mensaje:', e))
+      }
+    setEnviando(false)
+  }
+
+  // ─── Loading ───
+  if (authLoading || !user) {
+    return (
+      <div className="max-w-6xl mx-auto px-4 py-8">
+        <h1 className="text-3xl font-bold text-gray-800 mb-6">💬 Mensajes</h1>
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 h-[600px] md:h-auto flex items-center justify-center">
+          <div className="text-center text-gray-400">
+            <div className="w-12 h-12 border-4 border-brand-accent border-t-brand-primary rounded-full animate-spin mx-auto mb-3" />
+            <p>Cargando mensajes...</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  const filtradas = conversaciones.filter(c =>
+    c.otro_nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
+    (c.producto_titulo?.toLowerCase() ?? '').includes(busqueda.toLowerCase())
+  )
+  const convActual = conversaciones.find(c => c.id === convId)
+
+  return (
+    <div className="max-w-6xl mx-auto px-4 py-8">
+      <h1 className="text-3xl font-bold text-gray-800 mb-6">💬 Mensajes</h1>
+
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        <div className="flex flex-col md:flex-row md:h-[600px] max-h-[calc(100dvh-140px)]">
+          {/* ─── Sidebar ─── */}
+          <div className={`${showMobileChat ? 'hidden md:flex' : 'flex'} flex-col w-full md:w-80 border-r border-gray-100`}>
+            <div className="p-3 border-b">
+              <div className="relative">
+                <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                <input
+                  type="text"
+                  value={busqueda}
+                  onChange={e => setBusqueda(e.target.value)}
+                  placeholder="Buscar conversacion..."
+                  className="w-full pl-9 pr-3 py-2 border rounded-lg text-sm bg-gray-50 focus:bg-white focus:border-brand-accent outline-none transition"
+                />
+              </div>
+            </div>
+
+            <div className="flex-1 overflow-y-auto">
+              {filtradas.length === 0 ? (
+                <div className="flex flex-col items-center justify-center h-full px-6 text-center">
+                  <User size={48} className="text-gray-300 mb-3" />
+                  <p className="text-gray-500 font-medium">{conversaciones.length === 0 ? 'No hay conversaciones' : 'Sin resultados'}</p>
+                  <p className="text-sm text-gray-400 mt-1">Envia un mensaje a un vendedor desde cualquier producto</p>
+                </div>
+              ) : (
+                filtradas.map(c => (
+                  <div
+                    key={c.id}
+                    className={`group w-full flex items-start gap-3 p-3 border-b border-gray-50 transition text-left relative ${convId === c.id ? 'bg-blue-50 border-l-2 border-l-brand-primary' : 'bg-white hover:bg-gray-50'}`}
+                  >
+                    {/* Eliminar */}
+                    <button
+                      onClick={(e) => eliminarConv(c.id, e)}
+                      className="absolute top-1 right-1 p-1 rounded text-gray-400 opacity-0 group-hover:opacity-100 hover:bg-red-50 hover:text-red-500 transition"
+                      title="Eliminar"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                    {/* Contenido: zona clickeable solo nombre+avatar */}
+                    <button
+                      onClick={() => seleccionarConv(c.id)}
+                      className="flex items-start gap-3 w-full cursor-pointer text-left"
+                    >
+                      <Avatar nombre={c.otro_nombre} fotoUrl={c.otro_foto} size="md" />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex justify-between items-center">
+                          <p className="font-semibold text-gray-800 text-sm truncate">{c.otro_nombre}</p>
+                          {c.ultimo_mensaje_en && (
+                            <span className="text-xs text-gray-400 ml-2 flex-shrink-0">{formatTime(c.ultimo_mensaje_en)}</span>
+                          )}
+                        </div>
+                        <p className="text-sm text-gray-500 truncate mt-0.5">{c.ultimo_mensaje || 'Sin mensajes'}</p>
+                        {c.producto_titulo && c.producto_id && (
+                          <a
+                            href={`/producto/${c.producto_id}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-[11px] text-blue-500 mt-0.5 inline-flex items-center gap-0.5 hover:underline max-w-[90%] truncate"
+                            onClick={(e) => e.stopPropagation()}
+                            title="Ver producto (nueva pestaña)"
+                          >
+                            📦 {c.producto_titulo}
+                          </a>
+                        )}
+                      </div>
+                      {c.no_leidos > 0 && (
+                        <span className="bg-brand-dark text-white text-xs rounded-full w-5 h-5 flex items-center justify-center flex-shrink-0">{c.no_leidos}</span>
+                      )}
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+
+          {/* ─── Chat ─── */}
+          <div className={`${showMobileChat ? 'flex' : 'hidden md:flex'} flex-col flex-1`}>
+            {!convId ? (
+              <div className="flex-1 flex flex-col items-center justify-center text-gray-400">
+                <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                  <svg width={40} height={40} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                    <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </div>
+                <p className="font-medium">Selecciona una conversacion</p>
+                <p className="text-sm mt-1">O escribe a un vendedor desde un producto</p>
+              </div>
+            ) : (
+              <>
+                {/* Header */}
+                <div className="flex items-center gap-3 p-4 border-b bg-white">
+                  <button onClick={() => setShowMobileChat(false)} className="md:hidden p-1">
+                    <ArrowLeft size={20} className="text-gray-600" />
+                  </button>
+                  {convActual && (
+                    <>
+                      <Avatar nombre={convActual.otro_nombre} fotoUrl={convActual.otro_foto} size="sm" />
+                      <div>
+                        <p className="font-semibold text-gray-800 text-sm">{convActual.otro_nombre}</p>
+                        {convActual.producto_titulo && convActual.producto_id && (
+                          <Link
+                            href={`/producto/${convActual.producto_id}`}
+                            className="text-xs text-blue-600 truncate hover:underline flex items-center gap-0.5"
+                          >
+                            {convActual.producto_titulo}
+                            <ExternalLink size={9} />
+                          </Link>
+                        )}
+                      </div>
+                    </>
+                  )}
+                </div>
+
+                {/* Mensajes */}
+                <div ref={chatContainerRef} className="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50 min-h-0">
+                  {mensajes.map(m => {
+                    const esMio = m.remitente_id === user?.id
+                    const isCompraExitosa = m.contenido?.includes('compra exitosa') || m.contenido?.includes('fue exitosa')
+                    const mostrarBtnResena = isCompraExitosa && convActual?.producto_id && !yaDejoResena && 
+                      user?.id && convActual.user1_id !== user.id && convActual.user2_id !== user.id
+                    return (
+                      <div key={m.id} className={`flex ${esMio ? 'justify-end' : 'justify-start'}`}>
+                        <div className={`max-w-[75%] px-4 py-2.5 rounded-2xl ${
+                          esMio ? 'bg-brand-primary text-white rounded-br-sm' : 'bg-white text-gray-800 border border-gray-100 rounded-bl-sm'
+                        }`}>
+                          <p className="text-sm break-words">{m.contenido}</p>
+                          <p className={`text-[10px] mt-1 ${esMio ? 'text-blue-200' : 'text-gray-400'}`}>
+                            {formatHora(m.creado_en)}
+                          </p>
+                        </div>
+                      </div>
+                    )
+                  })}
+                  {/* Boton reseña comprador */}
+                  {!yaDejoResena && convActual?.producto_id && 
+                   user && convActual.user1_id !== user.id && convActual.user2_id !== user.id &&
+                   mensajes.some(m => m.contenido?.includes('compra exitosa') || m.contenido?.includes('fue exitosa')) && (
+                    <div className="flex justify-center">
+                      <button
+                        onClick={() => setMostrarResena(true)}
+                        className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white text-sm font-semibold px-6 py-3 rounded-xl hover:brightness-105 transition shadow-lg flex items-center gap-2 animate-bounce"
+                      >
+                        ⭐ Deja tu reseña al vendedor
+                      </button>
+                    </div>
+                  )}
+                  {enviando && (
+                    <div className="flex justify-end">
+                      <div className="bg-blue-200 text-blue-800 px-4 py-2.5 rounded-2xl rounded-br-sm text-sm">
+                        Enviando...
+                      </div>
+                    </div>
+                  )}
+                  <div ref={mensajesEndRef} />
+                </div>
+
+                {/* Input */}
+                <div className="flex items-center gap-2 p-3 border-t bg-white">
+                  <input
+                    type="text"
+                    value={texto}
+                    onChange={e => setTexto(e.target.value)}
+                    onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); enviarMensaje() } }}
+                    placeholder="Escribe un mensaje..."
+                    className="flex-1 border rounded-full px-4 py-2.5 text-sm outline-none focus:border-brand-accent transition disabled:opacity-50"
+                    disabled={enviando}
+                  />
+                  <button
+                    onClick={enviarMensaje}
+                    disabled={!texto.trim() || enviando}
+                    className="w-10 h-10 bg-brand-primary text-white rounded-full flex items-center justify-center hover:bg-brand-dark transition disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {enviando ? (
+                      <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                    ) : (
+                      <Send size={18} />
+                    )}
+                  </button>
+                </div>
+
+                {/* ─── Modal reseña comprador ─── */}
+                {mostrarResena && (
+                  <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setMostrarResena(false)}>
+                    <div className="bg-white rounded-2xl p-6 w-full max-w-md" onClick={e => e.stopPropagation()}>
+                      <h3 className="text-lg font-bold text-gray-800 mb-1">⭐ Deja tu reseña</h3>
+                      <p className="text-sm text-gray-500 mb-4">¿Cómo fue tu experiencia con {convActual?.otro_nombre}?</p>
+
+                      {/* Estrellas */}
+                      <div className="flex justify-center gap-1 mb-4">
+                        {[1,2,3,4,5].map(i => (
+                          <button key={i} type="button" onClick={() => setRatingResena(i)} className="transition hover:scale-110">
+                            <Star size={32} className={i <= ratingResena ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'} />
+                          </button>
+                        ))}
+                      </div>
+
+                      {/* Comentario */}
+                      <textarea
+                        value={comentarioResena}
+                        onChange={e => setComentarioResena(e.target.value)}
+                        maxLength={500}
+                        placeholder="Cuéntanos tu experiencia (opcional)..."
+                        className="w-full border rounded-xl p-3 text-sm resize-none h-24 outline-none focus:border-brand-accent mb-4"
+                      />
+                      <p className="text-xs text-gray-400 text-right -mt-3 mb-4">{comentarioResena.length}/500</p>
+
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => setMostrarResena(false)}
+                          className="flex-1 py-2.5 border rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-50"
+                        >
+                          Cancelar
+                        </button>
+                        <button
+                          onClick={enviarResenaComprador}
+                          disabled={enviandoResena}
+                          className="flex-1 py-2.5 bg-brand-primary text-white rounded-xl text-sm font-bold hover:bg-brand-dark transition disabled:opacity-50"
+                        >
+                          {enviandoResena ? 'Enviando...' : 'Enviar reseña'}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
