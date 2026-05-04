@@ -7,16 +7,16 @@
  */
 
 const LIMITS: Record<string, { max: number; windowMs: number }> = {
-  // Publicaciones: máximo 5 por hora
-  'producto:create': { max: 5, windowMs: 60 * 60 * 1000 },
-  // Mensajes: máximo 30 por minuto
-  'mensaje:create': { max: 30, windowMs: 60 * 1000 },
-  // Denuncias: máximo 10 por minuto
-  'denuncia:create': { max: 10, windowMs: 60 * 1000 },
-  // Login: máximo 5 por 5 minutos (anti brute force)
-  'auth:login': { max: 5, windowMs: 5 * 60 * 1000 },
-  // Comprar créditos: máximo 3 por hora
-  'creditos:comprar': { max: 3, windowMs: 60 * 60 * 1000 },
+  // Publicaciones: máximo 30 por hora (empresas pueden subir inventario)
+  'producto:create': { max: 30, windowMs: 60 * 60 * 1000 },
+  // Mensajes: máximo 60 por hora (chat activo sin spam masivo)
+  'mensaje:create': { max: 60, windowMs: 60 * 60 * 1000 },
+  // Denuncias: máximo 10 por hora
+  'denuncia:create': { max: 10, windowMs: 60 * 60 * 1000 },
+  // Login: máximo 10 por 15 minutos (anti brute force)
+  'auth:login': { max: 10, windowMs: 15 * 60 * 1000 },
+  // Comprar créditos: máximo 20 por hora
+  'creditos:comprar': { max: 20, windowMs: 60 * 60 * 1000 },
 }
 
 // In-memory store: { key: [{ userId: ..., timestamp: ... }] }
