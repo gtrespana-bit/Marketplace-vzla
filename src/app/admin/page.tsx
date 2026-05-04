@@ -9,7 +9,7 @@ import {
   CreditCard, Shield, Users, BarChart3, ShieldCheck,
   Package, Star, Pause, Play, Trash2, Search, RefreshCw,
   SortAsc, SortDesc, ExternalLink, Zap, ChevronDown,
-  Megaphone, Download, Eye, Loader2, Check, X
+  Megaphone, Download, Eye, Loader2, Check, X, Tag
 } from 'lucide-react'
 import VerificacionTab from './VerificacionTab'
 
