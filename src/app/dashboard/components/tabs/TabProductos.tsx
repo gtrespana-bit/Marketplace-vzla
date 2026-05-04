@@ -92,16 +92,27 @@ export default function TabProductos({
   const enviarResena = async () => {
     if (!vendidoModal || !compradorSel) return
     setEnviandoResena(true)
-    const { error } = await supabase.from('resenas').insert({
-      producto_id: vendidoModal,
-      vendedor_id: userId,
-      comprador_id: compradorSel,
-      puntuacion: rating,
-      comentario: comentarioResena.trim() || null,
-    })
-    setEnviandoResena(false)
-    if (error) {
-      alert('Error al enviar reseña: ' + error.message)
+    try {
+      const res = await fetch('/api/admin/enviar-resena', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          producto_id: vendidoModal,
+          evaluador_id: userId,
+          evaluado_id: compradorSel,
+          puntuacion: rating,
+          comentario: comentarioResena.trim() || null,
+        }),
+      })
+      const data = await res.json()
+      setEnviandoResena(false)
+      if (!res.ok) {
+        alert('Error: ' + data.error)
+        return
+      }
+    } catch (e: any) {
+      setEnviandoResena(false)
+      alert('Error al enviar: ' + e.message)
       return
     }
     setVendidoPaso('confirmado')
