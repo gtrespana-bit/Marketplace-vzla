@@ -112,12 +112,19 @@ export default function ChatPageClient() {
   // ─── Cargar owner del producto y verificar reseña comprador ───
   useEffect(() => {
     if (!convId || !user) return
-    const conv = conversaciones.find(c => c.id === convId)
-    if (!conv || !conv.producto_id) return
     setProductoOwnerId(null)
     setYaDejoResena(false)
 
     const load = async () => {
+      // 1. Obtener producto_id de la conversacion directamente de DB (race-condition fix PWA)
+      const { data: conv } = await supabase
+        .from('conversaciones')
+        .select('producto_id')
+        .eq('id', convId)
+        .single()
+      if (!conv || !conv.producto_id) return
+
+      // 2. Obtener owner del producto
       const { data: prod } = await supabase
         .from('productos')
         .select('user_id')
@@ -126,9 +133,10 @@ export default function ChatPageClient() {
       if (!prod) return
       setProductoOwnerId(prod.user_id)
 
-      // Si soy el dueño del producto = vendedor, no aplica
+      // 3. Si soy el dueño del producto = vendedor, no aplica
       if (user.id === prod.user_id) return
 
+      // 4. Verificar si ya existe reseña del comprador hacia el vendedor
       const { data: res } = await supabase
         .from('resenas')
         .select('id', { count: 'exact', head: true })
@@ -350,9 +358,7 @@ export default function ChatPageClient() {
 
   // ─── Enviar reseña comprador → vendedor ───
   const enviarResenaComprador = async () => {
-    if (!convId || !user || enviandoResena || !productoOwnerId) return
-    const conv = conversaciones.find(c => c.id === convId)
-    if (!conv || !conv.producto_id) return
+    if (!convId || !user || enviandoResena || !productoOwnerId || !productoId) return
 
     setEnviandoResena(true)
     try {
@@ -362,7 +368,7 @@ export default function ChatPageClient() {
         body: JSON.stringify({
           evaluador_id: user.id,
           evaluado_id: productoOwnerId,
-          producto_id: conv.producto_id,
+          producto_id: productoId,
           puntuacion: ratingResena,
           comentario: comentarioResena.trim() || null,
         }),
