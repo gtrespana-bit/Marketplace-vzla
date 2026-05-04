@@ -95,4 +95,3 @@ export type PushPayload = {
   actions?: Array<{ action: string; title: string; icon?: string }>
 }
 
-```
