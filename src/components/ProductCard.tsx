@@ -24,7 +24,8 @@ const PLACEHOLDER_IMAGES = [
 ]
 
 export default function ProductCard({ p, isPromoted, isFeatured }: { p: ProductCardData; isPromoted?: boolean; isFeatured?: boolean }) {
-  const promoted = isPromoted ?? (p.boosteado_en != null || isFeatured)
+  const isBoosted = p.boosteado_en != null
+  const promoted = isPromoted ?? (isBoosted || isFeatured)
 
   // Imagen con fallback a placeholder
   const imgUrl = p.imagen_url || PLACEHOLDER_IMAGES[p.titulo.charCodeAt(0) % PLACEHOLDER_IMAGES.length]
