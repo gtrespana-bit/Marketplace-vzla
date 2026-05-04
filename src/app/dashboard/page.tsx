@@ -5,12 +5,8 @@ import { useRouter } from 'next/navigation'
 import { useAuth } from '@/components/AuthProvider'
 import SolicitarVerificacion from '@/components/SolicitarVerificacion'
 import { getTasaBCVClient, actualizarTasaClient } from '@/lib/tasaBCV'
-import {
-  Package, MessageSquare, CreditCard,
-  Eye, Heart, LogOut, X, Zap, Star, ShieldCheck,
-} from 'lucide-react'
+import { Package, MessageSquare, CreditCard, Eye, Heart, LogOut, X, Zap, Star, ShieldCheck, BarChart3, Settings } from 'lucide-react'
 import Link from 'next/link'
-import { Package, MessageSquare, CreditCard, Heart, ShieldCheck, Star, BarChart3, Settings } from 'lucide-react'
 
 // Components
 import DashboardHeader from './components/DashboardHeader'
