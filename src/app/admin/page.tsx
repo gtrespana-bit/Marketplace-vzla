@@ -1032,7 +1032,7 @@ export default function AdminPage() {
     // Read tab from URL
     const urlTab = searchParams?.get('tab')
     if (urlTab && TABS.some(t => t.id === urlTab)) {
-      setTab(urlTab as TabId)
+      setTab(urlTab)
     }
   }, [user, session, isAdmin, searchParams])
 
