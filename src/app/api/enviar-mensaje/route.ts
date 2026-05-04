@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
       }, { status: 429 })
     }
 
-    const sb = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
+    const sb = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_KEY!)
     const { data, error } = await sb.from('mensajes').insert({
       conversacion_id, remitente_id, destinatario_id, contenido
     }).select().single()
