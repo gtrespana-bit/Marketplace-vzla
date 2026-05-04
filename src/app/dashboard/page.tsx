@@ -298,7 +298,7 @@ export default function DashboardPage() {
           productos={data.productos}
           onBoost={setBoostTarget}
           onDestacar={setDestacadoTarget}
-          userId={user?.id}
+          userId={user?.id ?? ''}
         />
       )}
       {activeTab === 'mensajes' && <TabMensajes />}
