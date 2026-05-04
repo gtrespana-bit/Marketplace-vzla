@@ -64,7 +64,7 @@ export function Header() {
       const { count: mensajes } = await supabase
         .from('mensajes')
         .select('id', { count: 'exact', head: true })
-        .eq('receptor_id', user!.id)
+        .eq('destinatario_id', user!.id)
         .eq('leido', false)
       setUnreadCount(mensajes || 0)
     }
@@ -75,12 +75,12 @@ export function Header() {
       .channel('header-unread')
       .on(
         'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'mensajes', filter: `receptor_id=eq.${user!.id}` },
+        { event: 'INSERT', schema: 'public', table: 'mensajes', filter: `destinatario_id=eq.${user!.id}` },
         () => fetchUnread()
       )
       .on(
         'postgres_changes',
-        { event: 'UPDATE', schema: 'public', table: 'mensajes', filter: `receptor_id=eq.${user!.id}` },
+        { event: 'UPDATE', schema: 'public', table: 'mensajes', filter: `destinatario_id=eq.${user!.id}` },
         () => fetchUnread()
       )
       .subscribe()

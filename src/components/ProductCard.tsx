@@ -23,10 +23,8 @@ const PLACEHOLDER_IMAGES = [
   'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400&h=400&fit=crop&q=60',
 ]
 
-export default function ProductCard({ p }: { p: ProductCardData }) {
-  const isBoosted = p.boosteado_en != null
-  const isFeatured = p.destacado && p.destacado_hasta && new Date(p.destacado_hasta) > new Date()
-  const isPromoted = isBoosted || isFeatured
+export default function ProductCard({ p, isPromoted, isFeatured }: { p: ProductCardData; isPromoted?: boolean; isFeatured?: boolean }) {
+  const promoted = isPromoted ?? (p.boosteado_en != null || isFeatured)
 
   // Imagen con fallback a placeholder
   const imgUrl = p.imagen_url || PLACEHOLDER_IMAGES[p.titulo.charCodeAt(0) % PLACEHOLDER_IMAGES.length]
