@@ -40,7 +40,6 @@ export default function ProductoPageClient({ initialProduct }: ProductoPageClien
   const [vendedor, setVendedor] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [totalResenas, setTotalResenas] = useState(0)
-  // Reseñas eliminadas — solo tras compra/venta verificada
   const [esFavorito, setEsFavorito] = useState(false)
   const [toggleandoFav, setToggleandoFav] = useState(false)
   const [tasaBs, setTasaBs] = useState(0)
@@ -189,7 +188,7 @@ export default function ProductoPageClient({ initialProduct }: ProductoPageClien
       <nav className="flex items-center gap-1.5 text-sm text-gray-500 mb-6 overflow-x-auto hide-scrollbar">
         <Link href="/" className="hover:text-brand-primary flex-shrink-0">Inicio</Link>
         <ChevronRight size={14} className="flex-shrink-0" />
-        <Link href="/catalogo" className="hover:text-brand-primary flex-shrink-0" prefetch={true}>Catalogo</Link>
+        <Link href="/catalogo" className="hover:text-brand-primary flex-shrink-0">Catalogo</Link>
         {producto.subcategoria && (<><ChevronRight size={14} className="flex-shrink-0" /><span className="capitalize flex-shrink-0">{producto.subcategoria}</span></>)}
         <ChevronRight size={14} className="flex-shrink-0" />
         <span className="text-gray-800 font-medium truncate flex-shrink-0">{producto.titulo}</span>
@@ -260,7 +259,7 @@ export default function ProductoPageClient({ initialProduct }: ProductoPageClien
 
             {vendedor && (
               <div className="bg-gray-50 rounded-xl p-4 mb-5">
-                <Link href={`/vendedor/${vendedor.id}`} className="flex items-center gap-3 hover:bg-gray-100 rounded-xl p-1 -m-1 transition" prefetch={true}>
+                <Link href={`/vendedor/${vendedor.id}`} className="flex items-center gap-3 hover:bg-gray-100 rounded-xl p-1 -m-1 transition">
                   <Avatar nombre={vendedor.nombre || 'Vendedor'} fotoUrl={vendedor.foto_perfil_url} />
                   <div>
                     <div className="flex items-center gap-2">
@@ -275,10 +274,8 @@ export default function ProductoPageClient({ initialProduct }: ProductoPageClien
                     <SellerReputation nivel={vendedor.nivel_confianza || 0} numResenas={vendedorStats.resenasCount} promedioResenas={vendedorStats.resenasAvg} numPubsActivas={vendedorStats.activas} numPubsVendidas={vendedorStats.vendidas} verificado={vendedor.verificado} badges={vendedor.badges_automaticos || []} antiguedadDias={vendedorStats.antiguedad || 0} ultimaActividad={vendedor.ultima_actividad || null} size="sm" />
                   </div>
                 )}
-                {user && user.id !== producto.user_id && (
-                  <button onClick={() => setMostrarResena(true)} className="text-xs text-brand-primary hover:underline mt-2">
-                    {totalResenas === 0 ? 'Dejar primera reseña →' : 'Escribir reseña →'}
-                  </button>
+                {totalResenas > 0 && (
+                  <p className="text-xs text-gray-400 mt-2">⭐ {vendedorStats.resenasAvg.toFixed(1)} · {totalResenas} reseña{totalResenas !== 1 ? 's' : ''}</p>
                 )}
               </div>
             )}
@@ -325,41 +322,6 @@ export default function ProductoPageClient({ initialProduct }: ProductoPageClien
           </div>
         </div>
       </div>
-
-      {mostrarResena && user && vendedor && (
-        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 animate-fadeIn">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-bold">Reseña para {vendedor.nombre || 'el vendedor'}</h3>
-              <button onClick={() => setMostrarResena(false)} className="p-1 hover:bg-gray-100 rounded-full"><X size={20} /></button>
-            </div>
-            <p className="text-sm text-gray-500 mb-2">¿Cómo fue tu experiencia?</p>
-            <StarRating value={rating} onChange={setRating} size={32} />
-            <textarea value={comentario} onChange={e => setComentario(e.target.value)} maxLength={500} rows={3} className="w-full border rounded-lg px-3 py-2 mt-4 resize-none" placeholder="Cuéntanos tu experiencia (opcional)..." />
-            <p className="text-xs text-gray-400 mt-1">{comentario.length}/500</p>
-            <button
-              onClick={async () => {
-                if (!user || !producto || !vendedor) return
-                setEnviandoResena(true)
-                const { error: err } = await supabase.from('resenas').insert({ producto_id: producto.id, vendedor_id: vendedor.id, comprador_id: user.id, puntuacion: rating, comentario: comentario.trim() || null })
-                setEnviandoResena(false)
-                if (err) {
-                  alert('Error al enviar la reseña: ' + err.message)
-                } else {
-                  setMostrarResena(false)
-                  setComentario('')
-                  setRating(5)
-                  setTotalResenas(prev => prev + 1)
-                }
-              }}
-              disabled={enviandoResena}
-              className="w-full mt-4 bg-brand-primary text-white py-2.5 rounded-lg font-bold hover:bg-brand-dark transition flex items-center justify-center gap-2 disabled:opacity-50"
-            >
-              <Send size={16} /> {enviandoResena ? 'Enviando...' : 'Enviar reseña'}
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   )
 }
