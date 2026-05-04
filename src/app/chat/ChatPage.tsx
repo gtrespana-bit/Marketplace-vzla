@@ -378,12 +378,6 @@ export default function ChatPageClient() {
     }
     setEnviandoResena(false)
   }
-    } catch (e) {
-      console.error('Error enviando reseña:', e)
-      alert('Error de conexión')
-    }
-    setEnviandoResena(false)
-  }
 
   // ─── Enviar mensaje ───
   const enviarMensaje = async () => {
