@@ -8,9 +8,9 @@
 }
 
 html {
-  scroll-behavior: smooth;
   overflow-y: scroll;
   -webkit-overflow-scrolling: touch;
+  touch-action: manipulation;
 }
 
 @media (display-mode: standalone) {
@@ -20,6 +20,9 @@ html {
 body {
   color: var(--foreground);
   background: var(--background);
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  cursor: pointer;
 }
 
 /* ===== MOBILE APP-LIKE BEHAVIOR ===== */
@@ -28,6 +31,11 @@ body {
   main { padding-bottom: 5.5rem; }
   /* Extra padding en página de créditos para que el bottom nav no tape los botones */
   .creditos-grid { padding-bottom: 2rem; }
+  /* Tap delay fix — iOS no mete delay de 300ms entre clicks */
+  a, button, [role="button"] {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
 }
 
 /* PWA status bar */
@@ -43,17 +51,6 @@ body {
   }
 }
 
-/* ===== PAGE TRANSITIONS ===== */
-@media (max-width: 767px) {
-  main > * {
-    animation: page-enter 0.3s ease-out;
-  }
-}
-@keyframes page-enter {
-  from { opacity: 0; transform: translateX(8px); }
-  to { opacity: 1; transform: translateX(0); }
-}
-
 /* ===== APP-LIKE CARDS ===== */
 @media (max-width: 767px) {
   .app-card {
@@ -61,7 +58,9 @@ body {
     box-shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.06);
   }
   /* Touch-friendly tap targets */
-  button a { min-height: 38px; }
+  button, a {
+    min-height: 44px; /* Apple HIG minimum tap target */
+  }
 }
 
 /* ===== SCROLL ANIMATIONS ===== */
