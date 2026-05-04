@@ -349,39 +349,6 @@ export default function ChatPageClient() {
     if (user.id === vendedorId) return // solo compradores
 
     setEnviandoResena(true)
-    const resp = await fetch('/api/admin/enviar-resena', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        vendedor_id: vendedorId,
-        comprador_id: user.id,
-        producto_id: conv.producto_id,
-        puntuacion: ratingResena,
-        comentario: comentarioResena.trim() || null,
-      }),
-    })
-    const json = await resp.json()
-    setEnviandoResena(false)
-    if (!resp.ok) {
-      console.error('Error enviando reseña:', json)
-      alert('Error al enviar reseña: ' + (json.error || json._error || 'desconocido'))
-      return
-    }
-    setMostrarResena(false)
-    setYaDejoResena(true)
-    setComentarioResena('')
-    setRatingResena(5)
-  }
-
-  // ─── Enviar reseña comprador → vendedor ───
-  const enviarResenaComprador = async () => {
-    if (!convId || !user || enviandoResena) return
-    const conv = conversaciones.find(c => c.id === convId)
-    if (!conv || !conv.producto_id) return
-    const vendedorId = conv.user1_id === user.id ? conv.user2_id : conv.user1_id
-    if (user.id === vendedorId) return // solo compradores
-
-    setEnviandoResena(true)
     try {
       const resp = await fetch('/api/admin/enviar-resena', {
         method: 'POST',
@@ -405,6 +372,12 @@ export default function ChatPageClient() {
       setYaDejoResena(true)
       setComentarioResena('')
       setRatingResena(5)
+    } catch (e) {
+      console.error('Error enviando reseña:', e)
+      alert('Error de conexión')
+    }
+    setEnviandoResena(false)
+  }
     } catch (e) {
       console.error('Error enviando reseña:', e)
       alert('Error de conexión')
