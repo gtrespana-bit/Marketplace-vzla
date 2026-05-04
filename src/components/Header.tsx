@@ -78,15 +78,19 @@ export function Header() {
         { event: 'INSERT', schema: 'public', table: 'mensajes', filter: `destinatario_id=eq.${user!.id}` },
         () => fetchUnread()
       )
-      .on(
-        'postgres_changes',
-        { event: 'UPDATE', schema: 'public', table: 'mensajes', filter: `destinatario_id=eq.${user!.id}` },
-        () => fetchUnread()
-      )
       .subscribe()
+
+    // Same-tab signal desde ChatPage cuando marca mensajes como leidos
+    const bc = new BroadcastChannel('vendete_unread_sync')
+    bc.onmessage = () => fetchUnread()
+
+    // Fallback: refrescada cada 30s por si acaso
+    const interval = setInterval(fetchUnread, 30000)
 
     return () => {
       supabase.removeChannel(channel)
+      bc.close()
+      clearInterval(interval)
     }
   }, [user])
 

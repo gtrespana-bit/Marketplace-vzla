@@ -73,6 +73,7 @@ export default function ChatPageClient() {
   const [showMobileChat, setShowMobileChat] = useState(false)
   const [enviando, setEnviando] = useState(false)
   const [toastMsg, setToastMsg] = useState<string | null>(null)
+  const bcRef = useRef<BroadcastChannel | null>(null)
 
   const mensajesEndRef = useRef<HTMLDivElement>(null)
   const chatContainerRef = useRef<HTMLDivElement>(null)
@@ -80,6 +81,14 @@ export default function ChatPageClient() {
   const convIdRef = useRef(convId)
   userRef.current = user
   convIdRef.current = convId
+
+  // BroadcastChannel para sincronizar badge con Header
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const bc = new BroadcastChannel('vendete_unread_sync')
+    bcRef.current = bc
+    return () => bc.close()
+  }, [])
 
   // ─── Auth guard ───
   useEffect(() => {
@@ -268,8 +277,21 @@ export default function ChatPageClient() {
   const seleccionarConv = async (id: string) => {
     setConvId(id)
     setShowMobileChat(true)
-    // Mark as read
-    supabase.from('mensajes').update({ leido: true }).eq('destinatario_id', user!.id).eq('conversacion_id', id).eq('leido', false)
+    // Marcar como leido via API server-side (evita RLS bloqueante)
+    try {
+      const resp = await fetch('/api/mensajes-leidos', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ conversacion_id: id, destinatario_id: user!.id })
+      })
+      if (resp.ok) {
+        // Señal al Header para refrescar badge
+        bcRef.current?.postMessage({ action: 'refresh-unread' })
+        localStorage.setItem('vendete_unread_refresh', Date.now().toString())
+      }
+    } catch (e) {
+      console.error('Error marcando leidos:', e)
+    }
     setConversaciones(prev => prev.map(c => c.id === id ? { ...c, no_leidos: 0 } : c))
     await loadMensajes(id)
   }
