@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
     // Verificar que el usuario es el dueño
     const { data: producto } = await supabaseAdmin
       .from('productos')
-      .select('user_id, activo')
+      .select('user_id, activo, vendido')
       .eq('id', productoId)
       .single()
 
@@ -26,8 +26,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 403 })
     }
 
-    if (!producto.activo && !producto.vendido) {
-      return NextResponse.json({ error: 'El producto no está activo' }, { status: 400 })
+    if (producto.vendido) {
+      return NextResponse.json({ error: 'El producto ya está marcado como vendido' }, { status: 400 })
     }
 
     // Marcar como vendido
