@@ -37,7 +37,7 @@ export async function GET() {
     if (error) {
       info.sample = `ERROR: ${error.message}`
     } else {
-      info.sample = data?.map(p => ({ id: p.id?.substring(0, 10), nombre: p.nombre || '(vacío)', email: p.email }))
+      info.sample = data?.map(p => ({ id: p.id?.substring(0, 10), nombre: p.nombre || '(vacío)' }))
     }
   }
 
