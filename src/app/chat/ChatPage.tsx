@@ -112,33 +112,31 @@ export default function ChatPageClient() {
 
   // ─── Verificar si soy comprador y si ya deje reseña ───
   useEffect(() => {
-    if (!convId || !user) return
-    const conv = conversaciones.find(c => c.id === convId)
-    if (!conv || !conv.producto_id) return
-    setUserEsComprador(false)
-    setYaDejoResena(false)
-    
-    supabase
-      .from('productos')
-      .select('user_id')
-      .eq('id', conv.producto_id)
-      .single()
-      .then(({ data: prod }) => {
-        if (!prod) return
-        const sellerId = prod.user_id
-        if (user.id === sellerId) return // vendedor
-        setUserEsComprador(true)
-        return supabase
-          .from('resenas')
-          .select('id')
-          .eq('comprador_id', user.id)
-          .eq('vendedor_id', sellerId)
-          .limit(1)
-      })
-      .then(({ data }) => {
-        if (data && data.length > 0) setYaDejoResena(true)
-      })
-      .catch(() => {})
+    (async () => {
+      if (!convId || !user) return
+      const conv = conversaciones.find(c => c.id === convId)
+      if (!conv || !conv.producto_id) return
+      setUserEsComprador(false)
+      setYaDejoResena(false)
+
+      const { data: prod } = await supabase
+        .from('productos')
+        .select('user_id')
+        .eq('id', conv.producto_id)
+        .single()
+      if (!prod) return
+      const sellerId = prod.user_id
+      if (user.id === sellerId) return // vendedor
+      setUserEsComprador(true)
+
+      const { data: resenas } = await supabase
+        .from('resenas')
+        .select('id')
+        .eq('comprador_id', user.id)
+        .eq('vendedor_id', sellerId)
+        .limit(1)
+      if (resenas && resenas.length > 0) setYaDejoResena(true)
+    })()
   }, [convId, user, conversaciones])
 
   // ─── Cargar conversaciones ───
