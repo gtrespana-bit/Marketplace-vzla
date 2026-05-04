@@ -1,9 +1,5 @@
-import type { Metadata } from 'next'
 import Link from 'next/link'
 
-export const metadata: Metadata = {
-  title: 'Footer — VendeT-Venezuela',
-}
 
 export function Footer() {
   return (

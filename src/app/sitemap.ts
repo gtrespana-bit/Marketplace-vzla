@@ -1,105 +1,73 @@
 import { MetadataRoute } from 'next'
 import { supabase } from '@/lib/supabase'
 
-const BASE = 'https://vendet.online'
-
-// Ciudades principales de Venezuela por población
-const CIUDADES = [
-  { slug: 'caracas', nombre: 'Caracas', estado: 'Distrito Capital' },
-  { slug: 'maracaibo', nombre: 'Maracaibo', estado: 'Zulia' },
-  { slug: 'valencia', nombre: 'Valencia', estado: 'Carabobo' },
-  { slug: 'barquisimeto', nombre: 'Barquisimeto', estado: 'Lara' },
-  { slug: 'maracay', nombre: 'Maracay', estado: 'Aragua' },
-  { slug: 'ciudad-guayana', nombre: 'Ciudad Guayana', estado: 'Bolívar' },
-  { slug: 'cumaná', nombre: 'Cumaná', estado: 'Sucre' },
-  { slug: 'merida', nombre: 'Mérida', estado: 'Mérida' },
-  { slug: 'san-cristobal', nombre: 'San Cristóbal', estado: 'Táchira' },
-  { slug: 'petare', nombre: 'Petare', estado: 'Miranda' },
-]
-
 const CATEGORIAS = [
-  { slug: 'vehiculos', nombre: 'Vehículos' },
-  { slug: 'tecnologia', nombre: 'Tecnología' },
-  { slug: 'moda', nombre: 'Moda' },
-  { slug: 'hogar', nombre: 'Hogar' },
-  { slug: 'herramientas', nombre: 'Herramientas' },
-  { slug: 'materiales', nombre: 'Materiales' },
-  { slug: 'repuestos', nombre: 'Repuestos' },
-  { slug: 'otros', nombre: 'Otros' },
+  'ver-todo', 'vehiculos', 'tecnologia', 'moda', 'hogar',
+  'herramientas', 'materiales', 'repuestos', 'otros',
 ]
-
-const PAGINAS_ESTATICAS = [
-  '',
-  '/catalogo',
-  '/buscar',
-  '/como-funciona',
-  '/faq',
-  '/contacto',
-  '/sobre-nosotros',
-  '/terminos-y-condiciones',
-  '/politica-de-privacidad',
-  '/creditos',
-]
-
-type ChangeFreq = 'always' | 'hourly' | 'daily' | 'weekly' | 'monthly' | 'yearly' | 'never'
-
-const CHANGE_FREQ_PRODUCTO: ChangeFreq = 'daily'
-const CHANGE_FREQ_PAGINA: ChangeFreq = 'monthly'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const entries: MetadataRoute.Sitemap = []
+  const baseUrl = 'https://vendet.online'
 
-  // --- Páginas estáticas ---
-  for (const p of PAGINAS_ESTATICAS) {
-    entries.push({
-      url: `${BASE}${p}`,
-      lastModified: new Date(),
-      changeFrequency: CHANGE_FREQ_PAGINA,
-      priority: p === '' ? 1 : 0.8,
-    })
-  }
+  // Páginas estáticas
+  const staticPages = [
+    { path: '/', priority: 1.0 },
+    { path: '/catalogo', priority: 0.9 },
+    { path: '/buscar', priority: 0.8 },
+    { path: '/publicar', priority: 0.9 },
+    { path: '/creditos', priority: 0.7 },
+    { path: '/como-funciona', priority: 0.6 },
+    { path: '/faq', priority: 0.5 },
+    { path: '/contacto', priority: 0.4 },
+    { path: '/sobre-nosotros', priority: 0.3 },
+    { path: '/terminos-y-condiciones', priority: 0.3 },
+    { path: '/politica-de-privacidad', priority: 0.3 },
+  ]
 
-  // --- Páginas de ciudades ---
-  for (const c of CIUDADES) {
-    entries.push({
-      url: `${BASE}/${c.slug}`,
-      lastModified: new Date(),
-      changeFrequency: 'weekly',
-      priority: 0.7,
-    })
-    // --- Ciudad + categoría ---
-    for (const cat of CATEGORIAS) {
-      entries.push({
-        url: `${BASE}/${c.slug}/${cat.slug}`,
-        lastModified: new Date(),
-        changeFrequency: 'weekly',
-        priority: 0.6,
-      })
-    }
-  }
+  // Landing pages de categorías
+  const categoryPages = CATEGORIAS
+    .filter(c => c !== 'ver-todo')
+    .map(c => ({ path: `/catalogo?categoria=${c}`, priority: 0.7 }))
 
-  // --- Productos activos ---
+  // Productos activos (últimos 100, los más relevantes)
+  let productPages: { path: string; priority: number }[] = []
   try {
-    const { data: productos } = await supabase
+    const { data } = await supabase
       .from('productos')
-      .select('id, actualizado_en')
+      .select('id, creado_en')
       .eq('activo', true)
       .or('estado_moderacion.is.null,estado_moderacion.eq.aprobado')
-      .order('actualizado_en', { ascending: false })
+      .order('creado_en', { ascending: false })
+      .limit(100)
 
-    if (productos) {
-      for (const prod of productos) {
-        entries.push({
-          url: `${BASE}/producto/${prod.id}`,
-          lastModified: new Date(prod.actualizado_en || Date.now()),
-          changeFrequency: CHANGE_FREQ_PRODUCTO,
-          priority: 0.6,
-        })
-      }
+    if (data) {
+      productPages = data.map((p, i) => ({
+        path: `/producto/${p.id}`,
+        priority: i < 10 ? 0.8 : 0.6,
+      }))
     }
-  } catch (err) {
-    console.error('Error fetching products for sitemap:', err)
+  } catch {
+    // Fallback silently
   }
 
-  return entries
+  return [
+    ...staticPages.map(p => ({
+      url: `${baseUrl}${p.path}`,
+      lastModified: new Date(),
+      changeFrequency: 'daily' as const,
+      priority: p.priority,
+    })),
+    ...categoryPages.map(p => ({
+      url: `${baseUrl}${p.path}`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly' as const,
+      priority: p.priority,
+    })),
+    ...productPages.map(p => ({
+      url: `${baseUrl}${p.path}`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly' as const,
+      priority: p.priority,
+    })),
+  ]
 }
