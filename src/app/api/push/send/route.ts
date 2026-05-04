@@ -1,63 +1,74 @@
-import { createClient } from '@supabase/supabase-js'
-import { sendPush, isPushConfigured } from '@/lib/push'
 import { NextRequest, NextResponse } from 'next/server'
+import webpush from 'web-push'
+import { createClient } from '@supabase/supabase-js'
 
-const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY!
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
+// VAPID setup
+if (process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) {
+  webpush.setVapidDetails(
+    'mailto:noreply@vendet.online',
+    process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY,
+    process.env.VAPID_PRIVATE_KEY,
+  )
+}
 
 export async function POST(req: NextRequest) {
-  if (!isPushConfigured()) {
-    return NextResponse.json({ success: false, reason: 'push not configured' })
-  }
+  try {
+    const { targetUserId, titulo, cuerpo, click_url } = await req.json()
 
-  const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY)
+    if (!targetUserId || !titulo) {
+      return NextResponse.json({ error: 'targetUserId y titulo son requeridos' }, { status: 400 })
+    }
 
-  const { targetUserId, title, body, tag, click_url } = await req.json()
+    // Verificar config
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_KEY) {
+      return NextResponse.json({ error: 'Config missing' }, { status: 503 })
+    }
 
-  if (!targetUserId) {
-    return NextResponse.json({ error: 'targetUserId required' }, { status: 400 })
-  }
+    const sb = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_KEY!,
+    )
 
-  // Get all push subscriptions for this user
-  const { data: subs, error } = await supabase
-    .from('push_subscriptions')
-    .select('endpoint, p256dh, auth_key')
-    .eq('user_id', targetUserId)
+    // Obtener subscriptions del usuario
+    const { data: subs } = await sb
+      .from('push_subscriptions')
+      .select('endpoint, p256dh, auth_key')
+      .eq('user_id', targetUserId)
 
-  if (error || !subs?.length) {
-    return NextResponse.json({ success: false, reason: 'no subscriptions' })
-  }
+    if (!subs?.length) {
+      return NextResponse.json({ sent: 0, reason: 'no subscriptions' })
+    }
 
-  const payload = {
-    title,
-    body,
-    tag: tag || 'default',
-    icon: '/icon-192.png',
-    click_url: click_url || '/',
-  }
+    const payload = {
+      title: titulo,
+      body: cuerpo || titulo,
+      tag: `msg-${targetUserId.slice(0, 8)}`,
+      icon: '/icon-192.png',
+      click_url: click_url || '/chat',
+    }
 
-  // Clean up dead subscriptions as we go
-  const deadEndpoints: string[] = []
+    const deadSubs: string[] = []
 
-  await Promise.all(
-    subs.map(async (sub: any) => {
+    await Promise.all(subs.map(async (sub: any) => {
       try {
-        await sendPush(
+        await webpush.sendNotification(
           { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth_key } },
-          payload,
+          JSON.stringify(payload),
         )
       } catch (e: any) {
-        if (e.statusCode === 410) {
-          deadEndpoints.push(sub.endpoint)
-        }
+        if (e.statusCode === 410) deadSubs.push(sub.endpoint)
+        console.error('Push send error:', e.statusCode, e.message)
       }
-    }),
-  )
+    }))
 
-  // Clean dead subscriptions
-  if (deadEndpoints.length) {
-    await supabase.from('push_subscriptions').delete().in('endpoint', deadEndpoints)
+    // Limpieza de subscriptions muertas
+    if (deadSubs.length > 0) {
+      await sb.from('push_subscriptions').delete().in('endpoint', deadSubs)
+    }
+
+    return NextResponse.json({ sent: subs.length - deadSubs.length })
+  } catch (e: any) {
+    console.error('push/send error:', e.message)
+    return NextResponse.json({ error: e.message }, { status: 500 })
   }
-
-  return NextResponse.json({ success: true, sent: subs.length - deadEndpoints.length })
 }

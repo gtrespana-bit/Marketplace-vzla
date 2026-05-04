@@ -308,11 +308,24 @@ export default function ChatPageClient() {
     }
 
     // Success
-      setTexto('')
-      // Reload messages after send (also realtime will catch it)
-      await loadMensajes(convId)
+    setTexto('')
+    await loadMensajes(convId)
 
-      // EMAIL: notificar al destinatario que recibió un mensaje
+    // Push notification al destinatario
+    try {
+      await fetch('/api/push/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          targetUserId: destinatarioId,
+          titulo: `💬 ${conv.otro_nombre || 'Alguien'} te escribió`,
+          cuerpo: msg.length > 100 ? msg.slice(0, 100) + '...' : msg,
+          click_url: `/chat?conversation=${convId}`,
+        }),
+      })
+    } catch (e) { console.error('Push send failed:', e) }
+
+    // Email notification
       if (conv.otro_email && user && user.id !== destinatarioId) {
         const producto = conv.producto_titulo || 'un producto'
         const preview = msg.length > 100 ? msg.substring(0, 100) + '...' : msg
