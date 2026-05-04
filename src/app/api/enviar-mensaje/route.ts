@@ -21,6 +21,23 @@ export async function POST(req: NextRequest) {
     }).select().single()
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+    // ── Push notification al destinatario ───────────────
+    try {
+      const { data: sender } = await sb
+        .from('perfiles')
+        .select('nombre')
+        .eq('id', remitente_id)
+        .single()
+
+      await sb.from('notificaciones_push').insert({
+        target_user_id: destinatario_id,
+        tipo: 'mensaje',
+        titulo: `💬 ${sender?.nombre || 'Alguien'} te escribió`,
+        cuerpo: contenido?.slice(0, 100) || 'Nuevo mensaje',
+      })
+    } catch { /* fail silently */ }
+
     return NextResponse.json({ ok: true, data })
   } catch (e: any) {
     return NextResponse.json({ error: e.message }, { status: 500 })
