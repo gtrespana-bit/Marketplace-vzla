@@ -321,7 +321,7 @@ export default async function HomePage() {
             { id: 'herramientas', nombre: 'Herramientas', icon: '🔧', desc: 'Manuales, eléctricas' },
             { id: 'otros', nombre: 'Otros', icon: '📦', desc: 'De todo un poco' },
           ].map((cat) => (
-            <Link key={cat.id} href={`/catalogo?categoria=${cat.id}`} className="bg-white rounded-2xl p-6 text-center shadow-sm border hover:border-brand-accent transition hover:shadow-lg group">
+            <Link key={cat.id} href={`/catalogo?categoria=${cat.id}`} prefetch={true} className="bg-white rounded-2xl p-6 text-center shadow-sm border hover:border-brand-accent transition hover:shadow-lg group">
               <span className="text-4xl block mb-3 group-hover:scale-110 transition-transform">{cat.icon}</span>
               <span className="font-bold text-gray-900 text-sm">{cat.nombre}</span>
               <span className="block text-xs text-gray-400 mt-1 truncate">{cat.desc}</span>
@@ -340,7 +340,7 @@ export default async function HomePage() {
 
         <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           {trending.map((p) => (
-            <Link key={p.id} href={`/producto/${p.id}`}
+            <Link key={p.id} href={`/producto/${p.id}`} prefetch={true}
               className="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-lg hover:-translate-y-1 transition group block">
               <div className="aspect-square bg-gray-100 relative overflow-hidden">
                 <Image
@@ -374,7 +374,7 @@ export default async function HomePage() {
       <section className="max-w-7xl mx-auto px-4 py-8">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-2xl font-bold text-gray-900">🕐 Agregados recientemente</h2>
-          <Link href="/catalogo" className="text-brand-primary font-semibold text-sm hover:underline flex items-center gap-1">
+          <Link href="/catalogo" className="text-brand-primary font-semibold text-sm hover:underline flex items-center gap-1" prefetch={true}>
             Ver todos <ArrowRight size={14} />
           </Link>
         </div>
@@ -405,7 +405,7 @@ export default async function HomePage() {
           <h2 className="text-3xl font-black text-brand-primary mb-4">¿Tienes algo para vender?</h2>
           <p className="text-brand-primary/80 text-lg mb-8">Publica gratis en segundos. Miles de compradores te esperan.</p>
           <div className="flex flex-wrap justify-center gap-4">
-            <Link href="/publicar" className="inline-flex items-center gap-2 bg-brand-primary text-white px-10 py-4 rounded-xl font-bold text-lg hover:bg-brand-dark transition shadow-lg">
+            <Link href="/publicar" className="inline-flex items-center gap-2 bg-brand-primary text-white px-10 py-4 rounded-xl font-bold text-lg hover:bg-brand-dark transition shadow-lg" prefetch={true}>
               🚀 Publica ahora — Es gratis
               <ArrowRight size={20} />
             </Link>

@@ -205,7 +205,7 @@ export default function ProductoPageClient({ initialProduct }: ProductoPageClien
       <nav className="flex items-center gap-1.5 text-sm text-gray-500 mb-6 overflow-x-auto hide-scrollbar">
         <Link href="/" className="hover:text-brand-primary flex-shrink-0">Inicio</Link>
         <ChevronRight size={14} className="flex-shrink-0" />
-        <Link href="/catalogo" className="hover:text-brand-primary flex-shrink-0">Catalogo</Link>
+        <Link href="/catalogo" className="hover:text-brand-primary flex-shrink-0" prefetch={true}>Catalogo</Link>
         {producto.subcategoria && (<><ChevronRight size={14} className="flex-shrink-0" /><span className="capitalize flex-shrink-0">{producto.subcategoria}</span></>)}
         <ChevronRight size={14} className="flex-shrink-0" />
         <span className="text-gray-800 font-medium truncate flex-shrink-0">{producto.titulo}</span>
@@ -276,7 +276,7 @@ export default function ProductoPageClient({ initialProduct }: ProductoPageClien
 
             {vendedor && (
               <div className="bg-gray-50 rounded-xl p-4 mb-5">
-                <Link href={`/vendedor/${vendedor.id}`} className="flex items-center gap-3 hover:bg-gray-100 rounded-xl p-1 -m-1 transition">
+                <Link href={`/vendedor/${vendedor.id}`} className="flex items-center gap-3 hover:bg-gray-100 rounded-xl p-1 -m-1 transition" prefetch={true}>
                   <Avatar nombre={vendedor.nombre || 'Vendedor'} fotoUrl={vendedor.foto_perfil_url} />
                   <div>
                     <div className="flex items-center gap-2">
