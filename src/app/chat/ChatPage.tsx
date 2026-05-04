@@ -288,36 +288,26 @@ export default function ChatPageClient() {
 
     // Get conversation to find recipient
     const conv = conversaciones.find(c => c.id === convId)
-    if (!conv) { setEnviando(false); return }
+    if (!conv) { console.error('ChatPage: conversacion no encontrada', convId); setEnviando(false); return }
     const destinatarioId = conv.user1_id === user.id ? conv.user2_id : conv.user1_id
 
-    // Send via API route with rate limiting
-    const res = await fetch('/api/enviar-mensaje', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        conversacion_id: convId,
-        remitente_id: user.id,
-        destinatario_id: destinatarioId,
-        contenido: msg,
-      }),
+    // Insert directly via Supabase (always worked this way)
+    const { error } = await supabase.from('mensajes').insert({
+      conversacion_id: convId,
+      remitente_id: user.id,
+      destinatario_id: destinatarioId,
+      contenido: msg,
     })
-    const result = await res.json()
 
-    if (res.status === 429) {
-      setToastMsg(result.error || 'Demasiados mensajes')
+    if (error) {
+      console.error('Error enviando mensaje:', error.message)
+      setToastMsg('Error al enviar: ' + error.message)
       setTimeout(() => setToastMsg(null), 4000)
       setEnviando(false)
       return
     }
 
-    if (!res.ok) {
-      console.error('Error enviando mensaje:', result.error)
-      setEnviando(false)
-      return
-    }
-
-    if (result.ok) {
+    // Success
       setTexto('')
       // Reload messages after send (also realtime will catch it)
       await loadMensajes(convId)
@@ -328,7 +318,6 @@ export default function ChatPageClient() {
         const preview = msg.length > 100 ? msg.substring(0, 100) + '...' : msg
         emailMensajeRecibido(conv.otro_email, conv.otro_nombre, user?.email?.split('@')[0] || 'Alguien', producto, preview).catch(e => console.error('Error email mensaje:', e))
       }
-    }
     setEnviando(false)
   }
 
