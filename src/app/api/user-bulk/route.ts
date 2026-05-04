@@ -17,7 +17,7 @@ export async function GET(req: Request) {
 
   const { data, error } = await supabaseAdmin
     .from('perfiles')
-    .select('id, nombre, foto_perfil_url, email')
+    .select('id, nombre, foto_perfil_url')
     .in('id', ids)
 
   if (error) {

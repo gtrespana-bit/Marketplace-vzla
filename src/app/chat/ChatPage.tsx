@@ -118,8 +118,8 @@ export default function ChatPageClient() {
       try {
         const resp = await fetch(`/api/user-bulk?ids=${encodeURIComponent(otroIds.join(','))}`)
         const json = await resp.json()
-        json.profiles?.forEach((p: { id: string; nombre: string; foto_perfil_url: string | null; email: string | null }) => {
-          perfilMap.set(p.id, { nombre: p.nombre || 'Usuario', foto: p.foto_perfil_url || null, email: p.email || null })
+        json.profiles?.forEach((p: { id: string; nombre: string; foto_perfil_url: string | null }) => {
+          perfilMap.set(p.id, { nombre: p.nombre || 'Usuario', foto: p.foto_perfil_url || null, email: null })
         })
       } catch (e) { console.error('Error fetching user-bulk:', e) }
     }

@@ -31,7 +31,7 @@ export async function GET() {
   if (!countError) {
     const { data, error } = await supabaseAdmin
       .from('perfiles')
-      .select('id, nombre, email')
+      .select('id, nombre')
       .limit(3)
 
     if (error) {
