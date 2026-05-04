@@ -99,7 +99,7 @@ export async function POST(req: NextRequest) {
     console.log('✅ SMTP conexión verificada')
 
     await transporter.sendMail({
-      from: '"VendeT-Venezuela" <soporte@vendet.online>',
+      from: '"VendeT-Venezuela" <noreply@vendet.online>',
       to: 'soporte@vendet.online',
       replyTo: email,
       subject: `📩 Contacto: ${asunto || '(sin asunto)'}`,
