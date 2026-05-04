@@ -121,14 +121,13 @@ export default function PublicarPage() {
   }
 
   const uploadImages = async (): Promise<string[]> => {
-    const urls: string[] = []
     const userId = user?.id
 
-    for (let i = 0; i < imagenes.length; i++) {
-      const img = imagenes[i]
-      // Mark as uploading
-      setImagenes(prev => prev.map((p, idx) => idx === i ? { ...p, uploading: true } : p))
+    // Marcar todas como subiendo
+    setImagenes(prev => prev.map(p => ({ ...p, uploading: true })))
 
+    // Subir todas las imágenes en paralelo
+    const uploadPromises = imagenes.map(async (img, i) => {
       const fileName = `${userId}/${Date.now()}_${i}_${img.file.name}`.replace(/\s+/g, '_')
 
       const { data, error: uploadError } = await supabase.storage
@@ -137,19 +136,23 @@ export default function PublicarPage() {
 
       if (uploadError) {
         console.error('Upload error:', uploadError)
-        setImagenes(prev => prev.map((p, idx) => idx === i ? { ...p, error: true } : p))
-        continue
+        setImagenes(prev => prev.map((p, idx) => idx === i ? { ...p, error: true, uploading: false } : p))
+        return null
       }
 
-      // Get public URL
       const { data: urlData } = supabase.storage
         .from('productos')
         .getPublicUrl(data.path)
 
-      urls.push(urlData.publicUrl)
       setImagenes(prev => prev.map((p, idx) => idx === i ? { ...p, uploadedUrl: urlData.publicUrl, uploading: false } : p))
-      setUploadProgress(Math.round(((i + 1) / imagenes.length) * 100))
-    }
+      return urlData.publicUrl
+    })
+
+    const results = await Promise.all(uploadPromises)
+    const urls = results.filter((url): url is string => url !== null)
+
+    // Actualizar progreso
+    setUploadProgress(Math.round((urls.length / imagenes.length) * 100))
 
     return urls
   }

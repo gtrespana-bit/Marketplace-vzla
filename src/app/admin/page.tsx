@@ -1015,7 +1015,7 @@ export default function AdminPage() {
   const { user, session } = useAuth()
   const router = useRouter()
   const searchParams = useSearchParams()
-  const [tab, setTab] = useState('dashboard')
+  const [tab, setTab] = useState<string>('dashboard')
   const [toast, setToast] = useState<string | null>(null)
   const [perfiles, setPerfiles] = useState<Record<string, any>>({})
 

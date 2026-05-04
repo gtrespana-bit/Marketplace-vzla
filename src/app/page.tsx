@@ -2,6 +2,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { Search, ArrowRight, Star, Zap, Eye, TrendingUp } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
+import { BotonDescargarApp } from '@/components/BotonDescargarApp'
 
 const PLACEHOLDER_IMAGES = [
   'https://images.unsplash.com/photo-1558618666-fcd25c85482e?w=400&h=400&fit=crop&q=60',
@@ -164,6 +165,7 @@ export default async function HomePage() {
               <Eye size={18} />
               <span>Ver Cómo Destacar</span>
             </Link>
+            <BotonDescargarApp />
           </div>
 
           <div className="grid grid-cols-3 gap-4 max-w-xs mx-auto text-center">
