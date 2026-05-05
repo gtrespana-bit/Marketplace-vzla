@@ -18,9 +18,7 @@ export interface ProductCardData {
 }
 
 const PLACEHOLDER_IMAGES = [
-  'https://images.unsplash.com/photo-1558618666-fcd25c85482e?w=400&h=400&fit=crop&q=60',
-  'https://images.unsplash.com/photo-1472851294608-062f824d29cc?w=400&h=400&fit=crop&q=60',
-  'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400&h=400&fit=crop&q=60',
+  '/placeholder-product.png',
 ]
 
 export default function ProductCard({ p, isPromoted, isFeatured }: { p: ProductCardData; isPromoted?: boolean; isFeatured?: boolean }) {

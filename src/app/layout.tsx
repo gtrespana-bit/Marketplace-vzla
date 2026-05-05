@@ -67,7 +67,7 @@ export default function RootLayout({
       <head>
         <link rel="preconnect" href="https://jmbkqelkusxjebsdnjoc.supabase.co" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://jmbkqelkusxjebsdnjoc.supabase.co" />
-        <link rel="dns-prefetch" href="https://images.unsplash.com" />
+        
         <link rel="apple-touch-icon" href="/icon-192.png" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
