@@ -9,9 +9,7 @@ export function Footer() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div>
             <Link href="/" className="inline-flex items-center gap-2 mb-3">
-              <div className="w-7 h-7 bg-white rounded-lg flex items-center justify-center overflow-hidden">
-                <img src="/icon-192.png" alt="VendeT" className="w-full h-full object-contain" />
-              </div>
+            <img src="/logo-vendet.png" alt="VendeT" className="h-7 w-7 object-contain rounded-lg drop-shadow" />
               <span className="text-brand-accent font-black text-lg">Vende<span className="text-white">T</span></span>
             </Link>
             <p className="text-sm leading-relaxed">El marketplace hecho para Venezuela. Compra y vende lo que quieras, contacta directo. Sin complicaciones.</p>
