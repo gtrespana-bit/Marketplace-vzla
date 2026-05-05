@@ -56,6 +56,41 @@ self.addEventListener('fetch', event => {
     return
   }
 
+  // ── Supabase Storage images (stale-while-revalidate with 7-day TTL) ──
+  if (url.hostname.includes('supabase.co') && url.pathname.includes('/storage/v1/object/')) {
+    event.respondWith(
+      caches.open(CACHE_NAME).then(async cache => {
+        const cached = await cache.match(request)
+        if (cached) {
+          const cachedTime = cached.headers.get('sw-fetched-time')
+          if (cachedTime) {
+            const age = Date.now() - parseInt(cachedTime)
+            if (age < 7 * 24 * 60 * 60 * 1000) {
+              // Return cached and refresh in background
+              fetch(request).then(response => {
+                if (response.ok) {
+                  const respClone = response.clone()
+                  respClone.headers.set('sw-fetched-time', Date.now().toString())
+                  cache.put(request, respClone)
+                }
+              }).catch(() => {})
+              return cached
+            }
+          }
+        }
+        return fetch(request).then(response => {
+          if (response.ok) {
+            const respClone = response.clone()
+            respClone.headers.set('sw-fetched-time', Date.now().toString())
+            cache.put(request, respClone)
+          }
+          return response
+        }).catch(() => cached || new Response(null, { status: 404 }))
+      })
+    )
+    return
+  }
+
   // ── Static assets (images, styles, scripts, fonts) ──
   // Stale-while-revalidate
   if (['image', 'style', 'script', 'font'].includes(request.destination)) {

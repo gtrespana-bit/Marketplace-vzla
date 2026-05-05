@@ -3,6 +3,8 @@
   "short_name": "VendeT",
   "description": "Compra y vende en Venezuela. Carros, tecnología, moda, hogar y más.",
   "start_url": "/",
+  "scope": "/",
+  "orientation": "any",
   "display": "standalone",
   "background_color": "#F5F5F5",
   "theme_color": "#7B2D3B",
@@ -16,7 +18,22 @@
     {
       "src": "/icon-512.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.webp",
+      "sizes": "512x512",
+      "type": "image/webp",
+      "purpose": "any"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/pwa-tagline.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide"
     }
   ],
   "categories": ["shopping", "business"],

@@ -1,9 +1,9 @@
 "use client"
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, lazy, Suspense } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/components/AuthProvider'
-import SolicitarVerificacion from '@/components/SolicitarVerificacion'
+import dynamic from 'next/dynamic'
 import { getTasaBCVClient, actualizarTasaClient } from '@/lib/tasaBCV'
 import { Package, MessageSquare, CreditCard, Eye, Heart, LogOut, X, Zap, Star, ShieldCheck, BarChart3, Settings } from 'lucide-react'
 import Link from 'next/link'
@@ -11,13 +11,16 @@ import Link from 'next/link'
 // Components
 import DashboardHeader from './components/DashboardHeader'
 import TabResumen from './components/TabResumen'
-import TabProductos from './components/tabs/TabProductos'
 import TabMensajes from './components/tabs/TabMensajes'
 import TabCreditos from './components/tabs/TabCreditos'
 import TabFavoritos from './components/tabs/TabFavoritos'
-import TabReputacion from './components/tabs/TabReputacion'
 import BoostModal from './components/modals/BoostModal'
 import DestacadoModal from './components/modals/DestacadoModal'
+
+// Lazy-load heavy tabs
+const TabProductos = lazy(() => import('./components/tabs/TabProductos'))
+const SolicitarVerificacion = dynamic(() => import('@/components/SolicitarVerificacion'), { ssr: false })
+const TabReputacion = dynamic(() => import('./components/tabs/TabReputacion'), { ssr: false })
 
 // Hooks
 import { useDashboard } from './hooks/useDashboard'
@@ -294,12 +297,14 @@ export default function DashboardPage() {
       {/* Tab Content */}
       {activeTab === 'resumen' && <TabResumen userId={user!.id} />}
       {activeTab === 'productos' && (
-        <TabProductos
-          productos={data.productos}
-          onBoost={setBoostTarget}
-          onDestacar={setDestacadoTarget}
-          userId={user?.id ?? ''}
-        />
+        <Suspense fallback={<div className="p-12 text-center text-gray-400">Cargando publicaciones...</div>}>
+          <TabProductos
+            productos={data.productos}
+            onBoost={setBoostTarget}
+            onDestacar={setDestacadoTarget}
+            userId={user?.id ?? ''}
+          />
+        </Suspense>
       )}
       {activeTab === 'mensajes' && <TabMensajes />}
       {activeTab === 'creditos' && (

@@ -11,8 +11,11 @@ import { MapPin, Tag, MessageCircle, Phone, Mail, ChevronRight, Shield, Clock, H
 import Avatar from '@/components/Avatar'
 import ReportarButton from '@/components/ReportarButton'
 import BadgeVerificado from '@/components/BadgeVerificado'
-import ImageGallery from '@/components/ImageGallery'
-import SellerReputation from '@/components/SellerReputation'
+import dynamic from 'next/dynamic'
+
+// Lazy-load heavy components — only needed when user scrolls
+const ImageGallery = dynamic(() => import('@/components/ImageGallery'), { ssr: true })
+const SellerReputation = dynamic(() => import('@/components/SellerReputation'), { ssr: true })
 
 interface ProductoPageClientProps {
   initialProduct: any
