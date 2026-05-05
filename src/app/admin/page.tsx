@@ -152,15 +152,17 @@ function UsuariosTab({ notify }: Notifier) {
     if (!creditCantidad || parseInt(creditCantidad) < 1) return
     setCreditProcesando(true)
     try {
-      const { data: perfilData } = await supabase
-        .from('perfiles').select('credito_balance').eq('id', userId).single()
-      const nuevoBalance = (perfilData?.credito_balance || 0) + parseInt(creditCantidad)
-
-      await supabase.from('perfiles').update({ credito_balance: nuevoBalance }).eq('id', userId)
-      await supabase.from('transacciones_creditos').insert({
-        user_id: userId, tipo: 'admin_manual', monto: parseInt(creditCantidad),
-        estado: 'aprobado', motivo_registro: creditMotivo || 'Manual admin',
+      const res = await fetch('/api/admin/add-creditos', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId,
+          cantidad: parseInt(creditCantidad),
+          motivo: creditMotivo || 'Manual admin',
+        }),
       })
+      const result = await res.json()
+      if (!res.ok) throw new Error(result.error || 'desconocido')
 
       const perfil = usuarios.find(u => u.id === userId)
       notify(`✅ +${creditCantidad} créditos a ${perfil?.nombre || 'usuario'}`)
@@ -381,44 +383,72 @@ function PublicacionesTab({ notify }: Notifier) {
 
   async function toggleActivo(id: string, activo: boolean) {
     setProcesando(id)
-    const { error } = await supabase.from('productos').update({ activo }).eq('id', id)
+    const res = await fetch('/api/admin/toggle-activo', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ productId: id, activo }),
+    })
+    const result = await res.json()
     setProcesando(null)
-    if (!error) {
-      notify(activo ? '✅ Publicación activada' : '⏸️ Publicación pausada')
-      setPublicaciones(prev => prev.map(p => p.id === id ? { ...p, activo } : p))
+    if (!res.ok) {
+      notify('❌ Error: ' + (result.error || 'desconocido'))
+      return
     }
+    notify(activo ? '✅ Publicación activada' : '⏸️ Publicación pausada')
+    setPublicaciones(prev => prev.map(p => p.id === id ? { ...p, activo } : p))
   }
 
   async function eliminar(id: string) {
     if (!confirm('¿Eliminar esta publicación permanentemente?')) return
     setProcesando(id)
-    await supabase.from('productos').delete().eq('id', id)
+    const res = await fetch('/api/admin/eliminar-producto', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ productId: id }),
+    })
+    const result = await res.json()
     setProcesando(null)
+    if (!res.ok) {
+      notify('❌ Error: ' + (result.error || 'desconocido'))
+      return
+    }
     notify('🗑️ Publicación eliminada')
     setPublicaciones(prev => prev.filter(p => p.id !== id))
   }
 
   async function toggleDestacado(id: string, destacado: boolean) {
     setProcesando(id)
-    const update: any = { destacado }
-    if (destacado) update.destacado_hasta = new Date(Date.now() + 48 * 3600000).toISOString()
-    const { error } = await supabase.from('productos').update(update).eq('id', id)
+    const res = await fetch('/api/admin/toggle-destacado', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ productId: id, destacado }),
+    })
+    const result = await res.json()
     setProcesando(null)
-    if (!error) setPublicaciones(prev => prev.map(p => p.id === id ? { ...p, ...update } : p))
+    if (!res.ok) {
+      notify('❌ Error: ' + (result.error || 'desconocido'))
+      return
+    }
+    const update = result.update || { destacado, destacado_hasta: destacado ? new Date(Date.now() + 48 * 3600000).toISOString() : null }
+    setPublicaciones(prev => prev.map(p => p.id === id ? { ...p, ...update } : p))
     notify(destacado ? '⭐ Destacado 48h' : '☆ Destacado quitado')
   }
 
   async function boost(id: string) {
     setProcesando(id)
-    const { error } = await supabase
-      .from('productos')
-      .update({ boosteado_en: new Date().toISOString() })
-      .eq('id', id)
+    const res = await fetch('/api/admin/boost-producto', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ productId: id }),
+    })
+    const result = await res.json()
     setProcesando(null)
-    if (!error) {
-      setPublicaciones(prev => prev.map(p => p.id === id ? { ...p, boosteado_en: new Date().toISOString() } : p))
-      notify('⚡ Publicación boosted!')
+    if (!res.ok) {
+      notify('❌ Error: ' + (result.error || 'desconocido'))
+      return
     }
+    setPublicaciones(prev => prev.map(p => p.id === id ? { ...p, boosteado_en: new Date().toISOString() } : p))
+    notify('⚡ Publicación boosted!')
   }
 
   const filtros = [
