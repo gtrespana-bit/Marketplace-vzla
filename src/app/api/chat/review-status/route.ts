@@ -3,9 +3,11 @@ import { createClient } from '@supabase/supabase-js'
 
 /**
  * POST /api/chat/review-status
- * 
- * Devuelve toda la info necesaria para mostrar el botón de reseña del comprador.
+ *
+ * Devuelve toda la info para el botón de reseña del comprador.
  * Usa service_role → sin problemas de RLS.
+ *
+ * Solo muestra botón si el producto NO está activo (=vendido/pausado).
  */
 export async function POST(req: NextRequest) {
   try {
@@ -27,35 +29,45 @@ export async function POST(req: NextRequest) {
       .eq('id', convId)
       .single()
     if (!conv || !conv.producto_id) {
-      return NextResponse.json({ productoOwnerId: null, yaDejoResena: false })
+      return NextResponse.json({ productoOwnerId: null, puedeResenar: false, yaDejoResena: false })
     }
 
-    // 2. Obtener owner del producto (= vendedor)
+    // 2. Obtener datos del producto (activo = no vendido, inactivo = vendido/pausado)
     const { data: prod } = await sb
       .from('productos')
-      .select('user_id')
+      .select('user_id, activo')
       .eq('id', conv.producto_id)
       .single()
     if (!prod) {
-      return NextResponse.json({ productoOwnerId: null, yaDejoResena: false })
+      return NextResponse.json({ productoOwnerId: null, puedeResenar: false, yaDejoResena: false })
     }
+
+    const productoOwnerId = prod.user_id
 
     // 3. Si soy el vendedor → no aplica
-    if (userId === prod.user_id) {
-      return NextResponse.json({ esVendedor: true, productoOwnerId: prod.user_id, yaDejoResena: false })
+    if (userId === productoOwnerId) {
+      return NextResponse.json({ productoOwnerId, puedeResenar: false, yaDejoResena: false, esVendedor: true })
     }
 
-    // 4. Verificar si ya dejé reseña para ESTE producto
+    // 4. Solo puede reseñar si el producto NO está activo (=vendido/pausado)
+    const productoVendido = !prod.activo
+
+    // 5. Verificar si ya dejé reseña para ESTE producto
     const { count } = await sb
       .from('resenas')
       .select('id', { count: 'exact', head: true })
       .eq('comprador_id', userId)
-      .eq('vendedor_id', prod.user_id)
+      .eq('vendedor_id', productoOwnerId)
       .eq('producto_id', conv.producto_id)
 
+    const yaDejoResena = (count ?? 0) > 0
+
     return NextResponse.json({
-      productoOwnerId: prod.user_id,
-      yaDejoResena: (count ?? 0) > 0,
+      productoOwnerId,
+      productoId: conv.producto_id,
+      productoVendido,
+      puedeResenar: productoVendido && !yaDejoResena,
+      yaDejoResena,
     })
 
   } catch (err: any) {

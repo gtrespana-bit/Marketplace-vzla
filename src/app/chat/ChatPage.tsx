@@ -87,6 +87,7 @@ export default function ChatPageClient() {
   const [ratingResena, setRatingResena] = useState(5)
   const [comentarioResena, setComentarioResena] = useState('')
   const [enviandoResena, setEnviandoResena] = useState(false)
+  const [puedeResenar, setPuedeResenar] = useState(false)
   const [productoOwnerId, setProductoOwnerId] = useState<string | null>(null)
   const [yaDejoResena, setYaDejoResena] = useState(false)
 
@@ -113,8 +114,8 @@ export default function ChatPageClient() {
   useEffect(() => {
     if (!convId || !user) return
     setProductoOwnerId(null)
+    setPuedeResenar(false)
     setYaDejoResena(false)
-    console.log('[REVIEW-STATUS] checking convId:', convId, 'user:', user.id)
 
     fetch('/api/chat/review-status', {
       method: 'POST',
@@ -123,8 +124,8 @@ export default function ChatPageClient() {
     })
     .then(async r => {
       const data = await r.json()
-      console.log('[REVIEW-STATUS] response:', JSON.stringify(data))
       setProductoOwnerId(data.productoOwnerId)
+      setPuedeResenar(data.puedeResenar)
       setYaDejoResena(data.yaDejoResena)
     })
     .catch(err => console.error('[REVIEW-STATUS] error:', err))
@@ -341,7 +342,9 @@ export default function ChatPageClient() {
 
   // ─── Enviar reseña comprador → vendedor ───
   const enviarResenaComprador = async () => {
-    if (!convId || !user || enviandoResena || !productoOwnerId || !productoId) return
+    if (!convId || !user || enviandoResena || !productoOwnerId) return
+    const conv = conversaciones.find(c => c.id === convId)
+    if (!conv || !conv.producto_id) return
 
     setEnviandoResena(true)
     try {
@@ -351,7 +354,7 @@ export default function ChatPageClient() {
         body: JSON.stringify({
           evaluador_id: user.id,
           evaluado_id: productoOwnerId,
-          producto_id: productoId,
+          producto_id: conv.producto_id,
           puntuacion: ratingResena,
           comentario: comentarioResena.trim() || null,
         }),
@@ -584,9 +587,7 @@ export default function ChatPageClient() {
                       </div>
                     )
                   })}
-                  {/* Boton reseña comprador */}
-                  {console.log('[BUTTON-CHECK] user:', user?.id, 'productoOwnerId:', productoOwnerId, 'yaDejoResena:', yaDejoResena)}
-                  {user && productoOwnerId && user.id !== productoOwnerId && !yaDejoResena && (
+                  {puedeResenar && (
                     <div className="flex justify-center">
                       <button
                         onClick={() => setMostrarResena(true)}
