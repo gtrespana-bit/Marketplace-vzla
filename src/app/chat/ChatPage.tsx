@@ -584,8 +584,7 @@ export default function ChatPageClient() {
                     )
                   })}
                   {/* Boton reseña comprador */}
-                  {user && productoOwnerId && user.id !== productoOwnerId && !yaDejoResena &&
-                   mensajes.some(m => m.contenido?.includes('compra exitosa') || m.contenido?.includes('experiencia')) && (
+                  {user && productoOwnerId && user.id !== productoOwnerId && !yaDejoResena && (
                     <div className="flex justify-center">
                       <button
                         onClick={() => setMostrarResena(true)}
