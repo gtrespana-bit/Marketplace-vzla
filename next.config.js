@@ -18,10 +18,6 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
-  sentry: {
-    hideSourceMaps: true,
-    widenClientFileUpload: true,
-  },
 }
 
 module.exports = withSentryConfig(nextConfig, {
@@ -29,7 +25,8 @@ module.exports = withSentryConfig(nextConfig, {
   project: "vendet-venezuela",
   authToken: process.env.SENTRY_AUTH_TOKEN,
   silent: true,
-
+  hideSourceMaps: true,
+  widenClientFileUpload: true,
   sourcemaps: {
     deleteSourcemapsAfterUpload: true,
   },
