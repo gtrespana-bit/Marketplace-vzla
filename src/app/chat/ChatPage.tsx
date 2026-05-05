@@ -136,12 +136,13 @@ export default function ChatPageClient() {
       // 3. Si soy el dueño del producto = vendedor, no aplica
       if (user.id === prod.user_id) return
 
-      // 4. Verificar si ya existe reseña del comprador hacia el vendedor
+      // 4. Verificar si ya existe reseña del comprador hacia el vendedor PARA ESTE PRODUCTO
       const { data: res } = await supabase
         .from('resenas')
         .select('id', { count: 'exact', head: true })
         .eq('comprador_id', user.id)
         .eq('vendedor_id', prod.user_id)
+        .eq('producto_id', conv.producto_id)
       setYaDejoResena((res?.length ?? 0) > 0)
     }
     load()
