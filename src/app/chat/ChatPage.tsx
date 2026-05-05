@@ -114,19 +114,20 @@ export default function ChatPageClient() {
     if (!convId || !user) return
     setProductoOwnerId(null)
     setYaDejoResena(false)
+    console.log('[REVIEW-STATUS] checking convId:', convId, 'user:', user.id)
 
-    // Un solo POST al server (service_role, sin RLS) en vez de 3 queries separadas
     fetch('/api/chat/review-status', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ convId, userId: user.id }),
     })
-    .then(r => r.json())
-    .then(data => {
+    .then(async r => {
+      const data = await r.json()
+      console.log('[REVIEW-STATUS] response:', JSON.stringify(data))
       setProductoOwnerId(data.productoOwnerId)
       setYaDejoResena(data.yaDejoResena)
     })
-    .catch(() => {})
+    .catch(err => console.error('[REVIEW-STATUS] error:', err))
   }, [convId, user])
 
   // ─── Cargar conversaciones ───
@@ -584,6 +585,7 @@ export default function ChatPageClient() {
                     )
                   })}
                   {/* Boton reseña comprador */}
+                  {console.log('[BUTTON-CHECK] user:', user?.id, 'productoOwnerId:', productoOwnerId, 'yaDejoResena:', yaDejoResena)}
                   {user && productoOwnerId && user.id !== productoOwnerId && !yaDejoResena && (
                     <div className="flex justify-center">
                       <button
