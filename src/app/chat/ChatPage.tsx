@@ -64,7 +64,16 @@ export default function ChatPageClient() {
   const productoId = searchParams?.get('producto_id')
   const vendedorId = searchParams?.get('vendedor_id')
 
-  const [conversaciones, setConversaciones] = useState<Conversacion[]>([])
+  const [conversaciones, setConversaciones] = useState<Conversacion[]>(() => {
+    // Restore cached conversations for instant render
+    if (typeof window !== 'undefined') {
+      try {
+        const cached = sessionStorage.getItem('vendete_chat_convs')
+        if (cached) return JSON.parse(cached)
+      } catch {}
+    }
+    return []
+  })
   const [convId, setConvId] = useState<string | null>(null)
   const [mensajes, setMensajes] = useState<Mensaje[]>([])
   const [texto, setTexto] = useState('')
@@ -134,7 +143,7 @@ export default function ChatPageClient() {
   // ─── Cargar conversaciones ───
   const loadConversaciones = useCallback(async () => {
     const uid = userRef.current?.id
-    if (!uid) return
+    if (!uid) { loadingRef.current = false; return }
 
     const { data: convs, error } = await supabase
       .from('conversaciones')
@@ -200,6 +209,11 @@ export default function ChatPageClient() {
 
     setConversaciones(enriched)
 
+    // Cache en sessionStorage para carga instantánea la próxima vez
+    try {
+      sessionStorage.setItem('vendete_chat_convs', JSON.stringify(enriched))
+    } catch {}
+
     // If URL has producto_id + vendedor_id, try to find or create conv
     if (productoId && vendedorId && vendedorId !== uid) {
       const match = enriched.find(c =>
@@ -257,11 +271,11 @@ export default function ChatPageClient() {
     setMensajes(data || [])
   }, [])
 
-  // Poll for new messages every 3 seconds when conversation is open
+  // Poll for new messages every 1.5 seconds when conversation is open
   useEffect(() => {
     if (!convId) return
     loadMensajes(convId)
-    const interval = setInterval(() => loadMensajes(convId), 3000)
+    const interval = setInterval(() => loadMensajes(convId), 1500)
     return () => clearInterval(interval)
   }, [convId, loadMensajes])
 
