@@ -115,37 +115,18 @@ export default function ChatPageClient() {
     setProductoOwnerId(null)
     setYaDejoResena(false)
 
-    const load = async () => {
-      // 1. Obtener producto_id de la conversacion directamente de DB (race-condition fix PWA)
-      const { data: conv } = await supabase
-        .from('conversaciones')
-        .select('producto_id')
-        .eq('id', convId)
-        .single()
-      if (!conv || !conv.producto_id) return
-
-      // 2. Obtener owner del producto
-      const { data: prod } = await supabase
-        .from('productos')
-        .select('user_id')
-        .eq('id', conv.producto_id)
-        .single()
-      if (!prod) return
-      setProductoOwnerId(prod.user_id)
-
-      // 3. Si soy el dueño del producto = vendedor, no aplica
-      if (user.id === prod.user_id) return
-
-      // 4. Verificar si ya existe reseña del comprador hacia el vendedor PARA ESTE PRODUCTO
-      const { data: res } = await supabase
-        .from('resenas')
-        .select('id', { count: 'exact', head: true })
-        .eq('comprador_id', user.id)
-        .eq('vendedor_id', prod.user_id)
-        .eq('producto_id', conv.producto_id)
-      setYaDejoResena((res?.length ?? 0) > 0)
-    }
-    load()
+    // Un solo POST al server (service_role, sin RLS) en vez de 3 queries separadas
+    fetch('/api/chat/review-status', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ convId, userId: user.id }),
+    })
+    .then(r => r.json())
+    .then(data => {
+      setProductoOwnerId(data.productoOwnerId)
+      setYaDejoResena(data.yaDejoResena)
+    })
+    .catch(() => {})
   }, [convId, user])
 
   // ─── Cargar conversaciones ───
