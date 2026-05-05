@@ -83,7 +83,7 @@ export default function PublicarPage() {
 
   const camposEspeciales = sub?.campos.map(c => ({
     ...c,
-    options: c.label === 'Ano' ? years : (c.options || []),
+    options: (c.label === 'Año' || c.label === 'Ano') ? years : (c.label.toLowerCase().includes('marca') ? [...(c.options || []), 'Otra marca'] : c.options || []),
   })) || []
 
   const handleCatChange = (val: string) => {
@@ -247,7 +247,7 @@ export default function PublicarPage() {
           descripcion,
           categoria_id: catData?.id || null,
           subcategoria,
-          marca: marca || null,
+          marca: marca.replace('otra:', '').trim() || null,
           estado: estadoProd,
           precio_usd: parseFloat(precioUsd) || null,
           ubicacion_estado: ubicacionEstado,
@@ -398,8 +398,20 @@ export default function PublicarPage() {
                 {subcategoria && sub?.marcas.length && sub.marcas.length > 0 && (
                   <div>
                     <label className="block text-sm font-semibold text-gray-900 mb-1.5">Marca</label>
-                    <input type="text" value={marca} onChange={e => setMarca(e.target.value)} placeholder="Escribe la marca..." list={`pub-${categoria}-marcas`} className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-800 bg-white" />
-                    <datalist id={`pub-${categoria}-marcas`}>{sub.marcas.map(m => <option key={m} value={m} />)}</datalist>
+                    <select value={marca.startsWith('otra:') ? 'otra:' : marca} onChange={e => setMarca(e.target.value === 'otra:' ? '' : e.target.value)} className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-800 bg-white">
+                      <option value="">Seleccionar marca...</option>
+                      {sub.marcas.map(m => <option key={m} value={m}>{m}</option>)}
+                      <option value="otra:">Otra (no está en la lista)</option>
+                    </select>
+                    {marca.startsWith('otra:') && (
+                      <input
+                        type="text"
+                        value={marca.replace('otra:', '')}
+                        onChange={e => setMarca('otra:' + e.target.value)}
+                        placeholder="Escribe la marca..."
+                        className="mt-2 w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-800 bg-white"
+                      />
+                    )}
                   </div>
                 )}
               </>
@@ -423,19 +435,35 @@ export default function PublicarPage() {
             {camposEspeciales.length > 0 && (
               <div className="bg-gray-50 rounded-xl p-5 space-y-4 border border-gray-200">
                 <h3 className="font-bold text-gray-900">Especificaciones — {subcategoria}</h3>
-                {camposEspeciales.map(campo => (
+                {camposEspeciales.map(campo => {
+                  const val = specs[campo.label] || ''
+                  const esOtra = val.startsWith('otra:')
+                  return (
                   <div key={campo.label}>
                     <label className="block text-sm font-semibold text-gray-900 mb-1.5">{campo.label}</label>
                     {campo.type === 'select' ? (
-                      <select value={specs[campo.label] || ''} onChange={e => handleSpecChange(campo.label, e.target.value)} className="w-full border border-gray-300 rounded-lg px-4 py-3 bg-white text-gray-800">
-                        <option value="">{campo.placeholder}</option>
-                        {campo.options?.map(o => <option key={o} value={o}>{o}</option>)}
-                      </select>
+                      <>
+                        <select value={esOtra ? 'otra:' : val} onChange={e => handleSpecChange(campo.label, e.target.value === 'otra:' ? '' : e.target.value)} className="w-full border border-gray-300 rounded-lg px-4 py-3 bg-white text-gray-800">
+                          <option value="">{campo.placeholder}</option>
+                          {campo.options?.map(o => <option key={o} value={o}>{o}</option>)}
+                          {campo.label.toLowerCase().includes('marca') && <option value="otra:">Otra (no está en la lista)</option>}
+                        </select>
+                        {esOtra && (
+                          <input
+                            type="text"
+                            value={val.replace('otra:', '')}
+                            onChange={e => handleSpecChange(campo.label, 'otra:' + e.target.value)}
+                            placeholder={`Escribe ${campo.label.toLowerCase()}...`}
+                            className="mt-2 w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-800 bg-white"
+                          />
+                        )}
+                      </>
                     ) : (
-                      <input type={campo.type} value={specs[campo.label] || ''} onChange={e => handleSpecChange(campo.label, e.target.value)} placeholder={campo.placeholder} className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-800 bg-white" />
+                      <input type={campo.type} value={val} onChange={e => handleSpecChange(campo.label, e.target.value)} placeholder={campo.placeholder} className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-800 bg-white" />
                     )}
                   </div>
-                ))}
+                  )
+                })}
               </div>
             )}
 
@@ -610,7 +638,7 @@ export default function PublicarPage() {
               <h3 className="text-lg font-bold text-gray-900">{titulo}</h3>
               <div className="space-y-1 text-sm">
                 <p><span className="text-gray-500">Categoria:</span> {categoria} → {subcategoria}</p>
-                {marca && <p><span className="text-gray-500">Marca:</span> {marca}</p>}
+                {marca && <p><span className="text-gray-500">Marca:</span> {marca.replace('otra:', '').trim()}</p>}
                 {Object.entries(specs).filter(([,v]) => v).map(([k,v]) => <p key={k}><span className="text-gray-500">{k}:</span> {v}</p>)}
                 <p><span className="text-gray-500">Estado:</span> {estadoProd}</p>
                 <p><span className="text-gray-500">Precio:</span> <strong className="text-brand-primary text-lg">${precioUsd}</strong></p>
