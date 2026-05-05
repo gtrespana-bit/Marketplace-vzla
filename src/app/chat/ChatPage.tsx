@@ -81,8 +81,8 @@ export default function ChatPageClient() {
   const [busqueda, setBusqueda] = useState('')
   const [showMobileChat, setShowMobileChat] = useState(false)
   const [enviando, setEnviando] = useState(false)
+  const [loadingConvs, setLoadingConvs] = useState(true)
   const [toastMsg, setToastMsg] = useState<string | null>(null)
-  const bcRef = useRef<BroadcastChannel | null>(null)
 
   const mensajesEndRef = useRef<HTMLDivElement>(null)
   const chatContainerRef = useRef<HTMLDivElement>(null)
@@ -256,7 +256,8 @@ export default function ChatPageClient() {
   useEffect(() => {
     if (authLoading || !user) return
     loadingRef.current = true
-    loadConversaciones().then(() => { loadingRef.current = false })
+    setLoadingConvs(true)
+    loadConversaciones().then(() => { loadingRef.current = false; setLoadingConvs(false) })
   }, [user, authLoading, loadConversaciones])
 
   // ─── Cargar mensajes ───
@@ -271,11 +272,11 @@ export default function ChatPageClient() {
     setMensajes(data || [])
   }, [])
 
-  // Poll for new messages every 1.5 seconds when conversation is open
+  // Poll for new messages every 5s (redundant with Supabase realtime but acts as fallback)
   useEffect(() => {
     if (!convId) return
     loadMensajes(convId)
-    const interval = setInterval(() => loadMensajes(convId), 1500)
+    const interval = setInterval(() => loadMensajes(convId), 5000)
     return () => clearInterval(interval)
   }, [convId, loadMensajes])
 
@@ -488,7 +489,19 @@ export default function ChatPageClient() {
             </div>
 
             <div className="flex-1 overflow-y-auto">
-              {filtradas.length === 0 ? (
+              {loadingConvs && conversaciones.length === 0 ? (
+                <div className="p-4 space-y-4 animate-pulse">
+                  {[1, 2, 3, 4, 5].map(i => (
+                    <div key={i} className="flex items-start gap-3">
+                      <div className="w-10 h-10 rounded-full bg-gray-200 flex-shrink-0" />
+                      <div className="flex-1 space-y-2">
+                        <div className="h-4 bg-gray-200 rounded w-3/4" />
+                        <div className="h-3 bg-gray-100 rounded w-1/2" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : filtradas.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full px-6 text-center">
                   <User size={48} className="text-gray-300 mb-3" />
                   <p className="text-gray-500 font-medium">{conversaciones.length === 0 ? 'No hay conversaciones' : 'Sin resultados'}</p>

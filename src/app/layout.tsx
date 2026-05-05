@@ -4,9 +4,12 @@ import './globals.css'
 import { Header } from '@/components/Header'
 import { Footer } from '@/components/Footer'
 import { AuthProvider } from '@/components/AuthProvider'
-import PWAInstallBanner from '@/components/PWAInstallBanner'
-import PushNotificationBanner from '@/components/PushNotificationBanner'
+import dynamic from 'next/dynamic'
 import BottomTabNav from '@/components/BottomTabNav'
+
+// Lazy-load banners - no impact on TTI
+const PWAInstallBanner = dynamic(() => import('@/components/PWAInstallBanner'), { ssr: false })
+const PushNotificationBanner = dynamic(() => import('@/components/PushNotificationBanner'), { ssr: false })
 
 const inter = Inter({
   subsets: ['latin'],
@@ -37,7 +40,7 @@ export const metadata: Metadata = {
     type: 'website',
     images: [
       {
-        url: '/og-image.png',
+        url: '/og-image.webp',
         width: 1200,
         height: 630,
         alt: 'VendeT-Venezuela — Compra y Venta en Venezuela',
