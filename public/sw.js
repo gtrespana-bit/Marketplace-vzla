@@ -1,5 +1,5 @@
 /* Service Worker — VendeT PWA */
-const CACHE_NAME = 'vendet-v2'
+const CACHE_NAME = 'vendet-v3-ga4'
 const STATIC_ASSETS = [
   '/',
   '/offline',
