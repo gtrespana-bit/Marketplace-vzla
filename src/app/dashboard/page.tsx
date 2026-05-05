@@ -119,14 +119,23 @@ export default function DashboardPage() {
     const file = e.target.files?.[0]
     if (!file || !user || !file.type.startsWith('image/')) return
     if (file.size > 2 * 1024 * 1024) { data.setToast('La imagen debe ser menor a 2MB'); return }
-    const ext = file.name.split('.').pop() || 'jpg'
-    const filePath = `${user.id}/avatar.${ext}`
-    const { error: uploadErr } = await supabase.storage.from('foto_perfil').upload(filePath, file, { upsert: true, cacheControl: '3600' })
-    if (uploadErr) { data.setToast('Error subiendo foto: ' + uploadErr.message); return }
-    const { data: urlData } = supabase.storage.from('foto_perfil').getPublicUrl(filePath)
-    const publicUrl = urlData.publicUrl
-    await supabase.from('perfiles').update({ foto_perfil_url: publicUrl }).eq('id', user.id)
-    data.setFotoUrl(publicUrl)
+
+    const formData = new FormData()
+    formData.append('file', file)
+    formData.append('userId', user.id)
+
+    const res = await fetch('/api/foto-perfil', {
+      method: 'POST',
+      body: formData,
+    })
+    const json = await res.json()
+
+    if (!res.ok) {
+      data.setToast('Error subiendo foto: ' + json.error)
+      return
+    }
+
+    data.setFotoUrl(json.url)
   }
 
   async function handleLogout() {
