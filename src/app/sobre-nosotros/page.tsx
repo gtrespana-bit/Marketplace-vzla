@@ -1,73 +1,72 @@
-import type { Metadata } from 'next'
-
-export const metadata: Metadata = {
-  title: 'Sobre Nosotros — VendeT-Venezuela',
-  description: 'Conoce la historia detrás de VendeT-Venezuela, el marketplace hecho para Venezuela',
-}
+import Link from 'next/link'
 
 export default function SobreNosotrosPage() {
   return (
-    <div className="max-w-3xl mx-auto px-4 py-12">
-      <h1 className="text-4xl font-black text-gray-800 mb-2 text-center">Sobre VendeT-Venezuela</h1>
-      <p className="text-center text-gray-500 mb-12 max-w-lg mx-auto">
-        Nació de una necesidad real: no había un buen lugar donde comprar y vender en Venezuela.
-      </p>
+    <div className="min-h-screen bg-gray-50">
+      {/* Hero */}
+      <div className="bg-gradient-to-r from-brand-primary to-brand-dark text-white py-16 px-4">
+        <div className="max-w-3xl mx-auto text-center">
+          <h1 className="text-4xl md:text-5xl font-black mb-4">Sobre VendeT</h1>
+          <p className="text-xl text-white/80">El marketplace hecho para Venezuela.</p>
+        </div>
+      </div>
 
-      <div className="space-y-10">
-        <section className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">🇻🇪 La historia</h2>
+      {/* Contenido */}
+      <div className="max-w-3xl mx-auto px-4 py-12 space-y-10">
+        {/* Quiénes somos */}
+        <section>
+          <h2 className="text-2xl font-black text-gray-900 mb-4">Quiénes somos</h2>
           <p className="text-gray-600 leading-relaxed">
-            Venezuela es un país de emprendedores. En cada ciudad, en cada pueblo, alguien tiene algo para vender. Pero las opciones eran limitadas: Facebook Marketplace sin filtros, grupos de WhatsApp que se llenan de spam, o plataformas diseñadas para otros mercados.
-          </p>
-          <p className="text-gray-600 leading-relaxed mt-4">
-            Así nació VendeT-Venezuela: un marketplace pensado desde y para Venezuela. Con búsqueda en dólares sin intermediarios complicados. Con WhatsApp, porque aquí todos lo usan. Y con un diseño que funciona bien aunque tu internet no sea el mejor.
+            VendeT es un marketplace diseñado específicamente para el venezolano. Nació de la necesidad de una plataforma
+            donde comprar y vender sea fácil, directo y sin complicaciones. Creemos que el comercio local merece herramientas
+            modernas que no dependan de intermediarios que cobren comisiones abusivas.
           </p>
         </section>
 
-        <section className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">🎯 Nuestra misión</h2>
+        {/* Nuestra misión */}
+        <section>
+          <h2 className="text-2xl font-black text-gray-900 mb-4">Nuestra misión</h2>
           <p className="text-gray-600 leading-relaxed">
-            Hacer que comprar y vender en Venezuela sea fácil, gratuito y confiable. Queremos que cualquier persona pueda publicar un producto en minutos y que cualquier comprador pueda encontrar lo que necesita sin perder tiempo.
+            Facilitar el comercio entre venezolanos. Queremos que cualquier persona pueda publicar lo que vende y encontrar
+            compradores en su ciudad de forma rápida, segura y sin costos escondidos. Sin intermediarios, sin comisiones
+            por venta, sin letra pequeña.
           </p>
         </section>
 
-        <section className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">💡 Lo que nos diferencia</h2>
+        {/* Por qué VendeT */}
+        <section>
+          <h2 className="text-2xl font-black text-gray-900 mb-4">¿Por qué VendeT?</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {[
-              { icon: '🆓', titulo: 'Siempre gratis para publicar', desc: 'Sin límites, sin letras pequeñas' },
-              { icon: '💵', titulo: 'Precios en dólares', desc: 'La moneda real que se usa en el día a día' },
-              { icon: '💚', titulo: 'WhatsApp integrado', desc: 'Contacta directo, sin intermediarios' },
-              { icon: '📱', titulo: 'Optimizado para móviles', desc: 'Funciona bien con datos y conexiones lentas' },
-              { icon: '⭐', titulo: 'Destacados accesibles', desc: 'Sistema de créditos simple y económico' },
-              { icon: '🇻🇪', titulo: '100% Venezuela', desc: 'Pensado para el mercado venezolano, de punta a punta' },
-            ].map((item) => (
-              <div key={item.titulo} className="flex gap-3 p-4 bg-gray-50 rounded-xl">
-                <span className="text-2xl">{item.icon}</span>
-                <div>
-                  <h3 className="font-semibold text-gray-800">{item.titulo}</h3>
-                  <p className="text-sm text-gray-500">{item.desc}</p>
-                </div>
+              { titulo: 'Sin comisiones', desc: 'El precio que pones es el que recibes. No tocamos tu dinero.' },
+              { titulo: 'Contacto directo', desc: 'Chat interno para que acuerdes todo sin salir de la plataforma.' },
+              { titulo: 'Todo Venezuela', desc: 'Desde Maracaibo hasta Caracas, tu anuncio llega a toda Venezuela.' },
+              { titulo: 'Publica gratis', desc: '1 crédito gratis al registrarte. Sin tarjeta de crédito.' },
+            ].map((item, i) => (
+              <div key={i} className="bg-white rounded-xl p-5 border border-gray-100 shadow-sm">
+                <h3 className="font-bold text-gray-900 mb-1">{item.titulo}</h3>
+                <p className="text-gray-600 text-sm">{item.desc}</p>
               </div>
             ))}
           </div>
         </section>
 
-        <section className="bg-brand-accent rounded-2xl p-8 text-center">
-          <h2 className="text-2xl font-bold text-brand-primary mb-4">¿Quieres ser parte?</h2>
-          <p className="text-brand-primary/80 max-w-md mx-auto mb-6">
-            Estamos construyendo algo grande. Únete como usuario early adopter o escríbenos si quieres colaborar.
-          </p>
-          <div className="flex flex-wrap justify-center gap-3">
-            <a href="/register" className="bg-brand-primary text-white px-8 py-3 rounded-lg font-bold hover:bg-brand-dark transition">
-              Regístrate
-            </a>
-            <a href="/contacto" className="border border-brand-primary text-brand-primary px-8 py-3 rounded-lg font-bold hover:bg-brand-accent/50 transition">
-              Contáctanos
-            </a>
+        {/* CTA */}
+        <section className="bg-white rounded-xl p-8 border border-gray-100 text-center shadow-sm">
+          <h2 className="text-2xl font-black text-gray-900 mb-3">¿Listo para empezar?</h2>
+          <p className="text-gray-600 mb-6">Únete a miles de venezolanos que ya compran y venden en VendeT.</p>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <Link href="/register" className="bg-brand-accent text-brand-primary px-8 py-3 rounded-lg font-bold hover:bg-accent/90 transition inline-block">
+              Crear mi cuenta gratis
+            </Link>
+            <Link href="/catalogo" className="bg-white border-2 border-brand-primary text-brand-primary px-8 py-3 rounded-lg font-bold hover:bg-brand-primary hover:text-white transition inline-block">
+              Ver anuncios
+            </Link>
           </div>
         </section>
       </div>
+
+      <div className="h-8" />
     </div>
   )
 }

@@ -25,7 +25,7 @@ export function Footer() {
           <div>
             <h3 className="text-white font-bold mb-3">Información</h3>
             <ul className="space-y-2 text-sm">
-              {[['Cómo funciona', '/como-funciona'], ['Créditos', '/creditos'], ['FAQ', '/faq'], ['Contacto', '/contacto']].map(([l, p]) => (
+              {[['Cómo funciona', '/como-funciona'], ['Sobre nosotros', '/sobre-nosotros'], ['Créditos', '/creditos'], ['FAQ', '/faq'], ['Contacto', '/contacto']].map(([l, p]) => (
                 <li key={p}><Link href={p} className="hover:text-brand-accent transition">{l}</Link></li>
               ))}
             </ul>
