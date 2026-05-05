@@ -230,3 +230,10 @@
 - Tipografía: Inter variable
 - Formato de precios: `$X.XXX` (USD) + Bs. con tasa BCV
 - PWA: standalone, theme-color `#7B2D3B`, black-translucent status bar
+
+## Reglas de Trabajo (desde 2026-05-05)
+- **NO push a `main` sin aprobación explícita de Ruben**
+- **Todo se prueba localmente primero** — build + verificación visual antes de cualquier push
+- **Branch separado para features** — crear rama para staging si se necesita
+- **Siempre commitear antes de push** — no dejar working tree dirty
+- **Respectar la estructura actual** — no refactorizar sin consultar
