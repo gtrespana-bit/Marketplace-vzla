@@ -83,6 +83,7 @@ export default function ChatPageClient() {
   const [enviando, setEnviando] = useState(false)
   const [loadingConvs, setLoadingConvs] = useState(true)
   const [toastMsg, setToastMsg] = useState<string | null>(null)
+  const bcRef = useRef<BroadcastChannel | null>(null)
 
   const mensajesEndRef = useRef<HTMLDivElement>(null)
   const chatContainerRef = useRef<HTMLDivElement>(null)
