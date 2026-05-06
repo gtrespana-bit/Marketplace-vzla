@@ -67,7 +67,7 @@ function usePushNotification() {
       // 3. Subscribe to push
       const subscription = await reg.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC),
+        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC) as BufferSource,
       })
       console.log('[Push] Step 4: Subscribed, endpoint =', subscription.endpoint)
 

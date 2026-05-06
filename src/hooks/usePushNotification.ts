@@ -43,7 +43,7 @@ export function usePushNotification() {
       if (!vapidKey) throw new Error('VAPID public key not configured')
       const subscription = await reg.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(vapidKey),
+        applicationServerKey: urlBase64ToUint8Array(vapidKey) as BufferSource,
       })
 
       // 4. Send to backend
