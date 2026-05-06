@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import { NextRequest, NextResponse } from 'next/server'
+import { notifyUser } from '@/lib/push-notify'
 
 export async function POST(request: NextRequest) {
   try {
@@ -28,6 +29,17 @@ export async function POST(request: NextRequest) {
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
+
+    // Push notification
+    await notifyUser(supabaseAdmin, userId, {
+      title: verificado ? '✅ Perfil verificado' : '❌ Verificación revocada',
+      body: verificado
+        ? 'Tu perfil ya está verificado en VendeT.'
+        : 'Tu perfil ya no está verificado en VendeT.',
+      tag: verificado ? 'verified' : 'verified-revoked',
+      icon: '/icon-192.png',
+      click_url: '/dashboard',
+    })
 
     return NextResponse.json({ ok: true })
   } catch (err: any) {

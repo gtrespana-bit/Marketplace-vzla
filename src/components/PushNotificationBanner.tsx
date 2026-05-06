@@ -53,10 +53,11 @@ function usePushNotification() {
       const permission = await Notification.requestPermission()
       console.log('[Push] Step 2: Permission =', permission)
 
-      // On iOS PWA, permission may return 'default' even after user grants.
-      // If pushManager gives us a subscription, consider it granted.
-      if (permission !== 'granted' && permission !== 'default') {
-        setError('Permiso no concedido')
+      // Chrome requires explicit 'granted'. On iOS PWA, it can return
+      // 'default' even when granted at system level, so we handle it there
+      // by checking existing subscriptions. Here we need the real 'granted'.
+      if (permission !== 'granted') {
+        setError('No se concedió el permiso de notificaciones. Actívalo manualmente en la configuración del sitio.')
         return false
       }
 

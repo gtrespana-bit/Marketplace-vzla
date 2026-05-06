@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import { NextRequest, NextResponse } from 'next/server'
+import { notifyUser } from '@/lib/push-notify'
 
 export async function POST(request: NextRequest) {
   try {
@@ -10,7 +11,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'userId requerido' }, { status: 400 })
     }
 
-    // Service client para saltar RLS
     const supabaseAdmin = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -28,6 +28,15 @@ export async function POST(request: NextRequest) {
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
+
+    // Push notification al usuario verificado
+    await notifyUser(supabaseAdmin, userId, {
+      title: '✅ Perfil verificado',
+      body: 'Tu perfil ya está verificado en VendeT. Ahora tienes acceso a todas las funciones.',
+      tag: 'verified',
+      icon: '/icon-192.png',
+      click_url: '/dashboard',
+    })
 
     return NextResponse.json({ ok: true })
   } catch (err: any) {

@@ -603,6 +603,19 @@ Transacción procesada correctamente.`
             body: JSON.stringify({ userId, cantidad: monto }),
           }).catch(() => {})
         } catch {}
+        // PUSH: Notificar al usuario
+        try {
+          fetch('/api/push/send', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              targetUserId: userId,
+              titulo: '💰 Créditos recibidos',
+              cuerpo: `Se aprobaron ${monto} créditos en tu cuenta VendeT.`,
+              click_url: '/creditos',
+            }),
+          }).catch(() => {})
+        } catch {}
       }
       await cargar()
     }

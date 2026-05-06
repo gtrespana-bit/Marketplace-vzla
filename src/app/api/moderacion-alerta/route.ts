@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { verificarContenido, formatearAlertaModeracion } from '@/lib/moderacion'
+import { createClient } from '@supabase/supabase-js'
+import { notifyUser } from '@/lib/push-notify'
 
 /**
  * POST /api/moderacion-alerta
@@ -33,6 +35,30 @@ export async function POST(req: NextRequest) {
     chat_id: CHAT_ID,
     text: texto,
     parse_mode: 'HTML',
+  }
+
+  // Push notification to admin user
+  const sb = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  )
+
+  const { data: adminProfile } = await sb
+    .from('perfiles')
+    .select('id')
+    .eq('rol', 'admin')
+    .single()
+
+  if (adminProfile) {
+    try {
+      await notifyUser(sb, adminProfile.id, {
+        title: '🚨 Alerta de moderación',
+        body: `${nivel.toUpperCase()}: ${titulo} — ${userName || 'Anónimo'}`,
+        tag: `mod-${nivel}`,
+        icon: '/icon-192.png',
+        click_url: '/admin',
+      })
+    } catch {}
   }
 
   try {

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { emailCreditosAgregados } from '@/lib/server-email'
 import { createClient } from '@supabase/supabase-js'
+import { notifyUser } from '@/lib/push-notify'
 
 // POST /api/email-creditos — send credit added notification
 export async function POST(req: NextRequest) {
@@ -15,6 +16,16 @@ export async function POST(req: NextRequest) {
 
     const nombre = user.email.split('@')[0]
     await emailCreditosAgregados(user.email, nombre, cantidad, balanceTotal ?? cantidad)
+
+    // Push notification
+    await notifyUser(sb, userId, {
+      title: '💰 Créditos recibidos',
+      body: `${cantidad} créditos fueron agregados a tu cuenta. Balance total: ${balanceTotal ?? cantidad}.`,
+      tag: 'creditos-email',
+      icon: '/icon-192.png',
+      click_url: '/creditos',
+    })
+
     return NextResponse.json({ ok: true })
   } catch (e: any) {
     return NextResponse.json({ ok: false, error: e.message }, { status: 500 })

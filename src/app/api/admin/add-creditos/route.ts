@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import { NextRequest, NextResponse } from 'next/server'
+import { notifyUser } from '@/lib/push-notify'
 
 export async function POST(request: NextRequest) {
   try {
@@ -39,6 +40,15 @@ export async function POST(request: NextRequest) {
         motivo_registro: motivo || 'Manual admin',
       })
     if (err2) throw err2
+
+    // Push notification: créditos recibidos
+    await notifyUser(supabaseAdmin, userId, {
+      title: '💰 Créditos recibidos',
+      body: `Recibiste ${cantidad} ${parseInt(cantidad) === 1 ? 'crédito' : 'créditos'} en tu cuenta VendeT. Nuevo balance: ${nuevoBalance}.`,
+      tag: 'creditos',
+      icon: '/icon-192.png',
+      click_url: '/creditos',
+    })
 
     return NextResponse.json({ ok: true, nuevoBalance })
   } catch (err: any) {

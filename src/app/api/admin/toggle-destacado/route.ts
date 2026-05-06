@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import { NextRequest, NextResponse } from 'next/server'
+import { notifyUser } from '@/lib/push-notify'
 
 export async function POST(request: NextRequest) {
   try {
@@ -15,6 +16,13 @@ export async function POST(request: NextRequest) {
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     )
 
+    // Get product owner before updating
+    const { data: product } = await supabaseAdmin
+      .from('productos')
+      .select('user_id, titulo, slug')
+      .eq('id', productId)
+      .single()
+
     const update: any = { destacado }
     if (destacado) {
       update.destacado_hasta = new Date(Date.now() + 48 * 3600000).toISOString()
@@ -29,6 +37,17 @@ export async function POST(request: NextRequest) {
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 })
+    }
+
+    // Push notification to product owner
+    if (product?.user_id && destacado) {
+      await notifyUser(supabaseAdmin, product.user_id, {
+        title: '⭐ Producto destacado',
+        body: `"${product.titulo}" ahora está destacado y llegará a más compradores.`,
+        tag: 'destacado',
+        icon: '/icon-192.png',
+        click_url: `/producto/${product.slug || productId}`,
+      })
     }
 
     return NextResponse.json({ ok: true, update })

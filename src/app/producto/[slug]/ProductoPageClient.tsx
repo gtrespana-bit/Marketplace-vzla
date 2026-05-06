@@ -128,12 +128,31 @@ export default function ProductoPageClient({ initialProduct }: ProductoPageClien
     if (!user) { router.push(`/login?redirect=/producto/${slug}`); return }
     if (toggleandoFav) return
     setToggleandoFav(true)
-    if (esFavorito) {
-      await supabase.from('favoritos').delete().eq('user_id', user.id).eq('producto_id', producto.id)
-      setEsFavorito(false)
-    } else {
-      await supabase.from('favoritos').insert({ user_id: user.id, producto_id: producto.id })
-      setEsFavorito(true)
+    try {
+      const res = await fetch('/api/favorito/toggle', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+        },
+        body: JSON.stringify({
+          productId: producto.id,
+          isFavorited: esFavorito, // true = remove, false = add
+          productoTitle: producto.titulo,
+        }),
+      })
+      const data = await res.json()
+      if (data.action === 'removed') setEsFavorito(false)
+      else if (data.action === 'added') setEsFavorito(true)
+    } catch (e) {
+      // Fallback to direct supabase if API fails
+      if (esFavorito) {
+        await supabase.from('favoritos').delete().eq('user_id', user.id).eq('producto_id', producto.id)
+        setEsFavorito(false)
+      } else {
+        await supabase.from('favoritos').insert({ user_id: user.id, producto_id: producto.id })
+        setEsFavorito(true)
+      }
     }
     setToggleandoFav(false)
   }
