@@ -15,31 +15,71 @@ function usePushNotification() {
   const { user } = useAuth()
   const [enabled, setEnabled] = useState(false)
   const [supported, setSupported] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     if (typeof window === 'undefined') return
     const swReady = 'serviceWorker' in navigator && 'PushManager' in window
     setSupported(swReady && 'Notification' in window)
     if (swReady) {
-      setEnabled(Notification.permission === 'granted')
+      // On iOS PWA, Notification.permission can be 'default' even when
+      // the user already granted it at the system level. Check for an
+      // existing push subscription as ground truth.
+      if (Notification.permission === 'granted') {
+        setEnabled(true)
+      } else {
+        navigator.serviceWorker.ready.then(async (reg) => {
+          const existing = await reg.pushManager.getSubscription()
+          if (existing) setEnabled(true)
+        }).catch(() => {})
+      }
     }
   }, [])
 
   async function enable() {
     if (!supported || !user) return false
     try {
-      const permission = await Notification.requestPermission()
-      if (permission !== 'granted') return false
+      setLoading(true)
+      console.log('[Push] Step 1: Checking config...')
+      setError(null)
 
+      if (!VAPID_PUBLIC) {
+        setError('Config: VAPID key no configurada')
+        return false
+      }
+
+      // 1. Request permission
+      const permission = await Notification.requestPermission()
+      console.log('[Push] Step 2: Permission =', permission)
+
+      // On iOS PWA, permission may return 'default' even after user grants.
+      // If pushManager gives us a subscription, consider it granted.
+      if (permission !== 'granted' && permission !== 'default') {
+        setError('Permiso no concedido')
+        return false
+      }
+
+      // 2. Get service worker registration
       const reg = await navigator.serviceWorker.ready
+      console.log('[Push] Step 3: SW ready, scope =', reg.scope)
+
+      // 3. Subscribe to push
       const subscription = await reg.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC),
       })
+      console.log('[Push] Step 4: Subscribed, endpoint =', subscription.endpoint)
 
+      // 4. Check session
       const { data } = await supabase.auth.getSession()
-      if (!data.session) return false
+      console.log('[Push] Step 5: Session =', data.session ? 'OK' : 'NO SESSION')
+      if (!data.session) {
+        setError('Sesión: inicia sesión de nuevo')
+        return false
+      }
 
+      // 5. Send to backend
       const res = await fetch('/api/push-subscribe', {
         method: 'POST',
         headers: {
@@ -48,17 +88,28 @@ function usePushNotification() {
         },
         body: JSON.stringify({ subscription }),
       })
+      console.log('[Push] Step 6: Response =', res.status)
 
-      if (!res.ok) return false
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}))
+        setError(`Error: ${body.error || 'HTTP ' + res.status}`)
+        return false
+      }
+
       setEnabled(true)
+      setError(null)
       return true
-    } catch (e) {
-      console.error('Push enable error:', e)
+    } catch (e: any) {
+      console.error('[Push] Error:', e)
+      const msg = e?.message || String(e)
+      setError(msg.length > 100 ? msg.slice(0, 100) + '…' : msg)
       return false
+    } finally {
+      setLoading(false)
     }
   }
 
-  return { enabled, supported, enable }
+  return { enabled, supported, enable, loading, error }
 }
 
 function urlBase64ToUint8Array(base64: string) {
@@ -70,7 +121,7 @@ function urlBase64ToUint8Array(base64: string) {
 
 export default function PushNotificationBanner() {
   const { user } = useAuth()
-  const { supported, enabled, enable } = usePushNotification()
+  const { supported, enabled, enable, loading, error } = usePushNotification()
   const [visible, setVisible] = useState(false)
 
   useEffect(() => {
@@ -123,11 +174,17 @@ export default function PushNotificationBanner() {
 
             <button
               onClick={handleEnable}
-              className="w-full bg-brand-primary text-white py-2.5 rounded-xl font-bold text-sm hover:bg-brand-dark transition flex items-center justify-center gap-2"
+              disabled={loading}
+              className="w-full bg-brand-primary text-white py-2.5 rounded-xl font-bold text-sm hover:bg-brand-dark transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Bell size={14} />
-              Activar notificaciones
+              {loading ? 'Activando...' : 'Activar notificaciones'}
             </button>
+
+            {error && (
+              <p className="text-xs text-red-500 mt-2 text-center">{error}</p>
+            )}
+
             <p className="text-[10px] text-gray-400 text-center mt-2">
               Puedes desactivarlas cuando quieras
             </p>
