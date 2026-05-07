@@ -36,7 +36,7 @@ export default function OfflinePage() {
           </Link>
         </div>
 
-        <p className="mt-8 text-xs text-gray-400">🇻🇪 VendeT-Venezuela</p>
+        <p className="mt-8 text-xs text-gray-400">VendeT-Venezuela</p>
       </div>
     </div>
   )

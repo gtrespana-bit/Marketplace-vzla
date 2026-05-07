@@ -133,7 +133,7 @@ function emailLayout(title: string, body: string, ctaText?: string, ctaUrl?: str
                 <tr>
                   <td align="center" style="font-family:'Inter','Segoe UI',Arial,sans-serif;font-size:12px;color:${COLORS.gray};line-height:1.65">
                     <p style="margin:0 0 6px;font-weight:600;color:${COLORS.dark}">VendeT-Venezuela</p>
-                    <p style="margin:0 0 6px">El marketplace venezolano 🇻🇪</p>
+                    <p style="margin:0 0 6px">El marketplace venezolano</p>
                     <p style="margin:0"><a href="mailto:${CONTACT}" style="color:${COLORS.primary};text-decoration:none">${CONTACT}</a></p>
                     <p style="margin:6px 0 0"><a href="${URL}" style="color:${COLORS.primary};text-decoration:none">${URL}</a></p>
                   </td>

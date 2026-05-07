@@ -29,7 +29,7 @@ export const metadata: Metadata = {
     template: '%s | VendeT-Venezuela',
     default: 'VendeT-Venezuela — Compra y Venta en Venezuela',
   },
-  description: 'El marketplace venezolano. Compra y vende carros, tecnología, moda, hogar y más. Publica gratis, contacta directo. 🇻🇪',
+  description: 'El marketplace venezolano. Compra y vende carros, tecnología, moda, hogar y más. Publica gratis, contacta directo.',
   manifest: '/manifest.json',
   metadataBase: new URL('https://vendet.online'),
   openGraph: {

@@ -130,7 +130,7 @@ export default async function HomePage() {
           <h1 className="text-3xl md:text-5xl font-black text-white mb-2 leading-tight">
             Vende rápido
             <br />
-            <span className="text-brand-accent">en Venezuela</span> 🇻🇪
+            <span className="text-brand-accent">en Venezuela</span>
           </h1>
           <p className="text-base md:text-lg text-blue-200 mb-2 max-w-2xl mx-auto">
             Publica gratis y empieza a recibir mensajes.

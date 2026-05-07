@@ -36,7 +36,7 @@ export function Footer() {
               <li><Link href="/terminos-y-condiciones" className="hover:text-brand-accent transition">Términos</Link></li>
               <li><Link href="/politica-de-privacidad" className="hover:text-brand-accent transition">Privacidad</Link></li>
             </ul>
-            <p className="text-xs text-gray-500 mt-4">Hecho con ❤️ en Venezuela 🇻🇪</p>
+            <p className="text-xs text-gray-500 mt-4">Hecho con ❤️ en Venezuela</p>
           </div>
         </div>
         <div className="border-t border-gray-700 mt-8 pt-6 text-center text-sm">
