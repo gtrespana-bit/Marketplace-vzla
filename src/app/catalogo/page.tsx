@@ -31,7 +31,7 @@ export default async function CatalogoPage({
 }: {
   searchParams: any
 }) {
-  return <CatalogoClient searchParams={searchParams} />
+  return <CatalogoClient />
 }
 
 // ISR: cache catalog for 10 minutes
