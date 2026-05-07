@@ -66,8 +66,7 @@ export default function RootLayout({
   return (
     <html lang="es">
       <head>
-        <link rel="preconnect" href="https://jmbkqelkusxjebsdnjoc.supabase.co" crossOrigin="anonymous" />
-        <link rel="dns-prefetch" href="https://jmbkqelkusxjebsdnjoc.supabase.co" />
+        <link rel="preconnect" href="https://o4511327356518400.ingest.us.sentry.io" crossOrigin="anonymous" />
         
         <link rel="icon" type="image/x-icon" href="/favicon.ico" />
         <link rel="shortcut icon" type="image/png" href="/logo-vendet.png" />
@@ -106,7 +105,7 @@ export default function RootLayout({
           <PushNotificationBanner />
           <BottomTabNav />
         </AuthProvider>
-        <script src="/sw-register.js" />
+        <script src="/sw-register.js" defer />
       </body>
     </html>
   )
