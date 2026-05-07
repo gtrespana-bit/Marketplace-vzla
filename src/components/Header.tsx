@@ -126,7 +126,7 @@ export function Header() {
             )}
             {/* Logo */}
             <Link href="/" className="flex items-center gap-3 flex-shrink-0">
-              <img src="/logo-vendet.png" alt="VendeT" className="h-11 w-auto drop-shadow-[0_0_6px_rgba(255,255,255,0.5)] bg-white/10 p-0.5 rounded-lg backdrop-blur" />
+              <Image src="/logo-vendet.webp" alt="VendeT" width={44} height={44} className="h-11 w-auto drop-shadow-[0_0_6px_rgba(255,255,255,0.5)] bg-white/10 p-0.5 rounded-lg backdrop-blur" />
               <span className="hidden sm:block">
                 <span className="font-black text-xl tracking-tight">
                   <span className="text-yellow-400">Vende</span><span className="text-white">T</span><span className="text-yellow-400 font-bold text-base ml-1">-Venezuela</span>
