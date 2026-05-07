@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { CheckCircle, Zap, Shield, MessageCircle, Eye, Camera, DollarSign } from 'lucide-react'
+import { CheckCircle, Zap, Shield, MessageCircle, Eye, Camera, DollarSign, X } from 'lucide-react'
 import Link from 'next/link'
 
 export const metadata: Metadata = {
