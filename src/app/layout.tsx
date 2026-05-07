@@ -105,7 +105,7 @@ export default function RootLayout({
           <PushNotificationBanner />
           <BottomTabNav />
         </AuthProvider>
-        <script src="/sw-register.js" defer />
+        <script src="/sw-register.js" />
       </body>
     </html>
   )
