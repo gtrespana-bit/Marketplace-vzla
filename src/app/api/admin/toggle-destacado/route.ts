@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import { NextRequest, NextResponse } from 'next/server'
+import { revalidatePath } from 'next/cache'
 import { notifyUser } from '@/lib/push-notify'
 
 export async function POST(request: NextRequest) {
@@ -38,6 +39,10 @@ export async function POST(request: NextRequest) {
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
+
+    // Revalidate ISR cache to show/hide destacado immediately
+    revalidatePath('/')
+    revalidatePath('/catalogo')
 
     // Push notification to product owner
     if (product?.user_id && destacado) {

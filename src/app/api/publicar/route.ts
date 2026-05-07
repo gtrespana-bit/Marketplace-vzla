@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { revalidatePath } from 'next/cache'
 import { checkRateLimit } from '@/lib/rate-limit'
 import { createClient } from '@supabase/supabase-js'
 
@@ -19,6 +20,10 @@ export async function POST(req: NextRequest) {
     const sb = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
     const { data, error } = await sb.from('productos').insert(productoData).select().single()
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+    // Revalidate ISR cache — product appears immediately on home/catalogo
+    revalidatePath('/')
+    revalidatePath('/catalogo')
 
     // Telegram alert if moderation needed
     if (moderacionAlerta && moderacionAlerta.nivel) {

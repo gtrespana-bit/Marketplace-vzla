@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import { NextRequest, NextResponse } from 'next/server'
+import { revalidatePath } from 'next/cache'
 
 export async function POST(request: NextRequest) {
   try {
@@ -23,6 +24,10 @@ export async function POST(request: NextRequest) {
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
+
+    // Invalidate ISR cache when toggling active/inactive
+    revalidatePath('/')
+    revalidatePath('/catalogo')
 
     return NextResponse.json({ ok: true })
   } catch (err: any) {
