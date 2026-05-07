@@ -41,10 +41,10 @@ export const metadata: Metadata = {
     type: 'website',
     images: [
       {
-        url: '/og-image.webp',
-        width: 1200,
-        height: 630,
-        alt: 'VendeT-Venezuela — Compra y Venta en Venezuela',
+        url: '/og-image.png',
+        width: 1584,
+        height: 672,
+        alt: 'VendeT — ¡La evolución de compra y venta en Venezuela! 0% comisión. Publica gratis.',
       },
     ],
   },
