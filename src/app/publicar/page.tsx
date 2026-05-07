@@ -126,26 +126,41 @@ export default function PublicarPage() {
     // Marcar todas como subiendo
     setImagenes(prev => prev.map(p => ({ ...p, uploading: true })))
 
-    // Subir todas las imágenes en paralelo
+    // Subir todas las imágenes en paralelo a R2 (via presigned URLs)
     const uploadPromises = imagenes.map(async (img, i) => {
-      const fileName = `${userId}/${Date.now()}_${i}_${img.file.name}`.replace(/\s+/g, '_')
+      const ext = img.file.name.split('.').pop() || 'jpg'
+      const key = `${userId}/${Date.now()}_${i}.${ext}`.replace(/\s+/g, '_')
 
-      const { data, error: uploadError } = await supabase.storage
-        .from('productos')
-        .upload(fileName, img.file, { cacheControl: '3600', upsert: false })
+      // Pedir presigned URL al servidor
+      const res = await fetch('/api/r2-upload', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key, contentType: img.file.type || 'image/jpeg' }),
+      })
 
-      if (uploadError) {
-        console.error('Upload error:', uploadError)
+      if (!res.ok) {
+        console.error('Error obteniendo presigned URL')
         setImagenes(prev => prev.map((p, idx) => idx === i ? { ...p, error: true, uploading: false } : p))
         return null
       }
 
-      const { data: urlData } = supabase.storage
-        .from('productos')
-        .getPublicUrl(data.path)
+      const { url: uploadUrl, publicUrl } = await res.json()
 
-      setImagenes(prev => prev.map((p, idx) => idx === i ? { ...p, uploadedUrl: urlData.publicUrl, uploading: false } : p))
-      return urlData.publicUrl
+      // Subir archivo directamente a R2
+      const uploadRes = await fetch(uploadUrl, {
+        method: 'PUT',
+        body: img.file,
+        headers: { 'Content-Type': img.file.type || 'image/jpeg' },
+      })
+
+      if (!uploadRes.ok) {
+        console.error('Error subiendo a R2:', uploadRes.status)
+        setImagenes(prev => prev.map((p, idx) => idx === i ? { ...p, error: true, uploading: false } : p))
+        return null
+      }
+
+      setImagenes(prev => prev.map((p, idx) => idx === i ? { ...p, uploadedUrl: publicUrl, uploading: false } : p))
+      return publicUrl
     })
 
     const results = await Promise.all(uploadPromises)

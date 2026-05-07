@@ -118,17 +118,36 @@ export default function EditarPage() {
     if (!isSupabaseConfigured()) { setError('Supabase no configurado'); setGuardando(false); return }
 
     try {
-      // Upload new images
-      let uploadedUrls = [...currentImages]
+      // Upload new images to R2 (via presigned URLs)
+      let uploadedUrls: string[] = [...currentImages]
       if (newImages.length > 0) {
         for (const img of newImages) {
-          const fileName = `${user?.id}/${Date.now()}_${img.file.name}`.replace(/\s+/g, '_')
-          const { data, error: uploadError } = await supabase.storage
-            .from('productos')
-            .upload(fileName, img.file, { cacheControl: '3600' })
-          if (!uploadError) {
-            const { data: urlData } = supabase.storage.from('productos').getPublicUrl(data.path)
-            uploadedUrls.push(urlData.publicUrl)
+          const ext = img.file.name.split('.').pop() || 'jpg'
+          const key = `${user?.id}/${Date.now()}_${Math.random().toString(36).slice(2, 8)}.${ext}`.replace(/\s+/g, '_')
+
+          // Get presigned URL from our API route
+          const res = await fetch('/api/r2-upload', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ key, contentType: img.file.type || 'image/jpeg' }),
+          })
+
+          if (!res.ok) {
+            console.error('Error obteniendo presigned URL')
+            continue
+          }
+
+          const { url: uploadUrl, publicUrl } = await res.json()
+
+          // Upload file directly to R2
+          const uploadRes = await fetch(uploadUrl, {
+            method: 'PUT',
+            body: img.file,
+            headers: { 'Content-Type': img.file.type || 'image/jpeg' },
+          })
+
+          if (uploadRes.ok) {
+            uploadedUrls.push(publicUrl)
           }
         }
       }
