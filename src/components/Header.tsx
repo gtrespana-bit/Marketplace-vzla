@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { useState, useEffect } from 'react'
 import { Menu, X, Search, PlusCircle, MessageCircle, Zap, ChevronLeft } from 'lucide-react'
 import { useAuth } from '@/components/AuthProvider'
