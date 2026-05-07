@@ -3,6 +3,9 @@ import { supabase } from '@/lib/supabase'
 import { Suspense } from 'react'
 import ProductoPageClient from './ProductoPageClient'
 
+// ISR: cache product pages for 5 minutes
+export const revalidate = 300
+
 type Props = {
   params: Promise<{ slug: string }>
 }

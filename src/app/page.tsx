@@ -418,3 +418,6 @@ export default async function HomePage() {
     </div>
   )
 }
+
+// ISR: cache homepage for 2 minutes, then revalidate
+export const revalidate = 120

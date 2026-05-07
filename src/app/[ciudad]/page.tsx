@@ -44,3 +44,6 @@ export default async function CiudadPage({ params }: Props) {
   const c = CIUDADES[ciudad.replace(/á/g, 'a')] || { nombre: ciudad }
   return <LandingCiudad slug={ciudad} nombre={c.nombre} />
 }
+
+// ISR: cache city landing pages for 5 minutes
+export const revalidate = 300

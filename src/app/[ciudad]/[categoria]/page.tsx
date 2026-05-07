@@ -51,3 +51,6 @@ export default async function CategoriaPage({ params }: Props) {
   const cat = CATEGORIAS[categoria] || { nombre: categoria }
   return <LandingCategoria ciudadSlug={ciudad} ciudadNombre={c.nombre} categoriaSlug={categoria} categoriaNombre={cat.nombre} />
 }
+
+// ISR: cache category landing pages for 5 minutes
+export const revalidate = 300

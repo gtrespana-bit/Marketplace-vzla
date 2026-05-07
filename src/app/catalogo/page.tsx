@@ -31,5 +31,8 @@ export default async function CatalogoPage({
 }: {
   searchParams: any
 }) {
-  return <CatalogoClient />
+  return <CatalogoClient searchParams={searchParams} />
 }
+
+// ISR: cache catalog for 10 minutes
+export const revalidate = 600
