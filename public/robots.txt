@@ -1,0 +1,14 @@
+User-agent: *
+Allow: /
+
+# Bloquear páginas funcionales (no necesitan indexarse)
+Disallow: /dashboard
+Disallow: /admin
+Disallow: /confirm
+Disallow: /reset-password
+Disallow: /offline
+Disallow: /chat
+Disallow: /api/
+
+# Sitemap
+Sitemap: https://vendet.online/sitemap.xml

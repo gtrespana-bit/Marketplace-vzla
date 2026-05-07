@@ -86,14 +86,44 @@ export default function RootLayout({
         </Script>
       </head>
       <body className={`${inter.variable} font-sans antialiased`}>
-        {/* JSON-LD Schema */}
+        {/* JSON-LD Schema: Organization + WebSite */}
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify({ '@context': 'https://schema.org', '@type': 'Organization', name: 'VendeT-Venezuela', url: 'https://vendet.online', description: 'Marketplace venezolano. Compra y vende en Venezuela. Publica gratis.', logo: 'https://vendet.online/logo-vendet.png' }) }}
-        />
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify({ '@context': 'https://schema.org', '@type': 'WebSite', name: 'VendeT-Venezuela', url: 'https://vendet.online', potentialAction: { '@type': 'SearchAction', target: 'https://vendet.online/buscar?q={search_term_string}', 'query-input': 'required name=search_term_string' } }) }}
+          dangerouslySetInnerHTML={{ __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@graph': [
+              {
+                '@type': 'Organization',
+                '@id': 'https://vendet.online/#organization',
+                name: 'VendeT-Venezuela',
+                url: 'https://vendet.online',
+                logo: 'https://vendet.online/logo-vendet.webp',
+                description: 'Marketplace venezolano. Compra y vende carros, tecnología, moda, hogar y más. Publica gratis, contacta directo.',
+                foundingDate: '2024',
+                areaServed: { '@type': 'Country', name: 'Venezuela' },
+                contactPoint: {
+                  '@type': 'ContactPoint',
+                  email: 'soporte@vendet.online',
+                  contactType: 'customer service',
+                  availableLanguage: 'Spanish',
+                },
+                sameAs: [],
+              },
+              {
+                '@type': 'WebSite',
+                '@id': 'https://vendet.online/#website',
+                url: 'https://vendet.online',
+                name: 'VendeT-Venezuela',
+                description: 'Marketplace venezolano para comprar y vender sin comisiones.',
+                inLanguage: 'es-VE',
+                potentialAction: {
+                  '@type': 'SearchAction',
+                  target: 'https://vendet.online/buscar?q={search_term_string}',
+                  'query-input': 'required name=search_term_string',
+                },
+              },
+            ],
+          }) }}
         />
         <AuthProvider>
           <Header />
