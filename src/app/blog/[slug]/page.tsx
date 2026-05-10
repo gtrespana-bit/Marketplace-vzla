@@ -5,7 +5,7 @@ import path from 'path'
 import { ArrowLeft, Calendar, Clock, Tag, ArrowRight, ChevronRight } from 'lucide-react'
 
 interface Params {
-  params: { slug: string }
+  params: Promise<{ slug: string }>
 }
 
 interface Post {
@@ -65,8 +65,9 @@ function generateStaticParams(): { slug: string }[] {
   return getAllSlugs().map(slug => ({ slug }))
 }
 
-function generateMetadata(params: Params): Metadata {
-  const post = getPostBySlug(params.slug)
+async function generateMetadata(params: Params): Promise<Metadata> {
+  const { slug } = await params
+  const post = getPostBySlug(slug)
   if (!post) return { title: 'Post no encontrado — VendeT' }
 
   return {
@@ -117,8 +118,8 @@ function renderMarkdown(content: string): string {
 }
 
 // Static pages for SSR
-export default function BlogPost({ params }: Params) {
-  const { slug } = params
+export default async function BlogPost({ params }: Params) {
+  const { slug } = await params
   const post = getPostBySlug(slug)
 
   if (!post) {
