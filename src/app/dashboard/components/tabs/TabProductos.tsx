@@ -206,6 +206,23 @@ export default function TabProductos({
     window.location.reload()
   }
 
+  const eliminarProducto = async (id: string) => {
+    cerrarMenus()
+    if (!confirm('¿Eliminar esta publicación permanentemente? Esta acción no se puede deshacer y se borrarán también las fotos.')) return
+    const res = await fetch('/api/admin/eliminar-producto', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ productId: id }),
+    })
+    const result = await res.json()
+    if (!res.ok) {
+      alert('Error: ' + (result.error || 'no se pudo eliminar'))
+      return
+    }
+    // Recargar la página
+    window.location.reload()
+  }
+
   if (productos.length === 0) {
     return (
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-12 text-center">
@@ -308,6 +325,14 @@ export default function TabProductos({
                       >
                         {p.activo ? <Pause size={14} /> : <Play size={14} />} {p.activo ? 'Pausar' : 'Activar'}
                       </button>
+                      {!isVendido && (
+                        <button
+                          onClick={() => eliminarProducto(p.id)}
+                          className="flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 w-full text-left"
+                        >
+                          <X size={14} className="text-red-500" /> Eliminar publicación
+                        </button>
+                      )}
                     </div>
                   )}
                 </div>
