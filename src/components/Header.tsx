@@ -222,6 +222,8 @@ export function Header() {
                     <Link href="/creditos" onClick={() => setMobileOpen(false)} className="px-3 py-2 rounded-lg hover:bg-white/10 transition">⚡ Créditos{creditoChecked && creditoBalance !== null && creditoBalance > 0 ? ` — ${creditoBalance} disponibles` : ''}</Link>
                   </>
                 )}
+                <Link href="/blog" onClick={() => setMobileOpen(false)} className="px-3 py-2 rounded-lg hover:bg-white/10 transition">📝 Blog</Link>
+                <Link href="/blog" onClick={() => setMobileOpen(false)} className="px-3 py-2 rounded-lg hover:bg-white/10 transition">📝 Blog</Link>
                 <Link href="/catalogo" onClick={() => setMobileOpen(false)} className="px-3 py-2 rounded-lg hover:bg-white/10 transition">📦 Ver catálogo</Link>
               </nav>
             </div>
