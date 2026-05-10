@@ -4,10 +4,6 @@ import fs from 'fs'
 import path from 'path'
 import { ArrowLeft, Calendar, Clock, Tag, ArrowRight, ChevronRight } from 'lucide-react'
 
-interface Params {
-  params: Promise<{ slug: string }>
-}
-
 interface Post {
   slug: string
   title: string
@@ -26,7 +22,6 @@ function getPostBySlug(slug: string): Post | null {
 
   const raw = fs.readFileSync(filePath, 'utf-8')
   
-  // Parse frontmatter
   const parts = raw.split('---\n')
   const frontmatterRaw = parts[1]
   const contentRaw = parts.slice(2).join('---\n').trim()
@@ -85,36 +80,107 @@ async function generateMetadata(props: { params: Promise<{ slug: string }> }): P
   }
 }
 
+function inlineFormat(text: string): string {
+  text = text.replace(/\*\*(.+?)\*\*/g, '<strong class="font-bold text-gray-900">$1</strong>')
+  text = text.replace(/_(.+?)_/g, '<em>$1</em>')
+  text = text.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" class="text-brand-primary font-semibold hover:underline underline-offset-2">$1</a>')
+  return text
+}
+
 function renderMarkdown(content: string): string {
-  let html = content
-  
-  // Headers
-  html = html.replace(/^### (.*$)/gm, '<h3 class="text-xl font-bold text-gray-800 mt-8 mb-4">$1</h3>')
-  html = html.replace(/^## (.*$)/gm, '<h2 class="text-2xl font-bold text-gray-800 mt-10 mb-4">$1</h2>')
-  html = html.replace(/^# (.*$)/gm, '<h1 class="text-3xl font-black text-gray-900 mt-8 mb-6">$1</h1>')
+  const blocks = content.split(/\n\n+/)
+  const htmlParts: string[] = []
 
-  // Bold and italic
-  html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-  html = html.replace(/_(.+?)_/g, '<em>$1</em>')
+  for (const rawBlock of blocks) {
+    const lines = rawBlock.trim().split('\n')
 
-  // Lists
-  html = html.replace(/^- (.*$)/gm, '<li class="ml-4 list-disc text-gray-700">$1</li>')
-  html = html.replace(/(<li[^>]*>.*<\/li>\n?)+/g, '<ul class="space-y-1 my-4">$&</ul>')
+    // Table detection
+    if (lines.length >= 2 && lines[0].startsWith('|') && lines[1].startsWith('|')) {
+      const headerCells = lines[0].split('|').filter(c => c.trim() !== '')
+      const dataLines = lines.slice(2).filter(l => l.trim().startsWith('|'))
+      
+      htmlParts.push('<div class="overflow-x-auto my-6 rounded-xl border border-gray-200 shadow-sm">')
+      htmlParts.push('<table class="w-full text-sm">')
+      // Header
+      htmlParts.push('<thead class="bg-brand-primary text-white">')
+      htmlParts.push('<tr>')
+      for (const cell of headerCells) {
+        htmlParts.push(`<th class="px-4 py-3 font-bold text-left whitespace-nowrap">${inlineFormat(cell.trim())}</th>`)
+      }
+      htmlParts.push('</tr></thead>')
+      // Body
+      htmlParts.push('<tbody class="divide-y divide-gray-100">')
+      for (const dl of dataLines) {
+        const cells = dl.split('|').filter(c => c.trim() !== '')
+        htmlParts.push('<tr class="hover:bg-gray-50/50">')
+        for (const cell of cells) {
+          htmlParts.push(`<td class="px-4 py-3 text-gray-700 whitespace-nowrap">${inlineFormat(cell.trim())}</td>`)
+        }
+        htmlParts.push('</tr>')
+      }
+      htmlParts.push('</tbody></table></div>')
+      continue
+    }
 
-  // Paragraphs
-  html = html.replace(/\n\n/g, '</p><p class="text-gray-700 leading-relaxed my-4">')
-  html = `<p class="text-gray-700 leading-relaxed my-4">${html}</p>`
+    // Headers
+    if (lines[0].startsWith('# ')) {
+      htmlParts.push(`<h1 class="text-3xl font-black text-gray-900 mt-8 mb-6">${inlineFormat(lines[0].replace('# ', ''))}</h1>`)
+      continue
+    }
+    if (lines[0].startsWith('## ')) {
+      htmlParts.push(`<h2 class="text-2xl font-bold text-gray-800 mt-10 mb-4">${inlineFormat(lines[0].replace('## ', ''))}</h2>`)
+      continue
+    }
+    if (lines[0].startsWith('### ')) {
+      htmlParts.push(`<h3 class="text-xl font-bold text-gray-800 mt-8 mb-4">${inlineFormat(lines[0].replace('### ', ''))}</h3>`)
+      continue
+    }
 
-  // Clean empty paragraphs
-  html = html.replace(/<p class="[^"]*">\s*<\/p>/g, '')
+    // Blockquote
+    if (lines[0].startsWith('> ')) {
+      const quoteText = lines.map(l => l.replace(/^> ?/, '')).join(' ')
+      htmlParts.push(`<blockquote class="border-l-4 border-brand-accent bg-brand-accent/5 rounded-r-lg pl-5 py-4 my-6"><p class="text-gray-700 italic text-sm leading-relaxed">${inlineFormat(quoteText)}</p></blockquote>`)
+      continue
+    }
 
-  // Tables (preserve them)
-  html = html.replace(/<p class="([^"]*)">(\|[\s\S]*?\|)<\/p>/g, '<div class="overflow-x-auto my-6"><table class="min-w-full border border-gray-200 rounded-lg">$2</table></div>')
+    // Numbered list
+    if (lines.length > 0 && lines[0].match(/^\d+\. /)) {
+      htmlParts.push('<ol class="space-y-3 my-4 list-none counter-reset: step">')
+      let idx = 0
+      for (const line of lines) {
+        idx++
+        const text = line.replace(/^\d+\. /, '')
+        htmlParts.push(`<li class="flex items-start gap-3 text-gray-700"><span class="flex-shrink-0 w-7 h-7 rounded-full bg-brand-primary text-white text-sm font-bold flex items-center justify-center">${idx}</span><span class="leading-relaxed">${inlineFormat(text)}</span></li>`)
+      }
+      htmlParts.push('</ol>')
+      continue
+    }
 
-  // Links
-  html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" class="text-brand-primary font-semibold hover:underline">$1</a>')
+    // Unordered list
+    if (lines.length > 0 && lines[0].match(/^- /)) {
+      htmlParts.push('<ul class="space-y-2 my-4">')
+      for (const line of lines) {
+        const text = line.replace(/^- /, '')
+        htmlParts.push(`<li class="flex items-start gap-2 text-gray-700"><span class="text-brand-primary mt-1">•</span><span class="leading-relaxed">${inlineFormat(text)}</span></li>`)
+      }
+      htmlParts.push('</ul>')
+      continue
+    }
 
-  return html
+    // Horizontal rule
+    if (lines[0].match(/^---$/)) {
+      htmlParts.push('<hr class="my-8 border-gray-200" />')
+      continue
+    }
+
+    // Regular paragraph
+    const paraText = lines.join(' ')
+    if (paraText.trim()) {
+      htmlParts.push(`<p class="text-gray-700 leading-relaxed my-4">${inlineFormat(paraText)}</p>`)
+    }
+  }
+
+  return htmlParts.join('\n')
 }
 
 // Static pages for SSR
