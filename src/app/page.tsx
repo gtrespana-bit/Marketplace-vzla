@@ -106,12 +106,6 @@ function ProductCard({ p, highlighted = false, priority = false }: { p: any; hig
           placeholder="blur"
           blurDataURL={BLUR_DATA_URL}
           fetchPriority={priority ? 'high' : 'auto'}
-          onError={(e) => {
-            const target = e.target as HTMLImageElement
-            if (!target.src.includes('/placeholder-product.png')) {
-              target.src = '/placeholder-product.png'
-            }
-          }}
         />
       </div>
       <div className="p-4">
@@ -377,12 +371,6 @@ export default async function HomePage() {
                     decoding="async"
                     placeholder="blur"
                     blurDataURL={BLUR_DATA_URL}
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement
-                      if (!target.src.includes('/placeholder-product.png')) {
-                        target.src = '/placeholder-product.png'
-                      }
-                    }}
                   />
                   <div className="absolute top-2 left-2 z-10 bg-gradient-to-r from-orange-500 to-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 shadow-sm">
                     Trending
