@@ -13,6 +13,16 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'images.unsplash.com',
       },
+      // ✅ AÑADIDO: Cloudflare R2 (donde están muchas imágenes de productos)
+      {
+        protocol: 'https',
+        hostname: '**.r2.dev',
+      },
+      // ✅ AÑADIDO: Cloudflare R2 alternate domain
+      {
+        protocol: 'https',
+        hostname: '**.cloudflarestorage.com',
+      },
     ],
   },
   eslint: {

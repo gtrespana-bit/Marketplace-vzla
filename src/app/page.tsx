@@ -8,6 +8,8 @@ const PLACEHOLDER_IMAGES = [
   '/placeholder-product.png',
 ]
 
+const BLUR_DATA_URL = 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAADAAQDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k='
+
 function getPlaceholderImage(titulo: string) {
   return PLACEHOLDER_IMAGES[Math.abs(titulo.charCodeAt(0)) % PLACEHOLDER_IMAGES.length]
 }
@@ -16,7 +18,7 @@ async function getDestacados(limit = 8) {
   try {
     const { data, error } = await supabase
       .rpc('obtener_destacados_home', { p_limite: limit })
-    
+
     if (!error && data) return data as any[]
 
     const { data: data2 } = await supabase
@@ -28,7 +30,7 @@ async function getDestacados(limit = 8) {
       .gt('destacado_hasta', new Date().toISOString())
       .order('destacado_hasta', { ascending: false })
       .limit(limit)
-    
+
     return data2 || []
   } catch {
     return []
@@ -54,9 +56,9 @@ async function getRecentProducts(limit = 8) {
     .eq('activo', true)
     .or('estado_moderacion.is.null,estado_moderacion.eq.aprobado')
     .limit(50)
-  
+
   if (error) return []
-  
+
   const now = new Date().toISOString()
   return (data || [])
     .sort((a, b) => {
@@ -65,19 +67,20 @@ async function getRecentProducts(limit = 8) {
       if (aBoost && !bBoost) return -1
       if (!aBoost && bBoost) return 1
       if (aBoost && bBoost) return bBoost.localeCompare(aBoost)
-      
+
       const aDest = a.destacado && a.destacado_hasta > now
       const bDest = b.destacado && b.destacado_hasta > now
       if (aDest && !bDest) return -1
       if (!aDest && bDest) return 1
       if (aDest && bDest) return b.destacado_hasta.localeCompare(a.destacado_hasta)
-      
+
       return (b.creado_en || '').localeCompare(a.creado_en || '')
     })
     .slice(0, limit)
 }
 
-function ProductCard({ p, highlighted = false }: { p: any; highlighted?: boolean }) {
+// ✅ MODIFICADO: Añadidos priority + blur + onError defensivo
+function ProductCard({ p, highlighted = false, priority = false }: { p: any; highlighted?: boolean; priority?: boolean }) {
   return (
     <Link
       href={`/producto/${p.id}`}
@@ -100,29 +103,41 @@ function ProductCard({ p, highlighted = false }: { p: any; highlighted?: boolean
           height={400}
           sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-          loading="lazy"
+          loading={priority ? 'eager' : 'lazy'}
+          priority={priority}
           decoding="async"
+          placeholder="blur"
+          blurDataURL={BLUR_DATA_URL}
+          fetchPriority={priority ? 'high' : 'auto'}
+          onError={(e) => {
+            const target = e.target as HTMLImageElement
+            if (!target.src.includes('/placeholder-product.png')) {
+              target.src = '/placeholder-product.png'
+            }
+          }}
         />
       </div>
       <div className="p-4">
         <h3 className="font-semibold text-gray-900 truncate group-hover:text-brand-primary transition-colors">{p.titulo}</h3>
         <p className="text-xl font-black text-brand-primary mt-1">${Number(p.precio_usd || 0).toLocaleString()}</p>
-                <p className="text-xs text-gray-500 mt-1">{p.estado} · {p.ubicacion_ciudad || 'Venezuela'}</p>
+        <p className="text-xs text-gray-500 mt-1">{p.estado} · {p.ubicacion_ciudad || 'Venezuela'}</p>
       </div>
     </Link>
   )
 }
 
 export default async function HomePage() {
-  const destacados = await getDestacados()
-  const trending = await getTrending()
-  const productos = await getRecentProducts()
+  // ✅ OPTIMIZACIÓN: Paralelizar las 3 queries
+  const [destacados, trending, productos] = await Promise.all([
+    getDestacados(),
+    getTrending(),
+    getRecentProducts(),
+  ])
 
   return (
     <div className="bg-gray-50">
       {/* ============ HERO ============ */}
       <section className="bg-gradient-to-br from-brand-primary to-brand-dark py-10 md:py-16 relative overflow-hidden">
-        {/* Decorative glow */}
         <div className="absolute top-0 right-0 w-96 h-96 bg-brand-accent/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4" />
         <div className="absolute bottom-0 left-0 w-64 h-64 bg-brand-accent/5 rounded-full blur-2xl translate-y-1/3 -translate-x-1/4" />
 
@@ -140,7 +155,6 @@ export default async function HomePage() {
             </span>
           </p>
 
-          {/* Badge de impacto */}
           <div className="inline-flex items-center gap-2 bg-brand-accent/15 border border-brand-accent/30 rounded-full px-4 py-1.5 mb-4">
             <Zap size={14} className="text-brand-accent" />
             <span className="text-xs font-semibold text-white">
@@ -183,7 +197,7 @@ export default async function HomePage() {
             </span>
             <p className="font-bold text-gray-900 text-sm">Publicar es 100% GRATIS</p>
           </div>
-          <p className="text-xs text-gray-600 hidden sm:inline">En MercadoLibre pagas por publicar · Aqui nunca pagas comision</p>
+          <p className="text-xs text-gray-600 hidden sm:inline">En MercadoLibre pagas por publicar · Aquí nunca pagas comisión</p>
           <Link href="/como-funciona" className="text-green-700 text-xs font-bold hover:underline">Comparar con otros →</Link>
         </div>
       </div>
@@ -191,7 +205,6 @@ export default async function HomePage() {
       {/* ============ VENTAS DESTACADAS ============ */}
       {destacados.length > 0 ? (
         <section className="relative">
-          {/* Banner de incentivo - pegado arriba */}
           <div className="bg-gradient-to-r from-yellow-50 to-amber-50 border-y border-yellow-200">
             <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between gap-4 flex-wrap">
               <div className="flex items-center gap-3">
@@ -209,7 +222,6 @@ export default async function HomePage() {
             </div>
           </div>
 
-          {/* Grid de destacados */}
           <div className="max-w-7xl mx-auto px-4 py-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-2xl font-black text-gray-900">⚡ Ventas Destacadas</h2>
@@ -217,14 +229,13 @@ export default async function HomePage() {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              {destacados.map((p) => (
-                <ProductCard key={p.id} p={p} highlighted />
+              {destacados.map((p, index) => (
+                <ProductCard key={p.id} p={p} highlighted priority={index === 0} />
               ))}
             </div>
           </div>
         </section>
       ) : (
-        /* No hay destacados aún — banner educativo */
         <section className="max-w-7xl mx-auto px-4 py-8">
           <div className="bg-gradient-to-r from-blue-50 to-yellow-50 border border-gray-200 rounded-2xl p-8 text-center">
             <div className="w-16 h-16 bg-brand-accent rounded-full flex items-center justify-center mx-auto mb-4">
@@ -256,7 +267,6 @@ export default async function HomePage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Boost */}
             <div className="bg-white/5 border border-white/10 rounded-xl p-6 text-center group hover:border-brand-accent/50 transition">
               <div className="w-12 h-12 bg-brand-accent/20 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Zap size={24} className="text-brand-accent" />
@@ -269,7 +279,6 @@ export default async function HomePage() {
               </div>
             </div>
 
-            {/* Destacado 24h — highlighted */}
             <div className="bg-brand-accent rounded-xl p-6 text-center relative shadow-lg shadow-black/20 transform scale-[1.02]">
               <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-brand-primary text-white text-[10px] font-bold px-3 py-1 rounded-full">
                 MÁS POPULAR
@@ -285,7 +294,6 @@ export default async function HomePage() {
               </div>
             </div>
 
-            {/* Destacado 48h */}
             <div className="bg-white/5 border border-white/10 rounded-xl p-6 text-center group hover:border-brand-accent/50 transition">
               <div className="w-12 h-12 bg-brand-accent/20 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Eye size={24} className="text-brand-accent" />
@@ -317,7 +325,7 @@ export default async function HomePage() {
             { id: 'vehiculos', nombre: 'Vehículos', icon: '🚗', desc: 'Carros, motos' },
             { id: 'tecnologia', nombre: 'Tecnología', icon: '💻', desc: 'Celulares, laptops' },
             { id: 'moda', nombre: 'Moda', icon: '👗', desc: 'Ropa, calzado' },
-            { id: 'hogar', nombre: 'Hogar', icon: '🏠', desc: 'Muebles, electro' },
+            { id: 'hogar', nombre: 'Hogar', icon: '🛋', desc: 'Muebles, electro' },
             { id: 'herramientas', nombre: 'Herramientas', icon: '🔧', desc: 'Manuales, eléctricas' },
             { id: 'otros', nombre: 'Otros', icon: '📦', desc: 'De todo un poco' },
           ].map((cat) => (
@@ -339,7 +347,7 @@ export default async function HomePage() {
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-          {trending.map((p) => (
+          {trending.map((p, index) => (
             <Link key={p.id} href={`/producto/${p.id}`} prefetch={true}
               className="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-lg hover:-translate-y-1 transition group block">
               <div className="aspect-square bg-gray-100 relative overflow-hidden">
@@ -350,74 +358,16 @@ export default async function HomePage() {
                   height={400}
                   sizes="(max-width: 768px) 50vw, 25vw"
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                  loading="lazy"
+                  loading={index === 0 ? 'eager' : 'lazy'}
+                  priority={index === 0}
+                  decoding="async"
+                  placeholder="blur"
+                  blurDataURL={BLUR_DATA_URL}
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement
+                    if (!target.src.includes('/placeholder-product.png')) {
+                      target.src = '/placeholder-product.png'
+                    }
+                  }}
                 />
-                <div className="absolute top-2 left-2 z-10 bg-gradient-to-r from-orange-500 to-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 shadow-sm">
-                  🔥 Trending
-                </div>
-              </div>
-              <div className="p-4">
-                <h3 className="font-semibold text-gray-900 truncate group-hover:text-brand-primary transition-colors">{p.titulo}</h3>
-                <p className="text-xl font-black text-brand-primary mt-1">${Number(p.precio_usd || 0).toLocaleString()}</p>
-                <div className="flex items-center gap-1 mt-1">
-                  <Eye size={11} className="text-gray-400" />
-                  <p className="text-xs text-gray-500">{p.visitas || 0} vistas</p>
-                </div>
-              </div>
-            </Link>
-          ))}
-        </div>
-      </section>
-      )}
-
-      {/* ============ PRODUCTOS RECIENTES ============ */}
-      <section className="max-w-7xl mx-auto px-4 py-8">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-gray-900">🕐 Agregados recientemente</h2>
-          <Link href="/catalogo" className="text-brand-primary font-semibold text-sm hover:underline flex items-center gap-1" prefetch={true}>
-            Ver todos <ArrowRight size={14} />
-          </Link>
-        </div>
-
-        {productos.length === 0 ? (
-          <div className="bg-white rounded-xl p-16 text-center shadow-sm border">
-            <p className="text-xl font-bold text-gray-800 mb-2">Aún no hay publicaciones</p>
-            <p className="text-gray-500 mb-6">Sé el primero en publicar algo</p>
-            <Link href="/publicar" className="inline-block bg-brand-accent text-brand-primary px-6 py-3 rounded-lg font-bold hover:bg-accent/90 transition">
-              Publicar gratis
-            </Link>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {productos.map((p) => {
-              const isHighlighted = (p.destacado && p.destacado_hasta > new Date().toISOString()) || p.boosteado_en
-              return (
-                <ProductCard key={p.id} p={p} highlighted={isHighlighted} />
-              )
-            })}
-          </div>
-        )}
-      </section>
-
-      {/* ============ CTA ============ */}
-      <section className="bg-brand-accent py-16">
-        <div className="max-w-7xl mx-auto px-4 text-center">
-          <h2 className="text-3xl font-black text-brand-primary mb-4">¿Tienes algo para vender?</h2>
-          <p className="text-brand-primary/80 text-lg mb-8">Publica gratis en segundos. Miles de compradores te esperan.</p>
-          <div className="flex flex-wrap justify-center gap-4">
-            <Link href="/publicar" className="inline-flex items-center gap-2 bg-brand-primary text-white px-10 py-4 rounded-xl font-bold text-lg hover:bg-brand-dark transition shadow-lg" prefetch={true}>
-              🚀 Publica ahora — Es gratis
-              <ArrowRight size={20} />
-            </Link>
-            <Link href="/creditos" className="inline-flex items-center gap-2 bg-white text-brand-primary px-10 py-4 rounded-xl font-bold text-lg hover:bg-gray-100 transition shadow-lg">
-              ⚡ Destacar mi anuncio
-            </Link>
-          </div>
-        </div>
-      </section>
-    </div>
-  )
-}
-
-// ISR: cache homepage for 2 minutes, then revalidate
-export const revalidate = 120
+                <div className="absolute top-2 left

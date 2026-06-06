@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useSearchParams, usePathname, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -23,11 +23,18 @@ type Producto = {
   destacado: boolean
   destacado_hasta: string | null
   vendedor_verificado: boolean | null
-  }
+}
+
+interface CatalogoPageProps {
+  initialProducts?: Producto[]
+  initialCount?: number
+}
 
 const PLACEHOLDER_IMAGES = [
   '/placeholder-product.png',
 ]
+
+const BLUR_DATA_URL = 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAADAAQDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k='
 
 function getPlaceholderImage(titulo: string) {
   return PLACEHOLDER_IMAGES[Math.abs(titulo.charCodeAt(0)) % PLACEHOLDER_IMAGES.length]
@@ -46,12 +53,11 @@ function ProductCardSkeleton() {
   )
 }
 
-function ProductCard({ p }: { p: Producto }) {
+function ProductCard({ p, priority = false }: { p: Producto; priority?: boolean }) {
   const isBoosted = p.boosteado_en != null
   const isFeatured = p.destacado && p.destacado_hasta && new Date(p.destacado_hasta) > new Date()
   const isPromoted = isBoosted || isFeatured
 
-  
   const imgUrl = p.imagen_url || getPlaceholderImage(p.titulo)
 
   return (
@@ -67,7 +73,27 @@ function ProductCard({ p }: { p: Producto }) {
             ⚡ Boost
           </div>
         )}
-        <Image src={imgUrl} alt={p.titulo} width={400} height={400} sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" loading="lazy" decoding="async" onError={(e) => { (e.target as HTMLImageElement).src = getPlaceholderImage(p.titulo) }} />
+        <Image
+          src={imgUrl}
+          alt={p.titulo}
+          width={400}
+          height={400}
+          sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
+          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+          loading={priority ? 'eager' : 'lazy'}
+          priority={priority}
+          decoding="async"
+          placeholder="blur"
+          blurDataURL={BLUR_DATA_URL}
+          fetchPriority={priority ? 'high' : 'auto'}
+          onError={(e) => {
+            // ✅ CORREGIDO: Previene loop infinito
+            const target = e.target as HTMLImageElement
+            if (!target.src.includes('/placeholder-product.png')) {
+              target.src = '/placeholder-product.png'
+            }
+          }}
+        />
       </div>
       <div className="p-4">
         <h3 className="font-semibold text-gray-900 truncate group-hover:text-brand-primary transition-colors">{p.titulo}</h3>
@@ -84,7 +110,7 @@ function ProductCard({ p }: { p: Producto }) {
   )
 }
 
-export default function CatalogoClient() {
+export default function CatalogoClient({ initialProducts = [], initialCount = 0 }: CatalogoPageProps) {
   const searchParams = useSearchParams()
   const pathname = usePathname()
   const router = useRouter()
@@ -98,9 +124,11 @@ export default function CatalogoClient() {
   const ubicacionEstado = searchParams.get('estado') || ''
   const ubicacionCiudad = searchParams.get('ciudad') || ''
 
-  const [productos, setProductos] = useState<Producto[]>([])
-  const [loading, setLoading] = useState(false)
-  const [totalCount, setTotalCount] = useState(0)
+  const hasActiveFilters = !!(categoria || subcategoria || marca || q || precioMin || precioMax || ubicacionEstado || ubicacionCiudad)
+  const [productos, setProductos] = useState<Producto[]>(hasActiveFilters ? [] : initialProducts)
+  const [loading, setLoading] = useState(hasActiveFilters)
+  const [totalCount, setTotalCount] = useState(hasActiveFilters ? 0 : initialCount)
+  const isFirstRender = useRef(true)
 
   const cat = categoriasData[categoria]
   const subs = cat ? cat.subs : []
@@ -113,8 +141,12 @@ export default function CatalogoClient() {
     router.push(`${pathname}?${params.toString()}`)
   }
 
-  // Query Supabase
   useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false
+      if (!hasActiveFilters) return
+    }
+
     let cancelled = false
     setLoading(true)
 
@@ -125,7 +157,6 @@ export default function CatalogoClient() {
         .eq('activo', true)
         .or('estado_moderacion.is.null,estado_moderacion.eq.aprobado')
 
-      // Categoria filter
       if (categoria) {
         const { data: catRow } = await supabase
           .from('categorias')
@@ -137,29 +168,24 @@ export default function CatalogoClient() {
         }
       }
 
-      // Subcategoria
       if (subcategoria) {
         query = query.eq('subcategoria', subcategoria)
       }
 
-      // Marca
       if (marca) {
         query = query.eq('marca', marca)
       }
 
-      // Text search: full-text con search_vector
       if (q) {
         query = query.textSearch('search_vector', q, { config: 'spanish', type: 'plain' })
       }
 
-      // Ubicacion
       if (ubicacionCiudad) {
         query = query.eq('ubicacion_ciudad', ubicacionCiudad)
       } else if (ubicacionEstado) {
         query = query.eq('ubicacion_estado', ubicacionEstado)
       }
 
-      // Rango de precio
       if (precioMin) {
         query = query.gte('precio_usd', parseFloat(precioMin))
       }
@@ -172,7 +198,6 @@ export default function CatalogoClient() {
       const { data, count, error } = await query
       if (!cancelled) {
         if (!error) {
-          // Sort: boost > destacado vigente > por fecha
           const now = new Date().toISOString()
           const sorted = (data as Producto[]).sort((a, b) => {
             const aBoost = a.boosteado_en || null
@@ -200,7 +225,7 @@ export default function CatalogoClient() {
 
     fetchProductos()
     return () => { cancelled = true }
-  }, [categoria, subcategoria, marca, q, precioMin, precioMax, ubicacionEstado, ubicacionCiudad])
+  }, [categoria, subcategoria, marca, q, precioMin, precioMax, ubicacionEstado, ubicacionCiudad, hasActiveFilters])
 
   const tituloMostrar = q
     ? `Resultados para "${q}"`
@@ -222,12 +247,10 @@ export default function CatalogoClient() {
       </nav>
 
       <div className="flex flex-col lg:flex-row gap-6">
-        {/* Filtros */}
         <aside className="w-full lg:w-72 flex-shrink-0">
           <div className="bg-white rounded-xl p-5 shadow-sm sticky top-20">
             <h3 className="font-bold text-lg text-gray-900 mb-4">🔍 Filtros</h3>
 
-            {/* Categoría */}
             <div className="mb-4">
               <label className="block text-sm font-bold text-gray-900 mb-1.5">Categoría</label>
               <select value={categoria} onChange={e => setParam('categoria', e.target.value)} className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm text-gray-800 bg-white font-medium focus:outline-none focus:ring-2 focus:ring-brand-accent">
@@ -238,7 +261,6 @@ export default function CatalogoClient() {
               </select>
             </div>
 
-            {/* Subcategoría */}
             {subs.length > 0 && (
               <div className="mb-4">
                 <label className="block text-sm font-bold text-gray-900 mb-1.5">Subcategoría</label>
@@ -251,7 +273,6 @@ export default function CatalogoClient() {
               </div>
             )}
 
-            {/* Marca */}
             {allMarcas.length > 0 && (
               <div className="mb-4">
                 <div className="flex items-center justify-between">
@@ -271,7 +292,6 @@ export default function CatalogoClient() {
               </div>
             )}
 
-            {/* Rango de precio */}
             <div className="mb-4">
               <label className="block text-sm font-bold text-gray-900 mb-1.5">💰 Precio (USD)</label>
               <div className="flex gap-2">
@@ -294,7 +314,6 @@ export default function CatalogoClient() {
               </div>
             </div>
 
-            {/* Clear filters */}
             {(categoria || subcategoria || marca || q || precioMin || precioMax) && (
               <button onClick={() => router.push(pathname)} className="w-full text-sm text-red-500 hover:text-red-700 py-2 border border-red-200 rounded-lg hover:bg-red-50 transition flex items-center justify-center gap-1">
                 <XCircle size={14} /> Limpiar filtros
@@ -303,7 +322,6 @@ export default function CatalogoClient() {
           </div>
         </aside>
 
-        {/* Resultados */}
         <div className="flex-1">
           <div className="bg-white rounded-xl p-4 mb-4 shadow-sm">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
@@ -320,7 +338,6 @@ export default function CatalogoClient() {
             </div>
           </div>
 
-          {/* Ubicacion selector */}
           <div className="mb-4">
             <UbicacionSelector
               estado={ubicacionEstado}
@@ -351,7 +368,13 @@ export default function CatalogoClient() {
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
-              {productos.map((p) => <ProductCard key={p.id} p={p} />)}
+              {productos.map((p, index) => (
+                <ProductCard
+                  key={p.id}
+                  p={p}
+                  priority={index === 0}
+                />
+              ))}
             </div>
           )}
         </div>

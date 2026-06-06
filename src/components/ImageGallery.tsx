@@ -9,11 +9,13 @@ interface ImageGalleryProps {
   alt: string
 }
 
+const FALLBACK_IMAGE = '/placeholder-product.png'
+const BLUR_DATA_URL = 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAADAAQDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k='
+
 export default function ImageGallery({ images, alt }: ImageGalleryProps) {
   const [activeIndex, setActiveIndex] = useState(0)
   const [lightboxOpen, setLightboxOpen] = useState(false)
 
-  // Keyboard navigation when lightbox is open
   const goNext = useCallback(() => {
     setActiveIndex(i => (i + 1) % images.length)
   }, [images.length])
@@ -32,7 +34,7 @@ export default function ImageGallery({ images, alt }: ImageGalleryProps) {
     }
 
     document.addEventListener('keydown', handleKey)
-    document.body.style.overflow = 'hidden' // lock scroll
+    document.body.style.overflow = 'hidden'
     return () => {
       document.removeEventListener('keydown', handleKey)
       document.body.style.overflow = ''
@@ -42,6 +44,14 @@ export default function ImageGallery({ images, alt }: ImageGalleryProps) {
   const openLightbox = (index: number) => {
     setActiveIndex(index)
     setLightboxOpen(true)
+  }
+
+  // ✅ Handler defensivo para prevenir loops
+  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+    const target = e.target as HTMLImageElement
+    if (!target.src.includes(FALLBACK_IMAGE)) {
+      target.src = FALLBACK_IMAGE
+    }
   }
 
   if (images.length === 0) return null
@@ -63,9 +73,11 @@ export default function ImageGallery({ images, alt }: ImageGalleryProps) {
           priority={activeIndex === 0}
           fetchPriority={activeIndex === 0 ? 'high' : undefined}
           decoding="async"
+          placeholder="blur"
+          blurDataURL={BLUR_DATA_URL}
+          onError={handleImageError}
         />
 
-        {/* Swipe nav arrows (desktop — hover) */}
         {images.length > 1 && (
           <>
             <button
@@ -81,7 +93,6 @@ export default function ImageGallery({ images, alt }: ImageGalleryProps) {
               <ChevronRight size={20} className="text-gray-800" />
             </button>
 
-            {/* Dots indicator */}
             <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
               {images.map((_, i) => (
                 <button
@@ -96,7 +107,6 @@ export default function ImageGallery({ images, alt }: ImageGalleryProps) {
           </>
         )}
 
-        {/* Zoom hint icon */}
         <div className="absolute top-3 right-3 bg-black/40 backdrop-blur rounded-full p-1.5 opacity-0 group-hover:opacity-100 transition">
           <ZoomIn size={16} className="text-white" />
         </div>
@@ -121,6 +131,7 @@ export default function ImageGallery({ images, alt }: ImageGalleryProps) {
                 className="w-full h-full object-cover"
                 loading="lazy"
                 decoding="async"
+                onError={handleImageError}
               />
             </button>
           ))}
@@ -133,7 +144,6 @@ export default function ImageGallery({ images, alt }: ImageGalleryProps) {
           className="fixed inset-0 z-[100] bg-black/90 flex items-center justify-center animate-fadeIn"
           onClick={() => setLightboxOpen(false)}
         >
-          {/* Close */}
           <button
             onClick={() => setLightboxOpen(false)}
             className="absolute top-4 right-4 z-10 w-10 h-10 bg-white/10 backdrop-blur rounded-full flex items-center justify-center hover:bg-white/20 transition"
@@ -141,12 +151,10 @@ export default function ImageGallery({ images, alt }: ImageGalleryProps) {
             <X size={20} className="text-white" />
           </button>
 
-          {/* Counter */}
           <div className="absolute top-5 left-5 text-white/70 text-sm font-medium">
             {activeIndex + 1} / {images.length}
           </div>
 
-          {/* Navigation */}
           {images.length > 1 && (
             <>
               <button
@@ -164,7 +172,6 @@ export default function ImageGallery({ images, alt }: ImageGalleryProps) {
             </>
           )}
 
-          {/* Image */}
           <div
             className="relative max-w-[95vw] max-h-[90vh] flex items-center justify-center"
             onClick={e => e.stopPropagation()}
@@ -178,10 +185,10 @@ export default function ImageGallery({ images, alt }: ImageGalleryProps) {
               className="max-w-[95vw] max-h-[90vh] w-auto h-auto object-contain"
               quality={90}
               decoding="async"
+              onError={handleImageError}
             />
           </div>
 
-          {/* Thumbnails in lightbox */}
           {images.length > 1 && (
             <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 overflow-x-auto max-w-[90vw] py-2">
               {images.map((img, i) => (
@@ -198,6 +205,7 @@ export default function ImageGallery({ images, alt }: ImageGalleryProps) {
                     width={64}
                     height={64}
                     className="w-full h-full object-cover"
+                    onError={handleImageError}
                   />
                 </button>
               ))}

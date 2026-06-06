@@ -25,7 +25,6 @@ export default function ProductCard({ p, isPromoted, isFeatured }: { p: ProductC
   const isBoosted = p.boosteado_en != null
   const promoted = isPromoted ?? (isBoosted || isFeatured)
 
-  // Imagen con fallback a placeholder
   const imgUrl = p.imagen_url || PLACEHOLDER_IMAGES[p.titulo.charCodeAt(0) % PLACEHOLDER_IMAGES.length]
 
   return (
@@ -59,7 +58,11 @@ export default function ProductCard({ p, isPromoted, isFeatured }: { p: ProductC
           loading="lazy"
           decoding="async"
           onError={(e) => {
-            (e.target as HTMLImageElement).src = PLACEHOLDER_IMAGES[0]
+            // ✅ CORREGIDO: Previene loop infinito
+            const target = e.target as HTMLImageElement
+            if (!target.src.includes('/placeholder-product.png')) {
+              target.src = '/placeholder-product.png'
+            }
           }}
         />
       </div>

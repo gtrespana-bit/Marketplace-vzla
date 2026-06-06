@@ -48,8 +48,13 @@ export default function Avatar({ nombre, fotoUrl, size = 'md', className = '' }:
         fill
         className="object-cover"
         onError={(e) => {
-          // Fallback to initials if image fails
+          // ✅ CORREGIDO: Fallback a iniciales con flag para prevenir loops
           const target = e.target as HTMLImageElement
+
+          // Si ya procesamos el error, no hacer nada (prevenir loops)
+          if (target.dataset.errorHandled === 'true') return
+          target.dataset.errorHandled = 'true'
+
           target.style.display = 'none'
           const parent = target.parentElement
           if (parent) {

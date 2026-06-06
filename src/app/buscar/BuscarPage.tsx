@@ -27,7 +27,6 @@ type Producto = {
   descripcion?: string
 }
 
-// Imágenes placeholder genéricas cuando no hay imagen
 const PLACEHOLDER_IMAGES = [
   '/placeholder-product.png',
 ]
@@ -72,7 +71,11 @@ function ProductCard({ p }: { p: Producto }) {
           loading="lazy"
           decoding="async"
           onError={(e) => {
-            (e.target as HTMLImageElement).src = PLACEHOLDER_IMAGES[0]
+            // ✅ CORREGIDO: Previene loop infinito
+            const target = e.target as HTMLImageElement
+            if (!target.src.includes('/placeholder-product.png')) {
+              target.src = '/placeholder-product.png'
+            }
           }}
         />
       </div>
@@ -146,9 +149,7 @@ export default function BuscarClient() {
 
   const clearAll = () => router.push('/buscar')
 
-  // Query Supabase when query or filters change
   useEffect(() => {
-    // Always query — show all products if no filters, or filtered results if filters set
     let cancelled = false
     setLoading(true)
 
@@ -159,38 +160,28 @@ export default function BuscarClient() {
         .eq('activo', true)
         .or('estado_moderacion.is.null,estado_moderacion.eq.aprobado')
 
-      // Full-text search usando search_vector (tsvector indexado)
       if (query) {
         sq = sq.textSearch('search_vector', query, { config: 'spanish', type: 'plain' })
       }
 
-      // Categoria
       if (categoria) {
         const { data: catRow } = await supabase.from('categorias').select('id').eq('nombre', categoria).single()
         if (catRow) sq = sq.eq('categoria_id', catRow.id)
       }
 
-      // Subcategoria
       if (subcategoria) sq = sq.eq('subcategoria', subcategoria)
-
-      // Marca
       if (marca) sq = sq.eq('marca', marca)
-
-      // Condicion del producto
       if (condicion) sq = sq.eq('estado', condicion)
 
-      // Ubicacion
       if (ubicacionCiudad) {
         sq = sq.eq('ubicacion_ciudad', ubicacionCiudad)
       } else if (ubicacionEstado) {
         sq = sq.eq('ubicacion_estado', ubicacionEstado)
       }
 
-      // Precio
       if (precioMin) sq = sq.gte('precio_usd', parseFloat(precioMin))
       if (precioMax) sq = sq.lte('precio_usd', parseFloat(precioMax))
 
-      // Orden: por defecto reciente (luego mezclamos boost/destacados)
       if (orden === 'precio_asc') sq = sq.order('precio_usd', { ascending: true })
       else if (orden === 'precio_desc') sq = sq.order('precio_usd', { ascending: false })
       else sq = sq.order('creado_en', { ascending: false })
@@ -198,7 +189,6 @@ export default function BuscarClient() {
       const { data, count, error } = await sq
       if (!cancelled) {
         if (!error) {
-          // Sort: boost > destacado vigente > por fecha (solo si no ordenan por precio)
           let sorted = data as Producto[]
           if (orden !== 'precio_asc' && orden !== 'precio_desc') {
             const now = new Date().toISOString()
@@ -241,7 +231,6 @@ export default function BuscarClient() {
       </nav>
 
       <div className="flex flex-col lg:flex-row gap-6">
-        {/* Sidebar filtros */}
         <aside className="w-full lg:w-72 flex-shrink-0">
           <div className="bg-white rounded-xl p-5 shadow-sm sticky top-20">
             <div className="flex items-center justify-between mb-4">
@@ -254,7 +243,6 @@ export default function BuscarClient() {
             </div>
 
             <div className="space-y-4">
-              {/* Categoría */}
               <div>
                 <label className="block text-sm font-bold text-gray-900 mb-1.5">Categoría</label>
                 <select value={categoria} onChange={(e) => setParam('categoria', e.target.value)} className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm text-gray-800 bg-white font-medium focus:outline-none focus:ring-2 focus:ring-brand-accent">
@@ -265,7 +253,6 @@ export default function BuscarClient() {
                 </select>
               </div>
 
-              {/* Subcategoria */}
               {subs.length > 0 && (
                 <div>
                   <label className="block text-sm font-bold text-gray-900 mb-1.5">Subcategoria</label>
@@ -278,7 +265,6 @@ export default function BuscarClient() {
                 </div>
               )}
 
-              {/* Marca */}
               {allMarcas.length > 0 && (
                 <div>
                   <div className="flex items-center justify-between">
@@ -298,7 +284,6 @@ export default function BuscarClient() {
                 </div>
               )}
 
-              {/* Condicion del producto */}
               <div>
                 <label className="block text-sm font-bold text-gray-900 mb-1.5">Condición</label>
                 <div className="space-y-1.5">
@@ -316,7 +301,6 @@ export default function BuscarClient() {
                 </div>
               </div>
 
-              {/* Ubicacion */}
               <div className="mt-4 pt-4 border-t">
                 <h4 className="text-sm font-bold text-gray-900 mb-3">📍 Ubicación</h4>
                 <UbicacionSelector
@@ -331,7 +315,6 @@ export default function BuscarClient() {
                 />
               </div>
 
-              {/* Precio */}
               <div>
                 <label className="block text-sm font-bold text-gray-900 mb-1.5">Precio (USD)</label>
                 <div className="flex gap-2">
@@ -352,7 +335,6 @@ export default function BuscarClient() {
                 </div>
               </div>
 
-              {/* Ordenar */}
               <div>
                 <label className="block text-sm font-bold text-gray-900 mb-1.5">Ordenar</label>
                 <select value={orden} onChange={(e) => setParam('orden', e.target.value)} className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm text-gray-800 bg-white font-medium focus:outline-none focus:ring-2 focus:ring-brand-accent">
@@ -366,11 +348,9 @@ export default function BuscarClient() {
           </div>
         </aside>
 
-        {/* Resultados */}
         <div className="flex-1">
           <div className="bg-white rounded-xl p-4 mb-4 shadow-sm">
             <form action="/buscar" method="GET" className="flex gap-2">
-              {/* Campos ocultos para preservar filtros actuales al buscar */}
               {categoria && <input type="hidden" name="categoria" value={categoria} />}
               {subcategoria && <input type="hidden" name="subcategoria" value={subcategoria} />}
               {marca && <input type="hidden" name="marca" value={marca} />}
