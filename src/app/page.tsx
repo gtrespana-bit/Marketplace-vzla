@@ -4,11 +4,10 @@ import { Search, ArrowRight, Star, Zap, Eye, TrendingUp } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { BotonDescargarApp } from '@/components/BotonDescargarApp'
 
-const PLACEHOLDER_IMAGES = [
-  '/placeholder-product.png',
-]
+const PLACEHOLDER_IMAGES = ['/placeholder-product.png']
 
-const BLUR_DATA_URL = 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAADAAQDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k='
+const BLUR_DATA_URL =
+  'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAADAAQDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k='
 
 function getPlaceholderImage(titulo: string) {
   return PLACEHOLDER_IMAGES[Math.abs(titulo.charCodeAt(0)) % PLACEHOLDER_IMAGES.length]
@@ -16,9 +15,7 @@ function getPlaceholderImage(titulo: string) {
 
 async function getDestacados(limit = 8) {
   try {
-    const { data, error } = await supabase
-      .rpc('obtener_destacados_home', { p_limite: limit })
-
+    const { data, error } = await supabase.rpc('obtener_destacados_home', { p_limite: limit })
     if (!error && data) return data as any[]
 
     const { data: data2 } = await supabase
@@ -36,7 +33,6 @@ async function getDestacados(limit = 8) {
     return []
   }
 }
-
 
 async function getTrending(limit = 8) {
   const { data } = await supabase
@@ -79,16 +75,17 @@ async function getRecentProducts(limit = 8) {
     .slice(0, limit)
 }
 
-// ✅ MODIFICADO: Añadidos priority + blur + onError defensivo
 function ProductCard({ p, highlighted = false, priority = false }: { p: any; highlighted?: boolean; priority?: boolean }) {
+  const imgUrl = p.imagen_url || getPlaceholderImage(p.titulo)
+
   return (
     <Link
       href={`/producto/${p.id}`}
-      className={`bg-white rounded-xl overflow-hidden transition-all duration-200 group block border
-        ${highlighted
+      className={`bg-white rounded-xl overflow-hidden transition-all duration-200 group block border ${
+        highlighted
           ? 'border-2 border-brand-accent shadow-lg hover:shadow-xl hover:-translate-y-1'
           : 'shadow-sm border-gray-100 hover:shadow-lg hover:-translate-y-1 hover:border-gray-200'
-        }`}
+      }`}
     >
       <div className="aspect-square bg-gray-100 relative overflow-hidden">
         {highlighted && (
@@ -97,7 +94,7 @@ function ProductCard({ p, highlighted = false, priority = false }: { p: any; hig
           </div>
         )}
         <Image
-          src={p.imagen_url || getPlaceholderImage(p.titulo)}
+          src={imgUrl}
           alt={p.titulo}
           width={400}
           height={400}
@@ -127,7 +124,6 @@ function ProductCard({ p, highlighted = false, priority = false }: { p: any; hig
 }
 
 export default async function HomePage() {
-  // ✅ OPTIMIZACIÓN: Paralelizar las 3 queries
   const [destacados, trending, productos] = await Promise.all([
     getDestacados(),
     getTrending(),
@@ -136,7 +132,6 @@ export default async function HomePage() {
 
   return (
     <div className="bg-gray-50">
-      {/* ============ HERO ============ */}
       <section className="bg-gradient-to-br from-brand-primary to-brand-dark py-10 md:py-16 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-96 h-96 bg-brand-accent/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4" />
         <div className="absolute bottom-0 left-0 w-64 h-64 bg-brand-accent/5 rounded-full blur-2xl translate-y-1/3 -translate-x-1/4" />
@@ -181,28 +176,39 @@ export default async function HomePage() {
           </div>
 
           <div className="grid grid-cols-3 gap-4 max-w-xs mx-auto text-center">
-            <div><p className="text-2xl font-black text-brand-accent">+130</p><p className="text-[10px] text-white/60 mt-0.5">Productos activos</p></div>
-            <div><p className="text-2xl font-black text-brand-accent">+5K</p><p className="text-[10px] text-white/60 mt-0.5">Usuarios</p></div>
-            <div><p className="text-2xl font-black text-brand-accent">$1</p><p className="text-[10px] text-white/60 mt-0.5">Destacarlo desde</p></div>
+            <div>
+              <p className="text-2xl font-black text-brand-accent">+130</p>
+              <p className="text-[10px] text-white/60 mt-0.5">Productos activos</p>
+            </div>
+            <div>
+              <p className="text-2xl font-black text-brand-accent">+5K</p>
+              <p className="text-[10px] text-white/60 mt-0.5">Usuarios</p>
+            </div>
+            <div>
+              <p className="text-2xl font-black text-brand-accent">$1</p>
+              <p className="text-[10px] text-white/60 mt-0.5">Destacarlo desde</p>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* ============ BANNER: PUBLICAR GRATIS ============ */}
       <div className="bg-gradient-to-r from-green-50 to-emerald-50 border-y border-green-200">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-center gap-3 flex-wrap">
           <div className="flex items-center gap-2">
             <span className="w-7 h-7 bg-green-500 rounded-full flex items-center justify-center shrink-0">
-              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
             </span>
             <p className="font-bold text-gray-900 text-sm">Publicar es 100% GRATIS</p>
           </div>
           <p className="text-xs text-gray-600 hidden sm:inline">En MercadoLibre pagas por publicar · Aquí nunca pagas comisión</p>
-          <Link href="/como-funciona" className="text-green-700 text-xs font-bold hover:underline">Comparar con otros →</Link>
+          <Link href="/como-funciona" className="text-green-700 text-xs font-bold hover:underline">
+            Comparar con otros →
+          </Link>
         </div>
       </div>
 
-      {/* ============ VENTAS DESTACADAS ============ */}
       {destacados.length > 0 ? (
         <section className="relative">
           <div className="bg-gradient-to-r from-yellow-50 to-amber-50 border-y border-yellow-200">
@@ -224,8 +230,10 @@ export default async function HomePage() {
 
           <div className="max-w-7xl mx-auto px-4 py-6">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-2xl font-black text-gray-900">⚡ Ventas Destacadas</h2>
-              <span className="bg-brand-accent/20 text-brand-primary text-xs font-bold px-2.5 py-1 rounded-full">Los que pagan por visibilidad</span>
+              <h2 className="text-2xl font-black text-gray-900">Ventas Destacadas</h2>
+              <span className="bg-brand-accent/20 text-brand-primary text-xs font-bold px-2.5 py-1 rounded-full">
+                Los que pagan por visibilidad
+              </span>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -258,11 +266,10 @@ export default async function HomePage() {
         </section>
       )}
 
-      {/* ============ POTENCIAR TU VENTA ============ */}
       <section className="max-w-7xl mx-auto px-4 py-12">
         <div className="bg-brand-dark rounded-2xl p-8 md:p-10">
           <div className="text-center mb-8">
-            <h2 className="text-2xl md:text-3xl font-black text-white mb-3">Potencia tu publicación 💥</h2>
+            <h2 className="text-2xl md:text-3xl font-black text-white mb-3">Potencia tu publicación</h2>
             <p className="text-gray-400 max-w-lg mx-auto">Elige cómo quieres que más compradores vean tu anuncio</p>
           </div>
 
@@ -275,7 +282,7 @@ export default async function HomePage() {
               <p className="text-3xl font-black text-brand-accent mb-2">1 crédito</p>
               <p className="text-sm text-gray-400 mb-4">Sube tu publicación al #1 de la lista al instante</p>
               <div className="bg-white/5 rounded-lg p-3 text-sm text-gray-300">
-                📊 El más barato · Para aparecer arriba <strong>ya</strong>
+                El más barato · Para aparecer arriba <strong>ya</strong>
               </div>
             </div>
 
@@ -302,7 +309,7 @@ export default async function HomePage() {
               <p className="text-3xl font-black text-brand-accent mb-2">10 créditos</p>
               <p className="text-sm text-gray-400 mb-4">48 horas en la página principal — máximo impacto</p>
               <div className="bg-white/5 rounded-lg p-3 text-sm text-gray-300">
-                📊 <strong>$4 USD</strong> · Dos días completos de visibilidad
+                <strong>$4 USD</strong> · Dos días completos de visibilidad
               </div>
             </div>
           </div>
@@ -315,7 +322,6 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* ============ CATEGORÍAS ============ */}
       <section className="max-w-7xl mx-auto px-4 py-12">
         <h2 className="text-2xl md:text-3xl font-black text-gray-900 mb-2">Explora por categoría</h2>
         <p className="text-gray-500 mb-8">Encuentra lo que necesitas en segundos</p>
@@ -329,7 +335,12 @@ export default async function HomePage() {
             { id: 'herramientas', nombre: 'Herramientas', icon: '🔧', desc: 'Manuales, eléctricas' },
             { id: 'otros', nombre: 'Otros', icon: '📦', desc: 'De todo un poco' },
           ].map((cat) => (
-            <Link key={cat.id} href={`/catalogo?categoria=${cat.id}`} prefetch={true} className="bg-white rounded-2xl p-6 text-center shadow-sm border hover:border-brand-accent transition hover:shadow-lg group">
+            <Link
+              key={cat.id}
+              href={`/catalogo?categoria=${cat.id}`}
+              prefetch={true}
+              className="bg-white rounded-2xl p-6 text-center shadow-sm border hover:border-brand-accent transition hover:shadow-lg group"
+            >
               <span className="text-4xl block mb-3 group-hover:scale-110 transition-transform">{cat.icon}</span>
               <span className="font-bold text-gray-900 text-sm">{cat.nombre}</span>
               <span className="block text-xs text-gray-400 mt-1 truncate">{cat.desc}</span>
@@ -338,36 +349,102 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* ============ TRENDING ============ */}
       {trending.length > 0 && (
+        <section className="max-w-7xl mx-auto px-4 py-8">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-2xl font-black text-gray-900">Lo más visto</h2>
+            <span className="text-xs text-gray-500">Últimos 7 días</span>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            {trending.map((p, index) => (
+              <Link
+                key={p.id}
+                href={`/producto/${p.id}`}
+                prefetch={true}
+                className="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-lg hover:-translate-y-1 transition group block"
+              >
+                <div className="aspect-square bg-gray-100 relative overflow-hidden">
+                  <Image
+                    src={p.imagen_url || getPlaceholderImage(p.titulo)}
+                    alt={p.titulo}
+                    width={400}
+                    height={400}
+                    sizes="(max-width: 768px) 50vw, 25vw"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    loading={index === 0 ? 'eager' : 'lazy'}
+                    priority={index === 0}
+                    decoding="async"
+                    placeholder="blur"
+                    blurDataURL={BLUR_DATA_URL}
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement
+                      if (!target.src.includes('/placeholder-product.png')) {
+                        target.src = '/placeholder-product.png'
+                      }
+                    }}
+                  />
+                  <div className="absolute top-2 left-2 z-10 bg-gradient-to-r from-orange-500 to-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 shadow-sm">
+                    Trending
+                  </div>
+                </div>
+                <div className="p-4">
+                  <h3 className="font-semibold text-gray-900 truncate group-hover:text-brand-primary transition-colors">{p.titulo}</h3>
+                  <p className="text-xl font-black text-brand-primary mt-1">${Number(p.precio_usd || 0).toLocaleString()}</p>
+                  <div className="flex items-center gap-1 mt-1">
+                    <Eye size={11} className="text-gray-400" />
+                    <p className="text-xs text-gray-500">{p.visitas || 0} vistas</p>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
+
       <section className="max-w-7xl mx-auto px-4 py-8">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-2xl font-black text-gray-900">🔥 Lo más visto</h2>
-          <span className="text-xs text-gray-500">Últimos 7 días</span>
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-2xl font-bold text-gray-900">Agregados recientemente</h2>
+          <Link href="/catalogo" className="text-brand-primary font-semibold text-sm hover:underline flex items-center gap-1" prefetch={true}>
+            Ver todos <ArrowRight size={14} />
+          </Link>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-          {trending.map((p, index) => (
-            <Link key={p.id} href={`/producto/${p.id}`} prefetch={true}
-              className="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-lg hover:-translate-y-1 transition group block">
-              <div className="aspect-square bg-gray-100 relative overflow-hidden">
-                <Image
-                  src={p.imagen_url || getPlaceholderImage(p.titulo)}
-                  alt={p.titulo}
-                  width={400}
-                  height={400}
-                  sizes="(max-width: 768px) 50vw, 25vw"
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                  loading={index === 0 ? 'eager' : 'lazy'}
-                  priority={index === 0}
-                  decoding="async"
-                  placeholder="blur"
-                  blurDataURL={BLUR_DATA_URL}
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement
-                    if (!target.src.includes('/placeholder-product.png')) {
-                      target.src = '/placeholder-product.png'
-                    }
-                  }}
-                />
-                <div className="absolute top-2 left
+        {productos.length === 0 ? (
+          <div className="bg-white rounded-xl p-16 text-center shadow-sm border">
+            <p className="text-xl font-bold text-gray-800 mb-2">Aún no hay publicaciones</p>
+            <p className="text-gray-500 mb-6">Sé el primero en publicar algo</p>
+            <Link href="/publicar" className="inline-block bg-brand-accent text-brand-primary px-6 py-3 rounded-lg font-bold hover:bg-accent/90 transition">
+              Publicar gratis
+            </Link>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {productos.map((p) => {
+              const isHighlighted = (p.destacado && p.destacado_hasta > new Date().toISOString()) || p.boosteado_en
+              return <ProductCard key={p.id} p={p} highlighted={isHighlighted} />
+            })}
+          </div>
+        )}
+      </section>
+
+      <section className="bg-brand-accent py-16">
+        <div className="max-w-7xl mx-auto px-4 text-center">
+          <h2 className="text-3xl font-black text-brand-primary mb-4">¿Tienes algo para vender?</h2>
+          <p className="text-brand-primary/80 text-lg mb-8">Publica gratis en segundos. Miles de compradores te esperan.</p>
+          <div className="flex flex-wrap justify-center gap-4">
+            <Link href="/publicar" className="inline-flex items-center gap-2 bg-brand-primary text-white px-10 py-4 rounded-xl font-bold text-lg hover:bg-brand-dark transition shadow-lg" prefetch={true}>
+              Publica ahora — Es gratis
+              <ArrowRight size={20} />
+            </Link>
+            <Link href="/creditos" className="inline-flex items-center gap-2 bg-white text-brand-primary px-10 py-4 rounded-xl font-bold text-lg hover:bg-gray-100 transition shadow-lg">
+              Destacar mi anuncio
+            </Link>
+          </div>
+        </div>
+      </section>
+    </div>
+  )
+}
+
+export const revalidate = 120
