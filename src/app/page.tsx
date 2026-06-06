@@ -72,7 +72,6 @@ async function getRecentProducts(limit = 8) {
     .slice(0, limit)
 }
 
-// ✅ SIMPLIFICADO: Sin priority, sin blur, sin fetchPriority excesivo
 function ProductCard({ p, highlighted = false }: { p: any; highlighted?: boolean }) {
   const imgUrl = p.imagen_url || getPlaceholderImage(p.titulo)
 
@@ -118,10 +117,12 @@ function ProductCard({ p, highlighted = false }: { p: any; highlighted?: boolean
 }
 
 export default async function HomePage() {
-  // ✅ SIMPLIFICADO: consultas secuenciales para no saturar conexiones
-  const destacados = await getDestacados()
-  const trending = await getTrending()
-  const productos = await getRecentProducts()
+  // ✅ VUELVE A Promise.all para consultas paralelas
+  const [destacados, trending, productos] = await Promise.all([
+    getDestacados(),
+    getTrending(),
+    getRecentProducts(),
+  ])
 
   return (
     <div className="bg-gray-50">
