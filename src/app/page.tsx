@@ -1,13 +1,10 @@
 import Link from 'next/link'
 import Image from 'next/image'
-import { Search, ArrowRight, Star, Zap, Eye, TrendingUp } from 'lucide-react'
+import { ArrowRight, Star, Zap, Eye, TrendingUp } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { BotonDescargarApp } from '@/components/BotonDescargarApp'
 
 const PLACEHOLDER_IMAGES = ['/placeholder-product.png']
-
-const BLUR_DATA_URL =
-  'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAADAAQDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k='
 
 function getPlaceholderImage(titulo: string) {
   return PLACEHOLDER_IMAGES[Math.abs(titulo.charCodeAt(0)) % PLACEHOLDER_IMAGES.length]
@@ -75,7 +72,8 @@ async function getRecentProducts(limit = 8) {
     .slice(0, limit)
 }
 
-function ProductCard({ p, highlighted = false, priority = false }: { p: any; highlighted?: boolean; priority?: boolean }) {
+// ✅ SIMPLIFICADO: Sin priority, sin blur, sin fetchPriority excesivo
+function ProductCard({ p, highlighted = false }: { p: any; highlighted?: boolean }) {
   const imgUrl = p.imagen_url || getPlaceholderImage(p.titulo)
 
   return (
@@ -100,29 +98,30 @@ function ProductCard({ p, highlighted = false, priority = false }: { p: any; hig
           height={400}
           sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-          loading={priority ? 'eager' : 'lazy'}
-          priority={priority}
+          loading="lazy"
           decoding="async"
-          placeholder="blur"
-          blurDataURL={BLUR_DATA_URL}
-          fetchPriority={priority ? 'high' : 'auto'}
         />
       </div>
       <div className="p-4">
-        <h3 className="font-semibold text-gray-900 truncate group-hover:text-brand-primary transition-colors">{p.titulo}</h3>
-        <p className="text-xl font-black text-brand-primary mt-1">${Number(p.precio_usd || 0).toLocaleString()}</p>
-        <p className="text-xs text-gray-500 mt-1">{p.estado} · {p.ubicacion_ciudad || 'Venezuela'}</p>
+        <h3 className="font-semibold text-gray-900 truncate group-hover:text-brand-primary transition-colors">
+          {p.titulo}
+        </h3>
+        <p className="text-xl font-black text-brand-primary mt-1">
+          ${Number(p.precio_usd || 0).toLocaleString()}
+        </p>
+        <p className="text-xs text-gray-500 mt-1">
+          {p.estado} · {p.ubicacion_ciudad || 'Venezuela'}
+        </p>
       </div>
     </Link>
   )
 }
 
 export default async function HomePage() {
-  const [destacados, trending, productos] = await Promise.all([
-    getDestacados(),
-    getTrending(),
-    getRecentProducts(),
-  ])
+  // ✅ SIMPLIFICADO: consultas secuenciales para no saturar conexiones
+  const destacados = await getDestacados()
+  const trending = await getTrending()
+  const productos = await getRecentProducts()
 
   return (
     <div className="bg-gray-50">
@@ -140,14 +139,16 @@ export default async function HomePage() {
             Publica gratis y empieza a recibir mensajes.
             <br />
             <span className="text-white/90 font-medium">
-              ¿Quieres vender aún más rápido? Destaca tu anuncio y <span className="text-brand-accent font-bold">llega a miles más</span>.
+              ¿Quieres vender aún más rápido? Destaca tu anuncio y{' '}
+              <span className="text-brand-accent font-bold">llega a miles más</span>.
             </span>
           </p>
 
           <div className="inline-flex items-center gap-2 bg-brand-accent/15 border border-brand-accent/30 rounded-full px-4 py-1.5 mb-4">
             <Zap size={14} className="text-brand-accent" />
             <span className="text-xs font-semibold text-white">
-              Los anuncios destacados se venden <span className="text-brand-accent font-black">3x más rápido</span>
+              Los anuncios destacados se venden{' '}
+              <span className="text-brand-accent font-black">3x más rápido</span>
             </span>
           </div>
 
@@ -190,13 +191,24 @@ export default async function HomePage() {
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-center gap-3 flex-wrap">
           <div className="flex items-center gap-2">
             <span className="w-7 h-7 bg-green-500 rounded-full flex items-center justify-center shrink-0">
-              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+              <svg
+                viewBox="0 0 24 24"
+                width="16"
+                height="16"
+                fill="none"
+                stroke="white"
+                strokeWidth="3"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
                 <polyline points="20 6 9 17 4 12" />
               </svg>
             </span>
             <p className="font-bold text-gray-900 text-sm">Publicar es 100% GRATIS</p>
           </div>
-          <p className="text-xs text-gray-600 hidden sm:inline">En MercadoLibre pagas por publicar · Aquí nunca pagas comisión</p>
+          <p className="text-xs text-gray-600 hidden sm:inline">
+            En MercadoLibre pagas por publicar · Aquí nunca pagas comisión
+          </p>
           <Link href="/como-funciona" className="text-green-700 text-xs font-bold hover:underline">
             Comparar con otros →
           </Link>
@@ -213,10 +225,15 @@ export default async function HomePage() {
                 </div>
                 <div>
                   <p className="font-bold text-gray-900 text-sm">¿Quieres aparecer aquí?</p>
-                  <p className="text-xs text-gray-600">Destaca tu publicación desde $1 y multiplica tus ventas</p>
+                  <p className="text-xs text-gray-600">
+                    Destaca tu publicación desde $1 y multiplica tus ventas
+                  </p>
                 </div>
               </div>
-              <Link href="/creditos" className="flex items-center gap-1 bg-brand-accent text-brand-primary px-4 py-2 rounded-lg font-bold text-sm hover:bg-accent/90 transition shrink-0">
+              <Link
+                href="/creditos"
+                className="flex items-center gap-1 bg-brand-accent text-brand-primary px-4 py-2 rounded-lg font-bold text-sm hover:bg-accent/90 transition shrink-0"
+              >
                 Ver paquetes <ArrowRight size={14} />
               </Link>
             </div>
@@ -231,8 +248,8 @@ export default async function HomePage() {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              {destacados.map((p, index) => (
-                <ProductCard key={p.id} p={p} highlighted priority={index === 0} />
+              {destacados.map((p) => (
+                <ProductCard key={p.id} p={p} highlighted />
               ))}
             </div>
           </div>
@@ -243,16 +260,25 @@ export default async function HomePage() {
             <div className="w-16 h-16 bg-brand-accent rounded-full flex items-center justify-center mx-auto mb-4">
               <Zap size={28} className="text-brand-primary" />
             </div>
-            <h2 className="text-2xl font-black text-gray-900 mb-2">Sé el primero en destacar tu anuncio</h2>
+            <h2 className="text-2xl font-black text-gray-900 mb-2">
+              Sé el primero en destacar tu anuncio
+            </h2>
             <p className="text-gray-600 max-w-lg mx-auto mb-2">
-              Los productos destacados aparecen aquí, en la página principal, y llegan a miles más compradores.
+              Los productos destacados aparecen aquí, en la página principal, y llegan a miles más
+              compradores.
             </p>
             <p className="text-brand-primary font-bold mb-6">Desde solo $1 USD por 12 horas</p>
             <div className="flex flex-wrap justify-center gap-4">
-              <Link href="/publicar" className="inline-flex items-center gap-2 bg-brand-accent text-brand-primary px-6 py-3 rounded-xl font-bold hover:bg-accent/90 transition">
+              <Link
+                href="/publicar"
+                className="inline-flex items-center gap-2 bg-brand-accent text-brand-primary px-6 py-3 rounded-xl font-bold hover:bg-accent/90 transition"
+              >
                 Publicar Gratis
               </Link>
-              <Link href="/creditos" className="inline-flex items-center gap-2 bg-brand-primary text-white px-6 py-3 rounded-xl font-bold hover:bg-brand-dark transition">
+              <Link
+                href="/creditos"
+                className="inline-flex items-center gap-2 bg-brand-primary text-white px-6 py-3 rounded-xl font-bold hover:bg-brand-dark transition"
+              >
                 Ver Paquetes de Créditos <ArrowRight size={16} />
               </Link>
             </div>
@@ -263,8 +289,12 @@ export default async function HomePage() {
       <section className="max-w-7xl mx-auto px-4 py-12">
         <div className="bg-brand-dark rounded-2xl p-8 md:p-10">
           <div className="text-center mb-8">
-            <h2 className="text-2xl md:text-3xl font-black text-white mb-3">Potencia tu publicación</h2>
-            <p className="text-gray-400 max-w-lg mx-auto">Elige cómo quieres que más compradores vean tu anuncio</p>
+            <h2 className="text-2xl md:text-3xl font-black text-white mb-3">
+              Potencia tu publicación
+            </h2>
+            <p className="text-gray-400 max-w-lg mx-auto">
+              Elige cómo quieres que más compradores vean tu anuncio
+            </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -274,7 +304,9 @@ export default async function HomePage() {
               </div>
               <h3 className="font-bold text-white text-lg mb-1">Boost</h3>
               <p className="text-3xl font-black text-brand-accent mb-2">1 crédito</p>
-              <p className="text-sm text-gray-400 mb-4">Sube tu publicación al #1 de la lista al instante</p>
+              <p className="text-sm text-gray-400 mb-4">
+                Sube tu publicación al #1 de la lista al instante
+              </p>
               <div className="bg-white/5 rounded-lg p-3 text-sm text-gray-300">
                 El más barato · Para aparecer arriba <strong>ya</strong>
               </div>
@@ -289,9 +321,12 @@ export default async function HomePage() {
               </div>
               <h3 className="font-bold text-brand-primary text-lg mb-1">Destacado 24h</h3>
               <p className="text-3xl font-black text-brand-primary mb-2">6 créditos</p>
-              <p className="text-sm text-brand-primary/70 mb-4">Tu anuncio en la página principal todo un día</p>
+              <p className="text-sm text-brand-primary/70 mb-4">
+                Tu anuncio en la página principal todo un día
+              </p>
               <div className="bg-brand-primary/10 rounded-lg p-3 text-sm text-brand-primary">
-                <TrendingUp size={14} className="inline mr-1" /> <strong>$2 USD</strong> · Visibilidad máxima
+                <TrendingUp size={14} className="inline mr-1" /> <strong>$2 USD</strong> ·
+                Visibilidad máxima
               </div>
             </div>
 
@@ -301,7 +336,9 @@ export default async function HomePage() {
               </div>
               <h3 className="font-bold text-white text-lg mb-1">Destacado 48h</h3>
               <p className="text-3xl font-black text-brand-accent mb-2">10 créditos</p>
-              <p className="text-sm text-gray-400 mb-4">48 horas en la página principal — máximo impacto</p>
+              <p className="text-sm text-gray-400 mb-4">
+                48 horas en la página principal — máximo impacto
+              </p>
               <div className="bg-white/5 rounded-lg p-3 text-sm text-gray-300">
                 <strong>$4 USD</strong> · Dos días completos de visibilidad
               </div>
@@ -309,7 +346,10 @@ export default async function HomePage() {
           </div>
 
           <div className="text-center mt-8">
-            <Link href="/creditos" className="inline-flex items-center gap-2 bg-brand-accent text-brand-primary px-8 py-3 rounded-xl font-bold hover:bg-accent/90 transition">
+            <Link
+              href="/creditos"
+              className="inline-flex items-center gap-2 bg-brand-accent text-brand-primary px-8 py-3 rounded-xl font-bold hover:bg-accent/90 transition"
+            >
               Comprar Créditos <ArrowRight size={18} />
             </Link>
           </div>
@@ -317,7 +357,9 @@ export default async function HomePage() {
       </section>
 
       <section className="max-w-7xl mx-auto px-4 py-12">
-        <h2 className="text-2xl md:text-3xl font-black text-gray-900 mb-2">Explora por categoría</h2>
+        <h2 className="text-2xl md:text-3xl font-black text-gray-900 mb-2">
+          Explora por categoría
+        </h2>
         <p className="text-gray-500 mb-8">Encuentra lo que necesitas en segundos</p>
 
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
@@ -335,7 +377,9 @@ export default async function HomePage() {
               prefetch={true}
               className="bg-white rounded-2xl p-6 text-center shadow-sm border hover:border-brand-accent transition hover:shadow-lg group"
             >
-              <span className="text-4xl block mb-3 group-hover:scale-110 transition-transform">{cat.icon}</span>
+              <span className="text-4xl block mb-3 group-hover:scale-110 transition-transform">
+                {cat.icon}
+              </span>
               <span className="font-bold text-gray-900 text-sm">{cat.nombre}</span>
               <span className="block text-xs text-gray-400 mt-1 truncate">{cat.desc}</span>
             </Link>
@@ -351,7 +395,7 @@ export default async function HomePage() {
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-            {trending.map((p, index) => (
+            {trending.map((p) => (
               <Link
                 key={p.id}
                 href={`/producto/${p.id}`}
@@ -366,19 +410,20 @@ export default async function HomePage() {
                     height={400}
                     sizes="(max-width: 768px) 50vw, 25vw"
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                    loading={index === 0 ? 'eager' : 'lazy'}
-                    priority={index === 0}
+                    loading="lazy"
                     decoding="async"
-                    placeholder="blur"
-                    blurDataURL={BLUR_DATA_URL}
                   />
                   <div className="absolute top-2 left-2 z-10 bg-gradient-to-r from-orange-500 to-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 shadow-sm">
                     Trending
                   </div>
                 </div>
                 <div className="p-4">
-                  <h3 className="font-semibold text-gray-900 truncate group-hover:text-brand-primary transition-colors">{p.titulo}</h3>
-                  <p className="text-xl font-black text-brand-primary mt-1">${Number(p.precio_usd || 0).toLocaleString()}</p>
+                  <h3 className="font-semibold text-gray-900 truncate group-hover:text-brand-primary transition-colors">
+                    {p.titulo}
+                  </h3>
+                  <p className="text-xl font-black text-brand-primary mt-1">
+                    ${Number(p.precio_usd || 0).toLocaleString()}
+                  </p>
                   <div className="flex items-center gap-1 mt-1">
                     <Eye size={11} className="text-gray-400" />
                     <p className="text-xs text-gray-500">{p.visitas || 0} vistas</p>
@@ -393,7 +438,11 @@ export default async function HomePage() {
       <section className="max-w-7xl mx-auto px-4 py-8">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-2xl font-bold text-gray-900">Agregados recientemente</h2>
-          <Link href="/catalogo" className="text-brand-primary font-semibold text-sm hover:underline flex items-center gap-1" prefetch={true}>
+          <Link
+            href="/catalogo"
+            className="text-brand-primary font-semibold text-sm hover:underline flex items-center gap-1"
+            prefetch={true}
+          >
             Ver todos <ArrowRight size={14} />
           </Link>
         </div>
@@ -402,14 +451,18 @@ export default async function HomePage() {
           <div className="bg-white rounded-xl p-16 text-center shadow-sm border">
             <p className="text-xl font-bold text-gray-800 mb-2">Aún no hay publicaciones</p>
             <p className="text-gray-500 mb-6">Sé el primero en publicar algo</p>
-            <Link href="/publicar" className="inline-block bg-brand-accent text-brand-primary px-6 py-3 rounded-lg font-bold hover:bg-accent/90 transition">
+            <Link
+              href="/publicar"
+              className="inline-block bg-brand-accent text-brand-primary px-6 py-3 rounded-lg font-bold hover:bg-accent/90 transition"
+            >
               Publicar gratis
             </Link>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {productos.map((p) => {
-              const isHighlighted = (p.destacado && p.destacado_hasta > new Date().toISOString()) || p.boosteado_en
+              const isHighlighted =
+                (p.destacado && p.destacado_hasta > new Date().toISOString()) || p.boosteado_en
               return <ProductCard key={p.id} p={p} highlighted={isHighlighted} />
             })}
           </div>
@@ -418,14 +471,25 @@ export default async function HomePage() {
 
       <section className="bg-brand-accent py-16">
         <div className="max-w-7xl mx-auto px-4 text-center">
-          <h2 className="text-3xl font-black text-brand-primary mb-4">¿Tienes algo para vender?</h2>
-          <p className="text-brand-primary/80 text-lg mb-8">Publica gratis en segundos. Miles de compradores te esperan.</p>
+          <h2 className="text-3xl font-black text-brand-primary mb-4">
+            ¿Tienes algo para vender?
+          </h2>
+          <p className="text-brand-primary/80 text-lg mb-8">
+            Publica gratis en segundos. Miles de compradores te esperan.
+          </p>
           <div className="flex flex-wrap justify-center gap-4">
-            <Link href="/publicar" className="inline-flex items-center gap-2 bg-brand-primary text-white px-10 py-4 rounded-xl font-bold text-lg hover:bg-brand-dark transition shadow-lg" prefetch={true}>
+            <Link
+              href="/publicar"
+              className="inline-flex items-center gap-2 bg-brand-primary text-white px-10 py-4 rounded-xl font-bold text-lg hover:bg-brand-dark transition shadow-lg"
+              prefetch={true}
+            >
               Publica ahora — Es gratis
               <ArrowRight size={20} />
             </Link>
-            <Link href="/creditos" className="inline-flex items-center gap-2 bg-white text-brand-primary px-10 py-4 rounded-xl font-bold text-lg hover:bg-gray-100 transition shadow-lg">
+            <Link
+              href="/creditos"
+              className="inline-flex items-center gap-2 bg-white text-brand-primary px-10 py-4 rounded-xl font-bold text-lg hover:bg-gray-100 transition shadow-lg"
+            >
               Destacar mi anuncio
             </Link>
           </div>
