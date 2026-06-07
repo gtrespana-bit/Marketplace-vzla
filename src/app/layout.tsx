@@ -71,8 +71,13 @@ export default function RootLayout({
           lib="/~partytown/"
         />
 
+        {/* Preconnect a Google Tag Manager */}
         <link rel="preconnect" href="https://www.googletagmanager.com" />
         <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
+
+        {/* ✅ NUEVO: Preconnect al CDN de Supabase para LCP más rápido */}
+        <link rel="preconnect" href="https://jmbkqelkusxjebsdnjoc.supabase.co" />
+        <link rel="dns-prefetch" href="https://jmbkqelkusxjebsdnjoc.supabase.co" />
 
         <link rel="icon" type="image/x-icon" href="/favicon.ico" />
         <link rel="shortcut icon" type="image/png" href="/logo-vendet.png" />
