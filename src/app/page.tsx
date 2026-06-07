@@ -72,6 +72,7 @@ async function getRecentProducts(limit = 8) {
     .slice(0, limit)
 }
 
+// ✅ SIN onError porque este es un Server Component
 function ProductCard({ p, highlighted = false }: { p: any; highlighted?: boolean }) {
   const imgUrl = p.imagen_url || getPlaceholderImage(p.titulo)
 
@@ -304,7 +305,7 @@ export default async function HomePage() {
               </div>
               <h3 className="font-bold text-white text-lg mb-1">Boost</h3>
               <p className="text-3xl font-black text-brand-accent mb-2">1 crédito</p>
-              <p className="text-sm text-gray-400 mb-4">
+              <p className="text-sm text-gray-300 mb-4">
                 Sube tu publicación al #1 de la lista al instante
               </p>
               <div className="bg-white/5 rounded-lg p-3 text-sm text-gray-300">
@@ -319,12 +320,12 @@ export default async function HomePage() {
               <div className="w-12 h-12 bg-brand-primary/20 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Star size={24} className="text-brand-primary" />
               </div>
-              <h3 className="font-bold text-brand-primary text-lg mb-1">Destacado 24h</h3>
-              <p className="text-3xl font-black text-brand-primary mb-2">6 créditos</p>
+              <h3 className="font-bold text-gray-900 text-lg mb-1">Destacado 24h</h3>
+              <p className="text-3xl font-black text-gray-900 mb-2">6 créditos</p>
               <p className="text-sm text-gray-800 mb-4">
                 Tu anuncio en la página principal todo un día
               </p>
-              <div className="bg-brand-primary/10 rounded-lg p-3 text-sm text-brand-primary">
+              <div className="bg-gray-900/10 rounded-lg p-3 text-sm text-gray-900">
                 <TrendingUp size={14} className="inline mr-1" /> <strong>$2 USD</strong> ·
                 Visibilidad máxima
               </div>
@@ -336,7 +337,7 @@ export default async function HomePage() {
               </div>
               <h3 className="font-bold text-white text-lg mb-1">Destacado 48h</h3>
               <p className="text-3xl font-black text-brand-accent mb-2">10 créditos</p>
-              <p className="text-sm text-gray-400 mb-4">
+              <p className="text-sm text-gray-300 mb-4">
                 48 horas en la página principal — máximo impacto
               </p>
               <div className="bg-white/5 rounded-lg p-3 text-sm text-gray-300">
