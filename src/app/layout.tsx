@@ -5,8 +5,8 @@ import './globals.css'
 import { Header } from '@/components/Header'
 import { Footer } from '@/components/Footer'
 import { AuthProvider } from '@/components/AuthProvider'
-import BottomTabNav from '@/components/BottomTabNav'
 import dynamic from 'next/dynamic'
+import BottomTabNav from '@/components/BottomTabNav'
 
 const PWAInstallBanner = dynamic(() => import('@/components/PWAInstallBanner'), { ssr: false })
 const PushNotificationBanner = dynamic(() => import('@/components/PushNotificationBanner'), { ssr: false })
@@ -15,6 +15,7 @@ const inter = Inter({
   subsets: ['latin'],
   variable: '--font-inter',
   display: 'swap',
+  preload: true,
 })
 
 export const viewport: Viewport = {

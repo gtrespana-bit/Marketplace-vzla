@@ -1,5 +1,5 @@
 # Browsers modernos para eliminar polyfills legacy
-# Esto elimina ~24KB de JavaScript innecesario (Array.at, flat, flatMap, etc.)
+# Esto elimina ~24KB de JavaScript innecesario
 
 last 2 Chrome versions
 last 2 Firefox versions
