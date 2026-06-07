@@ -15,7 +15,6 @@ const inter = Inter({
   subsets: ['latin'],
   variable: '--font-inter',
   display: 'swap',
-  preload: true,
 })
 
 export const viewport: Viewport = {
@@ -66,35 +65,36 @@ export default function RootLayout({
   return (
     <html lang="es">
       <head>
-        {/* ✅ OPTIMIZACIÓN: Partytown mueve Google Analytics a un Web Worker */}
         <Partytown
-          debug={false}
+          debug={process.env.NODE_ENV === 'development'}
           forward={['dataLayer.push']}
           lib="/~partytown/"
         />
-        
+
         <link rel="preconnect" href="https://www.googletagmanager.com" />
         <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
-        
+
         <link rel="icon" type="image/x-icon" href="/favicon.ico" />
         <link rel="shortcut icon" type="image/png" href="/logo-vendet.png" />
         <link rel="apple-touch-icon" href="/icon-192.webp" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 
-        {/* ✅ Google Analytics ejecutándose en Web Worker (NO bloquea main thread) */}
         <script
           type="text/partytown"
           src="https://www.googletagmanager.com/gtag/js?id=G-RMMQFHP6EC"
         />
-        <script type="text/partytown">
-          {`
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
-            gtag('config', 'G-RMMQFHP6EC');
-          `}
-        </script>
+        <script
+          type="text/partytown"
+          dangerouslySetInnerHTML={{
+            __html: `
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              gtag('js', new Date());
+              gtag('config', 'G-RMMQFHP6EC');
+            `,
+          }}
+        />
       </head>
       <body className={`${inter.variable} font-sans antialiased`}>
         <script
