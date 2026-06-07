@@ -117,7 +117,6 @@ function ProductCard({ p, highlighted = false }: { p: any; highlighted?: boolean
 }
 
 export default async function HomePage() {
-  // ✅ VUELVE A Promise.all para consultas paralelas
   const [destacados, trending, productos] = await Promise.all([
     getDestacados(),
     getTrending(),
@@ -222,7 +221,7 @@ export default async function HomePage() {
             <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between gap-4 flex-wrap">
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 bg-brand-accent rounded-full flex items-center justify-center shrink-0">
-                  <Zap size={16} className="text-brand-primary" />
+                  <Zap size={16} className="text-gray-900" />
                 </div>
                 <div>
                   <p className="font-bold text-gray-900 text-sm">¿Quieres aparecer aquí?</p>
@@ -259,7 +258,7 @@ export default async function HomePage() {
         <section className="max-w-7xl mx-auto px-4 py-8">
           <div className="bg-gradient-to-r from-blue-50 to-yellow-50 border border-gray-200 rounded-2xl p-8 text-center">
             <div className="w-16 h-16 bg-brand-accent rounded-full flex items-center justify-center mx-auto mb-4">
-              <Zap size={28} className="text-brand-primary" />
+              <Zap size={28} className="text-gray-900" />
             </div>
             <h2 className="text-2xl font-black text-gray-900 mb-2">
               Sé el primero en destacar tu anuncio
@@ -293,7 +292,7 @@ export default async function HomePage() {
             <h2 className="text-2xl md:text-3xl font-black text-white mb-3">
               Potencia tu publicación
             </h2>
-            <p className="text-gray-400 max-w-lg mx-auto">
+            <p className="text-gray-300 max-w-lg mx-auto">
               Elige cómo quieres que más compradores vean tu anuncio
             </p>
           </div>
@@ -318,14 +317,14 @@ export default async function HomePage() {
                 MÁS POPULAR
               </div>
               <div className="w-12 h-12 bg-brand-primary/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Star size={24} className="text-brand-primary" />
+                <Star size={24} className="text-gray-900" />
               </div>
               <h3 className="font-bold text-gray-900 text-lg mb-1">Destacado 24h</h3>
-              <p className="text-3xl font-black text-brand-primary mb-2">6 créditos</p>
+              <p className="text-3xl font-black text-gray-900 mb-2">6 créditos</p>
               <p className="text-sm text-gray-800 mb-4">
                 Tu anuncio en la página principal todo un día
               </p>
-              <div className="bg-brand-primary/10 rounded-lg p-3 text-sm text-brand-primary">
+              <div className="bg-gray-900/10 rounded-lg p-3 text-sm text-gray-900">
                 <TrendingUp size={14} className="inline mr-1" /> <strong>$2 USD</strong> ·
                 Visibilidad máxima
               </div>
@@ -361,7 +360,7 @@ export default async function HomePage() {
         <h2 className="text-2xl md:text-3xl font-black text-gray-900 mb-2">
           Explora por categoría
         </h2>
-        <p className="text-gray-500 mb-8">Encuentra lo que necesitas en segundos</p>
+        <p className="text-gray-600 mb-8">Encuentra lo que necesitas en segundos</p>
 
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
           {[
@@ -382,7 +381,7 @@ export default async function HomePage() {
                 {cat.icon}
               </span>
               <span className="font-bold text-gray-900 text-sm">{cat.nombre}</span>
-              <span className="block text-xs text-gray-500 mt-1 truncate">{cat.desc}</span>
+              <span className="block text-xs text-gray-600 mt-1 truncate">{cat.desc}</span>
             </Link>
           ))}
         </div>
@@ -415,7 +414,7 @@ export default async function HomePage() {
                     decoding="async"
                   />
                   <div className="absolute top-2 left-2 z-10 bg-gradient-to-r from-orange-500 to-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 shadow-sm">
-                    Trending
+                    🔥 Trending
                   </div>
                 </div>
                 <div className="p-4">
@@ -454,7 +453,7 @@ export default async function HomePage() {
             <p className="text-gray-500 mb-6">Sé el primero en publicar algo</p>
             <Link
               href="/publicar"
-              className="inline-block bg-brand-accent text-brand-primary px-6 py-3 rounded-lg font-bold hover:bg-accent/90 transition"
+              className="inline-block bg-brand-accent text-gray-900 px-6 py-3 rounded-lg font-bold hover:bg-accent/90 transition"
             >
               Publicar gratis
             </Link>
@@ -472,7 +471,7 @@ export default async function HomePage() {
 
       <section className="bg-brand-accent py-16">
         <div className="max-w-7xl mx-auto px-4 text-center">
-          <h2 className="text-3xl font-black text-brand-primary mb-4">
+          <h2 className="text-3xl font-black text-gray-900 mb-4">
             ¿Tienes algo para vender?
           </h2>
           <p className="text-gray-800 text-lg mb-8">
