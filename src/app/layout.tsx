@@ -66,20 +66,18 @@ export default function RootLayout({
   return (
     <html lang="es">
       <head>
-        {/* ✅ OPTIMIZACIÓN: Preconnect a orígenes críticos (ahorra ~200ms) */}
-        <link rel="preconnect" href="https://jmbkqelkusxjebsdnjoc.supabase.co" crossOrigin="anonymous" />
-        <link rel="dns-prefetch" href="https://jmbkqelkusxjebsdnjoc.supabase.co" />
+        {/* ✅ OPTIMIZACIÓN: Solo preconnect a orígenes que SÍ se usan en el cliente (GTM) */}
+        {/* Se eliminaron Supabase y R2 porque el Home es Server Component y no hacen requests directos */}
         <link rel="preconnect" href="https://www.googletagmanager.com" />
         <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
-        <link rel="preconnect" href="https://pub-d212837165c545e3956251da001fa37a.r2.dev" crossOrigin="anonymous" />
         
         <link rel="icon" type="image/x-icon" href="/favicon.ico" />
         <link rel="shortcut icon" type="image/png" href="/logo-vendet.png" />
-        <link rel="apple-touch-icon" href="/icon-192.webp" />
+        <link rel="apple-touch-icon" href="/icon-192.webp' />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 
-        {/* ✅ OPTIMIZACIÓN: Google Tag Manager diferido con lazyOnload (reduce TBT ~200ms) */}
+        {/* ✅ Google Tag Manager diferido (lazyOnload) para no bloquear el Main Thread */}
         <Script
           src="https://www.googletagmanager.com/gtag/js?id=G-RMMQFHP6EC"
           strategy="lazyOnload"
