@@ -72,6 +72,7 @@ async function getRecentProducts(limit = 8) {
     .slice(0, limit)
 }
 
+// ✅ IMPORTANTE: SIN onError porque este es un Server Component
 function ProductCard({ p, highlighted = false }: { p: any; highlighted?: boolean }) {
   const imgUrl = p.imagen_url || getPlaceholderImage(p.titulo)
 
@@ -99,12 +100,6 @@ function ProductCard({ p, highlighted = false }: { p: any; highlighted?: boolean
           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
           loading="lazy"
           decoding="async"
-          onError={(e) => {
-            const target = e.target as HTMLImageElement
-            if (!target.src.includes('/placeholder-product.webp')) {
-              target.src = '/placeholder-product.webp'
-            }
-          }}
         />
       </div>
       <div className="p-4">
@@ -161,7 +156,6 @@ export default async function HomePage() {
           <div className="flex flex-wrap justify-center gap-3 mb-6">
             <Link
               href="/publicar"
-              // ✅ FIX ACCESIBILIDAD: text-gray-900 en lugar de text-brand-primary para garantizar contraste 8.86:1 (WCAG AAA) sobre bg-brand-accent (#C9A84C)
               className="inline-flex items-center gap-2 bg-brand-accent text-gray-900 px-6 py-3 rounded-xl font-bold text-base hover:bg-accent/90 transition shadow-lg shadow-black/20"
             >
               <span>Publicar Gratis</span>
@@ -328,7 +322,6 @@ export default async function HomePage() {
               </div>
               <h3 className="font-bold text-brand-primary text-lg mb-1">Destacado 24h</h3>
               <p className="text-3xl font-black text-brand-primary mb-2">6 créditos</p>
-              {/* ✅ FIX ACCESIBILIDAD: text-gray-800 en lugar de text-brand-primary/70 para garantizar contraste sobre bg-brand-accent */}
               <p className="text-sm text-gray-800 mb-4">
                 Tu anuncio en la página principal todo un día
               </p>
@@ -389,7 +382,6 @@ export default async function HomePage() {
                 {cat.icon}
               </span>
               <span className="font-bold text-gray-900 text-sm">{cat.nombre}</span>
-              {/* ✅ FIX ACCESIBILIDAD: text-gray-500 en lugar de text-gray-400 para garantizar contraste 4.61:1 (WCAG AA) sobre fondo blanco */}
               <span className="block text-xs text-gray-500 mt-1 truncate">{cat.desc}</span>
             </Link>
           ))}
@@ -421,12 +413,6 @@ export default async function HomePage() {
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     loading="lazy"
                     decoding="async"
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement
-                      if (!target.src.includes('/placeholder-product.webp')) {
-                        target.src = '/placeholder-product.webp'
-                      }
-                    }}
                   />
                   <div className="absolute top-2 left-2 z-10 bg-gradient-to-r from-orange-500 to-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 shadow-sm">
                     🔥 Trending
