@@ -53,6 +53,7 @@ function ProductCardSkeleton() {
   )
 }
 
+// ✅ OPTIMIZADO: width/height explícitos (igual que en Home)
 function ProductCard({ p, priority = false }: { p: Producto; priority?: boolean }) {
   const isBoosted = p.boosteado_en != null
   const isFeatured = p.destacado && p.destacado_hasta && new Date(p.destacado_hasta) > new Date()
@@ -70,24 +71,23 @@ function ProductCard({ p, priority = false }: { p: Producto; priority?: boolean 
         )}
         {isBoosted && !isFeatured && (
           <div className="absolute top-2 left-2 z-10 bg-green-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 shadow-sm">
-            ⚡ Boost
+             Boost
           </div>
         )}
         <Image
           src={imgUrl}
           alt={p.titulo}
-          width={400}
-          height={400}
-          sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
-          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+          width={640}
+          height={640}
+          className="object-cover group-hover:scale-110 transition-transform duration-300"
           loading={priority ? 'eager' : 'lazy'}
           priority={priority}
           decoding="async"
           placeholder="blur"
           blurDataURL={BLUR_DATA_URL}
           fetchPriority={priority ? 'high' : 'auto'}
+          quality={75}
           onError={(e) => {
-            // ✅ CORREGIDO: Previene loop infinito
             const target = e.target as HTMLImageElement
             if (!target.src.includes('/placeholder-product.webp')) {
               target.src = '/placeholder-product.webp'
@@ -322,18 +322,19 @@ export default function CatalogoClient({ initialProducts = [], initialCount = 0 
           </div>
         </aside>
 
-        <div className="flex-1">
+        {/* ✅ min-w-0 para prevenir overflow horizontal */}
+        <div className="flex-1 min-w-0">
           <div className="bg-white rounded-xl p-4 mb-4 shadow-sm">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-              <div>
-                <h1 className="text-xl font-bold text-gray-900">{tituloMostrar}</h1>
+              <div className="min-w-0">
+                <h1 className="text-xl font-bold text-gray-900 truncate">{tituloMostrar}</h1>
                 <p className="text-sm text-gray-500 mt-1">
                   {loading ? 'Buscando...' : `${totalCount} resultado${totalCount !== 1 ? 's' : ''}`}
                 </p>
               </div>
               <form action="/buscar" method="GET" className="flex gap-2 w-full sm:w-auto">
                 <input name="q" defaultValue={q} placeholder="Buscar..." className="w-full sm:w-60 border rounded-lg px-4 py-2 text-sm" />
-                <button type="submit" className="bg-brand-accent text-brand-primary px-4 rounded-lg font-bold text-sm hover:bg-accent/90">Buscar</button>
+                <button type="submit" className="bg-brand-accent text-brand-primary px-4 rounded-lg font-bold text-sm hover:bg-accent/90 whitespace-nowrap">Buscar</button>
               </form>
             </div>
           </div>
