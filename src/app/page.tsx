@@ -72,7 +72,6 @@ async function getRecentProducts(limit = 8) {
     .slice(0, limit)
 }
 
-// ✅ IMPORTANTE: SIN onError porque este es un Server Component
 function ProductCard({ p, highlighted = false }: { p: any; highlighted?: boolean }) {
   const imgUrl = p.imagen_url || getPlaceholderImage(p.titulo)
 
