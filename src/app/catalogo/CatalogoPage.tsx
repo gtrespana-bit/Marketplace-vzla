@@ -53,8 +53,8 @@ function ProductCardSkeleton() {
   )
 }
 
-// ✅ MISMO MÉTODO QUE LA HOME: fill + sizes
-function ProductCard({ p, priority = false }: { p: Producto; priority?: boolean }) {
+// ✅ OPTIMIZADO: Sin blur en la primera imagen (LCP), sizes optimizado para catálogo
+function ProductCard({ p, priority = false, isLCP = false }: { p: Producto; priority?: boolean; isLCP?: boolean }) {
   const isBoosted = p.boosteado_en != null
   const isFeatured = p.destacado && p.destacado_hasta && new Date(p.destacado_hasta) > new Date()
   const isPromoted = isBoosted || isFeatured
@@ -78,13 +78,13 @@ function ProductCard({ p, priority = false }: { p: Producto; priority?: boolean 
           src={imgUrl}
           alt={p.titulo}
           fill
-          sizes="(max-width: 480px) 45vw, (max-width: 768px) 45vw, (max-width: 1024px) 23vw, 320px"
+          sizes="(max-width: 640px) 90vw, (max-width: 1024px) 40vw, 330px"
           className="object-cover group-hover:scale-110 transition-transform duration-300"
           loading={priority ? 'eager' : 'lazy'}
           priority={priority}
           decoding="async"
-          placeholder="blur"
-          blurDataURL={BLUR_DATA_URL}
+          placeholder={isLCP ? 'empty' : 'blur'}
+          blurDataURL={isLCP ? undefined : BLUR_DATA_URL}
           fetchPriority={priority ? 'high' : 'auto'}
           quality={75}
           onError={(e) => {
@@ -373,6 +373,7 @@ export default function CatalogoClient({ initialProducts = [], initialCount = 0 
                   key={p.id}
                   p={p}
                   priority={index === 0}
+                  isLCP={index === 0}
                 />
               ))}
             </div>
