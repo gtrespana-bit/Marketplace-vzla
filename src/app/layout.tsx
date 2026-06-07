@@ -43,7 +43,7 @@ export const metadata: Metadata = {
         url: '/og-image.webp',
         width: 1584,
         height: 672,
-        alt: 'VendeT — ¡La evolución de compra y venta en Venezuela! 0% comisión. Publica gratis.',
+        alt: 'VendeT — La evolución de compra y venta en Venezuela. 0% comisión. Publica gratis.',
       },
     ],
   },
@@ -65,8 +65,9 @@ export default function RootLayout({
   return (
     <html lang="es">
       <head>
+        {/* Partytown: mueve scripts de terceros a Web Worker */}
         <Partytown
-          debug={process.env.NODE_ENV === 'development'}
+          debug={false}
           forward={['dataLayer.push']}
           lib="/~partytown/"
         />
@@ -80,6 +81,7 @@ export default function RootLayout({
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 
+        {/* Google Analytics en Web Worker vía Partytown */}
         <script
           type="text/partytown"
           src="https://www.googletagmanager.com/gtag/js?id=G-RMMQFHP6EC"
@@ -146,7 +148,7 @@ export default function RootLayout({
           <PushNotificationBanner />
           <BottomTabNav />
         </AuthProvider>
-        <script src="/sw-register.js" />
+        <script src="/sw-register.js" defer />
       </body>
     </html>
   )

@@ -1,4 +1,4 @@
-/* Service Worker — VendeT PWA */
+/* Service Worker - VendeT PWA */
 const CACHE_NAME = 'vendet-v3-ga4'
 const STATIC_ASSETS = [
   '/',
@@ -35,7 +35,7 @@ self.addEventListener('fetch', event => {
   // Skip non-HTTP(S)
   if (!url.protocol.startsWith('http')) return
 
-  // ── HTML pages (navigation) ──
+  // â”€â”€ HTML pages (navigation) â”€â”€
   // Network first, fallback to cache, then offline page
   if (request.mode === 'navigate' || 
       (request.headers.get('accept') || '').includes('text/html')) {
@@ -56,7 +56,7 @@ self.addEventListener('fetch', event => {
     return
   }
 
-  // ── Supabase Storage images (stale-while-revalidate with 7-day TTL) ──
+  // â”€â”€ Supabase Storage images (stale-while-revalidate with 7-day TTL) â”€â”€
   if (url.hostname.includes('supabase.co') && url.pathname.includes('/storage/v1/object/')) {
     event.respondWith(
       caches.open(CACHE_NAME).then(async cache => {
@@ -91,7 +91,7 @@ self.addEventListener('fetch', event => {
     return
   }
 
-  // ── Static assets (images, styles, scripts, fonts) ──
+  // â”€â”€ Static assets (images, styles, scripts, fonts) â”€â”€
   // Stale-while-revalidate
   if (['image', 'style', 'script', 'font'].includes(request.destination)) {
     event.respondWith(
@@ -110,7 +110,7 @@ self.addEventListener('fetch', event => {
     return
   }
 
-  // ── Everything else (API calls, etc.) ──
+  // â”€â”€ Everything else (API calls, etc.) â”€â”€
   // Network first
   event.respondWith(
     fetch(request).catch(() => {
@@ -123,9 +123,9 @@ self.addEventListener('fetch', event => {
   )
 })
 
-// ═══════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 // PUSH NOTIFICATIONS
-// ═══════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 self.addEventListener('push', event => {
   if (!event.data) return

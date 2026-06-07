@@ -72,7 +72,6 @@ async function getRecentProducts(limit = 8) {
     .slice(0, limit)
 }
 
-// ✅ OPTIMIZACIÓN: Componente con soporte para priority (mejora LCP)
 function ProductCard({ p, highlighted = false, priority = false }: { p: any; highlighted?: boolean; priority?: boolean }) {
   const imgUrl = p.imagen_url || getPlaceholderImage(p.titulo)
 
@@ -96,7 +95,7 @@ function ProductCard({ p, highlighted = false, priority = false }: { p: any; hig
           alt={p.titulo}
           width={400}
           height={400}
-          sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
+          sizes="(max-width: 480px) 48vw, (max-width: 768px) 48vw, (max-width: 1024px) 24vw, 320px"
           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
           loading={priority ? 'eager' : 'lazy'}
           decoding="async"
@@ -252,10 +251,10 @@ export default async function HomePage() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {destacados.map((p, index) => (
-                <ProductCard 
-                  key={p.id} 
-                  p={p} 
-                  highlighted 
+                <ProductCard
+                  key={p.id}
+                  p={p}
+                  highlighted
                   priority={index === 0}
                 />
               ))}
@@ -416,7 +415,7 @@ export default async function HomePage() {
                     alt={p.titulo}
                     width={400}
                     height={400}
-                    sizes="(max-width: 768px) 50vw, 25vw"
+                    sizes="(max-width: 480px) 48vw, (max-width: 768px) 48vw, (max-width: 1024px) 24vw, 320px"
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     loading="lazy"
                     decoding="async"
