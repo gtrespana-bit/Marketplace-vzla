@@ -1,5 +1,5 @@
-# Browsers modernos para eliminar polyfills legacy
-# Esto elimina ~24KB de JavaScript innecesario
+# Navegadores modernos - elimina polyfills innecesarios
+# Esto reduce ~24KB de JavaScript legacy y mejora TBT
 
 last 2 Chrome versions
 last 2 Firefox versions
