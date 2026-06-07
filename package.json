@@ -1,4 +1,4 @@
-{
+﻿{
     "name":  "vendet-venezuela",
     "version":  "0.1.0",
     "private":  true,
@@ -11,7 +11,7 @@
     "dependencies":  {
                          "@aws-sdk/client-s3":  "^3.1044.0",
                          "@aws-sdk/s3-request-presigner":  "^3.1044.0",
-                         "@builder.io/partytown":  "^0.10.3",
+                         "@qwik.dev/partytown":  "^0.14.0",
                          "@sentry/nextjs":  "^10.51.0",
                          "@supabase/ssr":  "^0.5.2",
                          "@supabase/supabase-js":  "^2.47.10",
