@@ -94,7 +94,7 @@ function ProductCard({ p, highlighted = false, priority = false }: { p: any; hig
           src={imgUrl}
           alt={p.titulo}
           fill
-          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 320px"
+          sizes="(max-width: 480px) 45vw, (max-width: 768px) 45vw, (max-width: 1024px) 23vw, 320px"
           className="object-cover group-hover:scale-110 transition-transform duration-300"
           loading={priority ? 'eager' : 'lazy'}
           decoding="async"
@@ -414,7 +414,7 @@ export default async function HomePage() {
                     src={p.imagen_url || getPlaceholderImage(p.titulo)}
                     alt={p.titulo}
                     fill
-                    sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 320px"
+                    sizes="(max-width: 480px) 45vw, (max-width: 768px) 45vw, (max-width: 1024px) 23vw, 320px"
                     className="object-cover group-hover:scale-105 transition-transform duration-300"
                     loading="lazy"
                     decoding="async"
