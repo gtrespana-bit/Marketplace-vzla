@@ -65,7 +65,6 @@ export default function RootLayout({
   return (
     <html lang="es">
       <head>
-        {/* ✅ Partytown actualizado a @qwik.dev/partytown (versión mantenida) */}
         <Partytown
           debug={false}
           forward={['dataLayer.push']}
@@ -81,7 +80,6 @@ export default function RootLayout({
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 
-        {/* Google Analytics ejecutándose en Web Worker vía Partytown */}
         <script
           type="text/partytown"
           src="https://www.googletagmanager.com/gtag/js?id=G-RMMQFHP6EC"
