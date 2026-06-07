@@ -1,4 +1,4 @@
-﻿import Link from 'next/link'
+import Link from 'next/link'
 import Image from 'next/image'
 import { ArrowRight, Star, Zap, Eye, TrendingUp } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
