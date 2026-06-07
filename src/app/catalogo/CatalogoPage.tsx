@@ -53,7 +53,7 @@ function ProductCardSkeleton() {
   )
 }
 
-// ✅ OPTIMIZADO: width/height explícitos (igual que en Home)
+// ✅ MISMO MÉTODO QUE LA HOME: fill + sizes
 function ProductCard({ p, priority = false }: { p: Producto; priority?: boolean }) {
   const isBoosted = p.boosteado_en != null
   const isFeatured = p.destacado && p.destacado_hasta && new Date(p.destacado_hasta) > new Date()
@@ -71,14 +71,14 @@ function ProductCard({ p, priority = false }: { p: Producto; priority?: boolean 
         )}
         {isBoosted && !isFeatured && (
           <div className="absolute top-2 left-2 z-10 bg-green-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 shadow-sm">
-             Boost
+            ⚡ Boost
           </div>
         )}
         <Image
           src={imgUrl}
           alt={p.titulo}
-          width={640}
-          height={640}
+          fill
+          sizes="(max-width: 480px) 45vw, (max-width: 768px) 45vw, (max-width: 1024px) 23vw, 320px"
           className="object-cover group-hover:scale-110 transition-transform duration-300"
           loading={priority ? 'eager' : 'lazy'}
           priority={priority}
@@ -293,7 +293,7 @@ export default function CatalogoClient({ initialProducts = [], initialCount = 0 
             )}
 
             <div className="mb-4">
-              <label className="block text-sm font-bold text-gray-900 mb-1.5">💰 Precio (USD)</label>
+              <label className="block text-sm font-bold text-gray-900 mb-1.5"> Precio (USD)</label>
               <div className="flex gap-2">
                 <input
                   type="number"
@@ -322,7 +322,6 @@ export default function CatalogoClient({ initialProducts = [], initialCount = 0 
           </div>
         </aside>
 
-        {/* ✅ min-w-0 para prevenir overflow horizontal */}
         <div className="flex-1 min-w-0">
           <div className="bg-white rounded-xl p-4 mb-4 shadow-sm">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
