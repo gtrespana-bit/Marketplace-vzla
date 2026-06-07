@@ -40,7 +40,7 @@ export const metadata: Metadata = {
     type: 'website',
     images: [
       {
-        url: '/og-image.png',
+        url: '/og-image.webp',
         width: 1584,
         height: 672,
         alt: 'VendeT — ¡La evolución de compra y venta en Venezuela! 0% comisión. Publica gratis.',
@@ -67,7 +67,7 @@ export default function RootLayout({
       <head>
         <link rel="icon" type="image/x-icon" href="/favicon.ico" />
         <link rel="shortcut icon" type="image/png" href="/logo-vendet.png" />
-        <link rel="apple-touch-icon" href="/icon-192.png" />
+        <link rel="apple-touch-icon" href="/icon-192.webp" />
         {/* ✅ ACTUALIZADO: meta tag moderno para PWA */}
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />

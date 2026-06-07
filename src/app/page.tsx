@@ -4,7 +4,7 @@ import { ArrowRight, Star, Zap, Eye, TrendingUp } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { BotonDescargarApp } from '@/components/BotonDescargarApp'
 
-const PLACEHOLDER_IMAGES = ['/placeholder-product.png']
+const PLACEHOLDER_IMAGES = ['/placeholder-product.webp']
 
 function getPlaceholderImage(titulo: string) {
   return PLACEHOLDER_IMAGES[Math.abs(titulo.charCodeAt(0)) % PLACEHOLDER_IMAGES.length]

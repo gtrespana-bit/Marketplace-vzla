@@ -28,7 +28,7 @@ type Producto = {
 }
 
 const PLACEHOLDER_IMAGES = [
-  '/placeholder-product.png',
+  '/placeholder-product.webp',
 ]
 
 function getPlaceholderImage(titulo: string) {
@@ -73,8 +73,8 @@ function ProductCard({ p }: { p: Producto }) {
           onError={(e) => {
             // ✅ CORREGIDO: Previene loop infinito
             const target = e.target as HTMLImageElement
-            if (!target.src.includes('/placeholder-product.png')) {
-              target.src = '/placeholder-product.png'
+            if (!target.src.includes('/placeholder-product.webp')) {
+              target.src = '/placeholder-product.webp'
             }
           }}
         />

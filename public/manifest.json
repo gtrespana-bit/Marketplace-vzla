@@ -10,13 +10,13 @@
   "theme_color": "#7B2D3B",
   "icons": [
     {
-      "src": "/icon-192.png",
+      "src": "/icon-192.webp",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "/icon-512.png",
+      "src": "/icon-512.webp",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
@@ -30,7 +30,7 @@
   ],
   "screenshots": [
     {
-      "src": "/pwa-tagline.png",
+      "src": "/pwa-tagline.webp",
       "sizes": "1280x720",
       "type": "image/png",
       "form_factor": "wide"

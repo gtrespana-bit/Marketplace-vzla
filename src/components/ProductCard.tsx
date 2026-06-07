@@ -18,7 +18,7 @@ export interface ProductCardData {
 }
 
 const PLACEHOLDER_IMAGES = [
-  '/placeholder-product.png',
+  '/placeholder-product.webp',
 ]
 
 export default function ProductCard({ p, isPromoted, isFeatured }: { p: ProductCardData; isPromoted?: boolean; isFeatured?: boolean }) {
@@ -60,8 +60,8 @@ export default function ProductCard({ p, isPromoted, isFeatured }: { p: ProductC
           onError={(e) => {
             // ✅ CORREGIDO: Previene loop infinito
             const target = e.target as HTMLImageElement
-            if (!target.src.includes('/placeholder-product.png')) {
-              target.src = '/placeholder-product.png'
+            if (!target.src.includes('/placeholder-product.webp')) {
+              target.src = '/placeholder-product.webp'
             }
           }}
         />
