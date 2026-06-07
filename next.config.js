@@ -14,6 +14,8 @@ const nextConfig = {
       '@supabase/supabase-js',
       '@supabase/ssr',
     ],
+    // ✅ OPTIMIZACIÓN: Forzar SWC a compilar para navegadores modernos
+    swcMinify: true,
   },
 
   images: {
@@ -28,7 +30,6 @@ const nextConfig = {
       { protocol: 'https', hostname: 'images.unsplash.com' },
       { protocol: 'https', hostname: '**.cloudflarestorage.com' },
     ],
-    // ✅ NUEVO: Device sizes optimizados para mobile-first
     deviceSizes: [640, 750, 828, 1080, 1200],
     imageSizes: [16, 32, 48, 64, 96, 128, 256],
   },
@@ -48,7 +49,6 @@ const nextConfig = {
           { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
         ],
       },
-      // ✅ NUEVO: Cache para HTML (reduce TTFB en visitas repetidas)
       {
         source: '/',
         headers: [

@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from 'next'
 import { Inter } from 'next/font/google'
-import Script from 'next/script'
+import { Partytown } from '@builder.io/partytown/react'
 import './globals.css'
 import { Header } from '@/components/Header'
 import { Footer } from '@/components/Footer'
@@ -66,6 +66,13 @@ export default function RootLayout({
   return (
     <html lang="es">
       <head>
+        {/* ✅ OPTIMIZACIÓN: Partytown mueve Google Analytics a un Web Worker */}
+        <Partytown
+          debug={false}
+          forward={['dataLayer.push']}
+          lib="/~partytown/"
+        />
+        
         <link rel="preconnect" href="https://www.googletagmanager.com" />
         <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
         
@@ -75,18 +82,19 @@ export default function RootLayout({
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 
-        <Script
+        {/* ✅ Google Analytics ejecutándose en Web Worker (NO bloquea main thread) */}
+        <script
+          type="text/partytown"
           src="https://www.googletagmanager.com/gtag/js?id=G-RMMQFHP6EC"
-          strategy="lazyOnload"
         />
-        <Script id="google-analytics" strategy="lazyOnload">
+        <script type="text/partytown">
           {`
             window.dataLayer = window.dataLayer || [];
             function gtag(){dataLayer.push(arguments);}
             gtag('js', new Date());
             gtag('config', 'G-RMMQFHP6EC');
           `}
-        </Script>
+        </script>
       </head>
       <body className={`${inter.variable} font-sans antialiased`}>
         <script
