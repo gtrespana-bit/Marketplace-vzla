@@ -93,14 +93,14 @@ function ProductCard({ p, highlighted = false, priority = false }: { p: any; hig
         <Image
           src={imgUrl}
           alt={p.titulo}
-          width={400}
-          height={400}
-          sizes="(max-width: 480px) 48vw, (max-width: 768px) 48vw, (max-width: 1024px) 24vw, 320px"
-          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+          fill
+          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 320px"
+          className="object-cover group-hover:scale-110 transition-transform duration-300"
           loading={priority ? 'eager' : 'lazy'}
           decoding="async"
           priority={priority}
           fetchPriority={priority ? 'high' : 'auto'}
+          quality={75}
         />
       </div>
       <div className="p-4">
@@ -413,12 +413,12 @@ export default async function HomePage() {
                   <Image
                     src={p.imagen_url || getPlaceholderImage(p.titulo)}
                     alt={p.titulo}
-                    width={400}
-                    height={400}
-                    sizes="(max-width: 480px) 48vw, (max-width: 768px) 48vw, (max-width: 1024px) 24vw, 320px"
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    fill
+                    sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 320px"
+                    className="object-cover group-hover:scale-105 transition-transform duration-300"
                     loading="lazy"
                     decoding="async"
+                    quality={75}
                   />
                   <div className="absolute top-2 left-2 z-10 bg-gradient-to-r from-orange-500 to-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 shadow-sm">
                     🔥 Trending

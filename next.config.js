@@ -14,8 +14,6 @@ const nextConfig = {
       '@supabase/supabase-js',
       '@supabase/ssr',
     ],
-    // ✅ OPTIMIZACIÓN: Forzar SWC a compilar para navegadores modernos
-    swcMinify: true,
   },
 
   images: {
@@ -30,8 +28,9 @@ const nextConfig = {
       { protocol: 'https', hostname: 'images.unsplash.com' },
       { protocol: 'https', hostname: '**.cloudflarestorage.com' },
     ],
-    deviceSizes: [640, 750, 828, 1080, 1200],
-    imageSizes: [16, 32, 48, 64, 96, 128, 256],
+    // ✅ CRÍTICO: Eliminar 3840 para que las imágenes no sean enormes
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
   },
 
   async headers() {
@@ -47,12 +46,6 @@ const nextConfig = {
         source: '/_next/static/:path*',
         headers: [
           { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
-        ],
-      },
-      {
-        source: '/',
-        headers: [
-          { key: 'Cache-Control', value: 'public, max-age=0, must-revalidate' },
         ],
       },
     ];
