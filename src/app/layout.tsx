@@ -68,11 +68,10 @@ export default function RootLayout({
         <link rel="icon" type="image/x-icon" href="/favicon.ico" />
         <link rel="shortcut icon" type="image/png" href="/logo-vendet.png" />
         <link rel="apple-touch-icon" href="/icon-192.webp" />
-        {/* ✅ ACTUALIZADO: meta tag moderno para PWA */}
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 
-        {/* ✅ Google Analytics - diferido completamente con lazyOnload */}
+        {/* ✅ OPTIMIZACIÓN DE PORTAFOLIO: lazyOnload libera el Main Thread durante la carga crítica (FCP/LCP/TTI) */}
         <Script
           src="https://www.googletagmanager.com/gtag/js?id=G-RMMQFHP6EC"
           strategy="lazyOnload"
