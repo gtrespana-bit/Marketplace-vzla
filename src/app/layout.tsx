@@ -66,18 +66,15 @@ export default function RootLayout({
   return (
     <html lang="es">
       <head>
-        {/* ✅ OPTIMIZACIÓN: Solo preconnect a orígenes que SÍ se usan en el cliente (GTM) */}
-        {/* Se eliminaron Supabase y R2 porque el Home es Server Component y no hacen requests directos */}
         <link rel="preconnect" href="https://www.googletagmanager.com" />
         <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
         
         <link rel="icon" type="image/x-icon" href="/favicon.ico" />
         <link rel="shortcut icon" type="image/png" href="/logo-vendet.png" />
-        <link rel="apple-touch-icon" href="/icon-192.webp' />
+        <link rel="apple-touch-icon" href="/icon-192.webp" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 
-        {/* ✅ Google Tag Manager diferido (lazyOnload) para no bloquear el Main Thread */}
         <Script
           src="https://www.googletagmanager.com/gtag/js?id=G-RMMQFHP6EC"
           strategy="lazyOnload"
