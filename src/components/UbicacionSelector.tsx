@@ -20,14 +20,16 @@ export default function UbicacionSelector({ estado, ciudad, onChange, showCapita
 
   return (
     <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
-      <h3 className="text-sm font-bold text-gray-900 mb-3 flex items-center gap-2">
+      {/* ✅ ACCESIBILIDAD: h3 → h2 para orden secuencial */}
+      <h2 className="text-sm font-bold text-gray-900 mb-3 flex items-center gap-2">
         📍 Ubicación
-      </h3>
+      </h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        {/* Estado */}
+        {/* ✅ ACCESIBILIDAD: htmlFor + id para vincular label con select */}
         <div>
-          <label className="block text-xs font-medium text-gray-500 mb-1">Estado</label>
+          <label htmlFor="ubicacion-estado" className="block text-xs font-medium text-gray-700 mb-1">Estado</label>
           <select
+            id="ubicacion-estado"
             value={estado}
             onChange={(e) => { onChange(e.target.value, '') }}
             className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-800 bg-white focus:outline-none focus:ring-2 focus:ring-brand-accent"
@@ -39,12 +41,13 @@ export default function UbicacionSelector({ estado, ciudad, onChange, showCapita
           </select>
         </div>
 
-        {/* Municipio (antes Ciudad) */}
+        {/* ✅ ACCESIBILIDAD: htmlFor + id para vincular label con select */}
         <div>
-          <label className="block text-xs font-medium text-gray-500 mb-1">
+          <label htmlFor="ubicacion-municipio" className="block text-xs font-medium text-gray-700 mb-1">
             Municipio
           </label>
           <select
+            id="ubicacion-municipio"
             value={ciudad}
             onChange={(e) => { onChange(estado, e.target.value) }}
             disabled={!estado}
@@ -67,6 +70,7 @@ export default function UbicacionSelector({ estado, ciudad, onChange, showCapita
         {(estado || ciudad) && (
           <button
             onClick={() => onChange('', '')}
+            aria-label="Limpiar filtro de ubicación"
             className="col-span-1 sm:col-span-2 text-xs text-red-500 hover:text-red-700 py-1.5 border border-red-200 rounded-lg hover:bg-red-50 transition text-center"
           >
             ✕ Limpiar ubicación

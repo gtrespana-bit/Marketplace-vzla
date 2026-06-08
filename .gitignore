@@ -34,3 +34,6 @@ next-env.d.ts
 
 # Supabase keys (DO NOT COMMIT)
 .env
+
+.vercel
+.env*

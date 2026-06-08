@@ -53,7 +53,7 @@ function ProductCardSkeleton() {
   )
 }
 
-// ✅ MISMO MÉTODO QUE LA HOME: fill + sizes
+// ✅ ACCESIBILIDAD: Badge Boost con mejor contraste (verde oscuro + texto blanco)
 function ProductCard({ p, priority = false }: { p: Producto; priority?: boolean }) {
   const isBoosted = p.boosteado_en != null
   const isFeatured = p.destacado && p.destacado_hasta && new Date(p.destacado_hasta) > new Date()
@@ -65,12 +65,12 @@ function ProductCard({ p, priority = false }: { p: Producto; priority?: boolean 
     <Link href={`/producto/${p.id}`} className={`bg-white rounded-xl overflow-hidden transition-all duration-200 group block border ${isPromoted ? 'border-2 border-brand-accent shadow-md hover:shadow-xl hover:-translate-y-1' : 'border-gray-100 shadow-sm hover:shadow-lg hover:-translate-y-1 hover:border-gray-200'}`}>
       <div className="aspect-square bg-gray-100 relative overflow-hidden">
         {isFeatured && (
-          <div className="absolute top-2 left-2 z-10 bg-brand-accent text-brand-primary text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 shadow-sm">
+          <div className="absolute top-2 left-2 z-10 bg-brand-accent text-gray-900 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 shadow-sm">
             ⭐ Destacado
           </div>
         )}
         {isBoosted && !isFeatured && (
-          <div className="absolute top-2 left-2 z-10 bg-green-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 shadow-sm">
+          <div className="absolute top-2 left-2 z-10 bg-green-700 text-white text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 shadow-sm">
             ⚡ Boost
           </div>
         )}
@@ -249,11 +249,18 @@ export default function CatalogoClient({ initialProducts = [], initialCount = 0 
       <div className="flex flex-col lg:flex-row gap-6">
         <aside className="w-full lg:w-72 flex-shrink-0">
           <div className="bg-white rounded-xl p-5 shadow-sm sticky top-20">
-            <h3 className="font-bold text-lg text-gray-900 mb-4">🔍 Filtros</h3>
+            {/* ✅ ACCESIBILIDAD: h3 → h2 para orden secuencial */}
+            <h2 className="font-bold text-lg text-gray-900 mb-4">🔍 Filtros</h2>
 
+            {/* ✅ ACCESIBILIDAD: htmlFor + id para vincular label con select */}
             <div className="mb-4">
-              <label className="block text-sm font-bold text-gray-900 mb-1.5">Categoría</label>
-              <select value={categoria} onChange={e => setParam('categoria', e.target.value)} className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm text-gray-800 bg-white font-medium focus:outline-none focus:ring-2 focus:ring-brand-accent">
+              <label htmlFor="filtro-categoria" className="block text-sm font-bold text-gray-900 mb-1.5">Categoría</label>
+              <select 
+                id="filtro-categoria"
+                value={categoria} 
+                onChange={e => setParam('categoria', e.target.value)} 
+                className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm text-gray-800 bg-white font-medium focus:outline-none focus:ring-2 focus:ring-brand-accent"
+              >
                 <option value="">Todas</option>
                 {Object.entries(categoriasData).map(([key, c]) => (
                   <option key={key} value={key}>{c.icon} {c.label}</option>
@@ -263,8 +270,13 @@ export default function CatalogoClient({ initialProducts = [], initialCount = 0 
 
             {subs.length > 0 && (
               <div className="mb-4">
-                <label className="block text-sm font-bold text-gray-900 mb-1.5">Subcategoría</label>
-                <select value={subcategoria} onChange={e => setParam('subcategoria', e.target.value)} className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm text-gray-800 bg-white font-medium focus:outline-none focus:ring-2 focus:ring-brand-accent">
+                <label htmlFor="filtro-subcategoria" className="block text-sm font-bold text-gray-900 mb-1.5">Subcategoría</label>
+                <select 
+                  id="filtro-subcategoria"
+                  value={subcategoria} 
+                  onChange={e => setParam('subcategoria', e.target.value)} 
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm text-gray-800 bg-white font-medium focus:outline-none focus:ring-2 focus:ring-brand-accent"
+                >
                   <option value="">Todas</option>
                   {subs.map(s => (
                     <option key={s.label} value={s.label}>{s.icon} {s.label}</option>
@@ -276,14 +288,23 @@ export default function CatalogoClient({ initialProducts = [], initialCount = 0 
             {allMarcas.length > 0 && (
               <div className="mb-4">
                 <div className="flex items-center justify-between">
-                  <label className="block text-sm font-bold text-gray-900 mb-1.5">Marca</label>
+                  <label htmlFor="filtro-marca" className="block text-sm font-bold text-gray-900 mb-1.5">Marca</label>
                   {marca && (
-                    <button onClick={() => setParam('marca', '')} className="text-xs text-red-500 hover:text-red-700 flex items-center gap-1">
+                    <button 
+                      onClick={() => setParam('marca', '')} 
+                      aria-label="Quitar filtro de marca"
+                      className="text-xs text-red-500 hover:text-red-700 flex items-center gap-1"
+                    >
                       <XCircle size={12} /> Quitar
                     </button>
                   )}
                 </div>
-                <select value={marca} onChange={e => setParam('marca', e.target.value)} className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm text-gray-800 bg-white font-medium focus:outline-none focus:ring-2 focus:ring-brand-accent">
+                <select 
+                  id="filtro-marca"
+                  value={marca} 
+                  onChange={e => setParam('marca', e.target.value)} 
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm text-gray-800 bg-white font-medium focus:outline-none focus:ring-2 focus:ring-brand-accent"
+                >
                   <option value="">Todas las marcas</option>
                   {allMarcas.map(m => (
                     <option key={m} value={m}>{m}</option>
@@ -293,29 +314,39 @@ export default function CatalogoClient({ initialProducts = [], initialCount = 0 
             )}
 
             <div className="mb-4">
-              <label className="block text-sm font-bold text-gray-900 mb-1.5"> Precio (USD)</label>
+              <span className="block text-sm font-bold text-gray-900 mb-1.5">💰 Precio (USD)</span>
               <div className="flex gap-2">
+                <label htmlFor="precio-min" className="sr-only">Precio mínimo</label>
                 <input
+                  id="precio-min"
                   type="number"
                   value={precioMin}
                   onChange={e => setParam('precioMin', e.target.value)}
                   placeholder="Min"
                   min="0"
+                  aria-label="Precio mínimo en USD"
                   className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm text-gray-800 bg-white focus:outline-none focus:ring-2 focus:ring-brand-accent"
                 />
+                <label htmlFor="precio-max" className="sr-only">Precio máximo</label>
                 <input
+                  id="precio-max"
                   type="number"
                   value={precioMax}
                   onChange={e => setParam('precioMax', e.target.value)}
                   placeholder="Max"
                   min="0"
+                  aria-label="Precio máximo en USD"
                   className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm text-gray-800 bg-white focus:outline-none focus:ring-2 focus:ring-brand-accent"
                 />
               </div>
             </div>
 
             {(categoria || subcategoria || marca || q || precioMin || precioMax) && (
-              <button onClick={() => router.push(pathname)} className="w-full text-sm text-red-500 hover:text-red-700 py-2 border border-red-200 rounded-lg hover:bg-red-50 transition flex items-center justify-center gap-1">
+              <button 
+                onClick={() => router.push(pathname)} 
+                aria-label="Limpiar todos los filtros"
+                className="w-full text-sm text-red-500 hover:text-red-700 py-2 border border-red-200 rounded-lg hover:bg-red-50 transition flex items-center justify-center gap-1"
+              >
                 <XCircle size={14} /> Limpiar filtros
               </button>
             )}
@@ -332,8 +363,22 @@ export default function CatalogoClient({ initialProducts = [], initialCount = 0 
                 </p>
               </div>
               <form action="/buscar" method="GET" className="flex gap-2 w-full sm:w-auto">
-                <input name="q" defaultValue={q} placeholder="Buscar..." className="w-full sm:w-60 border rounded-lg px-4 py-2 text-sm" />
-                <button type="submit" className="bg-brand-accent text-brand-primary px-4 rounded-lg font-bold text-sm hover:bg-accent/90 whitespace-nowrap">Buscar</button>
+                <label htmlFor="buscar-input" className="sr-only">Buscar productos</label>
+                <input 
+                  id="buscar-input"
+                  name="q" 
+                  defaultValue={q} 
+                  placeholder="Buscar..." 
+                  aria-label="Buscar productos"
+                  className="w-full sm:w-60 border rounded-lg px-4 py-2 text-sm" 
+                />
+                {/* ✅ ACCESIBILIDAD: Mejor contraste - fondo oscuro + texto blanco */}
+                <button 
+                  type="submit" 
+                  className="bg-gray-900 text-white px-4 rounded-lg font-bold text-sm hover:bg-gray-800 whitespace-nowrap"
+                >
+                  Buscar
+                </button>
               </form>
             </div>
           </div>
@@ -360,9 +405,9 @@ export default function CatalogoClient({ initialProducts = [], initialCount = 0 
           ) : productos.length === 0 ? (
             <div className="bg-white rounded-xl p-16 text-center shadow-sm border">
               <Search size={48} className="text-gray-300 mx-auto mb-4" />
-              <h3 className="text-xl font-bold text-gray-800 mb-2">No hay productos en esta categoría</h3>
+              <h2 className="text-xl font-bold text-gray-800 mb-2">No hay productos en esta categoría</h2>
               <p className="text-gray-500 mb-4">Sé el primero en publicar aquí</p>
-              <Link href="/publicar" className="inline-block bg-brand-accent text-brand-primary px-6 py-3 rounded-lg font-bold hover:bg-accent/90 transition">
+              <Link href="/publicar" className="inline-block bg-brand-accent text-gray-900 px-6 py-3 rounded-lg font-bold hover:bg-accent/90 transition">
                 Publicar gratis
               </Link>
             </div>
