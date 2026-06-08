@@ -53,7 +53,7 @@ function ProductCardSkeleton() {
   )
 }
 
-// ✅ OPTIMIZADO: Accesibilidad 100% + sizes matemáticamente preciso para el grid
+// ✅ ACCESIBILIDAD 100% + sizes original que funcionaba con w=640
 function ProductCard({ p, priority = false }: { p: Producto; priority?: boolean }) {
   const isBoosted = p.boosteado_en != null
   const isFeatured = p.destacado && p.destacado_hasta && new Date(p.destacado_hasta) > new Date()
@@ -78,10 +78,7 @@ function ProductCard({ p, priority = false }: { p: Producto; priority?: boolean 
           src={imgUrl}
           alt={p.titulo}
           fill
-          // ✅ SOLUCIÓN QUIRÚRGICA: sizes matemáticamente preciso para grid-cols-1 sm:grid-cols-2 xl:grid-cols-3
-          // Móvil (1 col): 90vw | Tablet (2 cols): 45vw | Desktop (3 cols + sidebar): 30vw
-          // Esto evita que el navegador solicite w=640 en móvil cuando solo renderiza a ~350px
-          sizes="(max-width: 640px) 90vw, (max-width: 1280px) 45vw, 30vw"
+          sizes="(max-width: 480px) 45vw, (max-width: 768px) 45vw, (max-width: 1024px) 23vw, 320px"
           className="object-cover group-hover:scale-110 transition-transform duration-300"
           loading={priority ? 'eager' : 'lazy'}
           priority={priority}
@@ -252,7 +249,7 @@ export default function CatalogoClient({ initialProducts = [], initialCount = 0 
       <div className="flex flex-col lg:flex-row gap-6">
         <aside className="w-full lg:w-72 flex-shrink-0">
           <div className="bg-white rounded-xl p-5 shadow-sm sticky top-20">
-            {/* ✅ ACCESIBILIDAD: h3 → h2 para orden secuencial */}
+            {/* ✅ ACCESIBILIDAD: h2 para orden secuencial */}
             <h2 className="font-bold text-lg text-gray-900 mb-4">🔍 Filtros</h2>
 
             {/* ✅ ACCESIBILIDAD: htmlFor + id para vincular label con select */}
@@ -375,7 +372,7 @@ export default function CatalogoClient({ initialProducts = [], initialCount = 0 
                   aria-label="Buscar productos"
                   className="w-full sm:w-60 border rounded-lg px-4 py-2 text-sm" 
                 />
-                {/* ✅ ACCESIBILIDAD: Mejor contraste - fondo oscuro + texto blanco */}
+                {/* ✅ ACCESIBILIDAD: Mejor contraste */}
                 <button 
                   type="submit" 
                   aria-label="Ejecutar búsqueda"
@@ -409,7 +406,7 @@ export default function CatalogoClient({ initialProducts = [], initialCount = 0 
           ) : productos.length === 0 ? (
             <div className="bg-white rounded-xl p-16 text-center shadow-sm border">
               <Search size={48} className="text-gray-300 mx-auto mb-4" />
-              {/* ✅ ACCESIBILIDAD: h3 → h2 para orden secuencial */}
+              {/* ✅ ACCESIBILIDAD: h2 para orden secuencial */}
               <h2 className="text-xl font-bold text-gray-800 mb-2">No hay productos en esta categoría</h2>
               <p className="text-gray-500 mb-4">Sé el primero en publicar aquí</p>
               <Link href="/publicar" className="inline-block bg-brand-accent text-gray-900 px-6 py-3 rounded-lg font-bold hover:bg-accent/90 transition">
