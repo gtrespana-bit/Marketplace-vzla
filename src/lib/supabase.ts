@@ -1,18 +1,25 @@
-import type { SupabaseClient } from '@supabase/supabase-js'
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co'
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBsYWNlaG9sZGVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDAwMDAwMDAsImV4cCI6MjAwMDAwMDAwMH0.placeholder'
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 
-export const supabase: SupabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    persistSession: typeof window !== 'undefined',
-    autoRefreshToken: typeof window !== 'undefined',
-    detectSessionInUrl: typeof window !== 'undefined',
-  },
-})
+// Patrón Singleton estricto para evitar múltiples instancias de GoTrueClient
+let globalSupabase: ReturnType<typeof createClient> | null = null
 
-export function isSupabaseConfigured(): boolean {
-  return process.env.NEXT_PUBLIC_SUPABASE_URL?.startsWith('https://') === true &&
-         process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.startsWith('eyJ') === true
+export const getSupabaseClient = () => {
+  if (!globalSupabase) {
+    globalSupabase = createClient(supabaseUrl, supabaseAnonKey, {
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: true,
+        storageKey: 'sb-auth-token',
+        flowType: 'pkce'
+      }
+    })
+  }
+  return globalSupabase
 }
+
+// Exportación por defecto para compatibilidad con el código existente
+export const supabase = getSupabaseClient()
