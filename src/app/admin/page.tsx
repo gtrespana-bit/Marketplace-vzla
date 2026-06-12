@@ -51,9 +51,9 @@ function MetricasTab() {
       const { data: trans } = await supabase
         .from('transacciones_creditos')
         .select('monto, estado, tipo, creado_en')
-        .limit(1000)
+        .limit(1000) as { data: any[] | null }
 
-      const ingresos = trans?.filter(t => t.estado === 'aprobado' && t.tipo === 'compra').reduce((s, t) => s + t.monto, 0) || 0
+      const ingresos = (trans || []).filter((t: any) => t.estado === 'aprobado' && t.tipo === 'compra').reduce((s: number, t: any) => s + t.monto, 0)
       const hoy = new Date().toISOString().split('T')[0]
       const nuevosHoy = trans?.filter(t => t.creado_en?.startsWith(hoy) && t.estado === 'aprobado').length || 0
 
@@ -574,15 +574,18 @@ function TabTransacciones({ perfiles, notify }: { perfiles: Record<string, any>;
       .limit(50)
 
     if (!trans) return
-    setPendientes(trans.filter(t => t.estado === 'pendiente'))
-    setHistorial(trans.filter(t => t.estado !== 'pendiente'))
+    const transAny = trans as any[]
+    setPendientes(transAny.filter(t => t.estado === 'pendiente'))
+    setHistorial(transAny.filter(t => t.estado !== 'pendiente'))
   }
 
   useEffect(() => { cargar() }, [])
 
   async function aprobar(id: string, monto: number, usuarioNombre: string, userId?: string) {
     setProcesando(id)
-    const { error } = await supabase.rpc('aprobar_transaccion', { p_transaccion_id: id, p_admin_id: (await supabase.auth.getUser()).data.user?.id })
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+    const { error } = await (supabase.rpc as any)('aprobar_transaccion', { p_transaccion_id: id, p_admin_id: user.id })
     setProcesando(null)
     if (error) {
       notify(`Error: ${error.message}`)

@@ -23,3 +23,5 @@ export const getSupabaseClient = () => {
 
 // Exportación por defecto para compatibilidad con el código existente
 export const supabase = getSupabaseClient()
+
+export const isSupabaseConfigured = !!(supabaseUrl && supabaseAnonKey)

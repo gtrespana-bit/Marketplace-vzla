@@ -1,0 +1,89 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "view": "View",
+    "search": "Search",
+    "filter": "Filter",
+    "sort": "Sort",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous"
+  },
+  "nav": {
+    "home": "Home",
+    "catalog": "Catalog",
+    "publish": "Sell",
+    "login": "Sign in",
+    "register": "Sign up",
+    "logout": "Sign out",
+    "profile": "Profile",
+    "dashboard": "Dashboard",
+    "chat": "Chat",
+    "favorites": "Favorites",
+    "credits": "Credits"
+  },
+  "home": {
+    "hero": {
+      "title": "Buy and sell anything in Venezuela",
+      "subtitle": "The marketplace built for you. Direct, no complications.",
+      "cta": "Browse catalog"
+    },
+    "featured": "Featured products",
+    "recent": "Recently listed",
+    "categories": "Popular categories"
+  },
+  "product": {
+    "price": "Price",
+    "location": "Location",
+    "condition": "Condition",
+    "new": "New",
+    "used": "Used",
+    "contact": "Contact seller",
+    "whatsapp": "WhatsApp",
+    "chat": "Chat",
+    "favorite": "Favorite",
+    "share": "Share",
+    "views": "views",
+    "published": "Listed",
+    "seller": "Seller",
+    "verified": "Verified"
+  },
+  "publish": {
+    "title": "List your item",
+    "form": {
+      "title": "Title",
+      "description": "Description",
+      "price": "Price (USD)",
+      "category": "Category",
+      "condition": "Condition",
+      "location": "Location",
+      "images": "Images",
+      "submit": "Publish",
+      "success": "Published successfully!",
+      "error": "Error publishing"
+    }
+  },
+  "auth": {
+    "login": "Sign in",
+    "register": "Sign up",
+    "email": "Email",
+    "password": "Password",
+    "forgot": "Forgot your password?",
+    "noAccount": "Don't have an account?",
+    "hasAccount": "Already have an account?"
+  },
+  "footer": {
+    "about": "About us",
+    "contact": "Contact",
+    "faq": "FAQ",
+    "terms": "Terms and conditions",
+    "privacy": "Privacy policy",
+    "blog": "Blog"
+  }
+}

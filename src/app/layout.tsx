@@ -5,6 +5,7 @@ import './globals.css'
 import { Header } from '@/components/Header'
 import { Footer } from '@/components/Footer'
 import { AuthProvider } from '@/components/AuthProvider'
+import { LanguageProvider } from '@/context/LanguageContext'
 import dynamic from 'next/dynamic'
 import BottomTabNav from '@/components/BottomTabNav'
 import FloatingVenderButton from '@/components/FloatingVenderButton'
@@ -145,13 +146,15 @@ export default function RootLayout({
           }}
         />
         <AuthProvider>
-          <Header />
+          <LanguageProvider>
+            <Header />
           <main className="min-h-screen bg-white">{children}</main>
           <Footer />
           <PWAInstallBanner />
           <PushNotificationBanner />
           <BottomTabNav />
           <FloatingVenderButton />
+          </LanguageProvider>
         </AuthProvider>
       </body>
     </html>

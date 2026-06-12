@@ -46,10 +46,10 @@ export default function AprobacionPage() {
 
   async function aprobar(id: string, userId: string, monto: number) {
     setProcesando(id)
-    const { error } = await supabase.rpc('aprobar_transaccion', {
+    const { error } = await supabase.rpc('aprobar_transaccion' as any, {
       p_transaccion_id: id,
       p_admin_id: user!.id,
-    })
+    } as any)
     setProcesando(null)
     if (error) {
       alert(`Error: ${error.message}`)
@@ -69,7 +69,7 @@ export default function AprobacionPage() {
   async function rechazar(id: string) {
     if (!confirm('¿Rechazar esta transacción?')) return
     setProcesando(id)
-    await supabase.from('transacciones_creditos').update({ estado: 'rechazado' }).eq('id', id)
+    await (supabase.from('transacciones_creditos') as any).update({ estado: 'rechazado' }).eq('id', id)
     setProcesando(null)
     await cargar()
   }

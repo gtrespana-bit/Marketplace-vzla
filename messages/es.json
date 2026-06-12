@@ -1,0 +1,89 @@
+{
+  "common": {
+    "loading": "Cargando...",
+    "error": "Error",
+    "success": "Éxito",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "view": "Ver",
+    "search": "Buscar",
+    "filter": "Filtrar",
+    "sort": "Ordenar",
+    "back": "Volver",
+    "next": "Siguiente",
+    "previous": "Anterior"
+  },
+  "nav": {
+    "home": "Inicio",
+    "catalog": "Catálogo",
+    "publish": "Publicar",
+    "login": "Iniciar sesión",
+    "register": "Registrarse",
+    "logout": "Cerrar sesión",
+    "profile": "Perfil",
+    "dashboard": "Dashboard",
+    "chat": "Chat",
+    "favorites": "Favoritos",
+    "credits": "Créditos"
+  },
+  "home": {
+    "hero": {
+      "title": "Compra y vende lo que quieras en Venezuela",
+      "subtitle": "El marketplace hecho para ti. Directo, sin complicaciones.",
+      "cta": "Explorar catálogo"
+    },
+    "featured": "Productos destacados",
+    "recent": "Recién publicados",
+    "categories": "Categorías populares"
+  },
+  "product": {
+    "price": "Precio",
+    "location": "Ubicación",
+    "condition": "Condición",
+    "new": "Nuevo",
+    "used": "Usado",
+    "contact": "Contactar vendedor",
+    "whatsapp": "WhatsApp",
+    "chat": "Chat",
+    "favorite": "Favorito",
+    "share": "Compartir",
+    "views": "vistas",
+    "published": "Publicado",
+    "seller": "Vendedor",
+    "verified": "Verificado"
+  },
+  "publish": {
+    "title": "Publica tu artículo",
+    "form": {
+      "title": "Título",
+      "description": "Descripción",
+      "price": "Precio (USD)",
+      "category": "Categoría",
+      "condition": "Condición",
+      "location": "Ubicación",
+      "images": "Imágenes",
+      "submit": "Publicar",
+      "success": "¡Publicado con éxito!",
+      "error": "Error al publicar"
+    }
+  },
+  "auth": {
+    "login": "Iniciar sesión",
+    "register": "Registrarse",
+    "email": "Correo electrónico",
+    "password": "Contraseña",
+    "forgot": "¿Olvidaste tu contraseña?",
+    "noAccount": "¿No tienes cuenta?",
+    "hasAccount": "¿Ya tienes cuenta?"
+  },
+  "footer": {
+    "about": "Sobre nosotros",
+    "contact": "Contacto",
+    "faq": "Preguntas frecuentes",
+    "terms": "Términos y condiciones",
+    "privacy": "Política de privacidad",
+    "blog": "Blog"
+  }
+}
