@@ -7,6 +7,7 @@ import { Footer } from '@/components/Footer'
 import { AuthProvider } from '@/components/AuthProvider'
 import dynamic from 'next/dynamic'
 import BottomTabNav from '@/components/BottomTabNav'
+import FloatingVenderButton from '@/components/FloatingVenderButton'
 
 const PWAInstallBanner = dynamic(() => import('@/components/PWAInstallBanner'), { ssr: false })
 const PushNotificationBanner = dynamic(() => import('@/components/PushNotificationBanner'), { ssr: false })
@@ -150,6 +151,7 @@ export default function RootLayout({
           <PWAInstallBanner />
           <PushNotificationBanner />
           <BottomTabNav />
+          <FloatingVenderButton />
         </AuthProvider>
       </body>
     </html>
