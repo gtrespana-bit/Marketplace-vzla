@@ -28,7 +28,7 @@ export default function MetricasTab() {
           supabase.from('perfiles').select('id', { count: 'exact', head: true }),
           supabase.from('productos').select('id', { count: 'exact', head: true }),
           supabase.from('productos').select('id', { count: 'exact', head: true }).eq('activo', true),
-          supabase.from('productos').select('visitas', { count: 'exact' }).then(({ data }) => {
+          supabase.from('productos').select('visitas', { count: 'exact' }).then(({ data }: any) => {
             return { count: data?.reduce((s: number, p: any) => s + (p.visitas || 0), 0) || 0 }
           }),
           supabase.from('resenas').select('id', { count: 'exact', head: true }),

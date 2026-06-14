@@ -22,4 +22,9 @@ export const getSupabaseClient = () => {
 }
 
 // Exportación por defecto para compatibilidad con el código existente
-export const supabase = getSupabaseClient()
+// Usamos `as any` para evitar errores de tipos estrictos en RPCs no tipados
+export const supabase = getSupabaseClient() as any
+
+export const isSupabaseConfigured = () => {
+  return !!process.env.NEXT_PUBLIC_SUPABASE_URL && !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+}

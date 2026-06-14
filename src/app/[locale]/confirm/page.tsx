@@ -47,7 +47,7 @@ export default function ConfirmEmailPage() {
       confirmAccount()
     } else {
       // Sin tipo/token específico, intentar getSession por si supabase ya lo procesó
-      supabase.auth.getSession().then(({ data: { session } }) => {
+      supabase.auth.getSession().then((res: any) => { const session = res?.data?.session;
         if (session?.user?.email_confirmed_at) {
           setStatus('success')
           setTimeout(() => router.push('/login'), 3000)

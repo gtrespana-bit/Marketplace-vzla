@@ -1,0 +1,37 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "search": "Search",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "close": "Close",
+    "confirm": "Confirm",
+    "yes": "Yes",
+    "no": "No",
+    "send": "Send",
+    "share": "Share",
+    "login": "Sign in",
+    "register": "Sign up",
+    "logout": "Sign out"
+  },
+  "nav": {
+    "home": "Home",
+    "catalog": "Catalog",
+    "publish": "Publish",
+    "profile": "Profile",
+    "dashboard": "Dashboard",
+    "chat": "Chat",
+    "about": "About us",
+    "contact": "Contact",
+    "faq": "FAQ",
+    "howItWorks": "How it works",
+    "terms": "Terms and conditions",
+    "privacy": "Privacy policy"
+  }
+}

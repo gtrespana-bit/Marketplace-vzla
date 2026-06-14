@@ -1,0 +1,37 @@
+{
+  "common": {
+    "loading": "Cargando...",
+    "error": "Error",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "search": "Buscar",
+    "back": "Volver",
+    "next": "Siguiente",
+    "previous": "Anterior",
+    "close": "Cerrar",
+    "confirm": "Confirmar",
+    "yes": "Sí",
+    "no": "No",
+    "send": "Enviar",
+    "share": "Compartir",
+    "login": "Iniciar sesión",
+    "register": "Registrarse",
+    "logout": "Cerrar sesión"
+  },
+  "nav": {
+    "home": "Inicio",
+    "catalog": "Catálogo",
+    "publish": "Publicar",
+    "profile": "Perfil",
+    "dashboard": "Panel",
+    "chat": "Chat",
+    "about": "Sobre nosotros",
+    "contact": "Contacto",
+    "faq": "FAQ",
+    "howItWorks": "Cómo funciona",
+    "terms": "Términos y condiciones",
+    "privacy": "Política de privacidad"
+  }
+}

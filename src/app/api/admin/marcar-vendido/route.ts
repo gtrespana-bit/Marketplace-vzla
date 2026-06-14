@@ -1,4 +1,4 @@
-import { createClient } from '@supabase/supabase-js'
+﻿import { createClient } from '@supabase/supabase-js'
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function POST(request: NextRequest) {
@@ -15,17 +15,17 @@ export async function POST(request: NextRequest) {
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     )
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
     const { data: producto } = await supabaseAdmin.from('productos').select('user_id, activo, vendido').eq('id', productoId).single() as any
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+
     if (!producto || producto.user_id !== userId) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 403 })
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+
     if (producto.vendido) {
-      return NextResponse.json({ error: 'El producto ya está marcado como vendido' }, { status: 400 })
+      return NextResponse.json({ error: 'El producto ya estÃ¡ marcado como vendido' }, { status: 400 })
     }
 
     const updateData: Record<string, string | boolean | null> = {
@@ -67,15 +67,15 @@ export async function GET(request: NextRequest) {
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     )
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
     const { data: producto } = await supabaseAdmin.from('productos').select('user_id').eq('id', productoId).single() as any
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+
     if (!producto || producto.user_id !== userId) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 403 })
     }
 
     // Buscar conversaciones de este producto
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
     const { data: conversacionesList }: { data: any[] | null } = await supabaseAdmin
       .from('conversaciones')
       .select('id, user1_id, user2_id')
@@ -86,7 +86,7 @@ export async function GET(request: NextRequest) {
     }
 
     const compradorIds = new Set<string>()
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
     for (const conv of conversacionesList as any[]) {
       const u1: string | null = conv.user1_id || null
       const u2: string | null = conv.user2_id || null
@@ -103,15 +103,15 @@ export async function GET(request: NextRequest) {
 
     const idsArray = Array.from(compradorIds)
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
     const { data: perfiles } = await supabaseAdmin.from('perfiles').select('id, nombre').in('id', idsArray) as { data: { id: string; nombre: string | null }[] | null }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
     const { data: ultimosMensajes } = await supabaseAdmin.from('mensajes').select('remitente_id, contenido').in('remitente_id', idsArray).order('creado_en', { ascending: false }) as { data: { remitente_id: string; contenido: string | null }[] | null }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
     const ultimoMsgMap = new Map<string, string>()
     if (ultimosMensajes) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       for (const m of ultimosMensajes as any[]) {
         if (!ultimoMsgMap.has(m.remitente_id)) {
           ultimoMsgMap.set(m.remitente_id, m.contenido ? m.contenido.substring(0, 60) : '')
@@ -119,7 +119,7 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
     const interesados = (perfiles || []).map((p: any) => ({
       userId: p.id,
       nombre: p.nombre || 'Usuario',

@@ -154,8 +154,8 @@ export default function ChatPageClient() {
 
     if (error) { console.error('Error loading convs:', error); return }
 
-    const otroIds = [...new Set(convs?.map(c => c.user1_id === uid ? c.user2_id : c.user1_id).filter(Boolean) || [])]
-    const prodIds = [...new Set(convs?.filter(c => c.producto_id).map(c => c.producto_id as string) || [])]
+    const otroIds = [...new Set(convs?.map((c: any) => c.user1_id === uid ? c.user2_id : c.user1_id).filter(Boolean) || [])]
+    const prodIds = [...new Set(convs?.filter((c: any) => c.producto_id).map((c: any) => c.producto_id as string) || [])]
 
     // Also fetch profiles/products for URL params if they exist
     if (vendedorId && !otroIds.includes(vendedorId)) otroIds.push(vendedorId)
@@ -178,7 +178,7 @@ export default function ChatPageClient() {
     ])
 
     const prodMap = new Map<string, string>()
-    productosRes.data?.forEach(p => prodMap.set(p.id, p.titulo || ''))
+    productosRes.data?.forEach((p: any) => prodMap.set(p.id, p.titulo || ''))
 
     // Unread count
     const unreadMap = new Map<string, number>()
@@ -188,14 +188,14 @@ export default function ChatPageClient() {
         .select('conversacion_id')
         .eq('destinatario_id', uid)
         .eq('leido', false)
-        .in('conversacion_id', convs.map(c => c.id))
+        .in('conversacion_id', convs.map((c: any) => c.id))
       unreadData?.forEach((m: { conversacion_id: string }) => {
         const count = unreadMap.get(m.conversacion_id) || 0
         unreadMap.set(m.conversacion_id, count + 1)
       })
     }
 
-    const enriched: Conversacion[] = (convs || []).map(c => {
+    const enriched: Conversacion[] = (convs || []).map((c: any) => {
       const otroId = c.user1_id === uid ? c.user2_id : c.user1_id
       const p = perfilMap.get(otroId)
       return {
@@ -286,7 +286,7 @@ export default function ChatPageClient() {
     if (!user) return
     const sub = supabase
       .channel('chat-msgs')
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'mensajes' }, (payload) => {
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'mensajes' }, (payload: any) => {
         const nuevo = payload.new as any
         if (nuevo.conversacion_id === convIdRef.current) {
           setMensajes(prev => {
@@ -304,7 +304,7 @@ export default function ChatPageClient() {
     if (!user) return
     const sub = supabase
       .channel('chat-convs')
-      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'conversaciones' }, (payload) => {
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'conversaciones' }, (payload: any) => {
         const updated = payload.new as any
         if (updated.user1_id !== user.id && updated.user2_id !== user.id) return
         setConversaciones(prev => {

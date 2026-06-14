@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 
 import Avatar from '@/components/Avatar'
 import BadgeVerificado from '@/components/BadgeVerificado'
@@ -7,7 +7,7 @@ import { supabase } from '@/lib/supabase'
 import { Camera, Edit, Key, LogOut, X, Save, Phone, MapPin, Mail } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
-const ICONOS: Record<number, string> = { 0: '🥉', 1: '🥈', 2: '🥇', 3: '💎', 4: '💠', 5: '👑' }
+const ICONOS: Record<number, string> = { 0: 'ðŸ¥‰', 1: 'ðŸ¥ˆ', 2: 'ðŸ¥‡', 3: 'ðŸ’Ž', 4: 'ðŸ’ ', 5: 'ðŸ‘‘' }
 const NIVELES: Record<number, { nombre: string; bg: string; text: string; border: string }> = {
   0: { nombre: 'Bronce', bg: 'bg-orange-50', text: 'text-orange-800', border: 'border-orange-200' },
   1: { nombre: 'Plata', bg: 'bg-gray-100', text: 'text-gray-700', border: 'border-gray-300' },
@@ -38,7 +38,7 @@ export default function DashboardHeader({
   setGuardando: (b: boolean) => void
   onPassword: () => void
   onLogout: () => void
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
   onFotoChange: (e: any) => Promise<void>
 }) {
   const [editando, setEditando] = useState(false)
@@ -52,7 +52,7 @@ export default function DashboardHeader({
       setToast('Error al guardar: ' + error.message)
     } else {
       setEditando(false)
-      setToast('✅ Perfil guardado correctamente')
+      setToast('âœ… Perfil guardado correctamente')
     }
     setGuardando(false)
     setTimeout(() => setToast(null), 4000)
@@ -80,7 +80,7 @@ export default function DashboardHeader({
                   <input type="text" value={nombre} onChange={e => setNombre(e.target.value)} className="w-full border rounded-lg px-3 py-2 text-sm" placeholder="Tu nombre" />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-500 mb-1 flex items-center gap-1"><Phone size={12} /> Teléfono</label>
+                  <label className="block text-xs font-medium text-gray-500 mb-1 flex items-center gap-1"><Phone size={12} /> TelÃ©fono</label>
                   <input type="tel" value={telefono} onChange={e => setTelefono(e.target.value)} className="w-full border rounded-lg px-3 py-2 text-sm" placeholder="+58 412 1234567" />
                 </div>
               </div>
@@ -113,7 +113,7 @@ export default function DashboardHeader({
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
               <div>
                 <h2 className="text-xl font-bold text-gray-900">
-                  {nombre || <button onClick={() => setEditando(true)} className="text-sm font-medium text-brand-primary hover:underline">Añadir nombre →</button>}
+                  {nombre || <button onClick={() => setEditando(true)} className="text-sm font-medium text-brand-primary hover:underline">AÃ±adir nombre â†’</button>}
                 </h2>
                 {user?.email && <p className="text-sm text-gray-500 flex items-center gap-1 mt-1"><Mail size={12} /> {user.email}</p>}
                 {(ciudad || estado) && <p className="text-sm text-gray-500 flex items-center gap-1"><MapPin size={12} /> {[ciudad, estado].filter(Boolean).join(', ')}</p>}
@@ -126,7 +126,7 @@ export default function DashboardHeader({
                       <span className={`font-semibold ${cfg.text}`}>{cfg.nombre}</span>
                     </span>
                     {resenasCount > 0 && (
-                      <span className="text-gray-500">⭐ {promedioResenas.toFixed(1)} · {resenasCount} reseña{resenasCount !== 1 ? 's' : ''}</span>
+                      <span className="text-gray-500">â­ {promedioResenas.toFixed(1)} Â· {resenasCount} reseÃ±a{resenasCount !== 1 ? 's' : ''}</span>
                     )}
                   </div>
                 </div>
@@ -136,7 +136,7 @@ export default function DashboardHeader({
                   <Edit size={14} /> Editar perfil
                 </button>
                 <button onClick={onPassword} className="flex items-center gap-1 text-brand-primary hover:bg-blue-50 px-3 py-1.5 rounded-lg text-sm font-medium transition">
-                  <Key size={14} /> Contraseña
+                  <Key size={14} /> ContraseÃ±a
                 </button>
                 <button onClick={onLogout} className="flex items-center gap-1 text-red-600 hover:bg-red-50 px-3 py-1.5 rounded-lg text-sm font-medium transition">
                   <LogOut size={14} /> Salir

@@ -1,7 +1,10 @@
 const { withSentryConfig } = require('@sentry/nextjs');
+const createNextIntlPlugin = require('next-intl/plugin');
+
+const withNextIntl = createNextIntlPlugin('./src/i18n/request-config.ts');
 
 /** @type {import('next').NextConfig} */
-const nextConfig = {
+const nextConfig = withNextIntl({
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production' ? {
       exclude: ['error', 'warn'],
@@ -13,46 +16,52 @@ const nextConfig = {
       'lucide-react',
       '@supabase/supabase-js',
       '@supabase/ssr',
+      'date-fns',
     ],
+    scrollRestoration: true,
   },
 
   images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'fiebzzptyphostfhzhqx.supabase.co',
+        pathname: '/storage/v1/object/public/**',
+      },
+    ],
     formats: ['image/avif', 'image/webp'],
-    minimumCacheTTL: 31536000, // ✅ Cache de 1 año para estabilizar URLs
+    deviceSizes: [640, 750, 828, 1080, 1200],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256],
+    minimumCacheTTL: 60 * 60 * 24 * 30,
     dangerouslyAllowSVG: true,
     contentDispositionType: 'attachment',
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
-    remotePatterns: [
-      { protocol: 'https', hostname: '**.supabase.co' },
-      { protocol: 'https', hostname: '**.r2.dev' },
-      { protocol: 'https', hostname: 'images.unsplash.com' },
-      { protocol: 'https', hostname: '**.cloudflarestorage.com' },
-    ],
-    deviceSizes: [640, 750, 828, 1080, 1200],
-    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
   },
 
-  async headers() {
-    return [
-      {
-        source: '/:all*(svg|jpg|jpeg|png|webp|avif|ico|woff|woff2)',
-        locale: false,
-        headers: [
-          { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
-        ],
-      },
-      {
-        source: '/_next/static/:path*',
-        headers: [
-          { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
-        ],
-      },
-    ];
-  },
+  compress: true,
 
-  eslint: { ignoreDuringBuilds: true },
-  typescript: { ignoreBuildErrors: true },
-};
+  poweredByHeader: false,
+
+  reactStrictMode: true,
+
+  webpack: (config, { isServer }) => {
+    config.module.rules.push({
+      test: /\.svg$/,
+      use: ['@svgr/webpack'],
+    });
+
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        net: false,
+        tls: false,
+      };
+    }
+
+    return config;
+  },
+});
 
 module.exports = withSentryConfig(nextConfig, {
   org: 'vendet-venezuela',

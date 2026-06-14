@@ -37,7 +37,7 @@ export default function LandingCategoria({ ciudadSlug, ciudadNombre, categoriaSl
       .or('estado_moderacion.is.null,estado_moderacion.eq.aprobado')
       .order('creado_en', { ascending: false })
       .limit(24)
-      .then(({ data }) => setProductos(data || []))
+      .then(({ data }: { data: any[] | null }) => setProductos(data || []))
   }, [categoriaSlug, ciudadNombre])
 
   // Categorias relacionadas para la ciudad

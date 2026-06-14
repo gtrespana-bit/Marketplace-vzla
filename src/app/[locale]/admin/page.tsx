@@ -53,9 +53,9 @@ function MetricasTab() {
         .select('monto, estado, tipo, creado_en')
         .limit(1000)
 
-      const ingresos = trans?.filter(t => t.estado === 'aprobado' && t.tipo === 'compra').reduce((s, t) => s + t.monto, 0) || 0
+      const ingresos = trans?.filter((t: any) => t.estado === 'aprobado' && t.tipo === 'compra').reduce((s: number, t: any) => s + t.monto, 0) || 0
       const hoy = new Date().toISOString().split('T')[0]
-      const nuevosHoy = trans?.filter(t => t.creado_en?.startsWith(hoy) && t.estado === 'aprobado').length || 0
+      const nuevosHoy = trans?.filter((t: any) => t.creado_en?.startsWith(hoy) && t.estado === 'aprobado').length || 0
 
       setStats({
         totalUsuarios: totalUsuarios || 0,
@@ -182,7 +182,7 @@ function UsuariosTab({ notify }: Notifier) {
       setCreditCantidad('')
       setCreditMotivo('')
       // reload user list
-      await supabase.from('perfiles').select('*').limit(1000).then(({data}) => {
+      await supabase.from('perfiles').select('*').limit(1000).then(({data}: any) => {
         if (data) setUsuarios(data)
       })
     } catch (err: any) {
@@ -566,7 +566,7 @@ function TabTransacciones({ perfiles, notify }: { perfiles: Record<string, any>;
   const [procesando, setProcesando] = useState<string | null>(null)
 
   async function cargar() {
-    const { data: trans } = await supabase
+    const { data: trans }: any = await supabase
       .from('transacciones_creditos')
       .select('*')
       .eq('tipo', 'compra')
@@ -574,8 +574,8 @@ function TabTransacciones({ perfiles, notify }: { perfiles: Record<string, any>;
       .limit(50)
 
     if (!trans) return
-    setPendientes(trans.filter(t => t.estado === 'pendiente'))
-    setHistorial(trans.filter(t => t.estado !== 'pendiente'))
+    setPendientes(trans.filter((t: any) => t.estado === 'pendiente'))
+    setHistorial(trans.filter((t: any) => t.estado !== 'pendiente'))
   }
 
   useEffect(() => { cargar() }, [])
@@ -847,7 +847,7 @@ function TabExportar() {
     if (!data) { setExportando(false); return }
 
     const headers = ['id', 'titulo', 'precio_usd', 'estado', 'categoria_id', 'subcategoria', 'marca', 'ubicacion_ciudad', 'activo', 'visitas', 'creado_en']
-    const csv = [headers.join(','), ...data.map(p => headers.map(h => `"${(p as any)[h] || ''}"`).join(','))].join('\n')
+    const csv = [headers.join(','), ...data.map((p: any) => headers.map(h => `"${(p as any)[h] || ''}"`).join(','))].join('\n')
 
     const blob = new Blob([csv], { type: 'text/csv' })
     const url = URL.createObjectURL(blob)
@@ -864,7 +864,7 @@ function TabExportar() {
     if (!data) { setExportando(false); return }
 
     const headers = ['id', 'nombre', 'telefono', 'estado', 'ciudad', 'credito_balance', 'creado_en']
-    const csv = [headers.join(','), ...data.map(u => headers.map(h => `"${(u as any)[h] || ''}"`).join(','))].join('\n')
+    const csv = [headers.join(','), ...data.map((u: any) => headers.map(h => `"${u[h] || ''}"`).join(','))].join('\n')
 
     const blob = new Blob([csv], { type: 'text/csv' })
     const url = URL.createObjectURL(blob)
@@ -881,7 +881,7 @@ function TabExportar() {
     if (!data) { setExportando(false); return }
 
     const headers = ['id', 'user_id', 'tipo', 'monto', 'metodo_pago', 'estado', 'creado_en']
-    const csv = [headers.join(','), ...data.map(t => headers.map(h => `"${(t as any)[h] || ''}"`).join(','))].join('\n')
+    const csv = [headers.join(','), ...data.map((t: any) => headers.map(h => `"${(t as any)[h] || ''}"`).join(','))].join('\n')
 
     const blob = new Blob([csv], { type: 'text/csv' })
     const url = URL.createObjectURL(blob)
@@ -1090,7 +1090,7 @@ export default function AdminPage() {
     const { data } = await supabase.from('perfiles').select('id, nombre, telefono')
     if (data) {
       const m: Record<string, any> = {}
-      data.forEach(p => { m[p.id] = p })
+      data.forEach((p: any) => { m[p.id] = p })
       setPerfiles(m)
     }
   }

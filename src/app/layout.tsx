@@ -7,6 +7,8 @@ import { Footer } from '@/components/Footer'
 import { AuthProvider } from '@/components/AuthProvider'
 import dynamic from 'next/dynamic'
 import BottomTabNav from '@/components/BottomTabNav'
+import { Analytics } from '@vercel/analytics/react'
+import { SpeedInsights } from '@vercel/speed-insights/next'
 
 const PWAInstallBanner = dynamic(() => import('@/components/PWAInstallBanner'), { ssr: false })
 const PushNotificationBanner = dynamic(() => import('@/components/PushNotificationBanner'), { ssr: false })
@@ -18,43 +20,82 @@ const inter = Inter({
 })
 
 export const viewport: Viewport = {
+  themeColor: '#008080',
   width: 'device-width',
   initialScale: 1,
-  themeColor: '#7B2D3B',
+  maximumScale: 5,
+  userScalable: true,
+  viewportFit: 'cover',
 }
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://vende-t.com'),
   title: {
-    template: '%s | VendeT-Venezuela',
-    default: 'VendeT-Venezuela — Compra y Venta en Venezuela',
+    default: 'VendeT - Marketplace de Venezuela | Compra y Vende Fácil',
+    template: '%s | VendeT',
   },
-  description: 'El marketplace venezolano. Compra y vende carros, tecnología, moda, hogar y más. Publica gratis, contacta directo.',
-  manifest: '/manifest.json',
-  metadataBase: new URL('https://vendet.online'),
+  description: 'El marketplace más grande de Venezuela. Compra y vende productos nuevos y usados de forma segura. Miles de vendedores verificados en Caracas, Maracaibo, Valencia y toda Venezuela.',
+  keywords: [
+    'marketplace venezuela',
+    'compra venta venezuela',
+    'vender online venezuela',
+    'marketplace caracas',
+    'tienda online venezuela',
+    'ecommerce venezuela',
+    'clasificados venezuela',
+    'ventas online venezuela',
+    'marketplace maracaibo',
+    'marketplace valencia venezuela',
+  ],
+  authors: [{ name: 'VendeT' }],
+  creator: 'VendeT',
+  publisher: 'VendeT',
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
+  },
   openGraph: {
-    title: 'VendeT-Venezuela — Compra y Venta en Venezuela',
-    description: 'El marketplace venezolano. Publica gratis, contacta directo. Sin complicaciones.',
-    url: 'https://vendet.online',
-    siteName: 'VendeT-Venezuela',
-    locale: 'es_VE',
     type: 'website',
+    locale: 'es_VE',
+    url: 'https://vende-t.com',
+    siteName: 'VendeT',
+    title: 'VendeT - Marketplace de Venezuela | Compra y Vende Fácil',
+    description: 'El marketplace más grande de Venezuela. Compra y vende productos nuevos y usados de forma segura.',
     images: [
       {
-        url: '/og-image.webp',
-        width: 1584,
-        height: 672,
-        alt: 'VendeT — La evolución de compra y venta en Venezuela. 0% comisión. Publica gratis.',
+        url: '/og-image.jpg',
+        width: 1200,
+        height: 630,
+        alt: 'VendeT Marketplace',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'VendeT-Venezuela — Compra y Venta en Venezuela',
-    description: 'El marketplace venezolano. Compra y vende lo que quieras, contacta directo.',
+    title: 'VendeT - Marketplace de Venezuela',
+    description: 'Compra y vende productos nuevos y usados de forma segura en Venezuela.',
+    images: ['/og-image.jpg'],
+    creator: '@vendet',
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
   },
   alternates: {
-    canonical: 'https://vendet.online',
+    canonical: 'https://vende-t.com',
   },
+  verification: {
+    google: 'TuGoogleVerificationCode',
+  },
+  category: 'marketplace',
 }
 
 export default function RootLayout({
@@ -62,87 +103,42 @@ export default function RootLayout({
 }: {
   children: React.ReactNode
 }) {
-  return (
-    <html lang="es">
-      <head>
-        <Partytown
-          debug={false}
-          forward={['dataLayer.push']}
-          lib="/~partytown/"
-        />
+  const partytownForward = {
+    rel: 'preconnect' as const,
+    href: 'https://www.googletagmanager.com',
+  }
 
-        {/* Preconnect a Google Tag Manager */}
+  return (
+    <html lang="es" className={inter.variable} suppressHydrationWarning>
+      <head>
+        {/* Preconnect para recursos externos críticos */}
+        <link rel="preconnect" href="https://fiebzzptyphostfhzhqx.supabase.co" />
         <link rel="preconnect" href="https://www.googletagmanager.com" />
         <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
+        <link rel="preconnect" href="https://fcm.googleapis.com" />
+        <link rel="dns-prefetch" href="https://fcm.googleapis.com" />
 
-        {/* ✅ NUEVO: Preconnect al CDN de Supabase para LCP más rápido */}
-        <link rel="preconnect" href="https://jmbkqelkusxjebsdnjoc.supabase.co" />
-        <link rel="dns-prefetch" href="https://jmbkqelkusxjebsdnjoc.supabase.co" />
-
-        <link rel="icon" type="image/x-icon" href="/favicon.ico" />
-        <link rel="shortcut icon" type="image/png" href="/logo-vendet.png" />
-        <link rel="apple-touch-icon" href="/icon-192.webp" />
+        {/* PWA Meta Tags */}
         <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="apple-mobile-web-app-title" content="VendeT" />
+        <meta name="application-name" content="VendeT" />
 
-        <script
-          type="text/partytown"
-          src="https://www.googletagmanager.com/gtag/js?id=G-RMMQFHP6EC"
-        />
-        <script
-          type="text/partytown"
-          dangerouslySetInnerHTML={{
-            __html: `
-              window.dataLayer = window.dataLayer || [];
-              function gtag(){dataLayer.push(arguments);}
-              gtag('js', new Date());
-              gtag('config', 'G-RMMQFHP6EC');
-            `,
-          }}
+        {/* Apple Touch Icons */}
+        <link rel="apple-touch-icon" sizes="180x180" href="/icons/icon-192x192.png" />
+        <link rel="apple-touch-icon" sizes="152x152" href="/icons/icon-192x192.png" />
+
+        {/* Manifest */}
+        <link rel="manifest" href="/manifest.json" />
+
+        {/* Partytown - Third-party scripts optimization */}
+        <Partytown
+          forward={['dataLayer.push', 'fbq']}
+          debug={false}
         />
       </head>
-      <body className={`${inter.variable} font-sans antialiased`}>
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              '@context': 'https://schema.org',
-              '@graph': [
-                {
-                  '@type': 'Organization',
-                  '@id': 'https://vendet.online/#organization',
-                  name: 'VendeT-Venezuela',
-                  url: 'https://vendet.online',
-                  logo: 'https://vendet.online/logo-vendet.webp',
-                  description:
-                    'Marketplace venezolano. Compra y vende carros, tecnología, moda, hogar y más. Publica gratis, contacta directo.',
-                  foundingDate: '2024',
-                  areaServed: { '@type': 'Country', name: 'Venezuela' },
-                  contactPoint: {
-                    '@type': 'ContactPoint',
-                    email: 'soporte@vendet.online',
-                    contactType: 'customer service',
-                    availableLanguage: 'Spanish',
-                  },
-                  sameAs: [],
-                },
-                {
-                  '@type': 'WebSite',
-                  '@id': 'https://vendet.online/#website',
-                  url: 'https://vendet.online',
-                  name: 'VendeT-Venezuela',
-                  description: 'Marketplace venezolano para comprar y vender sin comisiones.',
-                  inLanguage: 'es-VE',
-                  potentialAction: {
-                    '@type': 'SearchAction',
-                    target: 'https://vendet.online/buscar?q={search_term_string}',
-                    'query-input': 'required name=search_term_string',
-                  },
-                },
-              ],
-            }),
-          }}
-        />
+      <body className="bg-white antialiased">
         <AuthProvider>
           <Header />
           <main className="min-h-screen bg-white">{children}</main>
@@ -151,6 +147,8 @@ export default function RootLayout({
           <PushNotificationBanner />
           <BottomTabNav />
         </AuthProvider>
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   )
