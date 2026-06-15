@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useTranslations } from 'next-intl';
 import { CheckCircle, Mail, ExternalLink, ArrowRight } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -98,9 +99,7 @@ function ConfirmacionContent() {
             </button>
           </div>
 
-          <p className="text-xs text-gray-400 mt-4 text-center">
-            Cuando recibas el email, confirma tu cuenta y luego regresa a hacer login.
-          </p>
+          <p className="text-xs text-gray-400 mt-4 text-center">t('confirmacion.footer')</p>
         </div>
       </div>
     </div>

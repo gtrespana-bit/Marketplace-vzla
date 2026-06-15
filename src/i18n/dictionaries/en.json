@@ -64,5 +64,50 @@
     "viewCatalog": "View catalog",
     "publishPrompt": "Want to publish something?",
     "publishButton": "Publish for free"
+  },
+  "auth": {
+    "login": {
+      "title": "Sign In",
+      "email": "Email",
+      "password": "Password",
+      "submit": "Sign In",
+      "no_account": "Don't have an account?",
+      "register": "Sign Up",
+      "forgot_password": "Forgot your password?",
+      "resend": "Resend confirmation email",
+      "resend_prompt": "Didn't receive the confirmation email?",
+      "resend_success": "Confirmation email resent",
+      "resend_success_desc": "We have sent a new confirmation email to",
+      "reset_title": "Reset Password",
+      "reset_sent": "We have sent you an email with instructions to reset your password.",
+      "reset_submit": "Send reset link",
+      "reset_back": "Back to sign in",
+      "invalid_credentials": "Invalid credentials",
+      "verify_email": "Verify your email",
+      "verify_email_desc": "Please confirm your email before signing in.",
+      "error": "Login error"
+    },
+    "register": {
+      "title": "Create Account",
+      "name": "Full Name",
+      "email": "Email",
+      "phone": "Phone",
+      "password": "Password",
+      "repeat_password": "Repeat Password",
+      "state": "State",
+      "city": "City",
+      "submit": "Sign Up",
+      "has_account": "Already have an account?",
+      "login": "Sign In",
+      "password_mismatch": "Passwords do not match",
+      "error": "Registration error"
+    },
+    "confirmacion": {
+      "title": "Almost there!",
+      "sent_to": "We have sent a confirmation email to",
+      "instructions": "Please check your inbox (and spam folder) and click the confirmation link.",
+      "confirmed": "I have confirmed my account",
+      "footer": "When you receive the email, confirm your account and then return to log in."
+    }
   }
 }

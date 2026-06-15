@@ -64,5 +64,50 @@
     "viewCatalog": "Ver catálogo",
     "publishPrompt": "¿Quieres publicar algo?",
     "publishButton": "Publicar gratis"
+  },
+  "auth": {
+    "login": {
+      "title": "Iniciar sesión",
+      "email": "Correo electrónico",
+      "password": "Contraseña",
+      "submit": "Inicia sesión",
+      "no_account": "¿No tienes una cuenta?",
+      "register": "Regístrate",
+      "forgot_password": "¿Olvidaste tu contraseña?",
+      "resend": "Reenviar correo de confirmación",
+      "resend_prompt": "¿No recibiste el email de confirmación?",
+      "resend_success": "Correo de confirmación reenviado",
+      "resend_success_desc": "Hemos enviado un nuevo email de confirmación a",
+      "reset_title": "Restablecer contraseña",
+      "reset_sent": "Te hemos enviado un correo con las instrucciones para restablecer tu contraseña.",
+      "reset_submit": "Enviar enlace de restablecimiento",
+      "reset_back": "Volver al inicio de sesión",
+      "invalid_credentials": "Credenciales incorrectas",
+      "verify_email": "Verifica tu correo",
+      "verify_email_desc": "Por favor, confirma tu correo electrónico antes de iniciar sesión.",
+      "error": "Error al iniciar sesión"
+    },
+    "register": {
+      "title": "Crear cuenta",
+      "name": "Nombre completo",
+      "email": "Correo electrónico",
+      "phone": "Teléfono",
+      "password": "Contraseña",
+      "repeat_password": "Repetir contraseña",
+      "state": "Estado",
+      "city": "Ciudad",
+      "submit": "Registrarse",
+      "has_account": "¿Ya tienes una cuenta?",
+      "login": "Inicia sesión",
+      "password_mismatch": "Las contraseñas no coinciden",
+      "error": "Error al registrar"
+    },
+    "confirmacion": {
+      "title": "¡Casi listo!",
+      "sent_to": "Hemos enviado un correo de confirmación a",
+      "instructions": "Por favor, revisa tu bandeja de entrada (y la carpeta de spam) y haz clic en el enlace de confirmación.",
+      "confirmed": "Ya confirmé mi cuenta",
+      "footer": "Cuando recibas el email, confirma tu cuenta y luego regresa a hacer login."
+    }
   }
 }

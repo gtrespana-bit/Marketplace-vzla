@@ -1,0 +1,266 @@
+'use client'
+
+import { useState } from 'react'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { supabase } from '@/lib/supabase'
+import { AlertCircle } from 'lucide-react'
+
+export default function LoginPage() {
+  const router = useRouter()
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [showResend, setShowResend] = useState(false)
+  const [resendSuccess, setResendSuccess] = useState(false)
+  const [resendLoading, setResendLoading] = useState(false)
+  const [showReset, setShowReset] = useState(false)
+  const [resetSent, setResetSent] = useState(false)
+  const [resetLoading, setResetLoading] = useState(false)
+  const [resetError, setResetError] = useState('')
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setError('')
+    setLoading(true)
+
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    })
+
+    if (error) {
+      setError(error.message === 'Invalid login credentials'
+        ? 'Email o contraseña incorrectos. Verifica tus datos.'
+        : error.message)
+    } else {
+      router.push('/dashboard')
+    }
+    setLoading(false)
+  }
+
+  const handleResendConfirmation = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setError('')
+    setResendLoading(true)
+    setResendSuccess(false)
+
+    const { error } = await supabase.auth.resend({
+      type: 'signup',
+      email,
+    })
+
+    if (error) {
+      setError(error.message === 'User not found'
+        ? 'No existe una cuenta con este email'
+        : error.message)
+    } else {
+      setResendSuccess(true)
+    }
+    setResendLoading(false)
+  }
+
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setResetError('')
+    setResetLoading(true)
+
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    })
+
+    if (error) {
+      setResetError(error.message)
+    } else {
+      setResetSent(true)
+    }
+    setResetLoading(false)
+  }
+
+  return (
+    <div className="min-h-[80vh] flex items-center justify-center px-4 py-12">
+      <div className="w-full max-w-md">
+        <div className="text-center mb-8">
+          <Link href="/" className="text-brand-primary font-black text-3xl">
+            Vende<span className="text-brand-accent">T</span><span className="text-sm ml-1 text-gray-500">-Venezuela</span>
+          </Link>
+          <h1 className="text-2xl font-bold text-gray-800 mt-4">Bienvenido de vuelta</h1>
+          <p className="text-gray-500 mt-1">Inicia sesión para gestionar tus publicaciones</p>
+        </div>
+
+        <div className="bg-white rounded-2xl shadow-sm p-8 border border-gray-100">
+          {error && (
+            <div className="flex items-center gap-2 bg-red-50 text-red-700 p-3 rounded-lg mb-6 text-sm">
+              <AlertCircle size={18} />
+              {error}
+            </div>
+          )}
+
+          <form onSubmit={handleLogin} className="space-y-5">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">Email</label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="tu@email.com"
+                required
+                className="w-full border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-accent text-gray-900 bg-white"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">Contraseña</label>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Tu contraseña"
+                required
+                className="w-full border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-accent text-gray-900 bg-white"
+              />
+            </div>
+
+            <div className="text-right">
+              <button
+                type="button"
+                onClick={() => setShowReset(!showReset)}
+                className="text-sm text-brand-primary hover:underline font-medium"
+              >
+                ¿Olvidaste tu contraseña?
+              </button>
+            </div>
+
+            {showReset && !resetSent ? (
+              <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 animate-fadeIn">
+                <p className="text-sm text-yellow-800 mb-3 font-medium">Te enviaremos un enlace para restablecer tu contraseña</p>
+                {resetError && (
+                  <p className="text-sm text-red-600 mb-3">{resetError}</p>
+                )}
+                <form onSubmit={handleResetPassword} className="space-y-3">
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="tu@email.com"
+                    required
+                    className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-accent bg-white"
+                  />
+                  <button
+                    type="submit"
+                    disabled={resetLoading}
+                    className="w-full bg-brand-primary text-white py-2.5 rounded-lg font-semibold hover:bg-brand-dark transition disabled:opacity-50 text-sm"
+                  >
+                    {resetLoading ? 'Enviando...' : 'Enviar enlace de restablecimiento'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowReset(false)}
+                    className="w-full text-sm text-gray-600 hover:text-gray-800"
+                  >
+                    Cancelar
+                  </button>
+                </form>
+              </div>
+            ) : showReset && resetSent ? (
+              <div className="bg-green-50 border border-green-200 rounded-xl p-4 text-center animate-fadeIn">
+                <p className="text-sm text-green-700 font-semibold mb-2">✅ Enlace enviado</p>
+                <p className="text-sm text-green-600">
+                  Revisa tu email en <strong>{email}</strong> y sigue el enlace para crear una nueva contraseña.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => { setShowReset(false); setResetSent(false) }}
+                  className="text-sm text-brand-primary font-semibold hover:underline mt-3"
+                >
+                  Volver al login
+                </button>
+              </div>
+            ) : null}
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-brand-primary text-white py-3 rounded-lg font-bold hover:bg-brand-dark transition disabled:opacity-50"
+            >
+              {loading ? 'Iniciando sesión...' : 'Iniciar sesión'}
+            </button>
+          </form>
+
+          <p className="text-center text-sm text-gray-500 mt-6">
+            ¿No tienes cuenta?{' '}
+            <Link href="/register" className="text-brand-primary font-semibold hover:underline">
+              Regístrate gratis
+            </Link>
+          </p>
+
+          {/* Botón para reenviar email de confirmación */}
+          {!showResend ? (
+            <p className="text-center text-sm text-gray-500 mt-3">
+              ¿No recibiste el email de confirmación?
+              <button
+                type="button"
+                onClick={() => setShowResend(true)}
+                className="text-brand-primary font-semibold hover:underline ml-1"
+              >
+                Reenviarlo
+              </button>
+            </p>
+          ) : (
+            <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+              {resendSuccess ? (
+                <div className="text-center">
+                  <div className="flex items-center justify-center gap-2 text-green-700 font-semibold mb-2">
+                    ✅ Email reenviado con éxito
+                  </div>
+                  <p className="text-sm text-gray-600 mb-3">
+                    Hemos enviado un nuevo email de confirmación a
+                    <strong> {email}</strong>
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setShowResend(false)}
+                    className="text-brand-primary font-semibold hover:underline text-sm"
+                  >
+                    Volver al login
+                  </button>
+                </div>
+              ) : (
+                <form onSubmit={handleResendConfirmation} className="space-y-3">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                      Email
+                    </label>
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="tu@email.com"
+                      required
+                      className="w-full border rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-brand-accent bg-white text-sm"
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    disabled={resendLoading}
+                    className="w-full bg-brand-primary text-white py-2.5 rounded-lg font-semibold hover:bg-brand-dark transition disabled:opacity-50 text-sm"
+                  >
+                    {resendLoading ? 'Enviando...' : 'Reenviar email de confirmación'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowResend(false)}
+                    className="w-full text-sm text-gray-600 hover:text-gray-800"
+                  >
+                    Cancelar
+                  </button>
+                </form>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
