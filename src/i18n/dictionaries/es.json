@@ -33,5 +33,36 @@
     "howItWorks": "Cómo funciona",
     "terms": "Términos y condiciones",
     "privacy": "Política de privacidad"
+  },
+  "home": {
+    "hero": {
+      "title": "🚀 Descubre lo mejor de VendeT",
+      "subtitle": "La plataforma de compra y venta más confiable de Venezuela.",
+      "explore": "Explorar productos"
+    },
+    "featured": {
+      "title": "Explora productos destacados",
+      "viewAll": "Ver todos",
+      "empty": "No hay productos destacados en este momento.",
+      "badge": "Destacado"
+    },
+    "cta": {
+      "title": "Publica tu primer producto",
+      "subtitle": "Vende rápido y seguro. Empieza a vender hoy mismo.",
+      "button": "Empezar a vender"
+    },
+    "dashboard": {
+      "title": "¿Ya tienes una tienda?",
+      "subtitle": "Gestiona tus productos, ventas y estadísticas desde un solo lugar.",
+      "button": "Ir a mi panel de vendedor"
+    }
+  },
+  "notFound": {
+    "title": "Página no encontrada",
+    "description": "Lo que buscas no existe o fue eliminado.",
+    "backHome": "Volver al inicio",
+    "viewCatalog": "Ver catálogo",
+    "publishPrompt": "¿Quieres publicar algo?",
+    "publishButton": "Publicar gratis"
   }
 }
