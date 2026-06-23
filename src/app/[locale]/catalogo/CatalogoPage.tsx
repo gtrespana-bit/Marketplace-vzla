@@ -57,7 +57,11 @@ function ProductCardSkeleton() {
 
 function ProductCard({ p, priority = false, t }: { p: Producto; priority?: boolean; t: (key: string) => string }) {
   const isBoosted = p.boosteado_en != null
-  const isFeatured = p.destacado && p.destacado_hasta && new Date(p.destacado_hasta) > new Date()
+  // Usar flag pre-computado del servidor para evitar hydration mismatch
+  // Si no existe (datos frescos del cliente), calcular en el cliente
+  const isFeatured = (p as any)._isFeatured !== undefined
+    ? (p as any)._isFeatured
+    : !!(p.destacado && p.destacado_hasta && new Date(p.destacado_hasta) > new Date())
   const isPromoted = isBoosted || isFeatured
 
   const imgUrl = p.imagen_url || getPlaceholderImage(p.titulo)
@@ -71,8 +75,8 @@ function ProductCard({ p, priority = false, t }: { p: Producto; priority?: boole
           </div>
         )}
         {isBoosted && !isFeatured && (
-          <div className="absolute top-2 left-2 z-10 bg-green-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 shadow-sm">
-            ⚡ Boost
+          <div className="absolute top-2 left-2 z-10 bg-green-700 text-white text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 shadow-sm">
+            ⚡ <span className="text-white">Boost</span>
           </div>
         )}
         <Image
@@ -336,7 +340,7 @@ export default function CatalogoClient({ initialProducts = [], initialCount = 0 
               </div>
               <form action="/buscar" method="GET" className="flex gap-2 w-full sm:w-auto">
                 <input name="q" defaultValue={q} placeholder={`${t('common.search')}...`} className="w-full sm:w-60 border rounded-lg px-4 py-2 text-sm" />
-                <button type="submit" className="bg-brand-accent text-brand-primary px-4 rounded-lg font-bold text-sm hover:bg-accent/90">{t('common.search')}</button>
+                <button type="submit" className="bg-brand-primary text-white px-4 rounded-lg font-bold text-sm hover:bg-brand-dark transition">{t('common.search')}</button>
               </form>
             </div>
           </div>

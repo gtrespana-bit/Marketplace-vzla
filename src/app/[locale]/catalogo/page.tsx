@@ -22,6 +22,7 @@ async function getInitialProducts() {
     if (error || !data) return { products: [], count: 0 }
 
     // Mismo ordenamiento que el cliente: boost > destacado vigente > fecha
+    // Pre-computamos flags de estado para evitar hydration mismatch
     const now = new Date().toISOString()
     const sorted = data.sort((a: any, b: any) => {
       const aBoost = a.boosteado_en || null
@@ -35,7 +36,11 @@ async function getInitialProducts() {
       if (!aDest && bDest) return 1
       if (aDest && bDest) return b.destacado_hasta.localeCompare(a.destacado_hasta)
       return b.creado_en.localeCompare(a.creado_en)
-    })
+    }).map((p: any) => ({
+      ...p,
+      // Pre-computar flags para evitar hydration mismatch en cliente
+      _isFeatured: !!(p.destacado && p.destacado_hasta && p.destacado_hasta > now),
+    }))
 
     return { products: sorted, count: count ?? 0 }
   } catch {

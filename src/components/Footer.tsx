@@ -54,7 +54,7 @@ export function Footer() {
                 <li><LocalLink href="/terminos-y-condiciones" className="hover:text-brand-accent transition">{t('footer.terms')}</LocalLink></li>
                 <li><LocalLink href="/politica-de-privacidad" className="hover:text-brand-accent transition">{t('footer.privacy')}</LocalLink></li>
               </ul>
-              <p className="text-xs text-gray-500 mt-4">{t('footer.madeWithLove')}</p>
+              <p className="text-xs text-gray-300 mt-4">{t('footer.madeWithLove')}</p>
             </div>
           </div>
           <div className="border-t border-gray-700 mt-8 pt-6 text-center text-sm">

@@ -168,8 +168,9 @@ export function Header() {
               {/* Language toggle - uses <a> to avoid LocalLink adding locale prefix */}
               <a
                 href={altLocaleHref}
-                className="hidden md:flex items-center gap-1 px-2 py-1.5 text-sm hover:bg-white/10 rounded-lg transition"
+                className="hidden md:flex items-center gap-1 px-2 py-1.5 text-sm hover:bg-white/10 rounded-lg transition text-white/90"
                 title={isEn ? 'Español' : 'English'}
+                aria-label={isEn ? 'Cambiar a Español' : 'Switch to English'}
               >
                 <Globe size={16} />
                 <span className="text-xs font-medium">{isEn ? 'ES' : 'EN'}</span>
@@ -203,14 +204,15 @@ export function Header() {
                 href={altLocaleHref}
                 className="md:hidden p-2 hover:bg-white/10 rounded-lg transition"
                 title={isEn ? 'Español' : 'English'}
+                aria-label={isEn ? 'Cambiar a Español' : 'Switch to English'}
               >
-                <span className="text-lg">{isEn ? '🇻🇪' : '🇺🇸'}</span>
+                <span className="text-lg" aria-hidden="true">{isEn ? '🇻🇪' : '🇺🇸'}</span>
               </a>
 
               {!user ? (
                 <>
                   <LocalLink href="/login" className="hidden md:inline px-3 py-2 text-sm font-medium hover:text-brand-accent transition">{t('header.signIn')}</LocalLink>
-                  <LocalLink href="/register" className="hidden md:inline bg-brand-accent text-brand-primary px-4 py-2 rounded-lg text-sm font-bold hover:bg-accent/90 transition">{t('header.signUp')}</LocalLink>
+                  <LocalLink href="/register" className="hidden md:inline bg-brand-accent text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-accent/90 transition">{t('header.signUp')}</LocalLink>
                   {!isPWA && (
                     <button 
                       aria-label={mobileOpen ? t('header.closeMenu') : t('header.openMenu')}
@@ -276,7 +278,7 @@ export function Header() {
                 {!user ? (
                   <>
                     <LocalLink href="/login" onClick={() => setMobileOpen(false)} className="px-3 py-2 rounded-lg hover:bg-white/10 transition">{t('header.signIn')}</LocalLink>
-                    <LocalLink href="/register" onClick={() => setMobileOpen(false)} className="px-3 py-2 rounded-lg bg-brand-accent text-brand-primary font-bold text-center transition">{t('header.signUpFree')}</LocalLink>
+                    <LocalLink href="/register" onClick={() => setMobileOpen(false)} className="px-3 py-2 rounded-lg bg-brand-accent text-white font-bold text-center transition">{t('header.signUpFree')}</LocalLink>
                   </>
                 ) : (
                   <>
