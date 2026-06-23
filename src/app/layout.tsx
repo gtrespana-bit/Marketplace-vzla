@@ -139,11 +139,11 @@ export default function RootLayout({
           debug={false}
         />
       </head>
-      <body className="bg-white antialiased">
+      <body className="bg-white antialiased" suppressHydrationWarning>
         <IntlBridgeInit>
         <AuthProvider>
           <Header />
-          <main className="min-h-screen bg-white">{children}</main>
+          <main className="min-h-screen bg-white" suppressHydrationWarning>{children}</main>
           <Footer />
           <PWAInstallBanner />
           <PushNotificationBanner />
