@@ -7,11 +7,18 @@ const nextIntlMiddleware = createMiddleware(routing)
 
 export default async function middleware(request: NextRequest) {
   // 1. Apply next-intl routing (reads locale from URL path, sets cookie)
-  const intlResponse = nextIntlMiddleware(request)
+  const response = nextIntlMiddleware(request)
 
-  // 2. Refresh Supabase auth session on the intl response
+  // 2. Inject detected locale into request headers for root layout SSR
+  const pathnameLocale = request.nextUrl.pathname.split('/')[1]
+  const locale = routing.locales.includes(pathnameLocale as any)
+    ? pathnameLocale
+    : routing.defaultLocale
+  request.headers.set('x-detected-locale', locale)
+
+  // 3. Refresh Supabase auth session on the intl response
   //    so both next-intl and Supabase cookies are preserved
-  const supabaseResponse = await updateSession(request, intlResponse)
+  const supabaseResponse = await updateSession(request, response)
 
   return supabaseResponse
 }

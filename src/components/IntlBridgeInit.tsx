@@ -1,4 +1,4 @@
-import { cookies } from 'next/headers'
+import { cookies, headers } from 'next/headers'
 import { IntlBridgeSetter } from './IntlBridge'
 import { routing } from '@/i18n/routing'
 
@@ -12,13 +12,20 @@ export default async function IntlBridgeInit({
 }: {
   children: React.ReactNode
 }) {
-  // The next-intl middleware sets NEXT_LOCALE cookie with the correct locale
-  // from the URL path. We trust this cookie as it's set on every request.
-  const cookieStore = cookies()
-  const localeCookie = cookieStore.get('NEXT_LOCALE')
-  const locale = localeCookie?.value && routing.locales.includes(localeCookie.value as any)
-    ? localeCookie.value
-    : routing.defaultLocale
+  // Priority: middleware header > cookie > default
+  const headersList = headers()
+  const detectedLocale = headersList.get('x-detected-locale')
+  
+  let locale: string
+  if (detectedLocale && routing.locales.includes(detectedLocale as any)) {
+    locale = detectedLocale
+  } else {
+    const cookieStore = cookies()
+    const localeCookie = cookieStore.get('NEXT_LOCALE')
+    locale = localeCookie?.value && routing.locales.includes(localeCookie.value as any)
+      ? localeCookie.value
+      : routing.defaultLocale
+  }
   
   const messages = await getMessages(locale)
 
