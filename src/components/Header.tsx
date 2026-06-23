@@ -198,6 +198,15 @@ export function Header() {
                 )}
               </LocalLink>
 
+              {/* Language toggle for mobile */}
+              <a
+                href={altLocaleHref}
+                className="md:hidden p-2 hover:bg-white/10 rounded-lg transition"
+                title={isEn ? 'Español' : 'English'}
+              >
+                <span className="text-lg">{isEn ? '🇻🇪' : '🇺🇸'}</span>
+              </a>
+
               {!user ? (
                 <>
                   <LocalLink href="/login" className="hidden md:inline px-3 py-2 text-sm font-medium hover:text-brand-accent transition">{t('header.signIn')}</LocalLink>
@@ -285,16 +294,7 @@ export function Header() {
         </div>
       </header>
 
-      {/* Floating language toggle for mobile */}
-      <a
-        href={altLocaleHref}
-        className="fixed bottom-20 right-4 z-50 md:hidden bg-brand-primary text-white shadow-lg rounded-full w-12 h-12 flex items-center justify-center text-xl hover:scale-110 transition-transform"
-        title={isEn ? 'Español' : 'English'}
-      >
-        {isEn ? '🇻🇪' : '🇺🇸'}
-      </a>
-
-      {/* ============ SUB-HEADER: CATEGORIES ============ */}
+      {/* ============ SUB-HEADER: CATEGORIES ============ */} */
       <div className="hidden md:block bg-white border-b border-gray-200 shadow-sm sticky top-14 z-40">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex items-center gap-1 h-11 overflow-x-auto hide-scrollbar">
