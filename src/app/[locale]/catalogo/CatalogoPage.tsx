@@ -3,13 +3,13 @@
 import { useEffect, useState, useRef } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { usePathname } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import LocalLink from '@/components/LocalLink'
 import Image from 'next/image'
 import { Search, ChevronRight, XCircle } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { categoriasData } from '@/lib/categorias'
 import UbicacionSelector from '@/components/UbicacionSelector'
-import { useBridge } from '@/components/IntlBridge'
 
 type Producto = {
   id: string
@@ -117,7 +117,19 @@ function ProductCard({ p, priority = false, t }: { p: Producto; priority?: boole
 }
 
 export default function CatalogoClient({ initialProducts = [], initialCount = 0 }: CatalogoPageProps) {
-  const { t } = useBridge()
+  const tc = useTranslations('catalog')
+  const tp = useTranslations('product')
+  const tcm = useTranslations('common')
+  // Universal translator function (supports any namespace)
+  const t = (key: string) => {
+    const parts = key.split('.')
+    const ns = parts[0]
+    const rest = parts.slice(1).join('.')
+    if (ns === 'catalog') return tc(rest)
+    if (ns === 'product') return tp(rest)
+    if (ns === 'common') return tcm(rest)
+    return key
+  }
   const searchParams = useSearchParams()
   const pathname = usePathname()
   const router = useRouter()
