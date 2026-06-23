@@ -3,6 +3,7 @@
 import { Star, ShieldCheck, Activity } from 'lucide-react'
 import BadgeVerificado from '@/components/BadgeVerificado'
 import SellerReputation from '@/components/SellerReputation'
+import { useTranslations } from 'next-intl'
 
 export default function TabReputacion({
   verificado,
@@ -25,6 +26,7 @@ export default function TabReputacion({
   creadoEn: string | null
   ultimaActividad: string | null
 }) {
+  const t = useTranslations('dashboard')
   const antiguedadDias = creadoEn
     ? Math.floor((Date.now() - new Date(creadoEn).getTime()) / (1000 * 60 * 60 * 24))
     : 0
@@ -93,24 +95,24 @@ export default function TabReputacion({
       <div className="bg-white rounded-2xl shadow-sm border p-6">
         <h3 className="text-lg font-bold flex items-center gap-2 mb-4">
           <Activity size={20} className="text-brand-primary" />
-          Estadísticas
+          {t('stats')}
         </h3>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
           <div className="bg-gray-50 rounded-xl p-4">
             <p className="text-3xl font-black text-brand-primary">{numPubsActivas}</p>
-            <p className="text-xs text-gray-500 mt-1">Publicaciones activas</p>
+            <p className="text-xs text-gray-500 mt-1">{t('activeListings')}</p>
           </div>
           <div className="bg-gray-50 rounded-xl p-4">
             <p className="text-3xl font-black text-green-600">{numPubsVendidas}</p>
-            <p className="text-xs text-gray-500 mt-1">Vendidas/pausadas</p>
+            <p className="text-xs text-gray-500 mt-1">{t('soldPaused')}</p>
           </div>
           <div className="bg-gray-50 rounded-xl p-4">
             <p className="text-3xl font-black text-yellow-500">{antiguedadDias}</p>
-            <p className="text-xs text-gray-500 mt-1">Días en VendeT</p>
+            <p className="text-xs text-gray-500 mt-1">{t('daysOnPlatform')}</p>
           </div>
           <div className="bg-gray-50 rounded-xl p-4">
             <p className="text-3xl font-black text-purple-600">{verificado ? '✅' : '⏳'}</p>
-            <p className="text-xs text-gray-500 mt-1">Verificación</p>
+            <p className="text-xs text-gray-500 mt-1">{t('verification')}</p>
           </div>
         </div>
       </div>
