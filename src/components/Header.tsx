@@ -181,7 +181,7 @@ export function Header() {
                 <Zap size={16} className="text-brand-accent" />
                 <span className="hidden lg:inline">{t('header.credits')}</span>
                 {showCreditoBadge && (
-                  <span className="absolute -top-1 -right-1 bg-green-400 text-brand-primary text-[9px] font-black px-1 rounded-full">{t('header.freeBadge')}</span>
+                  <span className="absolute -top-1 -right-1 bg-green-500 text-white text-[9px] font-black px-1 rounded-full">{t('header.freeBadge')}</span>
                 )}
                 {creditoChecked && creditoBalance !== null && creditoBalance > 0 && (
                   <span className="absolute -top-1 -right-1 bg-brand-accent text-brand-primary text-[9px] font-black px-1.5 py-0.5 rounded-full min-w-[16px] text-center">{creditoBalance}</span>

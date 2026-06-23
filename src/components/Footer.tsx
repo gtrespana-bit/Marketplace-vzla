@@ -15,7 +15,7 @@ export function Footer() {
             <div>
               <LocalLink href="/" className="inline-flex items-center gap-2 mb-3">
                 <Image src="/logo-vendet.webp" alt="VendeT" width={28} height={28} className="h-7 w-7 object-contain rounded-lg drop-shadow-[0_0_4px_rgba(255,255,255,0.4)] bg-white/80 p-0.5" />
-                <span className="text-brand-accent font-black text-lg">Vende<span className="text-white">T</span></span>
+                <span className="font-black text-lg"><span className="text-yellow-400">Vende</span><span className="text-white">T</span></span>
               </LocalLink>
               <p className="text-sm leading-relaxed">{t('footer.description')}</p>
             </div>
