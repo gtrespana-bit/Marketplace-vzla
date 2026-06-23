@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { supabase } from '@/lib/supabase'
 import CatalogoClient from './CatalogoPage'
+import { Suspense } from 'react'
 
 export const metadata: Metadata = {
   title: 'Catálogo — Compra y Venta en Venezuela | VendeT-Venezuela',
@@ -52,13 +53,15 @@ export default async function CatalogoPage() {
   // Fetch en servidor ANTES de renderizar
   const { products: initialProducts, count: initialCount } = await getInitialProducts()
 
-  // ✅ Renderizado directo sin next/dynamic
-  // Esto asegura que la imagen LCP esté en el HTML inicial
+  // ✅ Suspense boundary necesario para useSearchParams() en Next.js 14
+  // Sin esto, la página se desopta de static rendering y causa hydration mismatch
   return (
-    <CatalogoClient
-      initialProducts={initialProducts}
-      initialCount={initialCount}
-    />
+    <Suspense>
+      <CatalogoClient
+        initialProducts={initialProducts}
+        initialCount={initialCount}
+      />
+    </Suspense>
   )
 }
 
