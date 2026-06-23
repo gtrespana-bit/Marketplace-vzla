@@ -296,7 +296,7 @@ export function Header() {
         </div>
       </header>
 
-      {/* ============ SUB-HEADER: CATEGORIES ============ */} */
+      {/* ============ SUB-HEADER: CATEGORIES ============ */}
       <div className="hidden md:block bg-white border-b border-gray-200 shadow-sm sticky top-14 z-40">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex items-center gap-1 h-11 overflow-x-auto hide-scrollbar">
