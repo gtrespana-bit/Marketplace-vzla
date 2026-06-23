@@ -7,7 +7,7 @@ import ProductoPageClient from './ProductoPageClient'
 export const revalidate = 300
 
 type Props = {
-  params: Promise<{ slug: string }>
+  params: { slug: string }
 }
 
 async function getProduct(slug: string) {
@@ -23,7 +23,7 @@ async function getProduct(slug: string) {
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { slug } = await params
+  const { slug } = params
   const producto = await getProduct(slug)
 
   if (!producto) {
@@ -82,7 +82,7 @@ export async function generateStaticParams() {
 }
 
 export default async function ProductoPage({ params }: Props) {
-  const { slug } = await params
+  const { slug } = params
   const producto = await getProduct(slug)
 
   if (!producto) {

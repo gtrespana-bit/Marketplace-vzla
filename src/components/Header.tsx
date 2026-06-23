@@ -165,15 +165,15 @@ export function Header() {
 
             {/* Actions (desktop) */}
             <div className="flex items-center gap-2">
-              {/* Language toggle */}
-              <LocalLink
+              {/* Language toggle - uses <a> to avoid LocalLink adding locale prefix */}
+              <a
                 href={altLocaleHref}
                 className="hidden md:flex items-center gap-1 px-2 py-1.5 text-sm hover:bg-white/10 rounded-lg transition"
                 title={isEn ? 'Español' : 'English'}
               >
                 <Globe size={16} />
                 <span className="text-xs font-medium">{isEn ? 'ES' : 'EN'}</span>
-              </LocalLink>
+              </a>
 
               {/* Credits */}
               <LocalLink href="/creditos" className="relative hidden md:flex items-center gap-1.5 bg-white/10 hover:bg-white/20 text-white px-3 py-2 rounded-lg text-sm font-medium transition" title={t('header.creditsTitle')}>
@@ -279,6 +279,11 @@ export function Header() {
                 )}
                 <LocalLink href="/blog" onClick={() => setMobileOpen(false)} className="px-3 py-2 rounded-lg hover:bg-white/10 transition">📝 {t('header.blog')}</LocalLink>
                 <LocalLink href="/catalogo" onClick={() => setMobileOpen(false)} className="px-3 py-2 rounded-lg hover:bg-white/10 transition">{t('header.viewCatalog')}</LocalLink>
+                {/* Language switcher for mobile */}
+                <a href={altLocaleHref} onClick={() => setMobileOpen(false)} className="px-3 py-2 rounded-lg hover:bg-white/10 transition flex items-center gap-2">
+                  <Globe size={16} />
+                  <span>{isEn ? 'Español' : 'English'}</span>
+                </a>
               </nav>
             </div>
           )}
