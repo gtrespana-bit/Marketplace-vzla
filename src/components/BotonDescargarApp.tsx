@@ -3,16 +3,18 @@
 import { useState, useEffect } from 'react'
 import LocalLink from '@/components/LocalLink'
 import { Smartphone } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 
 type BotonDescargarAppProps = {
   variant?: 'default' | 'light'
 }
 
 /**
- * Botón "Descarga Nuestra App" que solo se muestra si el usuario
- * NO está visitando desde la PWA ya instalada.
+ * Boton "Descarga Nuestra App" que solo se muestra si el usuario
+ * NO esta visitando desde la PWA ya instalada.
  */
 export function BotonDescargarApp({ variant = 'default' }: BotonDescargarAppProps = {}) {
+  const t = useTranslations('common')
   const [showButton, setShowButton] = useState(false)
 
   useEffect(() => {
@@ -40,7 +42,7 @@ export function BotonDescargarApp({ variant = 'default' }: BotonDescargarAppProp
       className={className}
     >
       <Smartphone size={18} />
-      <span>Descarga Nuestra App</span>
+      <span>{t('downloadApp')}</span>
     </LocalLink>
   )
 }
