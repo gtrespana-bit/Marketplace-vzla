@@ -12,7 +12,8 @@ export default async function IntlBridgeInit({
 }: {
   children: React.ReactNode
 }) {
-  // The next-intl middleware sets NEXT_LOCALE cookie
+  // The next-intl middleware sets NEXT_LOCALE cookie with the correct locale
+  // from the URL path. We trust this cookie as it's set on every request.
   const cookieStore = cookies()
   const localeCookie = cookieStore.get('NEXT_LOCALE')
   const locale = localeCookie?.value && routing.locales.includes(localeCookie.value as any)

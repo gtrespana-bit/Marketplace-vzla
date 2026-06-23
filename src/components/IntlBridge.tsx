@@ -58,24 +58,18 @@ export function IntlBridgeSetter({
   const pathname = usePathname()
   const clientLocale = getLocaleFromPathname(pathname)
 
+  // Always use serverLocale for initial render to prevent hydration mismatch
+  // Client-side locale changes are handled via useEffect after hydration
   const [locale, setLocale] = useState(serverLocale)
   const [messages, setMessages] = useState(serverMessages)
 
-  // Update context when locale changes (client-side navigation)
+  // Update context when client-side navigation changes locale
   useEffect(() => {
     if (clientLocale !== locale) {
       setLocale(clientLocale)
       loadMessages(clientLocale).then(setMessages)
     }
   }, [clientLocale, locale])
-
-  // Also sync if server props change (e.g., page reload with different locale)
-  useEffect(() => {
-    if (serverLocale !== locale && serverLocale === clientLocale) {
-      setLocale(serverLocale)
-      setMessages(serverMessages)
-    }
-  }, [serverLocale, serverMessages, locale, clientLocale])
 
   const t = createTranslator(messages)
 
