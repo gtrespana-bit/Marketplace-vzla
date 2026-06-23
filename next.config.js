@@ -25,8 +25,12 @@ const nextConfig = withNextIntl({
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'fiebzzptyphostfhzhqx.supabase.co',
+        hostname: 'jmbkqelkusxjebsdnjoc.supabase.co',
         pathname: '/storage/v1/object/public/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'pub-d212837165c545e3956251da001fa37a.r2.dev',
       },
     ],
     formats: ['image/avif', 'image/webp'],

@@ -3,10 +3,11 @@
 import { useEffect, useState } from 'react'
 import { useTranslations } from 'next-intl';
 import { CheckCircle, Mail, ExternalLink, ArrowRight } from 'lucide-react'
-import Link from 'next/link'
+import LocalLink from '@/components/LocalLink'
 import { useRouter } from 'next/navigation'
 
 function ConfirmacionContent() {
+  const t = useTranslations('auth')
   const router = useRouter()
   const [email, setEmail] = useState('')
 
@@ -38,7 +39,7 @@ function ConfirmacionContent() {
 
           {/* Mensaje principal */}
           <h2 className="text-2xl font-bold text-gray-800 mb-4">
-            ¡Cuenta creada correctamente!
+            {t('confirmacion.title')}
           </h2>
 
           <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-lg mb-6">
@@ -46,10 +47,9 @@ function ConfirmacionContent() {
               <Mail className="text-blue-600 mt-0.5" size={20} />
               <div className="text-left">
                 <p className="font-semibold text-blue-900 mb-1">
-                  Revisa tu bandeja de entrada
+                  {t('confirmacion.sent_to')}
                 </p>
                 <p className="text-sm text-blue-700">
-                  Hemos enviado un email de confirmación a{' '}
                   <strong>{email}</strong>
                 </p>
               </div>
@@ -58,34 +58,25 @@ function ConfirmacionContent() {
 
           <div className="space-y-3 text-sm text-gray-600 mb-6">
             <p>
-              📧 El email debe tener el asunto: <strong>"Confirma tu cuenta en VendeT-Venezuela"</strong>
-            </p>
-            <p>
-              🔗 Haz clic en el enlace que viene dentro del email para activar tu cuenta
-            </p>
-            <p>
-              ⚠️ El enlace expira en 24 horas. Si ya no está disponible, solicita uno nuevo.
-            </p>
-            <p className="text-yellow-700 font-medium">
-              📂 Revisa también tu carpeta de SPAM o Correos no deseados
+              {t('confirmacion.instructions')}
             </p>
           </div>
 
           {/* Bloque de confirmación manual */}
           <div className="bg-yellow-50 border-l-4 border-yellow-500 p-4 rounded-lg mb-6">
             <p className="text-sm text-yellow-900 font-semibold mb-2">
-              🔒 Email de confirmación no enviado aún?
+              {t('confirmacion.not_received')}
             </p>
             <p className="text-sm text-yellow-800 mb-3">
-              Regresa al login y haz clic en<strong> "¿No recibiste el email de confirmación? Reenviarlo"</strong>
+              {t('confirmacion.resend_hint')}
             </p>
-            <Link
+            <LocalLink
               href="/login"
               className="w-full bg-yellow-500 text-brand-dark font-bold py-3 rounded-lg hover:bg-accent/90 transition flex items-center justify-center gap-2"
             >
               <ExternalLink size={16} />
-              Ir al login
-            </Link>
+              {t('confirmacion.go_to_login')}
+            </LocalLink>
           </div>
 
           {/* Botón principal */}
@@ -94,12 +85,12 @@ function ConfirmacionContent() {
               onClick={handleConfirmClick}
               className="w-full bg-brand-primary text-white py-4 rounded-lg font-bold hover:bg-brand-dark transition flex items-center justify-center gap-2 text-lg"
             >
-              Ya confirmé mi email
+              {t('confirmacion.confirmed')}
               <ArrowRight size={20} />
             </button>
           </div>
 
-          <p className="text-xs text-gray-400 mt-4 text-center">t('confirmacion.footer')</p>
+          <p className="text-xs text-gray-400 mt-4 text-center">{t('confirmacion.footer')}</p>
         </div>
       </div>
     </div>

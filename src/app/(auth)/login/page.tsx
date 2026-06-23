@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import Link from 'next/link'
+import LocalLink from '@/components/LocalLink'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { AlertCircle } from 'lucide-react'
@@ -82,9 +82,9 @@ export default function LoginPage() {
     <div className="min-h-[80vh] flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <Link href="/" className="text-brand-primary font-black text-3xl">
+          <LocalLink href="/" className="text-brand-primary font-black text-3xl">
             Vende<span className="text-brand-accent">T</span><span className="text-sm ml-1 text-gray-500">-Venezuela</span>
-          </Link>
+          </LocalLink>
           <h1 className="text-2xl font-bold text-gray-800 mt-4">Bienvenido de vuelta</h1>
           <p className="text-gray-500 mt-1">Inicia sesión para gestionar tus publicaciones</p>
         </div>
@@ -190,9 +190,9 @@ export default function LoginPage() {
 
           <p className="text-center text-sm text-gray-500 mt-6">
             ¿No tienes cuenta?{' '}
-            <Link href="/register" className="text-brand-primary font-semibold hover:underline">
+            <LocalLink href="/register" className="text-brand-primary font-semibold hover:underline">
               Regístrate gratis
-            </Link>
+            </LocalLink>
           </p>
 
           {/* Botón para reenviar email de confirmación */}

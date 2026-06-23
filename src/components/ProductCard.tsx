@@ -1,7 +1,8 @@
 'use client'
 
-import Link from 'next/link'
+import LocalLink from '@/components/LocalLink'
 import Image from 'next/image'
+import { useBridge } from './IntlBridge'
 
 export interface ProductCardData {
   id: string
@@ -22,13 +23,14 @@ const PLACEHOLDER_IMAGES = [
 ]
 
 export default function ProductCard({ p, isPromoted, isFeatured }: { p: ProductCardData; isPromoted?: boolean; isFeatured?: boolean }) {
+  const { t } = useBridge()
   const isBoosted = p.boosteado_en != null
   const promoted = isPromoted ?? (isBoosted || isFeatured)
 
   const imgUrl = p.imagen_url || PLACEHOLDER_IMAGES[p.titulo.charCodeAt(0) % PLACEHOLDER_IMAGES.length]
 
   return (
-    <Link
+    <LocalLink
       href={`/producto/${p.id}`}
       className={`bg-white rounded-xl overflow-hidden transition-all duration-200 group block border
         ${isPromoted
@@ -40,12 +42,12 @@ export default function ProductCard({ p, isPromoted, isFeatured }: { p: ProductC
       <div className="aspect-square bg-gray-100 relative overflow-hidden">
         {isFeatured && (
           <div className="absolute top-2 left-2 z-10 bg-brand-accent text-brand-primary text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm">
-            ⭐ Destacado
+            ⭐ {t('productCard.featured')}
           </div>
         )}
         {isBoosted && !isFeatured && (
           <div className="absolute top-2 left-2 z-10 bg-green-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm">
-            ⚡ Boost
+            ⚡ {t('productCard.boost')}
           </div>
         )}
         <Image
@@ -58,7 +60,6 @@ export default function ProductCard({ p, isPromoted, isFeatured }: { p: ProductC
           loading="lazy"
           decoding="async"
           onError={(e) => {
-            // ✅ CORREGIDO: Previene loop infinito
             const target = e.target as HTMLImageElement
             if (!target.src.includes('/placeholder-product.webp')) {
               target.src = '/placeholder-product.webp'
@@ -78,14 +79,14 @@ export default function ProductCard({ p, isPromoted, isFeatured }: { p: ProductC
             <svg width={10} height={10} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
               <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
             </svg>
-            Verificado
+            {t('productCard.verified')}
           </div>
         )}
         <p className="text-xs text-gray-500 mt-1 truncate">
           {p.estado}{p.ubicacion_ciudad ? ` · ${p.ubicacion_ciudad}` : ''}
         </p>
       </div>
-    </Link>
+    </LocalLink>
   )
 }
 

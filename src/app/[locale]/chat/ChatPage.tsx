@@ -6,7 +6,7 @@ import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/components/AuthProvider'
 import Avatar from '@/components/Avatar'
 import { Send, ArrowLeft, Search, User, Trash2, ExternalLink, Star } from 'lucide-react'
-import Link from 'next/link'
+import LocalLink from '@/components/LocalLink'
 import { emailMensajeRecibido } from '@/lib/server-email'
 
 type Conversacion = {
@@ -584,13 +584,13 @@ export default function ChatPageClient() {
                       <div>
                         <p className="font-semibold text-gray-800 text-sm">{convActual.otro_nombre}</p>
                         {convActual.producto_titulo && convActual.producto_id && (
-                          <Link
+                          <LocalLink
                             href={`/producto/${convActual.producto_id}`}
                             className="text-xs text-blue-600 truncate hover:underline flex items-center gap-0.5"
                           >
                             {convActual.producto_titulo}
                             <ExternalLink size={9} />
-                          </Link>
+                          </LocalLink>
                         )}
                       </div>
                     </>

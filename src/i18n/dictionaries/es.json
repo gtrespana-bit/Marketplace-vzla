@@ -36,25 +36,98 @@
   },
   "home": {
     "hero": {
-      "title": "🚀 Descubre lo mejor de VendeT",
-      "subtitle": "La plataforma de compra y venta más confiable de Venezuela.",
-      "explore": "Explorar productos"
+      "title1": "Vende rápido",
+      "title2": "en Venezuela",
+      "subtitle1": "Publica gratis y empieza a recibir mensajes.",
+      "subtitle2": "¿Quieres vender aún más rápido? Destaca tu anuncio y",
+      "subtitle3": "llega a miles más",
+      "publishFree": "Publicar Gratis",
+      "seeHowToFeature": "Ver Cómo Destacar",
+      "featuredBadge": "Los anuncios destacados se venden",
+      "featuredBadgeBold": "3x más rápido",
+      "stats": {
+        "activeProducts": "Productos activos",
+        "users": "Usuarios",
+        "featureFrom": "Destacarlo desde"
+      }
+    },
+    "freeBanner": {
+      "title": "Publicar es 100% GRATIS",
+      "subtitle": "En MercadoLibre pagas por publicar · Aquí nunca pagas comisión",
+      "compare": "Comparar con otros →"
     },
     "featured": {
-      "title": "Explora productos destacados",
+      "wantToFeature": "¿Quieres aparecer aquí?",
+      "featureDesc": "Destaca tu publicación desde $1 y multiplica tus ventas",
+      "seePackages": "Ver paquetes",
+      "title": "Ventas Destacadas",
+      "badge": "Los que pagan por visibilidad",
+      "emptyTitle": "Sé el primero en destacar tu anuncio",
+      "emptyDesc": "Los productos destacados aparecen aquí, en la página principal, y llegan a miles más compradores.",
+      "emptyPrice": "Desde solo $1 USD por 12 horas",
+      "publishFree": "Publicar Gratis",
+      "seeCreditPackages": "Ver Paquetes de Créditos"
+    },
+    "boost": {
+      "title": "Potencia tu publicación",
+      "subtitle": "Elige cómo quieres que más compradores vean tu anuncio",
+      "boost": {
+        "name": "Boost",
+        "price": "1 crédito",
+        "desc": "Sube tu publicación al #1 de la lista al instante",
+        "detail": "El más barato · Para aparecer arriba"
+      },
+      "featured24": {
+        "name": "Destacado 24h",
+        "price": "6 créditos",
+        "desc": "Tu anuncio en la página principal todo un día",
+        "detail": "Visibilidad máxima",
+        "popular": "MÁS POPULAR"
+      },
+      "featured48": {
+        "name": "Destacado 48h",
+        "price": "10 créditos",
+        "desc": "48 horas en la página principal — máximo impacto",
+        "detail": "Dos días completos de visibilidad"
+      },
+      "buyCredits": "Comprar Créditos"
+    },
+    "categories": {
+      "title": "Explora por categoría",
+      "subtitle": "Encuentra lo que necesitas en segundos",
+      "vehicles": "Vehículos",
+      "vehiclesDesc": "Carros, motos",
+      "tech": "Tecnología",
+      "techDesc": "Celulares, laptops",
+      "fashion": "Moda",
+      "fashionDesc": "Ropa, calzado",
+      "homeCat": "Hogar",
+      "homeCatDesc": "Muebles, electro",
+      "tools": "Herramientas",
+      "toolsDesc": "Manuales, eléctricas",
+      "others": "Otros",
+      "othersDesc": "De todo un poco"
+    },
+    "trending": {
+      "title": "Lo más visto",
+      "period": "Últimos 7 días",
+      "views": "vistas"
+    },
+    "recent": {
+      "title": "Agregados recientemente",
       "viewAll": "Ver todos",
-      "empty": "No hay productos destacados en este momento.",
-      "badge": "Destacado"
+      "empty": "Aún no hay publicaciones",
+      "emptyCta": "Sé el primero en publicar algo",
+      "publishFree": "Publicar gratis"
     },
     "cta": {
-      "title": "Publica tu primer producto",
-      "subtitle": "Vende rápido y seguro. Empieza a vender hoy mismo.",
-      "button": "Empezar a vender"
+      "title": "¿Tienes algo para vender?",
+      "subtitle": "Publica gratis en segundos. Miles de compradores te esperan.",
+      "publishNow": "Publica ahora — Es gratis",
+      "featureAd": "Destacar mi anuncio"
     },
-    "dashboard": {
-      "title": "¿Ya tienes una tienda?",
-      "subtitle": "Gestiona tus productos, ventas y estadísticas desde un solo lugar.",
-      "button": "Ir a mi panel de vendedor"
+    "productCard": {
+      "featured": "Destacado"
     }
   },
   "notFound": {
@@ -85,7 +158,12 @@
       "invalid_credentials": "Credenciales incorrectas",
       "verify_email": "Verifica tu correo",
       "verify_email_desc": "Por favor, confirma tu correo electrónico antes de iniciar sesión.",
-      "error": "Error al iniciar sesión"
+      "error": "Error al iniciar sesión",
+      "subtitle": "Inicia sesión para gestionar tus publicaciones",
+      "sending": "Enviando...",
+      "cancel": "Cancelar",
+      "link_sent": "✅ Enlace enviado",
+      "submitting": "Iniciando sesión..."
     },
     "register": {
       "title": "Crear cuenta",
@@ -100,14 +178,139 @@
       "has_account": "¿Ya tienes una cuenta?",
       "login": "Inicia sesión",
       "password_mismatch": "Las contraseñas no coinciden",
-      "error": "Error al registrar"
+      "error": "Error al registrar",
+      "subtitle": "Únete gratis. Empieza a vender hoy.",
+      "creating": "Creando cuenta..."
     },
     "confirmacion": {
       "title": "¡Casi listo!",
       "sent_to": "Hemos enviado un correo de confirmación a",
       "instructions": "Por favor, revisa tu bandeja de entrada (y la carpeta de spam) y haz clic en el enlace de confirmación.",
       "confirmed": "Ya confirmé mi cuenta",
-      "footer": "Cuando recibas el email, confirma tu cuenta y luego regresa a hacer login."
+      "footer": "Cuando recibas el email, confirma tu cuenta y luego regresa a hacer login.",
+      "not_received": "🔒 ¿Email de confirmación no enviado aún?",
+      "resend_hint": "Regresa al login y haz clic en \"¿No recibiste el email de confirmación? Reenviarlo\"",
+      "go_to_login": "Ir al login"
     }
+  },
+  "header": {
+    "searchPlaceholder": "¿Qué estás buscando?",
+    "searchAria": "Buscar productos",
+    "backAria": "Volver atrás",
+    "credits": "Créditos",
+    "creditsTitle": "Comprar créditos",
+    "freeBadge": "1 gratis",
+    "signIn": "Iniciar sesión",
+    "signUp": "Regístrate",
+    "signUpFree": "Regístrate gratis",
+    "publish": "Publicar",
+    "publishSomething": "📢 Publicar algo",
+    "messages": "Mensajes",
+    "messagesWithCount": " ({count} sin leer)",
+    "myPanel": "Mi Panel",
+    "creditsAvailable": " — {count} disponibles",
+    "blog": "📝 Blog",
+    "viewCatalog": "📦 Ver catálogo",
+    "openMenu": "Abrir menú",
+    "closeMenu": "Cerrar menú",
+    "allCategories": "Ver Todo",
+    "categories": {
+      "vehiculos": "Vehículos",
+      "tecnologia": "Tecnología",
+      "moda": "Moda",
+      "hogar": "Hogar",
+      "herramientas": "Herramientas",
+      "materiales": "Materiales",
+      "repuestos": "Repuestos",
+      "otros": "Otros"
+    }
+  },
+  "footer": {
+    "description": "El marketplace hecho para Venezuela. Compra y vende lo que quieras, contacta directo. Sin complicaciones.",
+    "categories": "Categorías",
+    "information": "Información",
+    "legal": "Legal",
+    "howItWorks": "Cómo funciona",
+    "aboutUs": "Sobre nosotros",
+    "terms": "Términos",
+    "privacy": "Privacidad",
+    "madeWithLove": "Hecho con ❤️ en Venezuela",
+    "allRightsReserved": "Todos los derechos reservados."
+  },
+  "catalog": {
+    "title": "Catálogo",
+    "allProducts": "Todos los productos",
+    "results": "{count} resultados",
+    "filters": "Filtros",
+    "category": "Categoría",
+    "all": "Todas",
+    "priceUsd": "Precio (USD)",
+    "min": "Min",
+    "max": "Max",
+    "location": "Ubicación",
+    "state": "Estado",
+    "allVenezuela": "Toda Venezuela",
+    "municipality": "Municipio",
+    "allMunicipalities": "Todos los municipios",
+    "sort": "Ordenar por",
+    "sortNewest": "Más recientes",
+    "sortPriceAsc": "Menor precio",
+    "sortPriceDesc": "Mayor precio",
+    "empty": "No hay productos en esta categoría",
+    "emptyCta": "Sé el primero en publicar aquí",
+    "publishFree": "Publicar gratis",
+    "breadcrumb": "Inicio",
+    "clearFilters": "Limpiar filtros",
+    "search": "Buscar",
+    "states": {
+      "Amazonas": "Amazonas",
+      "Anzoategui": "Anzoátegui",
+      "Apure": "Apure",
+      "Aragua": "Aragua",
+      "Barinas": "Barinas",
+      "Bolivar": "Bolívar",
+      "Carabobo": "Carabobo",
+      "Cojedes": "Cojedes",
+      "DeltaAmacuro": "Delta Amacuro",
+      "Falcon": "Falcón",
+      "Guarico": "Guárico",
+      "Lara": "Lara",
+      "Merida": "Mérida",
+      "Miranda": "Miranda",
+      "Monagas": "Monagas",
+      "NuevaEsparta": "Nueva Esparta",
+      "Portuguesa": "Portuguesa",
+      "Sucre": "Sucre",
+      "Tachira": "Táchira",
+      "Trujillo": "Trujillo",
+      "Yaracuy": "Yaracuy",
+      "Vargas": "Vargas",
+      "Zulia": "Zulia",
+      "DistritoCapital": "Distrito Capital"
+    }
+  },
+  "productCard": {
+    "featured": "Destacado",
+    "boost": "Boost",
+    "verified": "Verificado"
+  },
+  "product": {
+    "featured": "Destacado",
+    "verified": "Verificado",
+    "new": "Nuevo",
+    "used": "Usado",
+    "likeNew": "Como nuevo",
+    "good": "Bueno",
+    "views": "vistas",
+    "contact": "Contactar",
+    "share": "Compartir",
+    "report": "Reportar"
+  },
+  "bottomNav": {
+    "home": "Inicio",
+    "search": "Buscar",
+    "publish": "Publicar",
+    "chat": "Chat",
+    "profile": "Perfil"
   }
 }

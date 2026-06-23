@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { CheckCircle, XCircle, Loader2 } from 'lucide-react'
-import Link from 'next/link'
+import LocalLink from '@/components/LocalLink'
 import { supabase } from '@/lib/supabase'
 
 export default function ConfirmEmailPage() {
@@ -63,9 +63,9 @@ export default function ConfirmEmailPage() {
     <div className="min-h-[80vh] flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <Link href="/" className="text-brand-primary font-black text-3xl">
+          <LocalLink href="/" className="text-brand-primary font-black text-3xl">
             Vende<span className="text-brand-accent">T</span><span className="text-sm ml-1 text-gray-500">-Venezuela</span>
-          </Link>
+          </LocalLink>
         </div>
 
         <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-100">
@@ -94,12 +94,12 @@ export default function ConfirmEmailPage() {
               <p className="text-green-700 text-center mb-6">
                 Tu cuenta está lista. Redirigiendo al login...
               </p>
-              <Link
+              <LocalLink
                 href="/login"
                 className="block w-full bg-brand-primary text-white py-3 rounded-lg font-bold hover:bg-brand-dark transition text-center"
               >
                 Ir al login ahora
-              </Link>
+              </LocalLink>
             </>
           )}
 
@@ -116,12 +116,12 @@ export default function ConfirmEmailPage() {
               <p className="text-red-600 text-center mb-6 text-sm">
                 {errorMsg || 'El enlace puede haber expirado. Solicita uno nuevo desde el login.'}
               </p>
-              <Link
+              <LocalLink
                 href="/login"
                 className="block w-full bg-brand-primary text-white py-3 rounded-lg font-bold hover:bg-brand-dark transition text-center"
               >
                 Ir al login para reenviar
-              </Link>
+              </LocalLink>
             </>
           )}
         </div>

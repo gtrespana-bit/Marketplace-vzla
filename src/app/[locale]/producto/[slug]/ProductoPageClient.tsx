@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { getTasaBCVClient, actualizarTasaClient } from '@/lib/tasaBCV'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
-import Link from 'next/link'
+import LocalLink from '@/components/LocalLink'
 import Image from 'next/image'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/components/AuthProvider'
@@ -170,7 +170,7 @@ export default function ProductoPageClient({ initialProduct }: ProductoPageClien
   if (!producto) return (
     <div className="max-w-7xl mx-auto px-4 py-20 text-center">
       <h1 className="text-3xl font-bold text-gray-800 mb-4">Producto no encontrado</h1>
-      <Link href="/" className="inline-block bg-brand-primary text-white px-8 py-3 rounded-lg font-bold">Volver al inicio</Link>
+      <LocalLink href="/" className="inline-block bg-brand-primary text-white px-8 py-3 rounded-lg font-bold">Volver al inicio</LocalLink>
     </div>
   )
 
@@ -208,9 +208,9 @@ export default function ProductoPageClient({ initialProduct }: ProductoPageClien
     <div className="max-w-7xl mx-auto px-4 py-8">
       <SuccessBanner />
       <nav className="flex items-center gap-1.5 text-sm text-gray-500 mb-6 overflow-x-auto hide-scrollbar">
-        <Link href="/" className="hover:text-brand-primary flex-shrink-0">Inicio</Link>
+        <LocalLink href="/" className="hover:text-brand-primary flex-shrink-0">Inicio</LocalLink>
         <ChevronRight size={14} className="flex-shrink-0" />
-        <Link href="/catalogo" className="hover:text-brand-primary flex-shrink-0">Catalogo</Link>
+        <LocalLink href="/catalogo" className="hover:text-brand-primary flex-shrink-0">Catalogo</LocalLink>
         {producto.subcategoria && (<><ChevronRight size={14} className="flex-shrink-0" /><span className="capitalize flex-shrink-0">{producto.subcategoria}</span></>)}
         <ChevronRight size={14} className="flex-shrink-0" />
         <span className="text-gray-800 font-medium truncate flex-shrink-0">{producto.titulo}</span>
@@ -281,7 +281,7 @@ export default function ProductoPageClient({ initialProduct }: ProductoPageClien
 
             {vendedor && (
               <div className="bg-gray-50 rounded-xl p-4 mb-5">
-                <Link href={`/vendedor/${vendedor.id}`} className="flex items-center gap-3 hover:bg-gray-100 rounded-xl p-1 -m-1 transition">
+                <LocalLink href={`/vendedor/${vendedor.id}`} className="flex items-center gap-3 hover:bg-gray-100 rounded-xl p-1 -m-1 transition">
                   <Avatar nombre={vendedor.nombre || 'Vendedor'} fotoUrl={vendedor.foto_perfil_url} />
                   <div>
                     <div className="flex items-center gap-2">
@@ -290,7 +290,7 @@ export default function ProductoPageClient({ initialProduct }: ProductoPageClien
                     </div>
                     {vendedor.ciudad && <p className="text-xs text-gray-500">{vendedor.ciudad}{vendedor.estado ? `, ${vendedor.estado}` : ''}</p>}
                   </div>
-                </Link>
+                </LocalLink>
                 {vendedorStats && (
                   <div className="mt-2 ml-0">
                     <SellerReputation nivel={vendedor.nivel_confianza || 0} numResenas={vendedorStats.resenasCount} promedioResenas={vendedorStats.resenasAvg} numPubsActivas={vendedorStats.activas} numPubsVendidas={vendedorStats.vendidas} verificado={vendedor.verificado} badges={vendedor.badges_automaticos || []} antiguedadDias={vendedorStats.antiguedad || 0} ultimaActividad={vendedor.ultima_actividad || null} size="sm" />

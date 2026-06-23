@@ -1,6 +1,6 @@
 'use client'
 
-import Link from 'next/link'
+import LocalLink from '@/components/LocalLink'
 import { WifiOff, RefreshCw, Home } from 'lucide-react'
 
 export const dynamic = 'force-dynamic'
@@ -27,13 +27,13 @@ export default function OfflinePage() {
             <RefreshCw size={18} />
             Reintentar
           </button>
-          <Link
+          <LocalLink
             href="/"
             className="flex items-center justify-center gap-2 bg-white text-gray-700 border border-gray-200 px-6 py-3.5 rounded-xl font-bold hover:bg-gray-50 transition shadow-sm"
           >
             <Home size={18} />
             Ir al inicio
-          </Link>
+          </LocalLink>
         </div>
 
         <p className="mt-8 text-xs text-gray-400">VendeT-Venezuela</p>

@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useMemo } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import Link from 'next/link'
+import LocalLink from '@/components/LocalLink'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/components/AuthProvider'
 import {
@@ -507,16 +507,16 @@ function PublicacionesTab({ notify }: Notifier) {
           <div key={p.id} className={`bg-white rounded-xl border p-4 transition ${!p.activo ? 'opacity-60' : ''}`}>
             <div className="flex gap-4">
               {/* Miniatura */}
-              <Link href={`/producto/${p.id}`} className="w-20 h-20 rounded-lg bg-gray-100 flex-shrink-0 overflow-hidden">
+              <LocalLink href={`/producto/${p.id}`} className="w-20 h-20 rounded-lg bg-gray-100 flex-shrink-0 overflow-hidden">
                 {p.imagen_url ? (
                   <img src={p.imagen_url} alt="" className="w-full h-full object-cover" loading="lazy" decoding="async" />
                 ) : <div className="w-full h-full flex items-center justify-center text-gray-300 text-2xl">📦</div>}
-              </Link>
+              </LocalLink>
 
               {/* Info */}
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <Link href={`/producto/${p.id}`} className="font-semibold text-gray-800 hover:text-brand-primary truncate max-w-[300px]">{p.titulo}</Link>
+                  <LocalLink href={`/producto/${p.id}`} className="font-semibold text-gray-800 hover:text-brand-primary truncate max-w-[300px]">{p.titulo}</LocalLink>
                   {p.destacado && <span className="text-[10px] bg-brand-accent/20 text-brand-primary px-2 py-0.5 rounded-full">⭐</span>}
                   {p.boosteado_en && <span className="text-[10px] bg-green-100 text-green-700 px-2 py-0.5 rounded-full">⚡</span>}
                   {!p.activo && <span className="text-[10px] bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">Pausado</span>}
@@ -1130,7 +1130,7 @@ export default function AdminPage() {
             <p className="text-gray-500">Control total de VendeT-Venezuela</p>
           </div>
         </div>
-        <Link href="/" className="text-sm text-brand-primary hover:underline">← Volver al sitio</Link>
+        <LocalLink href="/" className="text-sm text-brand-primary hover:underline">← Volver al sitio</LocalLink>
       </div>
 
       {/* Tabs principales */}

@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/components/AuthProvider'
 import { Check, X, Loader2, RefreshCw, Shield } from 'lucide-react'
-import Link from 'next/link'
+import LocalLink from '@/components/LocalLink'
 
 const ADMIN_EMAILS = ['gtrespana@gmail.com']
 
@@ -81,7 +81,7 @@ export default function AprobacionPage() {
         <div className="text-center">
           <h2 className="text-2xl font-bold text-gray-800 mb-4">🔒 Acceso denegado</h2>
           <p className="text-gray-500">No tienes permisos.</p>
-          <Link href="/" className="mt-4 text-brand-primary hover:underline">Volver</Link>
+          <LocalLink href="/" className="mt-4 text-brand-primary hover:underline">Volver</LocalLink>
         </div>
       </div>
     )
@@ -104,9 +104,9 @@ export default function AprobacionPage() {
           <button onClick={cargar} className="p-2 rounded-lg hover:bg-gray-100 text-gray-500" title="Refrescar">
             <RefreshCw size={16} />
           </button>
-          <Link href="/admin" className="text-sm text-brand-primary hover:underline px-3 py-2 bg-white rounded-lg border">
+          <LocalLink href="/admin" className="text-sm text-brand-primary hover:underline px-3 py-2 bg-white rounded-lg border">
             ← Admin completo
-          </Link>
+          </LocalLink>
         </div>
       </div>
 

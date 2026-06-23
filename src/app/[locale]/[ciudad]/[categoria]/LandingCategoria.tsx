@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import Link from 'next/link'
+import LocalLink from '@/components/LocalLink'
 import Image from 'next/image'
 import { supabase } from '@/lib/supabase'
 import { MapPin, ChevronRight } from 'lucide-react'
@@ -48,9 +48,9 @@ export default function LandingCategoria({ ciudadSlug, ciudadNombre, categoriaSl
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
       <nav className="flex items-center gap-1.5 text-sm text-gray-500 mb-6 flex-wrap">
-        <Link href="/" className="hover:text-brand-primary">Inicio</Link>
+        <LocalLink href="/" className="hover:text-brand-primary">Inicio</LocalLink>
         <ChevronRight size={14} />
-        <Link href={`/${ciudadSlug}`} className="hover:text-brand-primary">{ciudadNombre}</Link>
+        <LocalLink href={`/${ciudadSlug}`} className="hover:text-brand-primary">{ciudadNombre}</LocalLink>
         <ChevronRight size={14} />
         <span className="text-gray-800 font-medium">{categoriaNombre}</span>
       </nav>
@@ -65,16 +65,16 @@ export default function LandingCategoria({ ciudadSlug, ciudadNombre, categoriaSl
       {/* Categorias en esta ciudad */}
       <div className="flex flex-wrap gap-2 mb-8">
         {categoriasRelacionadas.map((cat) => (
-          <Link key={cat.slug} href={`/${ciudadSlug}/${cat.slug}`} className="text-sm bg-gray-100 text-gray-600 px-3 py-1 rounded-full hover:bg-brand-primary hover:text-white transition">
+          <LocalLink key={cat.slug} href={`/${ciudadSlug}/${cat.slug}`} className="text-sm bg-gray-100 text-gray-600 px-3 py-1 rounded-full hover:bg-brand-primary hover:text-white transition">
             {cat.nombre} en {ciudadNombre}
-          </Link>
+          </LocalLink>
         ))}
       </div>
 
       {productos.length > 0 ? (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {productos.map((p: any) => (
-            <Link key={p.id} href={`/producto/${p.id}`} className="bg-white rounded-xl overflow-hidden shadow-sm border hover:shadow-lg transition group block">
+            <LocalLink key={p.id} href={`/producto/${p.id}`} className="bg-white rounded-xl overflow-hidden shadow-sm border hover:shadow-lg transition group block">
               <div className="aspect-square bg-gray-100 relative overflow-hidden">
                 {p.destacado && new Date(p.destacado_hasta) > new Date() && (
                   <div className="absolute top-2 left-2 z-10 bg-brand-accent text-brand-primary text-[10px] font-bold px-2 py-0.5 rounded-full">⭐ Destacado</div>
@@ -90,14 +90,14 @@ export default function LandingCategoria({ ciudadSlug, ciudadNombre, categoriaSl
                 <p className="text-lg font-black text-brand-primary mt-1">${Number(p.precio_usd || 0).toLocaleString()}</p>
                 <p className="text-xs text-gray-500">{p.estado} · {p.subcategoria}</p>
               </div>
-            </Link>
+            </LocalLink>
           ))}
         </div>
       ) : (
         <div className="text-center py-16 text-gray-400">
           <p className="text-xl mb-2">No hay {categoriaNombre.toLowerCase()} en {ciudadNombre} todavía</p>
           <p className="mb-4">¡Sé el primero en publicar!</p>
-          <Link href="/publicar" className="inline-block bg-brand-primary text-white px-6 py-3 rounded-lg font-bold">Publicar gratis</Link>
+          <LocalLink href="/publicar" className="inline-block bg-brand-primary text-white px-6 py-3 rounded-lg font-bold">Publicar gratis</LocalLink>
         </div>
       )}
     </div>

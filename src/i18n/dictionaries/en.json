@@ -36,25 +36,98 @@
   },
   "home": {
     "hero": {
-      "title": "🚀 Discover the best of VendeT",
-      "subtitle": "The most reliable buying and selling platform in Venezuela.",
-      "explore": "Explore products"
+      "title1": "Sell fast",
+      "title2": "in Venezuela",
+      "subtitle1": "Post for free and start receiving messages.",
+      "subtitle2": "Want to sell even faster? Feature your ad and",
+      "subtitle3": "reach thousands more",
+      "publishFree": "Post for Free",
+      "seeHowToFeature": "See How to Feature",
+      "featuredBadge": "Featured ads sell",
+      "featuredBadgeBold": "3x faster",
+      "stats": {
+        "activeProducts": "Active products",
+        "users": "Users",
+        "featureFrom": "Feature from"
+      }
+    },
+    "freeBanner": {
+      "title": "Posting is 100% FREE",
+      "subtitle": "On MercadoLibre you pay to post · Here you never pay commission",
+      "compare": "Compare with others →"
     },
     "featured": {
-      "title": "Explore featured products",
+      "wantToFeature": "Want to appear here?",
+      "featureDesc": "Feature your listing from $1 and multiply your sales",
+      "seePackages": "See packages",
+      "title": "Featured Listings",
+      "badge": "Those who pay for visibility",
+      "emptyTitle": "Be the first to feature your ad",
+      "emptyDesc": "Featured products appear here, on the main page, and reach thousands more buyers.",
+      "emptyPrice": "From just $1 USD for 12 hours",
+      "publishFree": "Post for Free",
+      "seeCreditPackages": "See Credit Packages"
+    },
+    "boost": {
+      "title": "Boost your listing",
+      "subtitle": "Choose how you want more buyers to see your ad",
+      "boost": {
+        "name": "Boost",
+        "price": "1 credit",
+        "desc": "Push your listing to #1 in the list instantly",
+        "detail": "Cheapest option · To appear at the top right now"
+      },
+      "featured24": {
+        "name": "Featured 24h",
+        "price": "6 credits",
+        "desc": "Your ad on the main page for a full day",
+        "detail": "Maximum visibility",
+        "popular": "MOST POPULAR"
+      },
+      "featured48": {
+        "name": "Featured 48h",
+        "price": "10 credits",
+        "desc": "48 hours on the main page — maximum impact",
+        "detail": "Two full days of visibility"
+      },
+      "buyCredits": "Buy Credits"
+    },
+    "categories": {
+      "title": "Explore by category",
+      "subtitle": "Find what you need in seconds",
+      "vehicles": "Vehicles",
+      "vehiclesDesc": "Cars, motorcycles",
+      "tech": "Technology",
+      "techDesc": "Phones, laptops",
+      "fashion": "Fashion",
+      "fashionDesc": "Clothing, footwear",
+      "homeCat": "Home",
+      "homeCatDesc": "Furniture, appliances",
+      "tools": "Tools",
+      "toolsDesc": "Manual, electric",
+      "others": "Others",
+      "othersDesc": "A bit of everything"
+    },
+    "trending": {
+      "title": "Most viewed",
+      "period": "Last 7 days",
+      "views": "views"
+    },
+    "recent": {
+      "title": "Recently added",
       "viewAll": "View all",
-      "empty": "No featured products at the moment.",
-      "badge": "Featured"
+      "empty": "No listings yet",
+      "emptyCta": "Be the first to post something",
+      "publishFree": "Post for free"
     },
     "cta": {
-      "title": "Publish your first product",
-      "subtitle": "Sell fast and secure. Start selling today.",
-      "button": "Start selling"
+      "title": "Got something to sell?",
+      "subtitle": "Post for free in seconds. Thousands of buyers are waiting.",
+      "publishNow": "Post now — It's free",
+      "featureAd": "Feature my ad"
     },
-    "dashboard": {
-      "title": "Already have a store?",
-      "subtitle": "Manage your products, sales, and statistics from one place.",
-      "button": "Go to my seller dashboard"
+    "productCard": {
+      "featured": "Featured"
     }
   },
   "notFound": {
@@ -85,7 +158,12 @@
       "invalid_credentials": "Invalid credentials",
       "verify_email": "Verify your email",
       "verify_email_desc": "Please confirm your email before signing in.",
-      "error": "Login error"
+      "error": "Login error",
+      "subtitle": "Sign in to manage your listings",
+      "sending": "Sending...",
+      "cancel": "Cancel",
+      "link_sent": "✅ Link sent",
+      "submitting": "Signing in..."
     },
     "register": {
       "title": "Create Account",
@@ -100,14 +178,139 @@
       "has_account": "Already have an account?",
       "login": "Sign In",
       "password_mismatch": "Passwords do not match",
-      "error": "Registration error"
+      "error": "Registration error",
+      "subtitle": "Join for free. Start selling today.",
+      "creating": "Creating account..."
     },
     "confirmacion": {
       "title": "Almost there!",
       "sent_to": "We have sent a confirmation email to",
       "instructions": "Please check your inbox (and spam folder) and click the confirmation link.",
       "confirmed": "I have confirmed my account",
-      "footer": "When you receive the email, confirm your account and then return to log in."
+      "footer": "When you receive the email, confirm your account and then return to log in.",
+      "not_received": "🔒 Confirmation email not sent yet?",
+      "resend_hint": "Go back to login and click \"Didn't receive the confirmation email? Resend it\"",
+      "go_to_login": "Go to login"
     }
+  },
+  "header": {
+    "searchPlaceholder": "What are you looking for?",
+    "searchAria": "Search products",
+    "backAria": "Go back",
+    "credits": "Credits",
+    "creditsTitle": "Buy credits",
+    "freeBadge": "1 free",
+    "signIn": "Sign In",
+    "signUp": "Sign Up",
+    "signUpFree": "Sign up for free",
+    "publish": "Publish",
+    "publishSomething": "📢 Publish something",
+    "messages": "Messages",
+    "messagesWithCount": " ({count} unread)",
+    "myPanel": "My Panel",
+    "creditsAvailable": " — {count} available",
+    "blog": "📝 Blog",
+    "viewCatalog": "📦 View catalog",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu",
+    "allCategories": "View All",
+    "categories": {
+      "vehiculos": "Vehicles",
+      "tecnologia": "Technology",
+      "moda": "Fashion",
+      "hogar": "Home",
+      "herramientas": "Tools",
+      "materiales": "Materials",
+      "repuestos": "Parts",
+      "otros": "Others"
+    }
+  },
+  "footer": {
+    "description": "The marketplace made for Venezuela. Buy and sell whatever you want, contact directly. No complications.",
+    "categories": "Categories",
+    "information": "Information",
+    "legal": "Legal",
+    "howItWorks": "How it works",
+    "aboutUs": "About us",
+    "terms": "Terms",
+    "privacy": "Privacy",
+    "madeWithLove": "Made with ❤️ in Venezuela",
+    "allRightsReserved": "All rights reserved."
+  },
+  "catalog": {
+    "title": "Catalog",
+    "allProducts": "All products",
+    "results": "{count} results",
+    "filters": "Filters",
+    "category": "Category",
+    "all": "All",
+    "priceUsd": "Price (USD)",
+    "min": "Min",
+    "max": "Max",
+    "location": "Location",
+    "state": "State",
+    "allVenezuela": "All Venezuela",
+    "municipality": "Municipality",
+    "allMunicipalities": "All municipalities",
+    "sort": "Sort by",
+    "sortNewest": "Newest",
+    "sortPriceAsc": "Lowest price",
+    "sortPriceDesc": "Highest price",
+    "empty": "No products in this category",
+    "emptyCta": "Be the first to publish here",
+    "publishFree": "Publish for free",
+    "breadcrumb": "Home",
+    "clearFilters": "Clear filters",
+    "search": "Search",
+    "states": {
+      "Amazonas": "Amazonas",
+      "Anzoategui": "Anzoátegui",
+      "Apure": "Apure",
+      "Aragua": "Aragua",
+      "Barinas": "Barinas",
+      "Bolivar": "Bolívar",
+      "Carabobo": "Carabobo",
+      "Cojedes": "Cojedes",
+      "DeltaAmacuro": "Delta Amacuro",
+      "Falcon": "Falcón",
+      "Guarico": "Guárico",
+      "Lara": "Lara",
+      "Merida": "Mérida",
+      "Miranda": "Miranda",
+      "Monagas": "Monagas",
+      "NuevaEsparta": "Nueva Esparta",
+      "Portuguesa": "Portuguesa",
+      "Sucre": "Sucre",
+      "Tachira": "Táchira",
+      "Trujillo": "Trujillo",
+      "Yaracuy": "Yaracuy",
+      "Vargas": "Vargas",
+      "Zulia": "Zulia",
+      "DistritoCapital": "Distrito Capital"
+    }
+  },
+  "productCard": {
+    "featured": "Featured",
+    "boost": "Boost",
+    "verified": "Verified"
+  },
+  "product": {
+    "featured": "Featured",
+    "verified": "Verified",
+    "new": "New",
+    "used": "Used",
+    "likeNew": "Like new",
+    "good": "Good",
+    "views": "views",
+    "contact": "Contact",
+    "share": "Share",
+    "report": "Report"
+  },
+  "bottomNav": {
+    "home": "Home",
+    "search": "Search",
+    "publish": "Publish",
+    "chat": "Chat",
+    "profile": "Profile"
   }
 }

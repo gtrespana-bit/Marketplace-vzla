@@ -5,6 +5,7 @@ import './globals.css'
 import { Header } from '@/components/Header'
 import { Footer } from '@/components/Footer'
 import { AuthProvider } from '@/components/AuthProvider'
+import IntlBridgeInit from '@/components/IntlBridgeInit'
 import dynamic from 'next/dynamic'
 import BottomTabNav from '@/components/BottomTabNav'
 import { Analytics } from '@vercel/analytics/react'
@@ -112,7 +113,7 @@ export default function RootLayout({
     <html lang="es" className={inter.variable} suppressHydrationWarning>
       <head>
         {/* Preconnect para recursos externos críticos */}
-        <link rel="preconnect" href="https://fiebzzptyphostfhzhqx.supabase.co" />
+        <link rel="preconnect" href="https://jmbkqelkusxjebsdnjoc.supabase.co" />
         <link rel="preconnect" href="https://www.googletagmanager.com" />
         <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
         <link rel="preconnect" href="https://fcm.googleapis.com" />
@@ -139,6 +140,7 @@ export default function RootLayout({
         />
       </head>
       <body className="bg-white antialiased">
+        <IntlBridgeInit>
         <AuthProvider>
           <Header />
           <main className="min-h-screen bg-white">{children}</main>
@@ -147,6 +149,7 @@ export default function RootLayout({
           <PushNotificationBanner />
           <BottomTabNav />
         </AuthProvider>
+        </IntlBridgeInit>
         <Analytics />
         <SpeedInsights />
       </body>

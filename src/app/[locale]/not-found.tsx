@@ -1,10 +1,9 @@
-import Link from 'next/link'
+import LocalLink from '@/components/LocalLink'
 import { Search, Home, PlusCircle } from 'lucide-react'
 import { getTranslations } from 'next-intl/server'
 
-export default async function NotFound({ params }: { params: Promise<{ locale: string }> }) {
-  const { locale } = await params
-  const t = await getTranslations({ locale, namespace: 'notFound' })
+export default async function NotFound() {
+  const t = await getTranslations('notFound')
 
   return (
     <div className="min-h-[70vh] flex items-center justify-center px-4 py-12">
@@ -15,28 +14,28 @@ export default async function NotFound({ params }: { params: Promise<{ locale: s
           {t('description')}
         </p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
-          <Link
+          <LocalLink
             href="/"
             className="inline-flex items-center gap-2 bg-brand-primary text-white px-6 py-3 rounded-lg font-bold hover:bg-brand-dark transition"
           >
             <Home size={18} /> {t('backHome')}
-          </Link>
-          <Link
+          </LocalLink>
+          <LocalLink
             href="/catalogo"
             className="inline-flex items-center gap-2 bg-white border-2 border-brand-primary text-brand-primary px-6 py-3 rounded-lg font-bold hover:bg-brand-primary/5 transition"
           >
             <Search size={18} /> {t('viewCatalog')}
-          </Link>
+          </LocalLink>
         </div>
 
         <div className="mt-10 pt-8 border-t border-gray-100">
           <p className="text-gray-400 text-sm mb-4">{t('publishPrompt')}</p>
-          <Link
+          <LocalLink
             href="/publicar"
             className="inline-flex items-center gap-2 bg-brand-accent text-brand-primary px-6 py-3 rounded-lg font-bold hover:bg-accent/90 transition"
           >
             <PlusCircle size={18} /> {t('publishButton')}
-          </Link>
+          </LocalLink>
         </div>
       </div>
     </div>

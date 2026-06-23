@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import Link from 'next/link'
+import LocalLink from '@/components/LocalLink'
 import { ArrowLeft, Smartphone, Share, Download, PlusCircle, ArrowDownToLine, CheckCircle2, Apple, MonitorDown } from 'lucide-react'
 
 export const metadata: Metadata = {
@@ -11,9 +11,9 @@ export default function ComoInstalarAppPage() {
   return (
     <div className="max-w-2xl mx-auto px-4 py-8">
       {/* Botón volver */}
-      <Link href="/" className="inline-flex items-center gap-2 text-brand-primary font-semibold text-sm hover:underline mb-6">
+      <LocalLink href="/" className="inline-flex items-center gap-2 text-brand-primary font-semibold text-sm hover:underline mb-6">
         <ArrowLeft size={16} /> Volver al inicio
-      </Link>
+      </LocalLink>
 
       {/* Header */}
       <div className="text-center mb-8">
@@ -199,12 +199,12 @@ export default function ComoInstalarAppPage() {
 
       {/* CTA */}
       <div className="text-center">
-        <Link
+        <LocalLink
           href="/"
           className="inline-flex items-center gap-2 bg-brand-primary text-white px-8 py-3 rounded-xl font-bold text-base hover:bg-brand-dark transition shadow-lg"
         >
           Ir al marketplace <ArrowDownToLine size={18} />
-        </Link>
+        </LocalLink>
       </div>
     </div>
   )

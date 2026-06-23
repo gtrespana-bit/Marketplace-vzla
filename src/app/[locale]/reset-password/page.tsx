@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import Link from 'next/link'
+import LocalLink from '@/components/LocalLink'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { AlertCircle } from 'lucide-react'
@@ -90,9 +90,9 @@ export default function ResetPasswordPage() {
     <div className="min-h-[80vh] flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <Link href="/" className="text-brand-primary font-black text-3xl">
+          <LocalLink href="/" className="text-brand-primary font-black text-3xl">
             Vende<span className="text-brand-accent">T</span><span className="text-sm ml-1 text-gray-500">-Venezuela</span>
-          </Link>
+          </LocalLink>
           <h1 className="text-2xl font-bold text-gray-800 mt-4">
             {success ? '¡Contraseña actualizada!' : 'Restablecer contraseña'}
           </h1>
@@ -115,12 +115,12 @@ export default function ResetPasswordPage() {
             <div className="text-center py-8">
               <div className="text-6xl mb-4">✅</div>
               <p className="text-green-700 font-semibold text-lg">Tu contraseña se actualizó correctamente</p>
-              <Link
+              <LocalLink
                 href="/login"
                 className="inline-block mt-6 bg-brand-primary text-white px-8 py-3 rounded-lg font-bold hover:bg-brand-dark transition"
               >
                 Ir al login
-              </Link>
+              </LocalLink>
             </div>
           ) : (
             <form onSubmit={handleReset} className="space-y-5">
@@ -159,9 +159,9 @@ export default function ResetPasswordPage() {
               </button>
 
               <p className="text-center text-sm text-gray-500 mt-4">
-                <Link href="/login" className="text-brand-primary font-semibold hover:underline">
+                <LocalLink href="/login" className="text-brand-primary font-semibold hover:underline">
                   Volver al login
-                </Link>
+                </LocalLink>
               </p>
             </form>
           )}

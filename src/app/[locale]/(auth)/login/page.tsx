@@ -1,12 +1,14 @@
 'use client'
 
 import { useState } from 'react'
-import Link from 'next/link'
+import LocalLink from '@/components/LocalLink'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { AlertCircle } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 
 export default function LoginPage() {
+  const t = useTranslations('auth')
   const router = useRouter()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -82,11 +84,11 @@ export default function LoginPage() {
     <div className="min-h-[80vh] flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <Link href="/" className="text-brand-primary font-black text-3xl">
+          <LocalLink href="/" className="text-brand-primary font-black text-3xl">
             Vende<span className="text-brand-accent">T</span><span className="text-sm ml-1 text-gray-500">-Venezuela</span>
-          </Link>
-          <h1 className="text-2xl font-bold text-gray-800 mt-4">Bienvenido de vuelta</h1>
-          <p className="text-gray-500 mt-1">Inicia sesión para gestionar tus publicaciones</p>
+          </LocalLink>
+          <h1 className="text-2xl font-bold text-gray-800 mt-4">{t('login.title')}</h1>
+          <p className="text-gray-500 mt-1">{t('login.subtitle')}</p>
         </div>
 
         <div className="bg-white rounded-2xl shadow-sm p-8 border border-gray-100">
@@ -99,7 +101,7 @@ export default function LoginPage() {
 
           <form onSubmit={handleLogin} className="space-y-5">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Email</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('login.email')}</label>
               <input
                 type="email"
                 value={email}
@@ -111,7 +113,7 @@ export default function LoginPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Contraseña</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('login.password')}</label>
               <input
                 type="password"
                 value={password}
@@ -128,13 +130,13 @@ export default function LoginPage() {
                 onClick={() => setShowReset(!showReset)}
                 className="text-sm text-brand-primary hover:underline font-medium"
               >
-                ¿Olvidaste tu contraseña?
+                {t('login.forgot_password')}
               </button>
             </div>
 
             {showReset && !resetSent ? (
               <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 animate-fadeIn">
-                <p className="text-sm text-yellow-800 mb-3 font-medium">Te enviaremos un enlace para restablecer tu contraseña</p>
+                <p className="text-sm text-yellow-800 mb-3 font-medium">{t('login.reset_title')}</p>
                 {resetError && (
                   <p className="text-sm text-red-600 mb-3">{resetError}</p>
                 )}
@@ -152,29 +154,29 @@ export default function LoginPage() {
                     disabled={resetLoading}
                     className="w-full bg-brand-primary text-white py-2.5 rounded-lg font-semibold hover:bg-brand-dark transition disabled:opacity-50 text-sm"
                   >
-                    {resetLoading ? 'Enviando...' : 'Enviar enlace de restablecimiento'}
+                    {resetLoading ? t('login.sending') : t('login.reset_submit')}
                   </button>
                   <button
                     type="button"
                     onClick={() => setShowReset(false)}
                     className="w-full text-sm text-gray-600 hover:text-gray-800"
                   >
-                    Cancelar
+                    {t('login.cancel')}
                   </button>
                 </form>
               </div>
             ) : showReset && resetSent ? (
               <div className="bg-green-50 border border-green-200 rounded-xl p-4 text-center animate-fadeIn">
-                <p className="text-sm text-green-700 font-semibold mb-2">✅ Enlace enviado</p>
+                <p className="text-sm text-green-700 font-semibold mb-2">{t('login.link_sent')}</p>
                 <p className="text-sm text-green-600">
-                  Revisa tu email en <strong>{email}</strong> y sigue el enlace para crear una nueva contraseña.
+                  {t('login.reset_sent')}
                 </p>
                 <button
                   type="button"
                   onClick={() => { setShowReset(false); setResetSent(false) }}
                   className="text-sm text-brand-primary font-semibold hover:underline mt-3"
                 >
-                  Volver al login
+                  {t('login.reset_back')}
                 </button>
               </div>
             ) : null}
@@ -184,27 +186,27 @@ export default function LoginPage() {
               disabled={loading}
               className="w-full bg-brand-primary text-white py-3 rounded-lg font-bold hover:bg-brand-dark transition disabled:opacity-50"
             >
-              {loading ? 'Iniciando sesión...' : 'Iniciar sesión'}
+              {loading ? t('login.submitting') : t('login.submit')}
             </button>
           </form>
 
           <p className="text-center text-sm text-gray-500 mt-6">
-            ¿No tienes cuenta?{' '}
-            <Link href="/register" className="text-brand-primary font-semibold hover:underline">
-              Regístrate gratis
-            </Link>
+            {t('login.no_account')}{' '}
+            <LocalLink href="/register" className="text-brand-primary font-semibold hover:underline">
+              {t('login.register')}
+            </LocalLink>
           </p>
 
           {/* Botón para reenviar email de confirmación */}
           {!showResend ? (
             <p className="text-center text-sm text-gray-500 mt-3">
-              ¿No recibiste el email de confirmación?
+              {t('login.resend_prompt')}
               <button
                 type="button"
                 onClick={() => setShowResend(true)}
                 className="text-brand-primary font-semibold hover:underline ml-1"
               >
-                Reenviarlo
+                {t('login.resend')}
               </button>
             </p>
           ) : (
@@ -212,10 +214,10 @@ export default function LoginPage() {
               {resendSuccess ? (
                 <div className="text-center">
                   <div className="flex items-center justify-center gap-2 text-green-700 font-semibold mb-2">
-                    ✅ Email reenviado con éxito
+                    {t('login.resend_success')}
                   </div>
                   <p className="text-sm text-gray-600 mb-3">
-                    Hemos enviado un nuevo email de confirmación a
+                    {t('login.resend_success_desc')}
                     <strong> {email}</strong>
                   </p>
                   <button
@@ -223,14 +225,14 @@ export default function LoginPage() {
                     onClick={() => setShowResend(false)}
                     className="text-brand-primary font-semibold hover:underline text-sm"
                   >
-                    Volver al login
+                    {t('login.reset_back')}
                   </button>
                 </div>
               ) : (
                 <form onSubmit={handleResendConfirmation} className="space-y-3">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                      Email
+                      {t('login.email')}
                     </label>
                     <input
                       type="email"
@@ -246,14 +248,14 @@ export default function LoginPage() {
                     disabled={resendLoading}
                     className="w-full bg-brand-primary text-white py-2.5 rounded-lg font-semibold hover:bg-brand-dark transition disabled:opacity-50 text-sm"
                   >
-                    {resendLoading ? 'Enviando...' : 'Reenviar email de confirmación'}
+                    {resendLoading ? t('login.sending') : t('login.resend')}
                   </button>
                   <button
                     type="button"
                     onClick={() => setShowResend(false)}
                     className="w-full text-sm text-gray-600 hover:text-gray-800"
                   >
-                    Cancelar
+                    {t('login.cancel')}
                   </button>
                 </form>
               )}

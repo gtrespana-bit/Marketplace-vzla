@@ -1,6 +1,6 @@
 "use client"
 
-import Link from 'next/link'
+import LocalLink from '@/components/LocalLink'
 import { Heart, X } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 
@@ -23,7 +23,7 @@ export default function TabFavoritos({ favoritos }: { favoritos: any[] }) {
           const p = fav.productos
           return (
             <div key={fav.producto_id} className="flex items-center gap-4 p-3 rounded-lg hover:bg-gray-50 border border-gray-100 transition">
-              <Link href={`/producto/${p.id}`} className="flex items-center gap-4 flex-1 min-w-0">
+              <LocalLink href={`/producto/${p.id}`} className="flex items-center gap-4 flex-1 min-w-0">
                 <div className="w-16 h-16 rounded-lg bg-gray-100 flex-shrink-0 overflow-hidden">
                   {p.imagen_url ? (
                     <img src={p.imagen_url} alt={p.titulo} className="w-full h-full object-cover" loading="lazy" decoding="async" />
@@ -36,7 +36,7 @@ export default function TabFavoritos({ favoritos }: { favoritos: any[] }) {
                   <p className="text-sm text-brand-primary font-bold">${p.precio_usd?.toLocaleString()}</p>
                   {p.ubicacion_ciudad && <p className="text-xs text-gray-500">{p.ubicacion_ciudad}</p>}
                 </div>
-              </Link>
+              </LocalLink>
               <button onClick={async () => { await supabase.from('favoritos').delete().eq('producto_id', p.id); window.location.reload() }} className="p-2 hover:bg-red-50 rounded-lg transition text-red-500" title="Quitar de favoritos">
                 <X size={16} />
               </button>

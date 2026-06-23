@@ -1,8 +1,9 @@
-import Link from 'next/link'
+import LocalLink from '@/components/LocalLink'
 import Image from 'next/image'
 import { ArrowRight, Star, Zap, Eye, TrendingUp } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { BotonDescargarApp } from '@/components/BotonDescargarApp'
+import { getTranslations } from 'next-intl/server'
 
 const PLACEHOLDER_IMAGES = ['/placeholder-product.webp']
 
@@ -72,11 +73,11 @@ async function getRecentProducts(limit = 8) {
     .slice(0, limit)
 }
 
-function ProductCard({ p, highlighted = false, priority = false }: { p: any; highlighted?: boolean; priority?: boolean }) {
+function ProductCard({ p, highlighted = false, priority = false, t }: { p: any; highlighted?: boolean; priority?: boolean; t: any }) {
   const imgUrl = p.imagen_url || getPlaceholderImage(p.titulo)
 
   return (
-    <Link
+    <LocalLink
       href={`/producto/${p.id}`}
       className={`bg-white rounded-xl overflow-hidden transition-all duration-200 group block border ${
         highlighted
@@ -87,7 +88,7 @@ function ProductCard({ p, highlighted = false, priority = false }: { p: any; hig
       <div className="aspect-square bg-gray-100 relative overflow-hidden">
         {highlighted && (
           <div className="absolute top-2 left-2 z-10 bg-brand-accent text-gray-900 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 shadow-sm">
-            <Star size={10} /> Destacado
+            <Star size={10} /> {t('home.productCard.featured')}
           </div>
         )}
         <Image
@@ -114,11 +115,12 @@ function ProductCard({ p, highlighted = false, priority = false }: { p: any; hig
           {p.estado} · {p.ubicacion_ciudad || 'Venezuela'}
         </p>
       </div>
-    </Link>
+    </LocalLink>
   )
 }
 
 export default async function HomePage() {
+  const t = await getTranslations()
   const [destacados, trending, productos] = await Promise.all([
     getDestacados(),
     getTrending(),
@@ -133,57 +135,57 @@ export default async function HomePage() {
 
         <div className="max-w-7xl mx-auto px-4 text-center relative z-10">
           <h1 className="text-3xl md:text-5xl font-black text-white mb-2 leading-tight">
-            Vende rápido
+            {t('home.hero.title1')}
             <br />
-            <span className="text-brand-accent">en Venezuela</span>
+            <span className="text-brand-accent">{t('home.hero.title2')}</span>
           </h1>
           <p className="text-base md:text-lg text-blue-200 mb-2 max-w-2xl mx-auto">
-            Publica gratis y empieza a recibir mensajes.
+            {t('home.hero.subtitle1')}
             <br />
             <span className="text-white/90 font-medium">
-              ¿Quieres vender aún más rápido? Destaca tu anuncio y{' '}
-              <span className="text-brand-accent font-bold">llega a miles más</span>.
+              {t('home.hero.subtitle2')}{' '}
+              <span className="text-brand-accent font-bold">{t('home.hero.subtitle3')}</span>.
             </span>
           </p>
 
           <div className="inline-flex items-center gap-2 bg-brand-accent/15 border border-brand-accent/30 rounded-full px-4 py-1.5 mb-4">
             <Zap size={14} className="text-brand-accent" />
             <span className="text-xs font-semibold text-white">
-              Los anuncios destacados se venden{' '}
-              <span className="text-brand-accent font-black">3x más rápido</span>
+              {t('home.hero.featuredBadge')}{' '}
+              <span className="text-brand-accent font-black">{t('home.hero.featuredBadgeBold')}</span>
             </span>
           </div>
 
           <div className="flex flex-wrap justify-center gap-3 mb-6">
-            <Link
+            <LocalLink
               href="/publicar"
               className="inline-flex items-center gap-2 bg-brand-accent text-gray-900 px-6 py-3 rounded-xl font-bold text-base hover:bg-accent/90 transition shadow-lg shadow-black/20"
             >
-              <span>Publicar Gratis</span>
+              <span>{t('home.hero.publishFree')}</span>
               <ArrowRight size={18} />
-            </Link>
-            <Link
+            </LocalLink>
+            <LocalLink
               href="/creditos"
               className="inline-flex items-center gap-2 bg-white/10 border-2 border-white/20 text-white px-6 py-3 rounded-xl font-bold text-base hover:bg-white/20 transition"
             >
               <Eye size={18} />
-              <span>Ver Cómo Destacar</span>
-            </Link>
+              <span>{t('home.hero.seeHowToFeature')}</span>
+            </LocalLink>
             <BotonDescargarApp />
           </div>
 
           <div className="grid grid-cols-3 gap-4 max-w-xs mx-auto text-center">
             <div>
               <p className="text-2xl font-black text-brand-accent">+130</p>
-              <p className="text-[10px] text-white/60 mt-0.5">Productos activos</p>
+              <p className="text-[10px] text-white/60 mt-0.5">{t('home.hero.stats.activeProducts')}</p>
             </div>
             <div>
               <p className="text-2xl font-black text-brand-accent">+5K</p>
-              <p className="text-[10px] text-white/60 mt-0.5">Usuarios</p>
+              <p className="text-[10px] text-white/60 mt-0.5">{t('home.hero.stats.users')}</p>
             </div>
             <div>
               <p className="text-2xl font-black text-brand-accent">$1</p>
-              <p className="text-[10px] text-white/60 mt-0.5">Destacarlo desde</p>
+              <p className="text-[10px] text-white/60 mt-0.5">{t('home.hero.stats.featureFrom')}</p>
             </div>
           </div>
         </div>
@@ -206,14 +208,14 @@ export default async function HomePage() {
                 <polyline points="20 6 9 17 4 12" />
               </svg>
             </span>
-            <p className="font-bold text-gray-900 text-sm">Publicar es 100% GRATIS</p>
+            <p className="font-bold text-gray-900 text-sm">{t('home.freeBanner.title')}</p>
           </div>
           <p className="text-xs text-gray-600 hidden sm:inline">
-            En MercadoLibre pagas por publicar · Aquí nunca pagas comisión
+            {t('home.freeBanner.subtitle')}
           </p>
-          <Link href="/como-funciona" className="text-green-700 text-xs font-bold hover:underline">
-            Comparar con otros →
-          </Link>
+          <LocalLink href="/como-funciona" className="text-green-700 text-xs font-bold hover:underline">
+            {t('home.freeBanner.compare')}
+          </LocalLink>
         </div>
       </div>
 
@@ -226,26 +228,26 @@ export default async function HomePage() {
                   <Zap size={16} className="text-gray-900" />
                 </div>
                 <div>
-                  <p className="font-bold text-gray-900 text-sm">¿Quieres aparecer aquí?</p>
+                  <p className="font-bold text-gray-900 text-sm">{t('home.featured.wantToFeature')}</p>
                   <p className="text-xs text-gray-600">
-                    Destaca tu publicación desde $1 y multiplica tus ventas
+                    {t('home.featured.featureDesc')}
                   </p>
                 </div>
               </div>
-              <Link
+              <LocalLink
                 href="/creditos"
                 className="flex items-center gap-1 bg-brand-accent text-gray-900 px-4 py-2 rounded-lg font-bold text-sm hover:bg-accent/90 transition shrink-0"
               >
-                Ver paquetes <ArrowRight size={14} />
-              </Link>
+                {t('home.featured.seePackages')} <ArrowRight size={14} />
+              </LocalLink>
             </div>
           </div>
 
           <div className="max-w-7xl mx-auto px-4 py-6">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-2xl font-black text-gray-900">Ventas Destacadas</h2>
+              <h2 className="text-2xl font-black text-gray-900">{t('home.featured.title')}</h2>
               <span className="bg-brand-accent/20 text-brand-primary text-xs font-bold px-2.5 py-1 rounded-full">
-                Los que pagan por visibilidad
+                {t('home.featured.badge')}
               </span>
             </div>
 
@@ -256,6 +258,7 @@ export default async function HomePage() {
                   p={p}
                   highlighted
                   priority={index === 0}
+                  t={t}
                 />
               ))}
             </div>
@@ -268,26 +271,25 @@ export default async function HomePage() {
               <Zap size={28} className="text-gray-900" />
             </div>
             <h2 className="text-2xl font-black text-gray-900 mb-2">
-              Sé el primero en destacar tu anuncio
+              {t('home.featured.emptyTitle')}
             </h2>
             <p className="text-gray-600 max-w-lg mx-auto mb-2">
-              Los productos destacados aparecen aquí, en la página principal, y llegan a miles más
-              compradores.
+              {t('home.featured.emptyDesc')}
             </p>
-            <p className="text-brand-primary font-bold mb-6">Desde solo $1 USD por 12 horas</p>
+            <p className="text-brand-primary font-bold mb-6">{t('home.featured.emptyPrice')}</p>
             <div className="flex flex-wrap justify-center gap-4">
-              <Link
+              <LocalLink
                 href="/publicar"
                 className="inline-flex items-center gap-2 bg-brand-accent text-gray-900 px-6 py-3 rounded-xl font-bold hover:bg-accent/90 transition"
               >
-                Publicar Gratis
-              </Link>
-              <Link
+                {t('home.featured.publishFree')}
+              </LocalLink>
+              <LocalLink
                 href="/creditos"
                 className="inline-flex items-center gap-2 bg-brand-primary text-white px-6 py-3 rounded-xl font-bold hover:bg-brand-dark transition"
               >
-                Ver Paquetes de Créditos <ArrowRight size={16} />
-              </Link>
+                {t('home.featured.seeCreditPackages')} <ArrowRight size={16} />
+              </LocalLink>
             </div>
           </div>
         </section>
@@ -297,10 +299,10 @@ export default async function HomePage() {
         <div className="bg-brand-dark rounded-2xl p-8 md:p-10">
           <div className="text-center mb-8">
             <h2 className="text-2xl md:text-3xl font-black text-white mb-3">
-              Potencia tu publicación
+              {t('home.boost.title')}
             </h2>
             <p className="text-gray-300 max-w-lg mx-auto">
-              Elige cómo quieres que más compradores vean tu anuncio
+              {t('home.boost.subtitle')}
             </p>
           </div>
 
@@ -309,31 +311,31 @@ export default async function HomePage() {
               <div className="w-12 h-12 bg-brand-accent/20 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Zap size={24} className="text-brand-accent" />
               </div>
-              <h3 className="font-bold text-white text-lg mb-1">Boost</h3>
-              <p className="text-3xl font-black text-brand-accent mb-2">1 crédito</p>
+              <h3 className="font-bold text-white text-lg mb-1">{t('home.boost.boost.name')}</h3>
+              <p className="text-3xl font-black text-brand-accent mb-2">{t('home.boost.boost.price')}</p>
               <p className="text-sm text-gray-300 mb-4">
-                Sube tu publicación al #1 de la lista al instante
+                {t('home.boost.boost.desc')}
               </p>
               <div className="bg-white/5 rounded-lg p-3 text-sm text-gray-300">
-                El más barato · Para aparecer arriba <strong>ya</strong>
+                {t('home.boost.boost.detail')} <strong>ya</strong>
               </div>
             </div>
 
             <div className="bg-brand-accent rounded-xl p-6 text-center relative shadow-lg shadow-black/20 transform scale-[1.02]">
               <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-brand-primary text-white text-[10px] font-bold px-3 py-1 rounded-full">
-                MÁS POPULAR
+                {t('home.boost.featured24.popular')}
               </div>
               <div className="w-12 h-12 bg-brand-primary/20 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Star size={24} className="text-gray-900" />
               </div>
-              <h3 className="font-bold text-gray-900 text-lg mb-1">Destacado 24h</h3>
-              <p className="text-3xl font-black text-gray-900 mb-2">6 créditos</p>
+              <h3 className="font-bold text-gray-900 text-lg mb-1">{t('home.boost.featured24.name')}</h3>
+              <p className="text-3xl font-black text-gray-900 mb-2">{t('home.boost.featured24.price')}</p>
               <p className="text-sm text-gray-800 mb-4">
-                Tu anuncio en la página principal todo un día
+                {t('home.boost.featured24.desc')}
               </p>
               <div className="bg-gray-900/10 rounded-lg p-3 text-sm text-gray-900">
                 <TrendingUp size={14} className="inline mr-1" /> <strong>$2 USD</strong> ·
-                Visibilidad máxima
+                {t('home.boost.featured24.detail')}
               </div>
             </div>
 
@@ -341,44 +343,44 @@ export default async function HomePage() {
               <div className="w-12 h-12 bg-brand-accent/20 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Eye size={24} className="text-brand-accent" />
               </div>
-              <h3 className="font-bold text-white text-lg mb-1">Destacado 48h</h3>
-              <p className="text-3xl font-black text-brand-accent mb-2">10 créditos</p>
+              <h3 className="font-bold text-white text-lg mb-1">{t('home.boost.featured48.name')}</h3>
+              <p className="text-3xl font-black text-brand-accent mb-2">{t('home.boost.featured48.price')}</p>
               <p className="text-sm text-gray-300 mb-4">
-                48 horas en la página principal — máximo impacto
+                {t('home.boost.featured48.desc')}
               </p>
               <div className="bg-white/5 rounded-lg p-3 text-sm text-gray-300">
-                <strong>$4 USD</strong> · Dos días completos de visibilidad
+                <strong>$4 USD</strong> · {t('home.boost.featured48.detail')}
               </div>
             </div>
           </div>
 
           <div className="text-center mt-8">
-            <Link
+            <LocalLink
               href="/creditos"
               className="inline-flex items-center gap-2 bg-brand-accent text-gray-900 px-8 py-3 rounded-xl font-bold hover:bg-accent/90 transition"
             >
-              Comprar Créditos <ArrowRight size={18} />
-            </Link>
+              {t('home.boost.buyCredits')} <ArrowRight size={18} />
+            </LocalLink>
           </div>
         </div>
       </section>
 
       <section className="max-w-7xl mx-auto px-4 py-12">
         <h2 className="text-2xl md:text-3xl font-black text-gray-900 mb-2">
-          Explora por categoría
+          {t('home.categories.title')}
         </h2>
-        <p className="text-gray-600 mb-8">Encuentra lo que necesitas en segundos</p>
+        <p className="text-gray-600 mb-8">{t('home.categories.subtitle')}</p>
 
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
           {[
-            { id: 'vehiculos', nombre: 'Vehículos', icon: '🚗', desc: 'Carros, motos' },
-            { id: 'tecnologia', nombre: 'Tecnología', icon: '💻', desc: 'Celulares, laptops' },
-            { id: 'moda', nombre: 'Moda', icon: '👗', desc: 'Ropa, calzado' },
-            { id: 'hogar', nombre: 'Hogar', icon: '🛋', desc: 'Muebles, electro' },
-            { id: 'herramientas', nombre: 'Herramientas', icon: '🔧', desc: 'Manuales, eléctricas' },
-            { id: 'otros', nombre: 'Otros', icon: '📦', desc: 'De todo un poco' },
+            { id: 'vehiculos', nombre: t('home.categories.vehicles'), icon: '🚗', desc: t('home.categories.vehiclesDesc') },
+            { id: 'tecnologia', nombre: t('home.categories.tech'), icon: '💻', desc: t('home.categories.techDesc') },
+            { id: 'moda', nombre: t('home.categories.fashion'), icon: '👗', desc: t('home.categories.fashionDesc') },
+            { id: 'hogar', nombre: t('home.categories.homeCat'), icon: '🛋', desc: t('home.categories.homeCatDesc') },
+            { id: 'herramientas', nombre: t('home.categories.tools'), icon: '🔧', desc: t('home.categories.toolsDesc') },
+            { id: 'otros', nombre: t('home.categories.others'), icon: '📦', desc: t('home.categories.othersDesc') },
           ].map((cat) => (
-            <Link
+            <LocalLink
               key={cat.id}
               href={`/catalogo?categoria=${cat.id}`}
               prefetch={true}
@@ -389,7 +391,7 @@ export default async function HomePage() {
               </span>
               <span className="font-bold text-gray-900 text-sm">{cat.nombre}</span>
               <span className="block text-xs text-gray-600 mt-1 truncate">{cat.desc}</span>
-            </Link>
+            </LocalLink>
           ))}
         </div>
       </section>
@@ -397,13 +399,13 @@ export default async function HomePage() {
       {trending.length > 0 && (
         <section className="max-w-7xl mx-auto px-4 py-8">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-2xl font-black text-gray-900">Lo más visto</h2>
-            <span className="text-xs text-gray-500">Últimos 7 días</span>
+            <h2 className="text-2xl font-black text-gray-900">{t('home.trending.title')}</h2>
+            <span className="text-xs text-gray-500">{t('home.trending.period')}</span>
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3">
             {trending.map((p) => (
-              <Link
+              <LocalLink
                 key={p.id}
                 href={`/producto/${p.id}`}
                 prefetch={true}
@@ -433,10 +435,10 @@ export default async function HomePage() {
                   </p>
                   <div className="flex items-center gap-1 mt-1">
                     <Eye size={11} className="text-gray-400" />
-                    <p className="text-xs text-gray-500">{p.visitas || 0} vistas</p>
+                    <p className="text-xs text-gray-500">{p.visitas || 0} {t('home.trending.views')}</p>
                   </div>
                 </div>
-              </Link>
+              </LocalLink>
             ))}
           </div>
         </section>
@@ -444,33 +446,33 @@ export default async function HomePage() {
 
       <section className="max-w-7xl mx-auto px-4 py-8">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-gray-900">Agregados recientemente</h2>
-          <Link
+          <h2 className="text-2xl font-bold text-gray-900">{t('home.recent.title')}</h2>
+          <LocalLink
             href="/catalogo"
             className="text-brand-primary font-semibold text-sm hover:underline flex items-center gap-1"
             prefetch={true}
           >
-            Ver todos <ArrowRight size={14} />
-          </Link>
+            {t('home.recent.viewAll')} <ArrowRight size={14} />
+          </LocalLink>
         </div>
 
         {productos.length === 0 ? (
           <div className="bg-white rounded-xl p-16 text-center shadow-sm border">
-            <p className="text-xl font-bold text-gray-800 mb-2">Aún no hay publicaciones</p>
-            <p className="text-gray-500 mb-6">Sé el primero en publicar algo</p>
-            <Link
+            <p className="text-xl font-bold text-gray-800 mb-2">{t('home.recent.empty')}</p>
+            <p className="text-gray-500 mb-6">{t('home.recent.emptyCta')}</p>
+            <LocalLink
               href="/publicar"
               className="inline-block bg-brand-accent text-gray-900 px-6 py-3 rounded-lg font-bold hover:bg-accent/90 transition"
             >
-              Publicar gratis
-            </Link>
+              {t('home.recent.publishFree')}
+            </LocalLink>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {productos.map((p) => {
               const isHighlighted =
                 (p.destacado && p.destacado_hasta > new Date().toISOString()) || p.boosteado_en
-              return <ProductCard key={p.id} p={p} highlighted={isHighlighted} />
+              return <ProductCard key={p.id} p={p} highlighted={isHighlighted} t={t} />
             })}
           </div>
         )}
@@ -479,26 +481,26 @@ export default async function HomePage() {
       <section className="bg-brand-accent py-16">
         <div className="max-w-7xl mx-auto px-4 text-center">
           <h2 className="text-3xl font-black text-gray-900 mb-4">
-            ¿Tienes algo para vender?
+            {t('home.cta.title')}
           </h2>
           <p className="text-gray-800 text-lg mb-8">
-            Publica gratis en segundos. Miles de compradores te esperan.
+            {t('home.cta.subtitle')}
           </p>
           <div className="flex flex-wrap justify-center gap-4">
-            <Link
+            <LocalLink
               href="/publicar"
               className="inline-flex items-center gap-2 bg-brand-primary text-white px-10 py-4 rounded-xl font-bold text-lg hover:bg-brand-dark transition shadow-lg"
               prefetch={true}
             >
-              Publica ahora — Es gratis
+              {t('home.cta.publishNow')}
               <ArrowRight size={20} />
-            </Link>
-            <Link
+            </LocalLink>
+            <LocalLink
               href="/creditos"
               className="inline-flex items-center gap-2 bg-white text-brand-primary px-10 py-4 rounded-xl font-bold text-lg hover:bg-gray-100 transition shadow-lg"
             >
-              Destacar mi anuncio
-            </Link>
+              {t('home.cta.featureAd')}
+            </LocalLink>
           </div>
         </div>
       </section>

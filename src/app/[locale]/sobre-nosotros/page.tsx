@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import Link from 'next/link'
+import LocalLink from '@/components/LocalLink'
 
 export const metadata: Metadata = {
   title: 'Sobre Nosotros — VendeT-Venezuela',
@@ -98,12 +98,12 @@ export default function SobreNosotrosPage() {
             <h2 className="text-2xl font-black text-gray-900 mb-3">¿Listo para empezar?</h2>
             <p className="text-gray-600 mb-6">Únete a miles de venezolanos que ya compran y venden en VendeT.</p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Link href="/register" className="bg-brand-accent text-brand-primary px-8 py-3 rounded-lg font-bold hover:bg-accent/90 transition inline-block">
+              <LocalLink href="/register" className="bg-brand-accent text-brand-primary px-8 py-3 rounded-lg font-bold hover:bg-accent/90 transition inline-block">
                 Crear mi cuenta gratis
-              </Link>
-              <Link href="/catalogo" className="bg-white border-2 border-brand-primary text-brand-primary px-8 py-3 rounded-lg font-bold hover:bg-brand-primary hover:text-white transition inline-block">
+              </LocalLink>
+              <LocalLink href="/catalogo" className="bg-white border-2 border-brand-primary text-brand-primary px-8 py-3 rounded-lg font-bold hover:bg-brand-primary hover:text-white transition inline-block">
                 Ver anuncios
-              </Link>
+              </LocalLink>
             </div>
           </section>
 

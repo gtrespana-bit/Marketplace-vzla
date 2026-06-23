@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from 'react'
-import Link from 'next/link'
+import LocalLink from '@/components/LocalLink'
 import { Package, X, Pause, Play, Edit, Zap, Star, CheckCircle2, ChevronDown, ArrowLeft, Send } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 
@@ -229,7 +229,7 @@ export default function TabProductos({
         <Package size={48} className="text-gray-300 mx-auto mb-4" />
         <h3 className="text-xl font-bold text-gray-800 mb-2">Aún no tienes publicaciones</h3>
         <p className="text-gray-500 mb-6">Publica tu primer producto en segundos. ¡Es gratis!</p>
-        <Link href="/publicar" className="inline-block bg-brand-accent text-brand-primary px-8 py-3 rounded-lg font-bold hover:bg-accent/90 transition">Publicar ahora</Link>
+        <LocalLink href="/publicar" className="inline-block bg-brand-accent text-brand-primary px-8 py-3 rounded-lg font-bold hover:bg-accent/90 transition">Publicar ahora</LocalLink>
       </div>
     )
   }
@@ -250,7 +250,7 @@ export default function TabProductos({
           const promoAbierto = menuPromocionar === p.id
           return (
             <div key={p.id} className={`group flex items-start gap-4 p-3 rounded-lg border border-gray-100 transition ${isVendido ? 'bg-green-50/50 border-green-200' : 'hover:bg-gray-50'}`}>
-              <Link href={`/producto/${p.id}`} className="flex items-center gap-4 flex-1 min-w-0">
+              <LocalLink href={`/producto/${p.id}`} className="flex items-center gap-4 flex-1 min-w-0">
                 <div className="w-16 h-16 rounded-lg bg-gray-100 flex-shrink-0 overflow-hidden relative">
                   {p.imagen_url ? (
                     <img src={p.imagen_url} alt={p.titulo} className="w-full h-full object-cover" loading="lazy" decoding="async" />
@@ -281,7 +281,7 @@ export default function TabProductos({
                     )}
                   </div>
                 </div>
-              </Link>
+              </LocalLink>
 
               {/* Menús desplegables */}
               <div className="flex gap-2 flex-shrink-0 relative" onClick={e => e.stopPropagation()}>
@@ -295,13 +295,13 @@ export default function TabProductos({
                   </button>
                   {gestionAbierto && (
                     <div className="absolute right-0 top-full mt-1 bg-white border rounded-lg shadow-lg py-1 w-48 z-20">
-                      <Link
+                      <LocalLink
                         href={`/producto/editar/${p.id}`}
                         onClick={cerrarMenus}
                         className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-gray-50"
                       >
                         <Edit size={14} /> Editar
-                      </Link>
+                      </LocalLink>
                       {!isVendido && p.activo && (
                         <button
                           onClick={() => abrirVendido(p.id)}

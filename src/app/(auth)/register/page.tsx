@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import Link from 'next/link'
+import LocalLink from '@/components/LocalLink'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { AlertCircle } from 'lucide-react'
@@ -65,9 +65,9 @@ export default function RegisterPage() {
     <div className="min-h-[80vh] flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <Link href="/" className="text-brand-primary font-black text-3xl">
+          <LocalLink href="/" className="text-brand-primary font-black text-3xl">
             Vende<span className="text-brand-accent">T</span><span className="text-sm ml-1 text-gray-500">-Venezuela</span>
-          </Link>
+          </LocalLink>
           <h1 className="text-2xl font-bold text-gray-800 mt-4">Crea tu cuenta</h1>
           <p className="text-gray-500 mt-1">Únete gratis. Empieza a vender hoy.</p>
 
@@ -191,9 +191,9 @@ export default function RegisterPage() {
 
           <p className="text-center text-sm text-gray-500 mt-6">
             ¿Ya tienes cuenta?{' '}
-            <Link href="/login" className="text-brand-primary font-semibold hover:underline">
+            <LocalLink href="/login" className="text-brand-primary font-semibold hover:underline">
               Inicia sesión
-            </Link>
+            </LocalLink>
           </p>
         </div>
       </div>

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import Link from 'next/link'
+import LocalLink from '@/components/LocalLink'
 import { Smartphone } from 'lucide-react'
 
 type BotonDescargarAppProps = {
@@ -35,12 +35,12 @@ export function BotonDescargarApp({ variant = 'default' }: BotonDescargarAppProp
     : 'inline-flex items-center gap-2 bg-white/10 border-2 border-white/30 text-white px-6 py-3 rounded-xl font-bold text-base hover:bg-white/20 transition'
 
   return (
-    <Link
+    <LocalLink
       href="/como-instalar-app"
       className={className}
     >
       <Smartphone size={18} />
       <span>Descarga Nuestra App</span>
-    </Link>
+    </LocalLink>
   )
 }

@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import Link from 'next/link'
+import LocalLink from '@/components/LocalLink'
 import fs from 'fs'
 import path from 'path'
 import { ArrowLeft, Calendar, Clock, Tag, ArrowRight, ChevronRight } from 'lucide-react'
@@ -192,9 +192,9 @@ export default async function BlogPost(props: { params: Promise<{ slug: string }
     return (
       <div className="max-w-4xl mx-auto px-4 py-20 text-center">
         <h1 className="text-2xl font-bold text-gray-800 mb-4">Post no encontrado</h1>
-        <Link href="/blog" className="text-brand-primary hover:underline">
+        <LocalLink href="/blog" className="text-brand-primary hover:underline">
           ← Volver al blog
-        </Link>
+        </LocalLink>
       </div>
     )
   }
@@ -215,9 +215,9 @@ export default async function BlogPost(props: { params: Promise<{ slug: string }
       <div className="bg-gray-50 border-b">
         <div className="max-w-4xl mx-auto px-4 py-3">
           <nav className="flex items-center gap-2 text-sm text-gray-500">
-            <Link href="/" className="hover:text-brand-primary">Inicio</Link>
+            <LocalLink href="/" className="hover:text-brand-primary">Inicio</LocalLink>
             <ChevronRight size={14} />
-            <Link href="/blog" className="hover:text-brand-primary">Blog</Link>
+            <LocalLink href="/blog" className="hover:text-brand-primary">Blog</LocalLink>
             <ChevronRight size={14} />
             <span className="text-gray-800 truncate">{post.title}</span>
           </nav>
@@ -227,9 +227,9 @@ export default async function BlogPost(props: { params: Promise<{ slug: string }
       {/* Hero */}
       <section className="bg-gradient-to-br from-brand-primary to-brand-dark py-12 md:py-16">
         <div className="max-w-4xl mx-auto px-4">
-          <Link href="/blog" className="inline-flex items-center gap-2 text-blue-200 hover:text-white mb-6 transition">
+          <LocalLink href="/blog" className="inline-flex items-center gap-2 text-blue-200 hover:text-white mb-6 transition">
             <ArrowLeft size={16} /> Volver al blog
-          </Link>
+          </LocalLink>
           <div className="flex items-center gap-2 mb-4">
             <span className="text-lg">{categoryIcons[post.category] || '📝'}</span>
             <span className="text-sm font-semibold text-brand-accent bg-brand-accent/20 px-3 py-1 rounded-full">{post.category}</span>
@@ -269,9 +269,9 @@ export default async function BlogPost(props: { params: Promise<{ slug: string }
         <div className="max-w-4xl mx-auto px-4 text-center">
           <h2 className="text-2xl font-black text-white mb-3">¿Tienes algo para vender?</h2>
           <p className="text-gray-400 mb-6">Publica gratis en VendeT y llega a miles de compradores en toda Venezuela</p>
-          <Link href="/publicar" className="inline-flex items-center gap-2 bg-brand-accent text-brand-primary px-8 py-3 rounded-xl font-bold text-lg hover:bg-accent/90 transition shadow-lg">
+          <LocalLink href="/publicar" className="inline-flex items-center gap-2 bg-brand-accent text-brand-primary px-8 py-3 rounded-xl font-bold text-lg hover:bg-accent/90 transition shadow-lg">
             Publicar gratis <ArrowRight size={20} />
-          </Link>
+          </LocalLink>
         </div>
       </section>
 
@@ -286,10 +286,10 @@ export default async function BlogPost(props: { params: Promise<{ slug: string }
               const other = getPostBySlug(s)
               if (!other) return null
               return (
-                <Link key={s} href={`/blog/${s}`} className="group block bg-white rounded-xl border border-gray-100 p-5 hover:shadow-lg transition">
+                <LocalLink key={s} href={`/blog/${s}`} className="group block bg-white rounded-xl border border-gray-100 p-5 hover:shadow-lg transition">
                   <h4 className="font-bold text-gray-800 group-hover:text-brand-primary mb-2">{other.title}</h4>
                   <p className="text-sm text-gray-600 line-clamp-2">{other.excerpt}</p>
-                </Link>
+                </LocalLink>
               )
             })}
         </div>

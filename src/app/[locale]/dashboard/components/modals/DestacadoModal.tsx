@@ -1,7 +1,7 @@
 "use client"
 
 import { X, Star } from 'lucide-react'
-import Link from 'next/link'
+import LocalLink from '@/components/LocalLink'
 
 export default function DestacadoModal({ titulo, creditos, onDestacar, onClose }: { titulo: string; creditos: number; onDestacar: (horas: number) => void; onClose: () => void }) {
   return (
@@ -31,7 +31,7 @@ export default function DestacadoModal({ titulo, creditos, onDestacar, onClose }
             </button>
           ))}
         </div>
-        <Link href="/creditos" className="block text-center text-sm text-brand-primary hover:underline">¿Necesitas más créditos? Comprar →</Link>
+        <LocalLink href="/creditos" className="block text-center text-sm text-brand-primary hover:underline">¿Necesitas más créditos? Comprar →</LocalLink>
       </div>
     </div>
   )

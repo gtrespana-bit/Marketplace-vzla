@@ -1,13 +1,15 @@
 'use client'
 
 import { useEffect, useState, useRef } from 'react'
-import { useSearchParams, usePathname, useRouter } from 'next/navigation'
-import Link from 'next/link'
+import { useSearchParams, useRouter } from 'next/navigation'
+import { usePathname } from 'next/navigation'
+import LocalLink from '@/components/LocalLink'
 import Image from 'next/image'
 import { Search, ChevronRight, XCircle } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { categoriasData } from '@/lib/categorias'
 import UbicacionSelector from '@/components/UbicacionSelector'
+import { useBridge } from '@/components/IntlBridge'
 
 type Producto = {
   id: string
@@ -53,7 +55,7 @@ function ProductCardSkeleton() {
   )
 }
 
-function ProductCard({ p, priority = false }: { p: Producto; priority?: boolean }) {
+function ProductCard({ p, priority = false, t }: { p: Producto; priority?: boolean; t: (key: string) => string }) {
   const isBoosted = p.boosteado_en != null
   const isFeatured = p.destacado && p.destacado_hasta && new Date(p.destacado_hasta) > new Date()
   const isPromoted = isBoosted || isFeatured
@@ -61,11 +63,11 @@ function ProductCard({ p, priority = false }: { p: Producto; priority?: boolean 
   const imgUrl = p.imagen_url || getPlaceholderImage(p.titulo)
 
   return (
-    <Link href={`/producto/${p.id}`} className={`bg-white rounded-xl overflow-hidden transition-all duration-200 group block border ${isPromoted ? 'border-2 border-brand-accent shadow-md hover:shadow-xl hover:-translate-y-1' : 'border-gray-100 shadow-sm hover:shadow-lg hover:-translate-y-1 hover:border-gray-200'}`}>
+    <LocalLink href={`/producto/${p.id}`} className={`bg-white rounded-xl overflow-hidden transition-all duration-200 group block border ${isPromoted ? 'border-2 border-brand-accent shadow-md hover:shadow-xl hover:-translate-y-1' : 'border-gray-100 shadow-sm hover:shadow-lg hover:-translate-y-1 hover:border-gray-200'}`}>
       <div className="aspect-square bg-gray-100 relative overflow-hidden">
         {isFeatured && (
           <div className="absolute top-2 left-2 z-10 bg-brand-accent text-brand-primary text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 shadow-sm">
-            ⭐ Destacado
+            ⭐ {t('product.featured')}
           </div>
         )}
         {isBoosted && !isFeatured && (
@@ -101,16 +103,17 @@ function ProductCard({ p, priority = false }: { p: Producto; priority?: boolean 
         {p.vendedor_verificado && (
           <div className="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded-full mt-1">
             <svg width={10} height={10} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-            Verificado
+            {t('product.verified')}
           </div>
         )}
         <p className="text-xs text-gray-500 mt-1">{p.ubicacion_ciudad || p.ubicacion_estado || 'Venezuela'}</p>
       </div>
-    </Link>
+    </LocalLink>
   )
 }
 
 export default function CatalogoClient({ initialProducts = [], initialCount = 0 }: CatalogoPageProps) {
+  const { t } = useBridge()
   const searchParams = useSearchParams()
   const pathname = usePathname()
   const router = useRouter()
@@ -233,14 +236,14 @@ export default function CatalogoClient({ initialProducts = [], initialCount = 0 
       ? subcategoria
       : cat
         ? cat.label
-        : 'Todos los productos'
+        : t('catalog.allProducts')
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
       <nav className="flex items-center gap-2 text-sm text-gray-500 mb-6 flex-wrap">
-        <Link href="/" className="hover:text-brand-primary">Inicio</Link>
+        <LocalLink href="/" className="hover:text-brand-primary">{t('catalog.breadcrumb')}</LocalLink>
         <ChevronRight size={14} />
-        <span className="text-gray-800 font-medium">Catálogo</span>
+        <span className="text-gray-800 font-medium">{t('catalog.title')}</span>
         {categoria && (<><ChevronRight size={14} /><span className="text-gray-900 font-semibold">{cat?.icon} {cat?.label}</span></>)}
         {subcategoria && (<><ChevronRight size={14} /><span className="text-gray-900 font-semibold">{subcategoria}</span></>)}
         {q && (<><ChevronRight size={14} /><span>Buscar: &ldquo;{q}&rdquo;</span></>)}
@@ -249,12 +252,12 @@ export default function CatalogoClient({ initialProducts = [], initialCount = 0 
       <div className="flex flex-col lg:flex-row gap-6">
         <aside className="w-full lg:w-72 flex-shrink-0">
           <div className="bg-white rounded-xl p-5 shadow-sm sticky top-20">
-            <h3 className="font-bold text-lg text-gray-900 mb-4">🔍 Filtros</h3>
+            <h3 className="font-bold text-lg text-gray-900 mb-4">🔍 {t('catalog.filters')}</h3>
 
             <div className="mb-4">
-              <label className="block text-sm font-bold text-gray-900 mb-1.5">Categoría</label>
+              <label className="block text-sm font-bold text-gray-900 mb-1.5">{t('catalog.category')}</label>
               <select value={categoria} onChange={e => setParam('categoria', e.target.value)} className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm text-gray-800 bg-white font-medium focus:outline-none focus:ring-2 focus:ring-brand-accent">
-                <option value="">Todas</option>
+                <option value="">{t('catalog.all')}</option>
                 {Object.entries(categoriasData).map(([key, c]) => (
                   <option key={key} value={key}>{c.icon} {c.label}</option>
                 ))}
@@ -293,13 +296,13 @@ export default function CatalogoClient({ initialProducts = [], initialCount = 0 
             )}
 
             <div className="mb-4">
-              <label className="block text-sm font-bold text-gray-900 mb-1.5">💰 Precio (USD)</label>
+              <label className="block text-sm font-bold text-gray-900 mb-1.5">{t('catalog.priceUsd')}</label>
               <div className="flex gap-2">
                 <input
                   type="number"
                   value={precioMin}
                   onChange={e => setParam('precioMin', e.target.value)}
-                  placeholder="Min"
+                  placeholder={t('catalog.min')}
                   min="0"
                   className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm text-gray-800 bg-white focus:outline-none focus:ring-2 focus:ring-brand-accent"
                 />
@@ -307,7 +310,7 @@ export default function CatalogoClient({ initialProducts = [], initialCount = 0 
                   type="number"
                   value={precioMax}
                   onChange={e => setParam('precioMax', e.target.value)}
-                  placeholder="Max"
+                  placeholder={t('catalog.max')}
                   min="0"
                   className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm text-gray-800 bg-white focus:outline-none focus:ring-2 focus:ring-brand-accent"
                 />
@@ -316,7 +319,7 @@ export default function CatalogoClient({ initialProducts = [], initialCount = 0 
 
             {(categoria || subcategoria || marca || q || precioMin || precioMax) && (
               <button onClick={() => router.push(pathname)} className="w-full text-sm text-red-500 hover:text-red-700 py-2 border border-red-200 rounded-lg hover:bg-red-50 transition flex items-center justify-center gap-1">
-                <XCircle size={14} /> Limpiar filtros
+                <XCircle size={14} /> {t('catalog.clearFilters')}
               </button>
             )}
           </div>
@@ -328,12 +331,12 @@ export default function CatalogoClient({ initialProducts = [], initialCount = 0 
               <div>
                 <h1 className="text-xl font-bold text-gray-900">{tituloMostrar}</h1>
                 <p className="text-sm text-gray-500 mt-1">
-                  {loading ? 'Buscando...' : `${totalCount} resultado${totalCount !== 1 ? 's' : ''}`}
+                  {loading ? t('common.loading') : t('catalog.results').replace('{count}', String(totalCount))}
                 </p>
               </div>
               <form action="/buscar" method="GET" className="flex gap-2 w-full sm:w-auto">
-                <input name="q" defaultValue={q} placeholder="Buscar..." className="w-full sm:w-60 border rounded-lg px-4 py-2 text-sm" />
-                <button type="submit" className="bg-brand-accent text-brand-primary px-4 rounded-lg font-bold text-sm hover:bg-accent/90">Buscar</button>
+                <input name="q" defaultValue={q} placeholder={`${t('common.search')}...`} className="w-full sm:w-60 border rounded-lg px-4 py-2 text-sm" />
+                <button type="submit" className="bg-brand-accent text-brand-primary px-4 rounded-lg font-bold text-sm hover:bg-accent/90">{t('common.search')}</button>
               </form>
             </div>
           </div>
@@ -360,11 +363,11 @@ export default function CatalogoClient({ initialProducts = [], initialCount = 0 
           ) : productos.length === 0 ? (
             <div className="bg-white rounded-xl p-16 text-center shadow-sm border">
               <Search size={48} className="text-gray-300 mx-auto mb-4" />
-              <h3 className="text-xl font-bold text-gray-800 mb-2">No hay productos en esta categoría</h3>
-              <p className="text-gray-500 mb-4">Sé el primero en publicar aquí</p>
-              <Link href="/publicar" className="inline-block bg-brand-accent text-brand-primary px-6 py-3 rounded-lg font-bold hover:bg-accent/90 transition">
-                Publicar gratis
-              </Link>
+              <h3 className="text-xl font-bold text-gray-800 mb-2">{t('catalog.empty')}</h3>
+              <p className="text-gray-500 mb-4">{t('catalog.emptyCta')}</p>
+              <LocalLink href="/publicar" className="inline-block bg-brand-accent text-brand-primary px-6 py-3 rounded-lg font-bold hover:bg-accent/90 transition">
+                {t('catalog.publishFree')}
+              </LocalLink>
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
@@ -372,6 +375,7 @@ export default function CatalogoClient({ initialProducts = [], initialCount = 0 
                 <ProductCard
                   key={p.id}
                   p={p}
+                  t={t}
                   priority={index === 0}
                 />
               ))}

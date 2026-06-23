@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
-import Link from 'next/link'
+import LocalLink from '@/components/LocalLink'
 import Image from 'next/image'
 import BadgeVerificado from '@/components/BadgeVerificado'
 import Avatar from '@/components/Avatar'
@@ -210,7 +210,7 @@ export default function VendedorPage() {
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {productos.map(p => (
-              <Link key={p.id} href={`/producto/${p.id}`} className="bg-white rounded-xl shadow-sm border overflow-hidden hover:shadow-md transition group">
+              <LocalLink key={p.id} href={`/producto/${p.id}`} className="bg-white rounded-xl shadow-sm border overflow-hidden hover:shadow-md transition group">
                 <div className="aspect-square bg-gray-100">
                   {p.imagen_url ? (
                     <Image src={p.imagen_url} alt={p.titulo} width={400} height={400} sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw" className="w-full h-full object-cover group-hover:scale-105 transition duration-300" loading="lazy" decoding="async" />
@@ -222,7 +222,7 @@ export default function VendedorPage() {
                   <h3 className="font-semibold text-gray-800 text-sm truncate">{p.titulo}</h3>
                   <p className="text-brand-primary font-bold mt-1">${p.precio_usd?.toLocaleString()}</p>
                 </div>
-              </Link>
+              </LocalLink>
             ))}
           </div>
         )}

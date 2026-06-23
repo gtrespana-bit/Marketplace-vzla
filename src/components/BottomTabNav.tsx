@@ -1,16 +1,9 @@
 'use client'
 
 import { usePathname } from 'next/navigation'
-import Link from 'next/link'
+import LocalLink from '@/components/LocalLink'
 import { Home, Search, PlusCircle, MessageCircle, User } from 'lucide-react'
-
-const navItems = [
-  { href: '/', icon: Home, label: 'Inicio' },
-  { href: '/buscar', icon: Search, label: 'Buscar' },
-  { href: '/publicar', icon: PlusCircle, label: 'Publicar', highlight: true },
-  { href: '/chat', icon: MessageCircle, label: 'Chat' },
-  { href: '/dashboard', icon: User, label: 'Perfil' },
-]
+import { useBridge } from '@/components/IntlBridge'
 
 function isPWA(): boolean {
   if (typeof window === 'undefined') return false
@@ -22,6 +15,15 @@ function isPWA(): boolean {
 
 export default function BottomTabNav() {
   const pathname = usePathname()
+  const { t } = useBridge()
+
+  const navItems = [
+    { href: '/', icon: Home, label: t('bottomNav.home') },
+    { href: '/buscar', icon: Search, label: t('bottomNav.search') },
+    { href: '/publicar', icon: PlusCircle, label: t('bottomNav.publish'), highlight: true },
+    { href: '/chat', icon: MessageCircle, label: t('bottomNav.chat') },
+    { href: '/dashboard', icon: User, label: t('bottomNav.profile') },
+  ]
 
   if (!isPWA()) return null
 
@@ -36,7 +38,7 @@ export default function BottomTabNav() {
           const Icon = item.icon
           const isActive = pathname === item.href || (item.href === '/dashboard' && pathname === '/dashboard')
           return (
-            <Link
+            <LocalLink
               key={item.href}
               href={item.href}
               className={`flex flex-col items-center justify-center flex-1 h-full transition ${
@@ -62,7 +64,7 @@ export default function BottomTabNav() {
                   </span>
                 </div>
               )}
-            </Link>
+            </LocalLink>
           )
         })}
       </div>

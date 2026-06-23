@@ -12,7 +12,7 @@
         "@aws-sdk/client-s3": "^3.1044.0",
         "@aws-sdk/s3-request-presigner": "^3.1044.0",
         "@qwik.dev/partytown": "^0.14.0",
-        "@sentry/nextjs": "^10.51.0",
+        "@sentry/nextjs": "^10.59.0",
         "@supabase/ssr": "^0.5.2",
         "@supabase/supabase-js": "^2.47.10",
         "@vercel/analytics": "^2.0.1",

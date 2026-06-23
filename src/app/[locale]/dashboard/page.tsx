@@ -6,7 +6,7 @@ import { useAuth } from '@/components/AuthProvider'
 import dynamic from 'next/dynamic'
 import { getTasaBCVClient, actualizarTasaClient } from '@/lib/tasaBCV'
 import { Package, MessageSquare, CreditCard, Eye, Heart, LogOut, X, Zap, Star, ShieldCheck, BarChart3, Settings } from 'lucide-react'
-import Link from 'next/link'
+import LocalLink from '@/components/LocalLink'
 
 // Components
 import DashboardHeader from './components/DashboardHeader'
@@ -179,7 +179,7 @@ export default function DashboardPage() {
         <div className="text-center">
           <h2 className="text-2xl font-bold text-gray-800 mb-4">Inicia sesión</h2>
           <p className="text-gray-500 mb-6">Necesitas una cuenta para acceder al panel</p>
-          <Link href="/login" className="inline-block bg-brand-primary text-white px-8 py-3 rounded-lg font-bold hover:bg-brand-dark transition">Iniciar sesión</Link>
+          <LocalLink href="/login" className="inline-block bg-brand-primary text-white px-8 py-3 rounded-lg font-bold hover:bg-brand-dark transition">Iniciar sesión</LocalLink>
         </div>
       </div>
     )

@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import Link from 'next/link'
+import LocalLink from '@/components/LocalLink'
 import fs from 'fs'
 import path from 'path'
 import { Calendar, ArrowRight, Clock, TrendingUp } from 'lucide-react'
@@ -101,7 +101,7 @@ export default function BlogPage() {
           </div>
           <div className="grid md:grid-cols-2 gap-6">
             {featured.map(post => (
-              <Link key={post.slug} href={`/blog/${post.slug}`} className="group block bg-gradient-to-br from-brand-primary/5 to-brand-accent/5 rounded-2xl border-2 border-brand-accent/20 p-6 hover:border-brand-accent/40 transition shadow-sm hover:shadow-lg">
+              <LocalLink key={post.slug} href={`/blog/${post.slug}`} className="group block bg-gradient-to-br from-brand-primary/5 to-brand-accent/5 rounded-2xl border-2 border-brand-accent/20 p-6 hover:border-brand-accent/40 transition shadow-sm hover:shadow-lg">
                 <div className="flex items-center gap-2 mb-3">
                   <span className="text-sm">{categoryIcons[post.category] || '📝'}</span>
                   <span className="text-xs font-semibold text-brand-primary bg-brand-accent/20 px-2 py-0.5 rounded-full">{post.category}</span>
@@ -112,7 +112,7 @@ export default function BlogPage() {
                   <span className="flex items-center gap-1"><Calendar size={12} /> {post.date}</span>
                   <span className="flex items-center gap-1"><Clock size={12} /> {post.readTime}</span>
                 </div>
-              </Link>
+              </LocalLink>
             ))}
           </div>
         </section>
@@ -130,7 +130,7 @@ export default function BlogPage() {
         )}
         <div className="grid md:grid-cols-3 gap-6">
           {regular.map(post => (
-            <Link key={post.slug} href={`/blog/${post.slug}`} className="group block bg-white rounded-2xl border border-gray-100 p-6 hover:shadow-lg transition hover:border-brand-accent/30">
+            <LocalLink key={post.slug} href={`/blog/${post.slug}`} className="group block bg-white rounded-2xl border border-gray-100 p-6 hover:shadow-lg transition hover:border-brand-accent/30">
               <div className="flex items-center gap-2 mb-3">
                 <span className="text-sm">{categoryIcons[post.category] || '📝'}</span>
                 <span className="text-xs font-semibold text-gray-600 bg-gray-100 px-2 py-0.5 rounded-full">{post.category}</span>
@@ -144,7 +144,7 @@ export default function BlogPage() {
               <div className="mt-4 flex items-center gap-1 text-sm font-semibold text-brand-primary group-hover:translate-x-1 transition-transform">
                 Leer más <ArrowRight size={14} />
               </div>
-            </Link>
+            </LocalLink>
           ))}
         </div>
       </section>
@@ -154,9 +154,9 @@ export default function BlogPage() {
         <div className="max-w-4xl mx-auto px-4 text-center">
           <h2 className="text-2xl font-black text-white mb-3">¿Quieres vender algo? Publica gratis</h2>
           <p className="text-gray-400 mb-6">Sin comisiones, sin complicaciones. Tu producto visible para miles de compradores.</p>
-          <Link href="/publicar" className="inline-flex items-center gap-2 bg-brand-accent text-brand-primary px-8 py-3 rounded-xl font-bold text-lg hover:bg-accent/90 transition shadow-lg">
+          <LocalLink href="/publicar" className="inline-flex items-center gap-2 bg-brand-accent text-brand-primary px-8 py-3 rounded-xl font-bold text-lg hover:bg-accent/90 transition shadow-lg">
             Publicar ahora <ArrowRight size={20} />
-          </Link>
+          </LocalLink>
         </div>
       </section>
     </div>

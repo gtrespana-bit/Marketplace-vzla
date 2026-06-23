@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import Link from 'next/link'
+import LocalLink from '@/components/LocalLink'
 import Image from 'next/image'
 import { supabase } from '@/lib/supabase'
 import { MapPin, ChevronRight } from 'lucide-react'
@@ -34,7 +34,7 @@ export default function LandingCiudad({ slug, nombre }: Props) {
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
       <nav className="flex items-center gap-1.5 text-sm text-gray-500 mb-6">
-        <Link href="/" className="hover:text-brand-primary">Inicio</Link>
+        <LocalLink href="/" className="hover:text-brand-primary">Inicio</LocalLink>
         <ChevronRight size={14} />
         <span className="text-gray-800 font-medium">{nombre}</span>
       </nav>
@@ -49,7 +49,7 @@ export default function LandingCiudad({ slug, nombre }: Props) {
       {productos.length > 0 ? (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {productos.map((p: any) => (
-            <Link key={p.id} href={`/producto/${p.id}`} className="bg-white rounded-xl overflow-hidden shadow-sm border hover:shadow-lg transition group block">
+            <LocalLink key={p.id} href={`/producto/${p.id}`} className="bg-white rounded-xl overflow-hidden shadow-sm border hover:shadow-lg transition group block">
               <div className="aspect-square bg-gray-100 relative overflow-hidden">
                 {p.destacado && new Date(p.destacado_hasta) > new Date() && (
                   <div className="absolute top-2 left-2 z-10 bg-brand-accent text-brand-primary text-[10px] font-bold px-2 py-0.5 rounded-full">⭐ Destacado</div>
@@ -68,21 +68,21 @@ export default function LandingCiudad({ slug, nombre }: Props) {
                   <p className="text-xs text-gray-400 flex items-center gap-1"><MapPin size={10} />{p.ubicacion_ciudad}</p>
                 )}
               </div>
-            </Link>
+            </LocalLink>
           ))}
         </div>
       ) : (
         <div className="text-center py-16 text-gray-400">
           <p className="text-xl mb-2">No hay anuncios en {nombre} todavía</p>
           <p className="mb-4">¡Sé el primero en publicar!</p>
-          <Link href="/publicar" className="inline-block bg-brand-primary text-white px-6 py-3 rounded-lg font-bold">Publicar gratis</Link>
+          <LocalLink href="/publicar" className="inline-block bg-brand-primary text-white px-6 py-3 rounded-lg font-bold">Publicar gratis</LocalLink>
         </div>
       )}
 
       <div className="mt-8 flex justify-center">
-        <Link href={`/catalogo?ciudad=${nombre}`} className="inline-block bg-gray-100 text-gray-700 px-6 py-3 rounded-lg font-bold hover:bg-gray-200 transition">
+        <LocalLink href={`/catalogo?ciudad=${nombre}`} className="inline-block bg-gray-100 text-gray-700 px-6 py-3 rounded-lg font-bold hover:bg-gray-200 transition">
           Ver más productos en {nombre} →
-        </Link>
+        </LocalLink>
       </div>
     </div>
   )

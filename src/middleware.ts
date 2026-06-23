@@ -6,11 +6,14 @@ import { type NextRequest } from 'next/server'
 const nextIntlMiddleware = createMiddleware(routing)
 
 export default async function middleware(request: NextRequest) {
-  // 1. Refresh Supabase auth session (sets/updates cookies)
-  const supabaseResponse = await updateSession(request)
+  // 1. Apply next-intl routing (reads locale from URL path, sets cookie)
+  const intlResponse = nextIntlMiddleware(request)
 
-  // 2. Apply next-intl routing on top of the response with fresh cookies
-  return nextIntlMiddleware(request)
+  // 2. Refresh Supabase auth session on the intl response
+  //    so both next-intl and Supabase cookies are preserved
+  const supabaseResponse = await updateSession(request, intlResponse)
+
+  return supabaseResponse
 }
 
 export const config = {

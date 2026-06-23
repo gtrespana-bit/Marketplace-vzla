@@ -1,8 +1,9 @@
 'use client'
 
-import Link from 'next/link'
+import LocalLink from '@/components/LocalLink'
 import { Search, ChevronRight, XCircle, Loader2 } from 'lucide-react'
-import { useSearchParams, usePathname, useRouter } from 'next/navigation'
+import { useSearchParams, useRouter } from 'next/navigation'
+import { usePathname } from 'next/navigation'
 import { useEffect, useState, useCallback } from 'react'
 import Image from 'next/image'
 import { supabase } from '@/lib/supabase'
@@ -42,7 +43,7 @@ function ProductCard({ p }: { p: Producto }) {
   const imgUrl = p.imagen_url || getPlaceholderImage(p.titulo)
 
   return (
-    <Link
+    <LocalLink
       href={`/producto/${p.id}`}
       className={`bg-white rounded-xl overflow-hidden transition-all duration-200 group block border
         ${isPromoted
@@ -100,7 +101,7 @@ function ProductCard({ p }: { p: Producto }) {
             : p.estado}
         </p>
       </div>
-    </Link>
+    </LocalLink>
   )
 }
 
@@ -224,7 +225,7 @@ export default function BuscarClient() {
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
       <nav className="flex items-center gap-2 text-sm text-gray-500 mb-6 flex-wrap">
-        <Link href="/" className="hover:text-brand-primary">Inicio</Link>
+        <LocalLink href="/" className="hover:text-brand-primary">Inicio</LocalLink>
         <ChevronRight size={14} />
         <span className="text-gray-800 font-medium">Buscar</span>
         {query && (<><ChevronRight size={14} /><span className="text-gray-900 font-semibold">&ldquo;{query}&rdquo;</span></>)}

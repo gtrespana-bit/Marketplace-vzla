@@ -1,38 +1,47 @@
 'use client'
 
-import Link from 'next/link'
+import LocalLink from '@/components/LocalLink'
 import Image from 'next/image'
 import { useState, useEffect } from 'react'
-import { Menu, X, Search, PlusCircle, MessageCircle, Zap, ChevronLeft } from 'lucide-react'
+import { usePathname } from 'next/navigation'
+import { Menu, X, Search, PlusCircle, MessageCircle, Zap, ChevronLeft, Globe } from 'lucide-react'
 import { useAuth } from '@/components/AuthProvider'
 import Avatar from '@/components/Avatar'
+import { useBridge } from '@/components/IntlBridge'
 import { supabase } from '@/lib/supabase'
-
-// Las categorías están ordenadas. "Otros" siempre al final, "Ver Todo" siempre primero.
-const categorias = [
-  { id: 'ver-todo', nombre: 'Ver Todo', icon: '🔍' },
-  { id: 'vehiculos', nombre: 'Vehículos', icon: '🚗' },
-  { id: 'tecnologia', nombre: 'Tecnología', icon: '💻' },
-  { id: 'moda', nombre: 'Moda', icon: '👗' },
-  { id: 'hogar', nombre: 'Hogar', icon: '🏠' },
-  { id: 'herramientas', nombre: 'Herramientas', icon: '🔧' },
-  { id: 'materiales', nombre: 'Materiales', icon: '🧱' },
-  { id: 'repuestos', nombre: 'Repuestos', icon: '⚙️' },
-  { id: 'otros', nombre: 'Otros', icon: '📦' },
-]
 
 export function Header() {
   const { user, loading } = useAuth()
+  const { t } = useBridge()
   const [mobileOpen, setMobileOpen] = useState(false)
   const [creditoBalance, setCreditoBalance] = useState<number | null>(null)
   const [unreadCount, setUnreadCount] = useState(0)
   const creditoChecked = typeof creditoBalance === 'number'
   const [isPWA, setIsPWA] = useState(false)
 
+  // Locale detection from Next.js pathname (reactive to client-side navigation)
+  const pathname = usePathname()
+  const isEn = pathname.startsWith('/en')
+  const altLocaleHref = isEn
+    ? (pathname.replace(/^\/en(?=\/|$)/, '') || '/')
+    : `/en${pathname === '/' ? '' : pathname}`
+
+  // Categories with translation keys
+  const categorias = [
+    { id: 'ver-todo', nombre: t('header.allCategories'), icon: '🔍' },
+    { id: 'vehiculos', nombre: t('header.categories.vehiculos'), icon: '🚗' },
+    { id: 'tecnologia', nombre: t('header.categories.tecnologia'), icon: '💻' },
+    { id: 'moda', nombre: t('header.categories.moda'), icon: '👗' },
+    { id: 'hogar', nombre: t('header.categories.hogar'), icon: '🏠' },
+    { id: 'herramientas', nombre: t('header.categories.herramientas'), icon: '🔧' },
+    { id: 'materiales', nombre: t('header.categories.materiales'), icon: '🧱' },
+    { id: 'repuestos', nombre: t('header.categories.repuestos'), icon: '⚙️' },
+    { id: 'otros', nombre: t('header.categories.otros'), icon: '📦' },
+  ]
+
   useEffect(() => {
     if (typeof window === 'undefined') return
     setIsPWA(window.matchMedia('(display-mode: standalone)').matches)
-    // iOS también puede usar standalone sin display-mode
     if ('standalone' in window.navigator && !(window.navigator as any).standalone === false) {
       setIsPWA(true)
     }
@@ -71,7 +80,6 @@ export function Header() {
     }
     fetchUnread()
 
-    // Subscribe to real-time messages
     const channel = supabase
       .channel('header-unread')
       .on(
@@ -81,11 +89,9 @@ export function Header() {
       )
       .subscribe()
 
-    // Same-tab signal desde ChatPage cuando marca mensajes como leidos
     const bc = new BroadcastChannel('vendete_unread_sync')
     bc.onmessage = () => fetchUnread()
 
-    // Fallback: refrescada cada 30s por si acaso
     const interval = setInterval(fetchUnread, 30000)
 
     return () => {
@@ -110,7 +116,6 @@ export function Header() {
     </header>
   )
 
-  // Badge "1 gratis" solo si no está logueado
   const showCreditoBadge = !user
 
   return (
@@ -119,39 +124,39 @@ export function Header() {
       <header className="bg-gradient-to-r from-brand-dark via-brand-primary to-brand-primary text-white relative sticky top-0 z-50 shadow-lg">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex items-center justify-between h-14">
-            {/* Botón atrás — solo PWA */}
+            {/* Back button — PWA only */}
             {isPWA && (
               <button 
                 onClick={() => window.history.back()} 
-                aria-label="Volver atrás"
+                aria-label={t('header.backAria')}
                 className="p-1 hover:bg-white/10 rounded-lg transition text-white/80"
               >
                 <ChevronLeft size={22} />
               </button>
             )}
             {/* Logo */}
-            <Link href="/" className="flex items-center gap-3 flex-shrink-0">
+            <LocalLink href="/" className="flex items-center gap-3 flex-shrink-0">
               <Image src="/logo-vendet.webp" alt="VendeT" width={44} height={44} className="h-11 w-auto drop-shadow-[0_0_6px_rgba(255,255,255,0.5)] bg-white/10 p-0.5 rounded-lg backdrop-blur" />
               <span className="hidden sm:block">
                 <span className="font-black text-xl tracking-tight">
                   <span className="text-yellow-400">Vende</span><span className="text-white">T</span><span className="text-yellow-400 font-bold text-base ml-1">-Venezuela</span>
                 </span>
               </span>
-            </Link>
+            </LocalLink>
 
             {/* Search (desktop) */}
             <form action="/buscar" method="GET" className="hidden md:flex flex-1 max-w-xl mx-8 relative">
-              <label htmlFor="header-search" className="sr-only">Buscar productos</label>
+              <label htmlFor="header-search" className="sr-only">{t('header.searchAria')}</label>
               <input
                 id="header-search"
                 type="text"
                 name="q"
-                placeholder="¿Qué estás buscando?"
+                placeholder={t('header.searchPlaceholder')}
                 className="w-full py-2 px-4 pr-12 rounded-lg text-gray-800 bg-white focus:outline-none focus:ring-2 focus:ring-brand-accent"
               />
               <button 
                 type="submit" 
-                aria-label="Buscar"
+                aria-label={t('header.searchAria')}
                 className="absolute right-2 top-1/2 -translate-y-1/2 bg-brand-accent p-1.5 rounded-full hover:bg-accent/90 transition"
               >
                 <Search size={18} className="text-brand-primary" />
@@ -160,36 +165,46 @@ export function Header() {
 
             {/* Actions (desktop) */}
             <div className="flex items-center gap-2">
-              {/* Créditos */}
-              <Link href="/creditos" className="relative hidden md:flex items-center gap-1.5 bg-white/10 hover:bg-white/20 text-white px-3 py-2 rounded-lg text-sm font-medium transition" title="Comprar créditos">
+              {/* Language toggle */}
+              <LocalLink
+                href={altLocaleHref}
+                className="hidden md:flex items-center gap-1 px-2 py-1.5 text-sm hover:bg-white/10 rounded-lg transition"
+                title={isEn ? 'Español' : 'English'}
+              >
+                <Globe size={16} />
+                <span className="text-xs font-medium">{isEn ? 'ES' : 'EN'}</span>
+              </LocalLink>
+
+              {/* Credits */}
+              <LocalLink href="/creditos" className="relative hidden md:flex items-center gap-1.5 bg-white/10 hover:bg-white/20 text-white px-3 py-2 rounded-lg text-sm font-medium transition" title={t('header.creditsTitle')}>
                 <Zap size={16} className="text-brand-accent" />
-                <span className="hidden lg:inline">Créditos</span>
+                <span className="hidden lg:inline">{t('header.credits')}</span>
                 {showCreditoBadge && (
-                  <span className="absolute -top-1 -right-1 bg-green-400 text-brand-primary text-[9px] font-black px-1 rounded-full">1 gratis</span>
+                  <span className="absolute -top-1 -right-1 bg-green-400 text-brand-primary text-[9px] font-black px-1 rounded-full">{t('header.freeBadge')}</span>
                 )}
                 {creditoChecked && creditoBalance !== null && creditoBalance > 0 && (
                   <span className="absolute -top-1 -right-1 bg-brand-accent text-brand-primary text-[9px] font-black px-1.5 py-0.5 rounded-full min-w-[16px] text-center">{creditoBalance}</span>
                 )}
-              </Link>
-              <Link 
+              </LocalLink>
+              <LocalLink 
                 href="/creditos" 
-                aria-label="Créditos"
+                aria-label={t('header.credits')}
                 className="md:hidden p-2 hover:bg-white/10 rounded-lg transition relative" 
-                title="Créditos"
+                title={t('header.credits')}
               >
                 <Zap size={20} className="text-brand-accent" />
                 {showCreditoBadge && (
                   <span className="absolute top-0 right-0 bg-green-400 text-brand-primary text-[9px] font-black w-4 h-4 flex items-center justify-center rounded-full">1</span>
                 )}
-              </Link>
+              </LocalLink>
 
               {!user ? (
                 <>
-                  <Link href="/login" className="hidden md:inline px-3 py-2 text-sm font-medium hover:text-brand-accent transition">Iniciar sesión</Link>
-                  <Link href="/register" className="hidden md:inline bg-brand-accent text-brand-primary px-4 py-2 rounded-lg text-sm font-bold hover:bg-accent/90 transition">Regístrate</Link>
+                  <LocalLink href="/login" className="hidden md:inline px-3 py-2 text-sm font-medium hover:text-brand-accent transition">{t('header.signIn')}</LocalLink>
+                  <LocalLink href="/register" className="hidden md:inline bg-brand-accent text-brand-primary px-4 py-2 rounded-lg text-sm font-bold hover:bg-accent/90 transition">{t('header.signUp')}</LocalLink>
                   {!isPWA && (
                     <button 
-                      aria-label={mobileOpen ? 'Cerrar menú' : 'Abrir menú'}
+                      aria-label={mobileOpen ? t('header.closeMenu') : t('header.openMenu')}
                       className="md:hidden p-2 hover:bg-white/10 rounded-lg transition" 
                       onClick={() => setMobileOpen(!mobileOpen)}
                     >
@@ -199,31 +214,31 @@ export function Header() {
                 </>
               ) : (
                 <>
-                  <Link href="/publicar" className="hidden md:flex items-center gap-1 bg-brand-accent text-brand-primary px-3 py-2 rounded-lg text-sm font-bold hover:bg-accent/90 transition">
-                    <PlusCircle size={16} /> Publicar
-                  </Link>
-                  <Link 
+                  <LocalLink href="/publicar" className="hidden md:flex items-center gap-1 bg-brand-accent text-brand-primary px-3 py-2 rounded-lg text-sm font-bold hover:bg-accent/90 transition">
+                    <PlusCircle size={16} /> {t('header.publish')}
+                  </LocalLink>
+                  <LocalLink 
                     href="/chat" 
-                    aria-label={`Mensajes${unreadCount > 0 ? ` - ${unreadCount} sin leer` : ''}`}
+                    aria-label={`${t('header.messages')}${unreadCount > 0 ? ` - ${unreadCount} unread` : ''}`}
                     className="relative p-2 hover:bg-white/10 rounded-lg transition" 
-                    title="Mensajes"
+                    title={t('header.messages')}
                   >
                     <MessageCircle size={20} />
                     {unreadCount > 0 && (
                       <span className="absolute top-0.5 right-0.5 bg-brand-dark text-white text-[10px] font-bold w-4 h-4 flex items-center justify-center rounded-full">{unreadCount > 9 ? '9+' : unreadCount}</span>
                     )}
-                  </Link>
-                  <Link 
+                  </LocalLink>
+                  <LocalLink 
                     href="/dashboard" 
-                    aria-label="Mi panel"
+                    aria-label={t('header.myPanel')}
                     className="hidden sm:block p-1 hover:bg-white/10 rounded-lg transition" 
-                    title="Mi panel"
+                    title={t('header.myPanel')}
                   >
                     <Avatar nombre={user?.user_metadata?.nombre || user?.email || 'U'} fotoUrl={user?.user_metadata?.foto_perfil_url || null} size="sm" />
-                  </Link>
+                  </LocalLink>
                   {!isPWA && (
                     <button 
-                      aria-label={mobileOpen ? 'Cerrar menú' : 'Abrir menú'}
+                      aria-label={mobileOpen ? t('header.closeMenu') : t('header.openMenu')}
                       className="md:hidden p-2 hover:bg-white/10 rounded-lg transition" 
                       onClick={() => setMobileOpen(!mobileOpen)}
                     >
@@ -235,47 +250,47 @@ export function Header() {
             </div>
           </div>
 
-          {/* Mobile menu — solo navegador móvil, NO en PWA */}
+          {/* Mobile menu — mobile browser only, NOT in PWA */}
           {!isPWA && mobileOpen && (
             <div className="md:hidden pb-4 animate-fadeIn">
               <form action="/buscar" method="GET" className="mb-3">
-                <label htmlFor="mobile-search" className="sr-only">Buscar productos</label>
+                <label htmlFor="mobile-search" className="sr-only">{t('header.searchAria')}</label>
                 <input 
                   id="mobile-search"
                   type="text" 
                   name="q" 
-                  placeholder="¿Qué estás buscando?" 
+                  placeholder={t('header.searchPlaceholder')} 
                   className="w-full py-2.5 px-4 rounded-lg text-gray-800 bg-white" 
                 />
               </form>
               <nav className="flex flex-col gap-1">
                 {!user ? (
                   <>
-                    <Link href="/login" onClick={() => setMobileOpen(false)} className="px-3 py-2 rounded-lg hover:bg-white/10 transition">Iniciar sesión</Link>
-                    <Link href="/register" onClick={() => setMobileOpen(false)} className="px-3 py-2 rounded-lg bg-brand-accent text-brand-primary font-bold text-center transition">Regístrate gratis</Link>
+                    <LocalLink href="/login" onClick={() => setMobileOpen(false)} className="px-3 py-2 rounded-lg hover:bg-white/10 transition">{t('header.signIn')}</LocalLink>
+                    <LocalLink href="/register" onClick={() => setMobileOpen(false)} className="px-3 py-2 rounded-lg bg-brand-accent text-brand-primary font-bold text-center transition">{t('header.signUpFree')}</LocalLink>
                   </>
                 ) : (
                   <>
-                    <Link href="/publicar" onClick={() => setMobileOpen(false)} className="px-3 py-2 rounded-lg bg-brand-accent text-brand-primary font-bold text-center transition">📢 Publicar algo</Link>
-                    <Link href="/chat" onClick={() => setMobileOpen(false)} className="px-3 py-2 rounded-lg hover:bg-white/10 transition">💬 Mensajes{unreadCount > 0 ? ` (${unreadCount} sin leer)` : ''}</Link>
-                    <Link href="/dashboard" onClick={() => setMobileOpen(false)} className="px-3 py-2 rounded-lg hover:bg-white/10 transition">👤 Mi Panel</Link>
-                    <Link href="/creditos" onClick={() => setMobileOpen(false)} className="px-3 py-2 rounded-lg hover:bg-white/10 transition">⚡ Créditos{creditoChecked && creditoBalance !== null && creditoBalance > 0 ? ` — ${creditoBalance} disponibles` : ''}</Link>
+                    <LocalLink href="/publicar" onClick={() => setMobileOpen(false)} className="px-3 py-2 rounded-lg bg-brand-accent text-brand-primary font-bold text-center transition">📢 {t('header.publishSomething')}</LocalLink>
+                    <LocalLink href="/chat" onClick={() => setMobileOpen(false)} className="px-3 py-2 rounded-lg hover:bg-white/10 transition">💬 {t('header.messages')}{unreadCount > 0 ? t('header.messagesWithCount').replace('{count}', String(unreadCount)) : ''}</LocalLink>
+                    <LocalLink href="/dashboard" onClick={() => setMobileOpen(false)} className="px-3 py-2 rounded-lg hover:bg-white/10 transition">👤 {t('header.myPanel')}</LocalLink>
+                    <LocalLink href="/creditos" onClick={() => setMobileOpen(false)} className="px-3 py-2 rounded-lg hover:bg-white/10 transition">⚡ {t('header.credits')}{creditoChecked && creditoBalance !== null && creditoBalance > 0 ? t('header.creditsAvailable').replace('{count}', String(creditoBalance)) : ''}</LocalLink>
                   </>
                 )}
-                <Link href="/blog" onClick={() => setMobileOpen(false)} className="px-3 py-2 rounded-lg hover:bg-white/10 transition">📝 Blog</Link>
-                <Link href="/catalogo" onClick={() => setMobileOpen(false)} className="px-3 py-2 rounded-lg hover:bg-white/10 transition">📦 Ver catálogo</Link>
+                <LocalLink href="/blog" onClick={() => setMobileOpen(false)} className="px-3 py-2 rounded-lg hover:bg-white/10 transition">📝 {t('header.blog')}</LocalLink>
+                <LocalLink href="/catalogo" onClick={() => setMobileOpen(false)} className="px-3 py-2 rounded-lg hover:bg-white/10 transition">{t('header.viewCatalog')}</LocalLink>
               </nav>
             </div>
           )}
         </div>
       </header>
 
-      {/* ============ SUB-HEADER: CATEGORÍAS ============ */}
+      {/* ============ SUB-HEADER: CATEGORIES ============ */}
       <div className="hidden md:block bg-white border-b border-gray-200 shadow-sm sticky top-14 z-40">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex items-center gap-1 h-11 overflow-x-auto hide-scrollbar">
             {categorias.map((cat) => (
-              <Link
+              <LocalLink
                 key={cat.id}
                 href={cat.id === 'ver-todo' ? '/catalogo' : `/catalogo?categoria=${cat.id}`}
                 className={`flex items-center gap-1.5 px-3 py-2 text-sm rounded-lg transition font-medium whitespace-nowrap ${
@@ -286,7 +301,7 @@ export function Header() {
               >
                 <span className="text-base">{cat.icon}</span>
                 {cat.nombre}
-              </Link>
+              </LocalLink>
             ))}
           </div>
         </div>

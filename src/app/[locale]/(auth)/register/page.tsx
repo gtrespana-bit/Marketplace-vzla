@@ -1,13 +1,15 @@
 'use client'
 
 import { useState } from 'react'
-import Link from 'next/link'
+import LocalLink from '@/components/LocalLink'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { AlertCircle } from 'lucide-react'
 import { ESTADOS, CIUDADES_POR_ESTADO } from '@/lib/ubicaciones'
+import { useTranslations } from 'next-intl'
 
 export default function RegisterPage() {
+  const t = useTranslations('auth')
   const router = useRouter()
   const [nombre, setNombre] = useState('')
   const [email, setEmail] = useState('')
@@ -26,7 +28,7 @@ export default function RegisterPage() {
     setError('')
 
     if (password !== repeatPassword) {
-      setError('Las contraseñas no coinciden')
+      setError(t('register.password_mismatch'))
       return
     }
     if (password.length < 8) {
@@ -65,11 +67,11 @@ export default function RegisterPage() {
     <div className="min-h-[80vh] flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <Link href="/" className="text-brand-primary font-black text-3xl">
+          <LocalLink href="/" className="text-brand-primary font-black text-3xl">
             Vende<span className="text-brand-accent">T</span><span className="text-sm ml-1 text-gray-500">-Venezuela</span>
-          </Link>
-          <h1 className="text-2xl font-bold text-gray-800 mt-4">Crea tu cuenta</h1>
-          <p className="text-gray-500 mt-1">Únete gratis. Empieza a vender hoy.</p>
+          </LocalLink>
+          <h1 className="text-2xl font-bold text-gray-800 mt-4">{t('register.title')}</h1>
+          <p className="text-gray-500 mt-1">{t('register.subtitle')}</p>
 
           {/* Banner: credito gratis */}
           <div className="mt-4 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl p-4 flex items-center gap-3 animate-fadeIn">
@@ -91,7 +93,7 @@ export default function RegisterPage() {
 
           <form onSubmit={handleRegister} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Nombre completo</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('register.name')}</label>
               <input
                 type="text"
                 value={nombre}
@@ -103,7 +105,7 @@ export default function RegisterPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Email</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('register.email')}</label>
               <input
                 type="email"
                 value={email}
@@ -115,7 +117,7 @@ export default function RegisterPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Teléfono (opcional)</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('register.phone')}</label>
               <input
                 type="tel"
                 value={telefono}
@@ -127,7 +129,7 @@ export default function RegisterPage() {
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Estado</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('register.state')}</label>
                 <select
                   value={estado}
                   onChange={(e) => { setEstado(e.target.value); setCiudad('') }}
@@ -141,7 +143,7 @@ export default function RegisterPage() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Municipio</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('register.city')}</label>
                 <select
                   value={ciudad}
                   onChange={(e) => setCiudad(e.target.value)}
@@ -157,7 +159,7 @@ export default function RegisterPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Contraseña</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('register.password')}</label>
               <input
                 type="password"
                 value={password}
@@ -169,7 +171,7 @@ export default function RegisterPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Repetir contraseña</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('register.repeat_password')}</label>
               <input
                 type="password"
                 value={repeatPassword}
@@ -185,15 +187,15 @@ export default function RegisterPage() {
               disabled={loading}
               className="w-full bg-brand-primary text-white py-3 rounded-lg font-bold hover:bg-brand-dark transition disabled:opacity-50"
             >
-              {loading ? 'Creando cuenta...' : 'Crear cuenta gratis'}
+              {loading ? t('register.creating') : t('register.submit')}
             </button>
           </form>
 
           <p className="text-center text-sm text-gray-500 mt-6">
-            ¿Ya tienes cuenta?{' '}
-            <Link href="/login" className="text-brand-primary font-semibold hover:underline">
-              Inicia sesión
-            </Link>
+            {t('register.has_account')}{' '}
+            <LocalLink href="/login" className="text-brand-primary font-semibold hover:underline">
+              {t('register.login')}
+            </LocalLink>
           </p>
         </div>
       </div>
