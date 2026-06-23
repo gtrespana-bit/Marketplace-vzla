@@ -1,14 +1,11 @@
 'use client'
 
-import { useTranslations } from 'next-intl'
-
 /**
  * Badge de Vendedor Verificado
  * - Se muestra como un icono con el texto "Verificado"
  * - Color verde para generar confianza visual inmediata
  */
 export default function BadgeVerificado({ size = 'sm' }: { size?: 'sm' | 'md' | 'lg' }) {
-  const t = useTranslations('dashboard')
   const sizes = {
     sm: { icon: 14, text: 'text-xs', gap: 'gap-1' },
     md: { icon: 16, text: 'text-sm', gap: 'gap-1.5' },
@@ -19,7 +16,7 @@ export default function BadgeVerificado({ size = 'sm' }: { size?: 'sm' | 'md' | 
   return (
     <span
       className={`inline-flex items-center ${s.gap} ${s.text} font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full`}
-      title={t('verifiedTitle')}
+      title="Vendedor Verificado"
     >
       <svg
         width={s.icon}
@@ -35,7 +32,7 @@ export default function BadgeVerificado({ size = 'sm' }: { size?: 'sm' | 'md' | 
         <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
         <polyline points="22 4 12 14.01 9 11.01" />
       </svg>
-      <span>{t('verified')}</span>
+      <span>Verificado</span>
     </span>
   )
 }

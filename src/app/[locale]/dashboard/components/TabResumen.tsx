@@ -3,10 +3,8 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import { TrendingUp, Eye, MessageCircle, BarChart3 } from 'lucide-react'
-import { useTranslations } from 'next-intl'
 
 export default function TabResumen({ userId }: { userId: string }) {
-  const t = useTranslations('dashboard')
   const [stats, setStats] = useState<any>(null)
 
   useEffect(() => {
@@ -75,15 +73,15 @@ export default function TabResumen({ userId }: { userId: string }) {
   }
 
   const tarjetas = [
-    { label: t('activeListings'), value: stats.activos, icon: BarChart3, color: 'text-brand-primary', bg: 'bg-brand-primary/10' },
-    { label: t('totalVisits'), value: stats.totalVisitas.toLocaleString(), icon: Eye, color: 'text-brand-primary', bg: 'bg-brand-primary/10' },
-    { label: t('unreadMessages'), value: stats.mensajesNoLeidos, icon: MessageCircle, color: stats.mensajesNoLeidos > 0 ? 'text-red-500' : 'text-gray-400', bg: stats.mensajesNoLeidos > 0 ? 'bg-red-50' : 'bg-gray-50' },
-    { label: t('savedFavorites'), value: stats.favoritos || 0, icon: TrendingUp, color: 'text-brand-accent', bg: 'bg-brand-accent/10' },
+    { label: 'Publicaciones activas', value: stats.activos, icon: BarChart3, color: 'text-brand-primary', bg: 'bg-brand-primary/10' },
+    { label: 'Visitas totales', value: stats.totalVisitas.toLocaleString(), icon: Eye, color: 'text-brand-primary', bg: 'bg-brand-primary/10' },
+    { label: 'Mensajes sin leer', value: stats.mensajesNoLeidos, icon: MessageCircle, color: stats.mensajesNoLeidos > 0 ? 'text-red-500' : 'text-gray-400', bg: stats.mensajesNoLeidos > 0 ? 'bg-red-50' : 'bg-gray-50' },
+    { label: 'Guardados en favoritos', value: stats.favoritos || 0, icon: TrendingUp, color: 'text-brand-accent', bg: 'bg-brand-accent/10' },
   ]
 
   return (
     <div>
-      <h3 className="text-lg font-bold text-gray-900 mb-4">{t('summaryTitle')}</h3>
+      <h3 className="text-lg font-bold text-gray-900 mb-4">📊 Tu resumen</h3>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         {tarjetas.map((t) => {
           const Icon = t.icon
@@ -103,7 +101,7 @@ export default function TabResumen({ userId }: { userId: string }) {
         <div className="mt-3 bg-green-50 border border-green-200 rounded-xl px-4 py-3 flex items-center gap-2">
           <span className="text-green-600 text-lg">🎉</span>
           <p className="text-sm text-green-700 font-medium">
-            <strong>{stats.vendidos}</strong> {stats.vendidos === 1 ? 'listing sold' : 'listings sold'}
+            <strong>{stats.vendidos}</strong> publicacion{stats.vendidos > 1 ? 'es' : ''} vendida{stats.vendidos > 1 ? 's' : ''}
           </p>
         </div>
       )}

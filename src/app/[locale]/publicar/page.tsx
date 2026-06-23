@@ -15,41 +15,7 @@ import Image from 'next/image'
 
 const currentYear = new Date().getFullYear()
 const years = Array.from({ length: 30 }, (_, i) => String(currentYear - i))
-// Condition keys for translation (values stored in DB are Spanish)
-const conditionKeys = [
-  { value: 'Nuevo', key: 'conditionNew' },
-  { value: 'Como nuevo', key: 'conditionLikeNew' },
-  { value: 'Bueno', key: 'conditionGood' },
-  { value: 'Usado', key: 'conditionUsed' },
-]
-
-// Map Spanish subcategory labels to translation keys
-const subcategoryTranslationKeys: Record<string, string> = {
-  // Vehículos
-  'Carros': 'cars', 'Camionetas/SUV': 'suvs', 'Motos': 'motorcycles', 'Camiones': 'trucks',
-  'Furgonetas': 'vans', 'Autobuses/Buses': 'buses', 'Repuestos y Accesorios': 'partsAccessories',
-  // Tecnología
-  'Celulares': 'phones', 'Laptops': 'laptops', 'Tablets': 'tablets', 'PC de Escritorio': 'desktops',
-  'Monitores': 'monitors', 'Consolas': 'consoles', 'Audio': 'audio', 'Cámaras': 'cameras',
-  'Impresoras': 'printers', 'Redes': 'networking', 'Accesorios y Periféricos': 'peripherals',
-  'Smartwatches': 'smartwatches',
-  // Moda
-  'Ropa Hombre': 'menClothing', 'Ropa Mujer': 'womenClothing', 'Calzado Hombre': 'menShoes',
-  'Calzado Mujer': 'womenShoes', 'Relojes': 'watches', 'Bolsos y Mochilas': 'bagsBackpacks',
-  'Accesorios': 'accessories', 'Ropa Niños': 'kidsClothing', 'Joyería': 'jewelry',
-  // Hogar
-  'Muebles': 'furniture', 'Electrodomésticos': 'appliances', 'Decoración': 'decor',
-  'Cocina': 'kitchen', 'Jardín': 'garden', 'Iluminación': 'lighting', 'Baño': 'bathroom',
-  // Herramientas
-  'Herramientas Eléctricas': 'powerTools', 'Herramientas Manuales': 'handTools',
-  'Equipo de Construcción': 'construction', 'Generadores': 'generators', 'Soldadoras': 'welders',
-  'Compresores': 'compressors', 'Plomería': 'plumbing',
-  // Otros
-  'Deportes': 'sports', 'Juguetes': 'toys', 'Instrumentos Musicales': 'instruments',
-  'Libros': 'books', 'Mascotas': 'pets', 'Bebés': 'babies', 'Oficina': 'office',
-  'Salud y Belleza': 'healthBeauty', 'Antigüedades': 'antiques', 'Coleccionables': 'collectibles',
-  'Boletos': 'tickets', 'Servicios': 'services', 'Otros': 'others',
-}
+const estadosProducto = ['Nuevo', 'Como nuevo', 'Bueno', 'Usado']
 
 interface ImageFile {
   file: File
@@ -61,7 +27,6 @@ interface ImageFile {
 
 export default function PublicarPage() {
   const t = useTranslations('publicar')
-  const tc = useTranslations('catalog')
   const { session, user, loading: authLoading } = useAuth()
   const router = useRouter()
 
@@ -430,24 +395,12 @@ export default function PublicarPage() {
             <div>
               <label className="block text-sm font-semibold text-gray-900 mb-1.5">{t('category')}</label>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                {Object.entries(categoriasData).map(([key, cfg]) => {
-                  // Use catalog.categories translation if available, fallback to Spanish label
-                  let displayLabel = cfg.label
-                  try {
-                    const translated = tc('categories.' + key)
-                    if (translated && !translated.startsWith('categories.')) {
-                      displayLabel = translated
-                    }
-                  } catch (e) {
-                    // Key doesn't exist, use Spanish label
-                  }
-                  return (
+                {Object.entries(categoriasData).map(([key, cfg]) => (
                   <button key={key} onClick={() => handleCatChange(key)} className={`p-4 rounded-xl border-2 text-center transition ${categoria === key ? 'border-brand-primary bg-blue-50' : 'border-gray-200 hover:border-brand-accent'}`}>
                     <span className="text-3xl block mb-2">{cfg.icon}</span>
-                    <span className="text-sm font-bold text-gray-800">{displayLabel}</span>
+                    <span className="text-sm font-bold text-gray-800">{cfg.label}</span>
                   </button>
-                  )
-                })}
+                ))}
               </div>
             </div>
 
@@ -457,11 +410,7 @@ export default function PublicarPage() {
                   <label className="block text-sm font-semibold text-gray-900 mb-1.5">{t('type')}</label>
                   <select value={subcategoria} onChange={e => handleSubChange(e.target.value)} className="w-full border border-gray-300 rounded-lg px-4 py-3 bg-white text-gray-800">
                     <option value="">{t('selectType')}</option>
-                    {cat.subs.map(s => {
-                      const transKey = subcategoryTranslationKeys[s.label]
-                      const displayLabel = transKey ? tc('subcategories.' + transKey) : s.label
-                      return <option key={s.label} value={s.label}>{s.icon} {displayLabel}</option>
-                    })}
+                    {cat.subs.map(s => <option key={s.label} value={s.label}>{s.icon} {s.label}</option>)}
                   </select>
                 </div>
                 {subcategoria && sub?.marcas.length && sub.marcas.length > 0 && (
@@ -545,8 +494,8 @@ export default function PublicarPage() {
             <div>
               <label className="block text-sm font-semibold text-gray-900 mb-1.5">{t('condition')}</label>
               <div className="grid grid-cols-2 gap-2">
-                {conditionKeys.map(c => (
-                  <button key={c.value} onClick={() => setEstadoProd(c.value)} className={`px-4 py-3 rounded-lg text-sm font-medium border transition ${estadoProd === c.value ? 'bg-brand-primary text-white border-brand-primary' : 'bg-white text-gray-700 border-gray-200 hover:border-brand-accent'}`}>{t(c.key)}</button>
+                {estadosProducto.map(e => (
+                  <button key={e} onClick={() => setEstadoProd(e)} className={`px-4 py-3 rounded-lg text-sm font-medium border transition ${estadoProd === e ? 'bg-brand-primary text-white border-brand-primary' : 'bg-white text-gray-700 border-gray-200 hover:border-brand-accent'}`}>{e}</button>
                 ))}
               </div>
             </div>
