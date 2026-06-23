@@ -7,6 +7,7 @@ import { useAuth } from '@/components/AuthProvider'
 import Avatar from '@/components/Avatar'
 import { Send, ArrowLeft, Search, User, Trash2, ExternalLink, Star } from 'lucide-react'
 import LocalLink from '@/components/LocalLink'
+import { useTranslations } from 'next-intl'
 import { emailMensajeRecibido } from '@/lib/server-email'
 
 type Conversacion = {
@@ -58,6 +59,7 @@ function slugProducto(titulo: string, id: string): string {
 }
 
 export default function ChatPageClient() {
+  const t = useTranslations('chat')
   const { user, loading: authLoading } = useAuth()
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -345,7 +347,7 @@ export default function ChatPageClient() {
   // ─── Eliminar conversacion ───
   const eliminarConv = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation()
-    if (!confirm('¿Eliminar esta conversación?')) return
+    if (!confirm(t('deleteConversation'))) return
     await supabase.from('mensajes').delete().eq('conversacion_id', id)
     await supabase.from('conversaciones').delete().eq('id', id)
     setConversaciones(prev => prev.filter(c => c.id !== id))
@@ -378,7 +380,7 @@ export default function ChatPageClient() {
       const json = await resp.json()
       if (!resp.ok) {
         console.error('Error enviando reseña:', json)
-        alert('Error al enviar reseña: ' + (json.error || json._error || 'desconocido'))
+        alert(t('reviewError') + (json.error || json._error || ''))
         setEnviandoResena(false)
         return
       }
@@ -388,7 +390,7 @@ export default function ChatPageClient() {
       setRatingResena(5)
     } catch (e) {
       console.error('Error enviando reseña:', e)
-      alert('Error de conexión')
+      alert(t('connectionError'))
     }
     setEnviandoResena(false)
   }
@@ -543,7 +545,7 @@ export default function ChatPageClient() {
                             rel="noopener noreferrer"
                             className="text-[11px] text-blue-500 mt-0.5 inline-flex items-center gap-0.5 hover:underline max-w-[90%] truncate"
                             onClick={(e) => e.stopPropagation()}
-                            title="Ver producto (nueva pestaña)"
+                            title={t('viewProductNewTab')}
                           >
                             📦 {c.producto_titulo}
                           </a>
@@ -642,7 +644,7 @@ export default function ChatPageClient() {
                     value={texto}
                     onChange={e => setTexto(e.target.value)}
                     onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); enviarMensaje() } }}
-                    placeholder="Escribe un mensaje..."
+                    placeholder={t('typeMessage')}
                     className="flex-1 border rounded-full px-4 py-2.5 text-sm outline-none focus:border-brand-accent transition disabled:opacity-50"
                     disabled={enviando}
                   />
@@ -680,7 +682,7 @@ export default function ChatPageClient() {
                         value={comentarioResena}
                         onChange={e => setComentarioResena(e.target.value)}
                         maxLength={500}
-                        placeholder="Cuéntanos tu experiencia (opcional)..."
+                        placeholder={t('reviewPlaceholder')}
                         className="w-full border rounded-xl p-3 text-sm resize-none h-24 outline-none focus:border-brand-accent mb-4"
                       />
                       <p className="text-xs text-gray-400 text-right -mt-3 mb-4">{comentarioResena.length}/500</p>
@@ -697,7 +699,7 @@ export default function ChatPageClient() {
                           disabled={enviandoResena}
                           className="flex-1 py-2.5 bg-brand-primary text-white rounded-xl text-sm font-bold hover:bg-brand-dark transition disabled:opacity-50"
                         >
-                          {enviandoResena ? 'Enviando...' : 'Enviar reseña'}
+                          {enviandoResena ? t('sending') : t('sendReview')}
                         </button>
                       </div>
                     </div>

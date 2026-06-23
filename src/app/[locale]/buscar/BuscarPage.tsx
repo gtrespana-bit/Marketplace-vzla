@@ -9,6 +9,7 @@ import Image from 'next/image'
 import { supabase } from '@/lib/supabase'
 import { categoriasData } from '@/lib/categorias'
 import UbicacionSelector from '@/components/UbicacionSelector'
+import { useTranslations } from 'next-intl'
 
 type Producto = {
   id: string
@@ -119,6 +120,7 @@ function ProductCardSkeleton() {
 }
 
 export default function BuscarClient() {
+  const t = useTranslations('search')
   const searchParams = useSearchParams()
   const router = useRouter()
 
@@ -227,7 +229,7 @@ export default function BuscarClient() {
       <nav className="flex items-center gap-2 text-sm text-gray-500 mb-6 flex-wrap">
         <LocalLink href="/" className="hover:text-brand-primary">Inicio</LocalLink>
         <ChevronRight size={14} />
-        <span className="text-gray-800 font-medium">Buscar</span>
+        <span className="text-gray-800 font-medium">{t('title')}</span>
         {query && (<><ChevronRight size={14} /><span className="text-gray-900 font-semibold">&ldquo;{query}&rdquo;</span></>)}
       </nav>
 
@@ -235,17 +237,17 @@ export default function BuscarClient() {
         <aside className="w-full lg:w-72 flex-shrink-0">
           <div className="bg-white rounded-xl p-5 shadow-sm sticky top-20">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="font-bold text-lg">Filtros</h3>
+              <h3 className="font-bold text-lg">{t('filters')}</h3>
               {searchParams.toString() && (
                 <button onClick={clearAll} className="text-xs text-red-500 hover:text-red-700 flex items-center gap-1">
-                  <XCircle size={12} /> Limpiar todo
+                  <XCircle size={12} /> {t('clearAll')}
                 </button>
               )}
             </div>
 
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-bold text-gray-900 mb-1.5">Categoría</label>
+                <label className="block text-sm font-bold text-gray-900 mb-1.5">{t('category')}</label>
                 <select value={categoria} onChange={(e) => setParam('categoria', e.target.value)} className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm text-gray-800 bg-white font-medium focus:outline-none focus:ring-2 focus:ring-brand-accent">
                   <option value="">Todas</option>
                   {Object.entries(categoriasData).map(([key, c]) => (
@@ -269,7 +271,7 @@ export default function BuscarClient() {
               {allMarcas.length > 0 && (
                 <div>
                   <div className="flex items-center justify-between">
-                    <label className="block text-sm font-bold text-gray-900 mb-1.5">Marca</label>
+                    <label className="block text-sm font-bold text-gray-900 mb-1.5">{t('brand')}</label>
                     {marca && (
                       <button onClick={() => setParam('marca', '')} className="text-xs text-red-500 hover:text-red-700 flex items-center gap-1">
                         <XCircle size={12} /> Quitar
@@ -286,7 +288,7 @@ export default function BuscarClient() {
               )}
 
               <div>
-                <label className="block text-sm font-bold text-gray-900 mb-1.5">Condición</label>
+                <label className="block text-sm font-bold text-gray-900 mb-1.5">{t('condition')}</label>
                 <div className="space-y-1.5">
                   {['Nuevo', 'Como nuevo', 'Bueno', 'Usado', 'Para repuestos'].map((e) => (
                     <label key={e} className="flex items-center gap-2 text-sm">
@@ -303,7 +305,7 @@ export default function BuscarClient() {
               </div>
 
               <div className="mt-4 pt-4 border-t">
-                <h4 className="text-sm font-bold text-gray-900 mb-3">📍 Ubicación</h4>
+                <h4 className="text-sm font-bold text-gray-900 mb-3">{t('location')}</h4>
                 <UbicacionSelector
                   estado={ubicacionEstado}
                   ciudad={ubicacionCiudad}
@@ -317,7 +319,7 @@ export default function BuscarClient() {
               </div>
 
               <div>
-                <label className="block text-sm font-bold text-gray-900 mb-1.5">Precio (USD)</label>
+                <label className="block text-sm font-bold text-gray-900 mb-1.5">{t('priceUsd')}</label>
                 <div className="flex gap-2">
                   <input
                     type="number"
@@ -391,8 +393,8 @@ export default function BuscarClient() {
                 productos.length === 0 ? (
                   <div className="bg-white rounded-xl p-16 text-center shadow-sm border">
                     <Search size={48} className="text-gray-300 mx-auto mb-4" />
-                    <h3 className="text-xl font-bold text-gray-800 mb-2">No se encontraron resultados</h3>
-                    <p className="text-gray-500">Intenta con otros filtros o una busqueda mas amplia.</p>
+                    <h3 className="text-xl font-bold text-gray-800 mb-2">{t('noResults')}</h3>
+                    <p className="text-gray-500">{t('noResultsDesc')}</p>
                     {query && (
                       <p className="text-sm text-gray-400 mt-1">Prueba buscando: <button onClick={() => setParam('q', '')} className="text-brand-primary hover:underline">mostrar todos los productos</button></p>
                     )}

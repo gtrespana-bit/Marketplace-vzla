@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { getTranslations } from 'next-intl/server'
 import LocalLink from '@/components/LocalLink'
 import fs from 'fs'
 import path from 'path'
@@ -63,7 +64,7 @@ function generateStaticParams(): { slug: string }[] {
 async function generateMetadata(props: { params: { slug: string } }): Promise<Metadata> {
   const { slug } = props.params
   const post = getPostBySlug(slug)
-  if (!post) return { title: 'Post no encontrado — VendeT' }
+  if (!post) return { title: 'Post not found — VendeT' }
 
   return {
     title: `${post.title} — Blog VendeT Venezuela`,
@@ -187,13 +188,14 @@ function renderMarkdown(content: string): string {
 export default async function BlogPost(props: { params: { slug: string } }) {
   const { slug } = props.params
   const post = getPostBySlug(slug)
+  const t = await getTranslations('blog')
 
   if (!post) {
     return (
       <div className="max-w-4xl mx-auto px-4 py-20 text-center">
-        <h1 className="text-2xl font-bold text-gray-800 mb-4">Post no encontrado</h1>
+        <h1 className="text-2xl font-bold text-gray-800 mb-4">{t('postNotFound')}</h1>
         <LocalLink href="/blog" className="text-brand-primary hover:underline">
-          ← Volver al blog
+          ← {t('backToBlog')}
         </LocalLink>
       </div>
     )
@@ -215,7 +217,7 @@ export default async function BlogPost(props: { params: { slug: string } }) {
       <div className="bg-gray-50 border-b">
         <div className="max-w-4xl mx-auto px-4 py-3">
           <nav className="flex items-center gap-2 text-sm text-gray-500">
-            <LocalLink href="/" className="hover:text-brand-primary">Inicio</LocalLink>
+            <LocalLink href="/" className="hover:text-brand-primary">{t('home')}</LocalLink>
             <ChevronRight size={14} />
             <LocalLink href="/blog" className="hover:text-brand-primary">Blog</LocalLink>
             <ChevronRight size={14} />
@@ -228,7 +230,7 @@ export default async function BlogPost(props: { params: { slug: string } }) {
       <section className="bg-gradient-to-br from-brand-primary to-brand-dark py-12 md:py-16">
         <div className="max-w-4xl mx-auto px-4">
           <LocalLink href="/blog" className="inline-flex items-center gap-2 text-blue-200 hover:text-white mb-6 transition">
-            <ArrowLeft size={16} /> Volver al blog
+            <ArrowLeft size={16} /> {t('backToBlog')}
           </LocalLink>
           <div className="flex items-center gap-2 mb-4">
             <span className="text-lg">{categoryIcons[post.category] || '📝'}</span>
@@ -267,17 +269,17 @@ export default async function BlogPost(props: { params: { slug: string } }) {
       {/* CTA */}
       <section className="bg-brand-dark py-12">
         <div className="max-w-4xl mx-auto px-4 text-center">
-          <h2 className="text-2xl font-black text-white mb-3">¿Tienes algo para vender?</h2>
-          <p className="text-gray-400 mb-6">Publica gratis en VendeT y llega a miles de compradores en toda Venezuela</p>
+          <h2 className="text-2xl font-black text-white mb-3">{t('haveSomething')}</h2>
+          <p className="text-gray-400 mb-6">{t('publishFreeDesc')}</p>
           <LocalLink href="/publicar" className="inline-flex items-center gap-2 bg-brand-accent text-brand-primary px-8 py-3 rounded-xl font-bold text-lg hover:bg-accent/90 transition shadow-lg">
-            Publicar gratis <ArrowRight size={20} />
+            {t('publishFree')} <ArrowRight size={20} />
           </LocalLink>
         </div>
       </section>
 
       {/* More posts */}
       <section className="max-w-4xl mx-auto px-4 py-12">
-        <h3 className="text-xl font-bold text-gray-800 mb-6">Más artículos</h3>
+        <h3 className="text-xl font-bold text-gray-800 mb-6">{t('moreArticles')}</h3>
         <div className="grid md:grid-cols-2 gap-6">
           {getAllSlugs()
             .filter(s => s !== slug)

@@ -9,8 +9,10 @@ import BadgeVerificado from '@/components/BadgeVerificado'
 import Avatar from '@/components/Avatar'
 import { MapPin, Phone, Mail, MessageSquare, Star, ArrowLeft, ShoppingBag, Calendar, ShieldCheck, Activity } from 'lucide-react'
 import SellerReputation from '@/components/SellerReputation'
+import { useTranslations } from 'next-intl'
 
 export default function VendedorPage() {
+  const t = useTranslations('seller')
   const params = useParams()
   const router = useRouter()
   const vendedorId = params.id as string
@@ -98,17 +100,17 @@ export default function VendedorPage() {
         onClick={() => router.back()}
         className="flex items-center gap-2 text-gray-500 hover:text-gray-800 mb-6 text-sm"
       >
-        <ArrowLeft size={16} /> Volver
+        <ArrowLeft size={16} /> {t('back')}
       </button>
 
       {/* Perfil del vendedor */}
       <div className="bg-white rounded-2xl shadow-sm border p-6 mb-6">
         <div className="flex flex-col sm:flex-row items-start gap-6">
-          <Avatar nombre={vendedor.nombre || 'Vendedor'} fotoUrl={vendedor.foto_perfil_url} size="xl" />
+          <Avatar nombre={vendedor.nombre || t('seller')} fotoUrl={vendedor.foto_perfil_url} size="xl" />
 
           <div className="flex-1">
             <h1 className="text-2xl font-bold text-gray-900">
-              {vendedor.nombre || 'Vendedor'}
+              {vendedor.nombre || t('seller')}
               {vendedor.verificado && <BadgeVerificado size="md" />}
             </h1>
 
@@ -150,7 +152,7 @@ export default function VendedorPage() {
                   href={`tel:${vendedor.telefono}`}
                   className="flex items-center gap-1.5 border px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-gray-50"
                 >
-                  <Phone size={14} /> Llamar
+                  <Phone size={14} /> {t('call')}
                 </a>
               )}
               {tieneEmail && vendedor.email_publico && (
@@ -165,7 +167,7 @@ export default function VendedorPage() {
                 onClick={() => router.push(`/chat?vendedor=${vendedorId}`)}
                 className="flex items-center gap-1.5 bg-brand-primary text-white px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-brand-dark transition"
               >
-                <MessageSquare size={14} /> Enviar mensaje
+                <MessageSquare size={14} /> {t('sendMessage')}
               </button>
             </div>
           </div>
@@ -177,7 +179,7 @@ export default function VendedorPage() {
         <div className="bg-white rounded-2xl shadow-sm border p-6 mb-6">
           <h2 className="font-bold text-lg flex items-center gap-2 mb-4">
             <Star size={20} className="text-yellow-400 fill-yellow-400" />
-            Reseñas ({resenas.length})
+            {t('reviews')} ({resenas.length})
           </h2>
           <div className="space-y-4">
             {resenas.map(r => (
@@ -199,13 +201,13 @@ export default function VendedorPage() {
       <div className="mb-6">
         <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
           <ShoppingBag size={20} />
-          Publicaciones de {vendedor.nombre || 'este vendedor'} ({productos.length})
+          {t('listingsBy', { name: vendedor.nombre || t('seller') })} ({productos.length})
         </h2>
 
         {productos.length === 0 ? (
           <div className="bg-white rounded-2xl shadow-sm border p-8 text-center text-gray-400">
             <ShoppingBag size={40} className="mx-auto mb-2" />
-            <p>No tiene publicaciones activas</p>
+            <p>{t('noListings')}</p>
           </div>
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -215,7 +217,7 @@ export default function VendedorPage() {
                   {p.imagen_url ? (
                     <Image src={p.imagen_url} alt={p.titulo} width={400} height={400} sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw" className="w-full h-full object-cover group-hover:scale-105 transition duration-300" loading="lazy" decoding="async" />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center text-gray-400 text-sm">Sin foto</div>
+                    <div className="w-full h-full flex items-center justify-center text-gray-400 text-sm">{t('noPhoto')}</div>
                   )}
                 </div>
                 <div className="p-3">

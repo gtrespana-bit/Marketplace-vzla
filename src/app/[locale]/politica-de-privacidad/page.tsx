@@ -1,55 +1,50 @@
 import type { Metadata } from 'next'
+import { getTranslations } from 'next-intl/server'
 
 export const metadata: Metadata = {
   title: 'Política de Privacidad — VendeT-Venezuela',
 }
 
-export default function PrivacidadPage() {
+export default async function PrivacidadPage() {
+  const t = await getTranslations('privacy')
   return (
     <div className="max-w-3xl mx-auto px-4 py-12">
-      <h1 className="text-4xl font-black text-gray-800 mb-2">Política de Privacidad</h1>
-      <p className="text-gray-500 mb-8">Última actualización: Abril 2026</p>
-
+      <h1 className="text-4xl font-black text-gray-800 mb-2">{t('title')}</h1>
+      <p className="text-gray-500 mb-8">{t('updated')}</p>
       <div className="space-y-6 text-gray-600">
         <section>
-          <h2 className="text-xl font-bold text-gray-800 mb-3">1. Qué información recogemos</h2>
-          <p>Recogemos la información que nos proporcionas al registrarte (nombre, email, teléfono, ubicación) y la información de tus publicaciones (fotos, descripciones, precios).</p>
+          <h2 className="text-xl font-bold text-gray-800 mb-3">{t('s1_title')}</h2>
+          <p>{t('s1_text')}</p>
         </section>
-
         <section>
-          <h2 className="text-xl font-bold text-gray-800 mb-3">2. Para qué usamos tu información</h2>
+          <h2 className="text-xl font-bold text-gray-800 mb-3">{t('s2_title')}</h2>
           <ul className="list-disc list-inside space-y-1">
-            <li>Crear y gestionar tu cuenta</li>
-            <li>Publicar tus anuncios</li>
-            <li>Facilitar la comunicación entre usuarios</li>
-            <li>Mejorar el servicio</li>
-            <li>Enviar notificaciones relevantes</li>
+            <li>{t('s2_li1')}</li>
+            <li>{t('s2_li2')}</li>
+            <li>{t('s2_li3')}</li>
+            <li>{t('s2_li4')}</li>
+            <li>{t('s2_li5')}</li>
           </ul>
         </section>
-
         <section>
-          <h2 className="text-xl font-bold text-gray-800 mb-3">3. Compartimos tu información</h2>
-          <p>No vendemos ni compartimos tus datos personales con terceros. Tu email nunca es visible públicamente a menos que tú lo decidas. Tu información de contacto solo se comparte con tu consentimiento.</p>
+          <h2 className="text-xl font-bold text-gray-800 mb-3">{t('s3_title')}</h2>
+          <p>{t('s3_text')}</p>
         </section>
-
         <section>
-          <h2 className="text-xl font-bold text-gray-800 mb-3">4. Seguridad</h2>
-          <p>Utilizamos medidas de seguridad estándar de la industria para proteger tus datos, incluyendo conexiones cifradas (HTTPS) y almacenamiento seguro.</p>
+          <h2 className="text-xl font-bold text-gray-800 mb-3">{t('s4_title')}</h2>
+          <p>{t('s4_text')}</p>
         </section>
-
         <section>
-          <h2 className="text-xl font-bold text-gray-800 mb-3">5. Tus derechos</h2>
-          <p>Puedes solicitar la eliminación de tu cuenta y todos tus datos en cualquier momento desde la configuración de tu perfil o escribiéndonos a <a href="mailto:privacidad@vendet.online" className="text-brand-primary underline">privacidad@vendet.online</a>.</p>
+          <h2 className="text-xl font-bold text-gray-800 mb-3">{t('s5_title')}</h2>
+          <p>{t('s5_text')}</p>
         </section>
-
         <section>
-          <h2 className="text-xl font-bold text-gray-800 mb-3">6. Cookies</h2>
-          <p>Utilizamos cookies esenciales para el funcionamiento del sitio y cookies opcionales para analíticas. Puedes gestionar tus preferencias en la configuración de tu navegador.</p>
+          <h2 className="text-xl font-bold text-gray-800 mb-3">{t('s6_title')}</h2>
+          <p>{t('s6_text')}</p>
         </section>
-
         <section>
-          <h2 className="text-xl font-bold text-gray-800 mb-3">7. Contacto</h2>
-          <p>Para preguntas sobre privacidad: <a href="mailto:privacidad@vendet.online" className="text-brand-primary underline">privacidad@vendet.online</a></p>
+          <h2 className="text-xl font-bold text-gray-800 mb-3">{t('s7_title')}</h2>
+          <p>{t('s7_text')}</p>
         </section>
       </div>
     </div>

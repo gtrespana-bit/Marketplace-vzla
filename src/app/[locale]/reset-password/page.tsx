@@ -5,8 +5,10 @@ import LocalLink from '@/components/LocalLink'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { AlertCircle } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 
 export default function ResetPasswordPage() {
+  const t = useTranslations('auth')
   const router = useRouter()
   const [password, setPassword] = useState('')
   const [confirmedPassword, setConfirmedPassword] = useState('')
@@ -52,12 +54,12 @@ export default function ResetPasswordPage() {
     setError('')
 
     if (password.length < 8) {
-      setError('La contraseña debe tener al menos 8 caracteres')
+      setError(t('pwMinError'))
       return
     }
 
     if (password !== confirmedPassword) {
-      setError('Las contraseñas no coinciden')
+      setError(t('pwMismatchError'))
       return
     }
 
@@ -80,7 +82,7 @@ export default function ResetPasswordPage() {
       <div className="min-h-[80vh] flex items-center justify-center px-4">
         <div className="text-center">
           <div className="animate-spin rounded-full h-10 w-10 border-4 border-brand-primary border-t-transparent mx-auto mb-4"></div>
-          <p className="text-gray-500">Verificando enlace de restablecimiento...</p>
+          <p className="text-gray-500">{t('checking')}</p>
         </div>
       </div>
     )
@@ -94,7 +96,7 @@ export default function ResetPasswordPage() {
             Vende<span className="text-brand-accent">T</span><span className="text-sm ml-1 text-gray-500">-Venezuela</span>
           </LocalLink>
           <h1 className="text-2xl font-bold text-gray-800 mt-4">
-            {success ? '¡Contraseña actualizada!' : 'Restablecer contraseña'}
+            {success ? t('titleSuccess') : t('title')}
           </h1>
           <p className="text-gray-500 mt-1">
             {success
@@ -114,7 +116,7 @@ export default function ResetPasswordPage() {
           {success ? (
             <div className="text-center py-8">
               <div className="text-6xl mb-4">✅</div>
-              <p className="text-green-700 font-semibold text-lg">Tu contraseña se actualizó correctamente</p>
+              <p className="text-green-700 font-semibold text-lg">{t('successText')}</p>
               <LocalLink
                 href="/login"
                 className="inline-block mt-6 bg-brand-primary text-white px-8 py-3 rounded-lg font-bold hover:bg-brand-dark transition"
@@ -125,12 +127,12 @@ export default function ResetPasswordPage() {
           ) : (
             <form onSubmit={handleReset} className="space-y-5">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Nueva contraseña</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('newPw')}</label>
                 <input
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Mínimo 8 caracteres"
+                  placeholder={t('newPwPlaceholder')}
                   required
                   minLength={8}
                   className="w-full border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-accent text-gray-900 bg-white"
@@ -138,12 +140,12 @@ export default function ResetPasswordPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Repetir nueva contraseña</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('repeatPw')}</label>
                 <input
                   type="password"
                   value={confirmedPassword}
                   onChange={(e) => setConfirmedPassword(e.target.value)}
-                  placeholder="Repite la nueva contraseña"
+                  placeholder={t('repeatPwPlaceholder')}
                   required
                   minLength={8}
                   className="w-full border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-accent text-gray-900 bg-white"
@@ -155,7 +157,7 @@ export default function ResetPasswordPage() {
                 disabled={loading}
                 className="w-full bg-brand-primary text-white py-3 rounded-lg font-bold hover:bg-brand-dark transition disabled:opacity-50"
               >
-                {loading ? 'Guardando...' : 'Restablecer contraseña'}
+                {loading ? t('saving') : t('submit')}
               </button>
 
               <p className="text-center text-sm text-gray-500 mt-4">

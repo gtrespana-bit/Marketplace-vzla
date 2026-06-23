@@ -4,6 +4,7 @@ import { useState } from 'react'
 import LocalLink from '@/components/LocalLink'
 import { Package, X, Pause, Play, Edit, Zap, Star, CheckCircle2, ChevronDown, ArrowLeft, Send } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
+import Image from 'next/image'
 
 export default function TabProductos({
   productos,
@@ -253,7 +254,7 @@ export default function TabProductos({
               <LocalLink href={`/producto/${p.id}`} className="flex items-center gap-4 flex-1 min-w-0">
                 <div className="w-16 h-16 rounded-lg bg-gray-100 flex-shrink-0 overflow-hidden relative">
                   {p.imagen_url ? (
-                    <img src={p.imagen_url} alt={p.titulo} className="w-full h-full object-cover" loading="lazy" decoding="async" />
+                    <Image src={p.imagen_url} alt={p.titulo} className="w-full h-full object-cover" fill sizes="100px" />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">Sin foto</div>
                   )}

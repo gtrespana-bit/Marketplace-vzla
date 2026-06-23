@@ -2,10 +2,12 @@
 
 import LocalLink from '@/components/LocalLink'
 import { WifiOff, RefreshCw, Home } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 
 export const dynamic = 'force-dynamic'
 
 export default function OfflinePage() {
+  const t = useTranslations('offline')
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 flex items-center justify-center px-4">
       <div className="text-center max-w-md w-full">
@@ -13,7 +15,7 @@ export default function OfflinePage() {
           <WifiOff size={48} className="text-gray-400" />
         </div>
 
-        <h1 className="text-3xl font-black text-gray-800 mb-3">Sin conexión</h1>
+        <h1 className="text-3xl font-black text-gray-800 mb-3">{t('title')}</h1>
         <p className="text-gray-500 mb-8 leading-relaxed">
           Parece que perdiste la conexión a internet.<br/>
           Revisa tu WiFi o datos móviles e intenta de nuevo.

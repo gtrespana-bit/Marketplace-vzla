@@ -3,6 +3,7 @@ import { supabase } from '@/lib/supabase'
 import { routing } from '@/i18n/routing'
 import { Suspense } from 'react'
 import ProductoPageClient from './ProductoPageClient'
+import { getTranslations } from 'next-intl/server'
 
 // ISR: cache product pages for 5 minutes
 export const revalidate = 300
@@ -88,13 +89,14 @@ export async function generateStaticParams() {
 export default async function ProductoPage({ params }: Props) {
   const { slug } = params
   const producto = await getProduct(slug)
+  const t = await getTranslations('productDetail')
 
   if (!producto) {
     return (
       <div className="max-w-7xl mx-auto px-4 py-20 text-center">
-        <h1 className="text-3xl font-bold text-gray-800 mb-4">Producto no encontrado</h1>
-        <p className="text-gray-500 mb-8">Este producto ya no está disponible.</p>
-        <a href="/" className="inline-block bg-brand-primary text-white px-8 py-3 rounded-lg font-bold">Volver al inicio</a>
+        <h1 className="text-3xl font-bold text-gray-800 mb-4">{t('notFound')}</h1>
+        <p className="text-gray-500 mb-8">{t('notFoundDesc')}</p>
+        <a href="/" className="inline-block bg-brand-primary text-white px-8 py-3 rounded-lg font-bold">{t('backHome')}</a>
       </div>
     )
   }
@@ -132,7 +134,7 @@ export default async function ProductoPage({ params }: Props) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <Suspense fallback={<div className="max-w-7xl mx-auto px-4 py-20 text-center">Cargando...</div>}>
+      <Suspense fallback={<div className="max-w-7xl mx-auto px-4 py-20 text-center">{t('loading')}</div>}>
         <ProductoPageClient initialProduct={producto} />
       </Suspense>
     </>

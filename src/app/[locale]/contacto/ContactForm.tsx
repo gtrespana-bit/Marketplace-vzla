@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { Mail, MessageCircle, Phone, CheckCircle, AlertCircle, Send, Loader2 } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 const ASUNTOS = [
   'Pregunta general',
   'Reportar un anuncio',
@@ -11,6 +12,7 @@ const ASUNTOS = [
 ]
 
 export default function ContactPage() {
+  const t = useTranslations('contact')
   const [nombre, setNombre] = useState('')
   const [email, setEmail] = useState('')
   const [asunto, setAsunto] = useState(ASUNTOS[0])
@@ -35,7 +37,7 @@ export default function ContactPage() {
 
       if (!res.ok) {
         setEstado('error')
-        setErrorText(data.error || 'Error al enviar')
+        setErrorText(data.error || t('sendError'))
         return
       }
 
@@ -46,7 +48,7 @@ export default function ContactPage() {
       setMensaje('')
     } catch {
       setEstado('error')
-      setErrorText('No se pudo conectar con el servidor')
+      setErrorText(t('connectError'))
     } finally {
       setEnviando(false)
     }
@@ -57,9 +59,9 @@ export default function ContactPage() {
       <div className="max-w-4xl mx-auto px-4 py-12">
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 max-w-md mx-auto text-center">
           <CheckCircle size={56} className="text-green-500 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">¡Mensaje enviado!</h2>
+          <h2 className="text-2xl font-bold text-gray-800 mb-2">{t('sent')}</h2>
           <p className="text-gray-500 mb-6">
-            Hemos recibido tu mensaje. Te responderemos a <strong>{email}</strong> lo antes posible.
+            {t('sentDesc', { email })}
           </p>
           <button
             onClick={() => setEstado('idle')}
@@ -74,15 +76,15 @@ export default function ContactPage() {
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-12">
-      <h1 className="text-4xl font-black text-gray-800 mb-2 text-center">Contáctanos</h1>
+      <h1 className="text-4xl font-black text-gray-800 mb-2 text-center">{t('title')}</h1>
       <p className="text-center text-gray-500 mb-10 max-w-lg mx-auto">
-        ¿Tienes alguna pregunta, sugerencia o problema? Estamos aquí para ayudarte.
+        {t('desc')}
       </p>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Formulario */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
-          <h2 className="text-xl font-bold text-gray-800 mb-6">Envíanos un mensaje</h2>
+          <h2 className="text-xl font-bold text-gray-800 mb-6">{t('sendMessage')}</h2>
 
           {estado === 'error' && (
             <div className="flex items-start gap-2 bg-red-50 border border-red-200 rounded-lg p-3 mb-4 text-sm text-red-700">
@@ -93,18 +95,18 @@ export default function ContactPage() {
 
           <form className="space-y-4" onSubmit={handleSubmit}>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Nombre</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t('name')}</label>
               <input
                 type="text"
                 value={nombre}
                 onChange={e => setNombre(e.target.value)}
                 required
-                placeholder="Tu nombre"
+                placeholder={t('namePlaceholder')}
                 className="w-full border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-accent"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t('email')}</label>
               <input
                 type="email"
                 value={email}
@@ -115,7 +117,7 @@ export default function ContactPage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Asunto</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t('subject')}</label>
               <select
                 value={asunto}
                 onChange={e => setAsunto(e.target.value)}
@@ -127,13 +129,13 @@ export default function ContactPage() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Mensaje</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t('message')}</label>
               <textarea
                 rows={5}
                 value={mensaje}
                 onChange={e => setMensaje(e.target.value)}
                 required
-                placeholder="Cuéntanos en qué podemos ayudarte..."
+                placeholder={t('messagePlaceholder')}
                 className="w-full border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-accent resize-none"
               />
             </div>
@@ -160,7 +162,7 @@ export default function ContactPage() {
         {/* Info de contacto */}
         <div className="space-y-6">
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-            <h3 className="font-bold text-gray-800 mb-4">Otras formas de contacto</h3>
+            <h3 className="font-bold text-gray-800 mb-4">{t('otherContact')}</h3>
             <div className="space-y-4">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-brand-primary/10 rounded-lg flex items-center justify-center text-brand-primary">
@@ -193,7 +195,7 @@ export default function ContactPage() {
           </div>
 
           <div className="bg-brand-accent rounded-2xl p-6 text-center">
-            <h3 className="font-bold text-brand-primary text-lg">Horario de atención</h3>
+            <h3 className="font-bold text-brand-primary text-lg">{t('schedule')}</h3>
             <p className="text-brand-primary/80 mt-2">
               Lunes a sábado<br />
               8:00 AM – 10:00 PM (hora Venezuela)

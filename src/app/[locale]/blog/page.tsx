@@ -3,6 +3,7 @@ import LocalLink from '@/components/LocalLink'
 import fs from 'fs'
 import path from 'path'
 import { Calendar, ArrowRight, Clock, TrendingUp } from 'lucide-react'
+import { getTranslations } from 'next-intl/server'
 
 interface Post {
   slug: string
@@ -73,7 +74,8 @@ const categoryIcons: Record<string, string> = {
   'Tendencias': '📊',
 }
 
-export default function BlogPage() {
+export default async function BlogPage() {
+  const t = await getTranslations('blog')
   const posts = getPosts()
   const featured = posts.filter(p => p.featured)
   const regular = posts.filter(p => !p.featured)
@@ -84,10 +86,10 @@ export default function BlogPage() {
       <section className="bg-gradient-to-br from-brand-primary to-brand-dark py-12 md:py-16">
         <div className="max-w-4xl mx-auto px-4 text-center">
           <h1 className="text-3xl md:text-5xl font-black text-white mb-4">
-            Blog <span className="text-brand-accent">VendeT</span>
+            {t('title')} <span className="text-brand-accent">VendeT</span>
           </h1>
           <p className="text-lg text-blue-200 max-w-2xl mx-auto">
-            Precios del mercado, guías de emprendimiento y consejos para comprar y vender en Venezuela
+            {t('subtitle')}
           </p>
         </div>
       </section>
@@ -97,7 +99,7 @@ export default function BlogPage() {
         <section className="max-w-7xl mx-auto px-4 py-8">
           <div className="flex items-center gap-2 mb-6">
             <TrendingUp size={20} className="text-brand-primary" />
-            <h2 className="text-xl font-bold text-gray-800">Destacados</h2>
+            <h2 className="text-xl font-bold text-gray-800">{t('featured')}</h2>
           </div>
           <div className="grid md:grid-cols-2 gap-6">
             {featured.map(post => (
@@ -121,11 +123,11 @@ export default function BlogPage() {
       {/* All Posts */}
       <section className="max-w-7xl mx-auto px-4 py-8 pb-16">
         {featured.length > 0 && (
-          <h2 className="text-xl font-bold text-gray-800 mb-6">Todos los artículos</h2>
+          <h2 className="text-xl font-bold text-gray-800 mb-6">{t('allArticles')}</h2>
         )}
         {regular.length === 0 && featured.length === 0 && (
           <div className="text-center py-12">
-            <p className="text-gray-400">Pronto más contenido...</p>
+            <p className="text-gray-400">{t('comingSoon')}</p>
           </div>
         )}
         <div className="grid md:grid-cols-3 gap-6">
@@ -142,7 +144,7 @@ export default function BlogPage() {
                 <span className="flex items-center gap-1"><Clock size={12} /> {post.readTime}</span>
               </div>
               <div className="mt-4 flex items-center gap-1 text-sm font-semibold text-brand-primary group-hover:translate-x-1 transition-transform">
-                Leer más <ArrowRight size={14} />
+                {t('readMore')} <ArrowRight size={14} />
               </div>
             </LocalLink>
           ))}
@@ -152,10 +154,10 @@ export default function BlogPage() {
       {/* CTA */}
       <section className="bg-brand-dark py-12">
         <div className="max-w-4xl mx-auto px-4 text-center">
-          <h2 className="text-2xl font-black text-white mb-3">¿Quieres vender algo? Publica gratis</h2>
-          <p className="text-gray-400 mb-6">Sin comisiones, sin complicaciones. Tu producto visible para miles de compradores.</p>
+          <h2 className="text-2xl font-black text-white mb-3">{t('ctaTitle')}</h2>
+          <p className="text-gray-400 mb-6">{t('ctaDesc')}</p>
           <LocalLink href="/publicar" className="inline-flex items-center gap-2 bg-brand-accent text-brand-primary px-8 py-3 rounded-xl font-bold text-lg hover:bg-accent/90 transition shadow-lg">
-            Publicar ahora <ArrowRight size={20} />
+            {t('ctaButton')} <ArrowRight size={20} />
           </LocalLink>
         </div>
       </section>

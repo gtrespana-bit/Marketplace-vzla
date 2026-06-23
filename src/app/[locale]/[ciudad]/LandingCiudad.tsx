@@ -5,6 +5,7 @@ import LocalLink from '@/components/LocalLink'
 import Image from 'next/image'
 import { supabase } from '@/lib/supabase'
 import { MapPin, ChevronRight } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 
 interface Props {
   slug: string
@@ -12,6 +13,7 @@ interface Props {
 }
 
 export default function LandingCiudad({ slug, nombre }: Props) {
+  const t = useTranslations('cityLanding')
   const [productos, setProductos] = useState<any[]>([])
   const [total, setTotal] = useState(0)
 
@@ -34,16 +36,16 @@ export default function LandingCiudad({ slug, nombre }: Props) {
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
       <nav className="flex items-center gap-1.5 text-sm text-gray-500 mb-6">
-        <LocalLink href="/" className="hover:text-brand-primary">Inicio</LocalLink>
+        <LocalLink href="/" className="hover:text-brand-primary">{t('breadcrumb')}</LocalLink>
         <ChevronRight size={14} />
         <span className="text-gray-800 font-medium">{nombre}</span>
       </nav>
 
       <h1 className="text-3xl md:text-4xl font-black text-gray-900 mb-2">
-        Compra y Venta en {nombre}
+        {t('title', { city: nombre })}
       </h1>
       <p className="text-gray-500 mb-8">
-        Anuncios clasificados en {nombre}. Publica gratis y contacta directo.
+        {t('desc', { city: nombre })}
       </p>
 
       {productos.length > 0 ? (
@@ -52,7 +54,7 @@ export default function LandingCiudad({ slug, nombre }: Props) {
             <LocalLink key={p.id} href={`/producto/${p.id}`} className="bg-white rounded-xl overflow-hidden shadow-sm border hover:shadow-lg transition group block">
               <div className="aspect-square bg-gray-100 relative overflow-hidden">
                 {p.destacado && new Date(p.destacado_hasta) > new Date() && (
-                  <div className="absolute top-2 left-2 z-10 bg-brand-accent text-brand-primary text-[10px] font-bold px-2 py-0.5 rounded-full">⭐ Destacado</div>
+                  <div className="absolute top-2 left-2 z-10 bg-brand-accent text-brand-primary text-[10px] font-bold px-2 py-0.5 rounded-full">⭐ {t('featured')}</div>
                 )}
                 {p.imagen_url ? (
                   <Image src={p.imagen_url} alt={p.titulo} width={300} height={300} className="w-full h-full object-cover group-hover:scale-105 transition-transform" loading="lazy" />
@@ -73,15 +75,15 @@ export default function LandingCiudad({ slug, nombre }: Props) {
         </div>
       ) : (
         <div className="text-center py-16 text-gray-400">
-          <p className="text-xl mb-2">No hay anuncios en {nombre} todavía</p>
-          <p className="mb-4">¡Sé el primero en publicar!</p>
-          <LocalLink href="/publicar" className="inline-block bg-brand-primary text-white px-6 py-3 rounded-lg font-bold">Publicar gratis</LocalLink>
+          <p className="text-xl mb-2">{t('noAds', { city: nombre })}</p>
+          <p className="mb-4">{t('beFirst')}</p>
+          <LocalLink href="/publicar" className="inline-block bg-brand-primary text-white px-6 py-3 rounded-lg font-bold">{t('postFree')}</LocalLink>
         </div>
       )}
 
       <div className="mt-8 flex justify-center">
         <LocalLink href={`/catalogo?ciudad=${nombre}`} className="inline-block bg-gray-100 text-gray-700 px-6 py-3 rounded-lg font-bold hover:bg-gray-200 transition">
-          Ver más productos en {nombre} →
+          {t('seeMore', { city: nombre })}
         </LocalLink>
       </div>
     </div>

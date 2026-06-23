@@ -235,7 +235,7 @@ export default function CatalogoClient({ initialProducts = [], initialCount = 0 
   }, [categoria, subcategoria, marca, q, precioMin, precioMax, ubicacionEstado, ubicacionCiudad, hasActiveFilters])
 
   const tituloMostrar = q
-    ? `Resultados para "${q}"`
+    ? t('catalog.resultsFor').replace('{q}', q)
     : subcategoria
       ? subcategoria
       : cat
@@ -270,9 +270,9 @@ export default function CatalogoClient({ initialProducts = [], initialCount = 0 
 
             {subs.length > 0 && (
               <div className="mb-4">
-                <label htmlFor="filter-subcategoria" className="block text-sm font-bold text-gray-900 mb-1.5">Subcategoría</label>
+                <label htmlFor="filter-subcategoria" className="block text-sm font-bold text-gray-900 mb-1.5">{t('catalog.subcategory')}</label>
                 <select id="filter-subcategoria" value={subcategoria} onChange={e => setParam('subcategoria', e.target.value)} className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm text-gray-800 bg-white font-medium focus:outline-none focus:ring-2 focus:ring-brand-accent">
-                  <option value="">Todas</option>
+                  <option value="">{t('catalog.allSubs')}</option>
                   {subs.map(s => (
                     <option key={s.label} value={s.label}>{s.icon} {s.label}</option>
                   ))}
@@ -283,15 +283,15 @@ export default function CatalogoClient({ initialProducts = [], initialCount = 0 
             {allMarcas.length > 0 && (
               <div className="mb-4">
                 <div className="flex items-center justify-between">
-                  <label htmlFor="filter-marca" className="block text-sm font-bold text-gray-900 mb-1.5">Marca</label>
+                  <label htmlFor="filter-marca" className="block text-sm font-bold text-gray-900 mb-1.5">{t('catalog.brandLabel')}</label>
                   {marca && (
                     <button onClick={() => setParam('marca', '')} className="text-xs text-red-500 hover:text-red-700 flex items-center gap-1">
-                      <XCircle size={12} /> Quitar
+                      <XCircle size={12} /> {t('catalog.remove')}
                     </button>
                   )}
                 </div>
                 <select id="filter-marca" value={marca} onChange={e => setParam('marca', e.target.value)} className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm text-gray-800 bg-white font-medium focus:outline-none focus:ring-2 focus:ring-brand-accent">
-                  <option value="">Todas las marcas</option>
+                  <option value="">{t('catalog.allBrands')}</option>
                   {allMarcas.map(m => (
                     <option key={m} value={m}>{m}</option>
                   ))}

@@ -6,6 +6,7 @@ import { getMunicipiosNombres, ESTADOS } from '@/lib/ubicaciones'
 import { supabase } from '@/lib/supabase'
 import { Camera, Edit, Key, LogOut, X, Save, Phone, MapPin, Mail } from 'lucide-react'
 import { useEffect, useState } from 'react'
+import { useTranslations } from 'next-intl'
 
 const ICONOS: Record<number, string> = { 0: 'ðŸ¥‰', 1: 'ðŸ¥ˆ', 2: 'ðŸ¥‡', 3: 'ðŸ’Ž', 4: 'ðŸ’ ', 5: 'ðŸ‘‘' }
 const NIVELES: Record<number, { nombre: string; bg: string; text: string; border: string }> = {
@@ -41,6 +42,7 @@ export default function DashboardHeader({
 
   onFotoChange: (e: any) => Promise<void>
 }) {
+  const t = useTranslations('dashboard')
   const [editando, setEditando] = useState(false)
   const municipiosDisponibles = estado ? getMunicipiosNombres(estado) : []
 
@@ -49,10 +51,10 @@ export default function DashboardHeader({
     setGuardando(true)
     const { error } = await supabase.from('perfiles').upsert({ id: user.id, nombre, telefono, estado, ciudad }).eq('id', user.id)
     if (error) {
-      setToast('Error al guardar: ' + error.message)
+      setToast(t('saveError') + error.message)
     } else {
       setEditando(false)
-      setToast('âœ… Perfil guardado correctamente')
+      setToast(t('profileSaved'))
     }
     setGuardando(false)
     setTimeout(() => setToast(null), 4000)
@@ -76,36 +78,36 @@ export default function DashboardHeader({
             <div className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-medium text-gray-500 mb-1">Nombre</label>
-                  <input type="text" value={nombre} onChange={e => setNombre(e.target.value)} className="w-full border rounded-lg px-3 py-2 text-sm" placeholder="Tu nombre" />
+                  <label className="block text-xs font-medium text-gray-500 mb-1">{t('name')}</label>
+                  <input type="text" value={nombre} onChange={e => setNombre(e.target.value)} className="w-full border rounded-lg px-3 py-2 text-sm" placeholder={t('namePlaceholder')} />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-500 mb-1 flex items-center gap-1"><Phone size={12} /> TelÃ©fono</label>
+                  <label className="block text-xs font-medium text-gray-500 mb-1 flex items-center gap-1"><Phone size={12} /> {t('phone')}</label>
                   <input type="tel" value={telefono} onChange={e => setTelefono(e.target.value)} className="w-full border rounded-lg px-3 py-2 text-sm" placeholder="+58 412 1234567" />
                 </div>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-medium text-gray-500 mb-1 flex items-center gap-1"><MapPin size={12} /> Estado</label>
+                  <label className="block text-xs font-medium text-gray-500 mb-1 flex items-center gap-1"><MapPin size={12} /> {t('state')}</label>
                   <select value={estado} onChange={e => setEstado(e.target.value)} className="w-full border rounded-lg px-3 py-2 text-sm bg-white">
-                    <option value="">Selecciona...</option>
+                    <option value="">{t('selectType')}</option>
                     {ESTADOS.map(e => <option key={e} value={e}>{e}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-500 mb-1">Municipio</label>
+                  <label className="block text-xs font-medium text-gray-500 mb-1">{t('municipality')}</label>
                   <select value={ciudad} onChange={e => setCiudad(e.target.value)} className="w-full border rounded-lg px-3 py-2 text-sm bg-white" disabled={!estado}>
-                    <option value="">Selecciona...</option>
+                    <option value="">{t('selectType')}</option>
                     {municipiosDisponibles.map(m => <option key={m} value={m}>{m}</option>)}
                   </select>
                 </div>
               </div>
               <div className="flex gap-2">
                 <button onClick={handleGuardar} className="flex items-center gap-2 bg-brand-primary text-white px-4 py-2 rounded-lg text-sm font-medium">
-                  <Save size={14} /> Guardar
+                  <Save size={14} /> {t('save')}
                 </button>
                 <button onClick={() => setEditando(false)} className="flex items-center gap-2 border px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-50">
-                  <X size={14} /> Cancelar
+                  <X size={14} /> {t('cancelEdit')}
                 </button>
               </div>
             </div>
@@ -113,7 +115,7 @@ export default function DashboardHeader({
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
               <div>
                 <h2 className="text-xl font-bold text-gray-900">
-                  {nombre || <button onClick={() => setEditando(true)} className="text-sm font-medium text-brand-primary hover:underline">AÃ±adir nombre â†’</button>}
+                  {nombre || <button onClick={() => setEditando(true)} className="text-sm font-medium text-brand-primary hover:underline">{t('addName')}</button>}
                 </h2>
                 {user?.email && <p className="text-sm text-gray-500 flex items-center gap-1 mt-1"><Mail size={12} /> {user.email}</p>}
                 {(ciudad || estado) && <p className="text-sm text-gray-500 flex items-center gap-1"><MapPin size={12} /> {[ciudad, estado].filter(Boolean).join(', ')}</p>}
@@ -126,20 +128,20 @@ export default function DashboardHeader({
                       <span className={`font-semibold ${cfg.text}`}>{cfg.nombre}</span>
                     </span>
                     {resenasCount > 0 && (
-                      <span className="text-gray-500">â­ {promedioResenas.toFixed(1)} Â· {resenasCount} reseÃ±a{resenasCount !== 1 ? 's' : ''}</span>
+                      <span className="text-gray-500">{t('reviewsSummary', { rating: promedioResenas.toFixed(1), count: resenasCount })}</span>
                     )}
                   </div>
                 </div>
               </div>
               <div className="flex gap-2 w-full sm:w-auto">
                 <button onClick={() => setEditando(true)} className="flex-1 sm:flex-none flex items-center justify-center gap-1 border px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-gray-50 transition">
-                  <Edit size={14} /> Editar perfil
+                  <Edit size={14} /> {t('editProfile')}
                 </button>
                 <button onClick={onPassword} className="flex items-center gap-1 text-brand-primary hover:bg-blue-50 px-3 py-1.5 rounded-lg text-sm font-medium transition">
-                  <Key size={14} /> ContraseÃ±a
+                  <Key size={14} /> {t('password')}
                 </button>
                 <button onClick={onLogout} className="flex items-center gap-1 text-red-600 hover:bg-red-50 px-3 py-1.5 rounded-lg text-sm font-medium transition">
-                  <LogOut size={14} /> Salir
+                  <LogOut size={14} /> {t('logout')}
                 </button>
               </div>
             </div>

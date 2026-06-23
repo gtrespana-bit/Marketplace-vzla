@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { supabase, isSupabaseConfigured } from '@/lib/supabase'
 import { useAuth } from '@/components/AuthProvider'
 import { BadgeCheck, Upload, X, Shield, Camera, AlertCircle, CheckCircle2, Clock } from 'lucide-react'
+import Image from 'next/image'
 
 const bancos = [
   'Mercantil', 'Banesco', 'Banco de Venezuela', 'Provincial', 'BNC',
@@ -273,7 +274,7 @@ export default function SolicitarVerificacion() {
                   <span className="text-sm text-gray-500">{frenteFile ? frenteFile.name : 'Seleccionar...'}</span>
                   <input type="file" accept="image/*" onChange={handleFrenteFile} className="hidden" />
                 </label>
-                {frentePreview && <img src={frentePreview} alt="Frente" className="mt-2 h-24 rounded-lg object-cover" />}
+                {frentePreview && <Image src={frentePreview} alt="Frente" className="mt-2 h-24 rounded-lg object-cover" width={96} height={96} unoptimized />}
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Foto del dorso</label>
@@ -282,7 +283,7 @@ export default function SolicitarVerificacion() {
                   <span className="text-sm text-gray-500">{dorsoFile ? dorsoFile.name : 'Seleccionar...'}</span>
                   <input type="file" accept="image/*" onChange={handleDorsoFile} className="hidden" />
                 </label>
-                {dorsoPreview && <img src={dorsoPreview} alt="Dorso" className="mt-2 h-24 rounded-lg object-cover" />}
+                {dorsoPreview && <Image src={dorsoPreview} alt="Dorso" className="mt-2 h-24 rounded-lg object-cover" width={96} height={96} unoptimized />}
               </div>
             </div>
 
@@ -372,7 +373,7 @@ export default function SolicitarVerificacion() {
                 <span className="text-sm text-gray-500">{frenteFile ? frenteFile.name : 'Seleccionar...'}</span>
                 <input type="file" accept="image/*" onChange={handleFrenteFile} className="hidden" />
               </label>
-              {frentePreview && <img src={frentePreview} alt="Frente" className="mt-2 h-24 rounded-lg object-cover" />}
+              {frentePreview && <Image src={frentePreview} alt="Frente" className="mt-2 h-24 rounded-lg object-cover" width={96} height={96} unoptimized />}
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Foto del dorso</label>
@@ -381,7 +382,7 @@ export default function SolicitarVerificacion() {
                 <span className="text-sm text-gray-500">{dorsoFile ? dorsoFile.name : 'Seleccionar...'}</span>
                 <input type="file" accept="image/*" onChange={handleDorsoFile} className="hidden" />
               </label>
-              {dorsoPreview && <img src={dorsoPreview} alt="Dorso" className="mt-2 h-24 rounded-lg object-cover" />}
+              {dorsoPreview && <Image src={dorsoPreview} alt="Dorso" className="mt-2 h-24 rounded-lg object-cover" width={96} height={96} unoptimized />}
             </div>
           </div>
 

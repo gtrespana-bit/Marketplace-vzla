@@ -12,6 +12,7 @@ import Avatar from '@/components/Avatar'
 import ReportarButton from '@/components/ReportarButton'
 import BadgeVerificado from '@/components/BadgeVerificado'
 import dynamic from 'next/dynamic'
+import { useTranslations } from 'next-intl'
 
 // Lazy-load heavy components — only needed when user scrolls
 const ImageGallery = dynamic(() => import('@/components/ImageGallery'), { ssr: true })
@@ -22,6 +23,7 @@ interface ProductoPageClientProps {
 }
 
 export default function ProductoPageClient({ initialProduct }: ProductoPageClientProps) {
+  const t = useTranslations('productDetail')
   const router = useRouter()
   const { user, loading: authLoading } = useAuth()
   const searchParams = useSearchParams()
@@ -169,8 +171,8 @@ export default function ProductoPageClient({ initialProduct }: ProductoPageClien
 
   if (!producto) return (
     <div className="max-w-7xl mx-auto px-4 py-20 text-center">
-      <h1 className="text-3xl font-bold text-gray-800 mb-4">Producto no encontrado</h1>
-      <LocalLink href="/" className="inline-block bg-brand-primary text-white px-8 py-3 rounded-lg font-bold">Volver al inicio</LocalLink>
+      <h1 className="text-3xl font-bold text-gray-800 mb-4">{t('notFound')}</h1>
+      <LocalLink href="/" className="inline-block bg-brand-primary text-white px-8 py-3 rounded-lg font-bold">{t('backHome')}</LocalLink>
     </div>
   )
 
@@ -181,9 +183,9 @@ export default function ProductoPageClient({ initialProduct }: ProductoPageClien
           <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
         </span>
         <div>
-          <h3 className="font-bold text-green-800 text-lg">¡Publicado con éxito! 🎉</h3>
-          <p className="text-green-700 text-sm mt-1">Tu anuncio ya es visible para miles de compradores en Venezuela.</p>
-          <p className="text-green-600 text-xs mt-2 font-bold">Publicación 100% GRATIS · 0 comisiones · Siempre</p>
+          <h3 className="font-bold text-green-800 text-lg">{t('successTitle')}</h3>
+          <p className="text-green-700 text-sm mt-1">{t('successDesc')}</p>
+          <p className="text-green-600 text-xs mt-2 font-bold">{t('successFree')}</p>
         </div>
       </div>
     </div>
@@ -201,16 +203,16 @@ export default function ProductoPageClient({ initialProduct }: ProductoPageClien
     const t = contactPhone.replace(/[^0-9]/g, '')
     const t2 = t.startsWith('0') ? t.slice(1) : t
     const finalPhone = t2.startsWith('58') ? t2 : '58' + t2
-    whatsappLink = 'https://wa.me/' + finalPhone + '?text=' + encodeURIComponent('Hola, vi tu publicacion de "' + producto.titulo + '" en VendeT-Venezuela. Esta disponible?')
+    whatsappLink = 'https://wa.me/' + finalPhone + '?text=' + encodeURIComponent(t('whatsappMsg').replace('{title}', producto.titulo))
   }
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
       <SuccessBanner />
       <nav className="flex items-center gap-1.5 text-sm text-gray-500 mb-6 overflow-x-auto hide-scrollbar">
-        <LocalLink href="/" className="hover:text-brand-primary flex-shrink-0">Inicio</LocalLink>
+        <LocalLink href="/" className="hover:text-brand-primary flex-shrink-0">{t('breadcrumbHome')}</LocalLink>
         <ChevronRight size={14} className="flex-shrink-0" />
-        <LocalLink href="/catalogo" className="hover:text-brand-primary flex-shrink-0">Catalogo</LocalLink>
+        <LocalLink href="/catalogo" className="hover:text-brand-primary flex-shrink-0">{t('breadcrumbCatalog')}</LocalLink>
         {producto.subcategoria && (<><ChevronRight size={14} className="flex-shrink-0" /><span className="capitalize flex-shrink-0">{producto.subcategoria}</span></>)}
         <ChevronRight size={14} className="flex-shrink-0" />
         <span className="text-gray-800 font-medium truncate flex-shrink-0">{producto.titulo}</span>
@@ -235,12 +237,12 @@ export default function ProductoPageClient({ initialProduct }: ProductoPageClien
             {producto.descripcion && <p className="text-gray-600 whitespace-pre-line leading-relaxed">{producto.descripcion}</p>}
           </div>
           <div className="bg-blue-50 border border-blue-100 rounded-2xl p-6">
-            <h3 className="font-bold text-brand-primary mb-3 flex items-center gap-2"><Shield size={18} /> Compra seguro</h3>
+            <h3 className="font-bold text-brand-primary mb-3 flex items-center gap-2"><Shield size={18} /> {t('buySafe')}</h3>
             <ul className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-blue-800">
-              <li>Encuentrate al vendedor en un lugar publico</li>
-              <li>Verifica el producto antes de pagar</li>
-              <li>Nunca envies dinero por adelantado</li>
-              <li>Desconfia de precios demasiado bajos</li>
+              <li>{t('safeTip1')}</li>
+              <li>{t('safeTip2')}</li>
+              <li>{t('safeTip3')}</li>
+              <li>{t('safeTip4')}</li>
             </ul>
           </div>
         </div>
@@ -250,16 +252,16 @@ export default function ProductoPageClient({ initialProduct }: ProductoPageClien
             <p className="text-4xl font-black text-brand-primary">${Number(producto.precio_usd || 0).toLocaleString()}</p>
             {precioBs && <p className="text-sm text-gray-500 mt-1">Bs. {precioBs} <span className="text-[10px] text-gray-400">· tasa BCV {tasaBs > 0 ? tasaBs : 'ref.'}</span></p>}
             <div className="flex items-center gap-4 text-xs text-gray-500 my-4 pb-4 border-b">
-              <span className="flex items-center gap-1"><Clock size={14} /> Publicado</span>
+              <span className="flex items-center gap-1"><Clock size={14} /> {t('published')}</span>
               <span className="flex items-center gap-1">
                 <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx={12} cy={12} r={3} /></svg>
-                {producto.visitas || 0} vistas
+                {producto.visitas || 0} {t('views')}
               </span>
             </div>
 
             {historial.length > 0 && (
               <div className="mb-4 bg-gray-50 rounded-xl p-3">
-                <p className="text-xs font-bold text-gray-600 mb-2 flex items-center gap-1.5">📈 Historial de precios</p>
+                <p className="text-xs font-bold text-gray-600 mb-2 flex items-center gap-1.5">📈 {t('priceHistory')}</p>
                 <div className="space-y-1.5">
                   {historial.slice(0, 3).map((h: any) => {
                     const pct = ((h.precio_nuevo - h.precio_anterior) / h.precio_anterior * 100).toFixed(0)
@@ -306,7 +308,7 @@ export default function ProductoPageClient({ initialProduct }: ProductoPageClien
               <div className="grid grid-cols-2 gap-2">
                 {metodos.chat && (
                   <button onClick={handleContacto} className="bg-brand-primary text-white py-3 rounded-xl font-bold hover:bg-brand-dark transition flex items-center justify-center gap-2 text-sm">
-                    <MessageCircle size={18} /> Chat
+                    <MessageCircle size={18} /> {t('chat')}
                   </button>
                 )}
                 {metodos.whatsapp && whatsappLink && (
@@ -318,7 +320,7 @@ export default function ProductoPageClient({ initialProduct }: ProductoPageClien
               </div>
               <div className="grid grid-cols-2 gap-2">
                 {metodos.telefono && contactPhone && (
-                  <a href={`tel:${contactPhone}`} className="border py-3 rounded-xl font-medium hover:bg-gray-50 transition flex items-center justify-center gap-2 text-sm"><Phone size={16} /> Llamar</a>
+                  <a href={`tel:${contactPhone}`} className="border py-3 rounded-xl font-medium hover:bg-gray-50 transition flex items-center justify-center gap-2 text-sm"><Phone size={16} /> {t('call')}</a>
                 )}
                 {metodos.email && (
                   <a href={`mailto:${vendedor.email}`} className="border py-3 rounded-xl font-medium hover:bg-gray-50 transition flex items-center justify-center gap-2 text-sm"><Mail size={16} /> Email</a>
@@ -334,10 +336,10 @@ export default function ProductoPageClient({ initialProduct }: ProductoPageClien
 
             <div className="flex gap-2 mt-3">
               <button onClick={toggleFavorito} disabled={toggleandoFav} className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl border text-sm font-medium transition ${esFavorito ? 'border-red-200 bg-red-50 text-red-600' : 'border-gray-200 text-gray-600 hover:bg-gray-50'}`}>
-                <Heart size={16} className={esFavorito ? 'fill-red-600' : ''} />{esFavorito ? 'Guardado' : 'Guardar'}
+                <Heart size={16} className={esFavorito ? 'fill-red-600' : ''} />{esFavorito ? t('saved') : t('save')}
               </button>
               <button onClick={() => navigator.share?.({ title: producto.titulo, url: window.location.href })} className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50 transition">
-                <Share2 size={16} /> Compartir
+                <Share2 size={16} /> {t('shareBtn')}
               </button>
               <ReportarButton productoId={producto.id} />
             </div>

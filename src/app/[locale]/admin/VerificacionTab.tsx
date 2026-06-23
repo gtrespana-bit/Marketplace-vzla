@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { Loader2, ShieldCheck } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
+import Image from 'next/image'
 
 // ============================ VERIFICACIÓN TAB ============================
 export default function VerificacionTab({ notify }: { notify: (msg: string) => void }) {
@@ -212,10 +213,12 @@ export default function VerificacionTab({ notify }: { notify: (msg: string) => v
                   {sol.cedula_foto_frente_url && (
                     <div className="hidden sm:block">
                       <p className="text-xs text-gray-500 mb-1">Cédula:</p>
-                      <img
+                      <Image
                         src={supabase.storage.from('cedulas').getPublicUrl(sol.cedula_foto_frente_url).data.publicUrl}
                         alt="Cédula frente"
                         className="w-32 h-20 object-cover rounded-lg border cursor-pointer hover:opacity-80 transition"
+                        width={128}
+                        height={80}
                         onClick={() => window.open(supabase.storage.from('cedulas').getPublicUrl(sol.cedula_foto_frente_url).data.publicUrl, '_blank')}
                       />
                     </div>

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { CreditCard, Zap, Star, X, CheckCircle, Upload, Loader2 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
+import Image from 'next/image'
 
 const metodosPagoCreditos = [
   { id: 'pagomovil', nombre: 'Pago Móvil', emoji: '📱', instrucciones: { telefono: '04126443099', cedula: 'V20794917', banco: 'Banco Provincial BBVA' } },
@@ -267,7 +268,7 @@ function ModalCompraCreditos({ paquete, tasa, onClose, onCompraExitosa }: { paqu
                 <input type="file" accept="image/*" id="comprobante-input-dash" onChange={handleFileChange} className="hidden" />
                 {comprobantePreview ? (
                   <div>
-                    <img src={comprobantePreview} alt="Comprobante" className="max-h-48 mx-auto rounded-lg mb-3" />
+                    <Image src={comprobantePreview} alt="Comprobante" className="max-h-48 mx-auto rounded-lg mb-3" width={400} height={300} unoptimized />
                     <button onClick={(e) => { e.stopPropagation(); setComprobanteFile(null); setComprobantePreview('') }} className="text-sm text-red-500 hover:underline">Quitar imagen</button>
                   </div>
                 ) : (

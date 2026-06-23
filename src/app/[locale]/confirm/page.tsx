@@ -5,8 +5,10 @@ import { useRouter } from 'next/navigation'
 import { CheckCircle, XCircle, Loader2 } from 'lucide-react'
 import LocalLink from '@/components/LocalLink'
 import { supabase } from '@/lib/supabase'
+import { useTranslations } from 'next-intl'
 
 export default function ConfirmEmailPage() {
+  const t = useTranslations('auth')
   const router = useRouter()
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading')
   const [errorMsg, setErrorMsg] = useState('')
@@ -16,7 +18,7 @@ export default function ConfirmEmailPage() {
     const hash = window.location.hash
     if (!hash || hash.length < 2) {
       setStatus('error')
-      setErrorMsg('No se encontró el token de confirmación. ¿Quizás ya confirmaste tu cuenta?')
+      setErrorMsg(t('noToken'))
       return
     }
 
@@ -53,7 +55,7 @@ export default function ConfirmEmailPage() {
           setTimeout(() => router.push('/login'), 3000)
         } else {
           setStatus('error')
-          setErrorMsg('No se pudo confirmar tu cuenta. Intenta de nuevo.')
+          setErrorMsg(t('confirmError'))
         }
       })
     }
@@ -77,7 +79,7 @@ export default function ConfirmEmailPage() {
               <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center">
                 Confirmando tu cuenta...
               </h2>
-              <p className="text-gray-500 text-center">Un momento, estamos verificando tu email</p>
+              <p className="text-gray-500 text-center">{t('loadingDesc')}</p>
             </>
           )}
 
@@ -114,7 +116,7 @@ export default function ConfirmEmailPage() {
                 No se pudo confirmar
               </h2>
               <p className="text-red-600 text-center mb-6 text-sm">
-                {errorMsg || 'El enlace puede haber expirado. Solicita uno nuevo desde el login.'}
+                {errorMsg || t('errorDefault')}
               </p>
               <LocalLink
                 href="/login"

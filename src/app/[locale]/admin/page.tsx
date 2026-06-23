@@ -12,6 +12,7 @@ import {
   Megaphone, Download, Eye, Loader2, Check, X, Tag
 } from 'lucide-react'
 import VerificacionTab from './VerificacionTab'
+import Image from 'next/image'
 
 // ← TU EMAIL
 const ADMIN_EMAILS = ['gtrespana@gmail.com']
@@ -509,7 +510,7 @@ function PublicacionesTab({ notify }: Notifier) {
               {/* Miniatura */}
               <LocalLink href={`/producto/${p.id}`} className="w-20 h-20 rounded-lg bg-gray-100 flex-shrink-0 overflow-hidden">
                 {p.imagen_url ? (
-                  <img src={p.imagen_url} alt="" className="w-full h-full object-cover" loading="lazy" decoding="async" />
+                  <Image src={p.imagen_url} alt="" className="w-full h-full object-cover" fill sizes="100px" />
                 ) : <div className="w-full h-full flex items-center justify-center text-gray-300 text-2xl">📦</div>}
               </LocalLink>
 
@@ -1037,7 +1038,7 @@ function ModeracionTab({ notify }: { notify: (msg: string) => void }) {
                 <div key={p.id} className="p-4 hover:bg-gray-50">
                   <div className="flex items-start justify-between">
                     <div className="flex gap-3">
-                      {p.imagen_url ? <img src={p.imagen_url} alt="" className="w-16 h-16 rounded-lg object-cover" loading="lazy" decoding="async" /> : null}
+                      {p.imagen_url ? <Image src={p.imagen_url} alt="" className="w-16 h-16 rounded-lg object-cover" width={64} height={64} /> : null}
                       <div>
                         <p className="font-semibold">{p.titulo}</p>
                         {p.precio_usd && <p className="text-brand-primary font-bold">${Number(p.precio_usd).toLocaleString()}</p>}

@@ -10,6 +10,8 @@ import { ESTADOS, getMunicipiosNombres } from '@/lib/ubicaciones'
 import { Camera, X, UploadCloud, AlertCircle, Phone, Mail, MapPin, MessageSquare } from 'lucide-react'
 import { verificarContenido, formatearAlertaModeracion } from '@/lib/moderacion'
 import { emailProductoPublicado } from '@/lib/server-email'
+import { useTranslations } from 'next-intl'
+import Image from 'next/image'
 
 const currentYear = new Date().getFullYear()
 const years = Array.from({ length: 30 }, (_, i) => String(currentYear - i))
@@ -24,6 +26,7 @@ interface ImageFile {
 }
 
 export default function PublicarPage() {
+  const t = useTranslations('publicar')
   const { session, user, loading: authLoading } = useAuth()
   const router = useRouter()
 
@@ -75,7 +78,7 @@ export default function PublicarPage() {
     }
   }, [])
 
-  if (authLoading) return <div className="min-h-[60vh] flex items-center justify-center"><p>Cargando...</p></div>
+  if (authLoading) return <div className="min-h-[60vh] flex items-center justify-center"><p>{t('loading')}</p></div>
   if (!session) return null
 
   const cat = categoriasData[categoria]
@@ -334,7 +337,7 @@ export default function PublicarPage() {
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold text-gray-900 mb-2">Publicar algo</h1>
+      <h1 className="text-3xl font-bold text-gray-900 mb-2">{t('title')}</h1>
 
       {/* Banner: siempre gratis */}
       <div className="mb-6 bg-green-50 border border-green-200 rounded-xl p-4 flex items-center gap-3">
@@ -342,12 +345,12 @@ export default function PublicarPage() {
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
         </span>
         <div>
-          <p className="text-sm font-bold text-green-800">Publicar es 100% gratis</p>
-          <p className="text-xs text-green-600">Sin comisiones, sin letra pequeña. Siempre será así.</p>
+          <p className="text-sm font-bold text-green-800">{t('freeBanner')}</p>
+          <p className="text-xs text-green-600">{t('freeBannerDesc')}</p>
         </div>
       </div>
 
-      <p className="text-gray-500 text-sm mb-8">Completa la informacion en 4 pasos sencillos.</p>
+      <p className="text-gray-500 text-sm mb-8">{t('stepsDesc')}</p>
 
       {/* Error banner */}
       {error && (
@@ -363,9 +366,9 @@ export default function PublicarPage() {
           <div className="flex items-start gap-3">
             <span className="text-3xl">🎉</span>
             <div>
-              <h3 className="font-bold text-purple-800 text-lg">¡Bonus Emprendedor desbloqueado!</h3>
-              <p className="text-purple-700 text-sm mt-1">Llegaste a 10 publicaciones. Te regalamos <strong>5 créditos gratis</strong>.</p>
-              <p className="text-purple-600 text-xs mt-0.5">Cada 10 publicaciones = 5 créditos más. ¡Sigue así!</p>
+              <h3 className="font-bold text-purple-800 text-lg">{t('entrepreneurTitle')}</h3>
+              <p className="text-purple-700 text-sm mt-1" dangerouslySetInnerHTML={{ __html: t('entrepreneurDesc') }}></p>
+              <p className="text-purple-600 text-xs mt-0.5">{t('entrepreneurMore')}</p>
             </div>
           </div>
         </div>
@@ -373,7 +376,7 @@ export default function PublicarPage() {
 
       {/* Steps */}
       <div className="flex items-center gap-2 mb-8 overflow-x-auto pb-2">
-        {[{ num: 1, label: 'Categoria' }, { num: 2, label: 'Detalles' }, { num: 3, label: 'Fotos' }, { num: 4, label: 'Revisar' }].map(s => (
+        {[{ num: 1, label: t('stepCategory') }, { num: 2, label: t('stepDetails') }, { num: 3, label: t('stepPhotos') }, { num: 4, label: t('stepReview') }].map(s => (
           <div key={s.num} className="flex items-center gap-2 flex-shrink-0">
             <button onClick={() => setStep(s.num)} className={`w-10 h-10 rounded-full font-bold text-sm transition ${step >= s.num ? 'bg-brand-primary text-white' : 'bg-gray-200 text-gray-500'}`}>{s.num}</button>
             <span className={`text-sm font-medium hidden sm:inline ${step >= s.num ? 'text-gray-900' : 'text-gray-400'}`}>{s.label}</span>
@@ -387,10 +390,10 @@ export default function PublicarPage() {
         {/* PASO 1: Categoria → Subcategoria → Marca */}
         {step === 1 && (
           <div className="space-y-5 animate-fadeIn">
-            <h2 className="text-xl font-bold text-gray-900">Que quieres publicar?</h2>
+            <h2 className="text-xl font-bold text-gray-900">{t('whatToPublish')}</h2>
 
             <div>
-              <label className="block text-sm font-semibold text-gray-900 mb-1.5">Categoria</label>
+              <label className="block text-sm font-semibold text-gray-900 mb-1.5">{t('category')}</label>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 {Object.entries(categoriasData).map(([key, cfg]) => (
                   <button key={key} onClick={() => handleCatChange(key)} className={`p-4 rounded-xl border-2 text-center transition ${categoria === key ? 'border-brand-primary bg-blue-50' : 'border-gray-200 hover:border-brand-accent'}`}>
@@ -404,26 +407,26 @@ export default function PublicarPage() {
             {cat && (
               <>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-900 mb-1.5">Tipo</label>
+                  <label className="block text-sm font-semibold text-gray-900 mb-1.5">{t('type')}</label>
                   <select value={subcategoria} onChange={e => handleSubChange(e.target.value)} className="w-full border border-gray-300 rounded-lg px-4 py-3 bg-white text-gray-800">
-                    <option value="">Selecciona...</option>
+                    <option value="">{t('selectType')}</option>
                     {cat.subs.map(s => <option key={s.label} value={s.label}>{s.icon} {s.label}</option>)}
                   </select>
                 </div>
                 {subcategoria && sub?.marcas.length && sub.marcas.length > 0 && (
                   <div>
-                    <label className="block text-sm font-semibold text-gray-900 mb-1.5">Marca</label>
+                    <label className="block text-sm font-semibold text-gray-900 mb-1.5">{t('brand')}</label>
                     <select value={marca.startsWith('otra:') ? 'otra:' : marca} onChange={e => setMarca(e.target.value === 'otra:' ? '' : e.target.value)} className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-800 bg-white">
-                      <option value="">Seleccionar marca...</option>
+                      <option value="">{t('selectBrand')}</option>
                       {sub.marcas.map(m => <option key={m} value={m}>{m}</option>)}
-                      <option value="otra:">Otra (no está en la lista)</option>
+                      <option value="otra:">{t('otherBrand')}</option>
                     </select>
                     {marca.startsWith('otra:') && (
                       <input
                         type="text"
                         value={marca.replace('otra:', '')}
                         onChange={e => setMarca('otra:' + e.target.value)}
-                        placeholder="Escribe la marca..."
+                        placeholder={t('writeBrand')}
                         className="mt-2 w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-800 bg-white"
                       />
                     )}
@@ -432,24 +435,24 @@ export default function PublicarPage() {
               </>
             )}
 
-            <button onClick={() => setStep(2)} disabled={!canGoToStep2} className="w-full bg-brand-primary text-white py-3 rounded-lg font-bold hover:bg-brand-dark transition disabled:opacity-50">Siguiente</button>
+            <button onClick={() => setStep(2)} disabled={!canGoToStep2} className="w-full bg-brand-primary text-white py-3 rounded-lg font-bold hover:bg-brand-dark transition disabled:opacity-50">{t('next')}</button>
           </div>
         )}
 
         {/* PASO 2: Detalles */}
         {step === 2 && (
           <div className="space-y-5 animate-fadeIn">
-            <h2 className="text-xl font-bold text-gray-900">Detalles del producto</h2>
+            <h2 className="text-xl font-bold text-gray-900">{t('productDetails')}</h2>
 
             <div>
-              <label className="block text-sm font-semibold text-gray-900 mb-1.5">Titulo</label>
-              <input type="text" value={titulo} onChange={e => setTitulo(e.target.value)} placeholder="Describe tu producto claramente..." maxLength={100} required className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-800 bg-white" />
+              <label className="block text-sm font-semibold text-gray-900 mb-1.5">{t('titleField')}</label>
+              <input type="text" value={titulo} onChange={e => setTitulo(e.target.value)} placeholder={t('titlePlaceholder')} maxLength={100} required className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-800 bg-white" />
               <p className="text-xs text-gray-500 mt-1">{titulo.length}/100</p>
             </div>
 
             {camposEspeciales.length > 0 && (
               <div className="bg-gray-50 rounded-xl p-5 space-y-4 border border-gray-200">
-                <h3 className="font-bold text-gray-900">Especificaciones — {subcategoria}</h3>
+                <h3 className="font-bold text-gray-900">{t('specs')} — {subcategoria}</h3>
                 {camposEspeciales.map(campo => {
                   const val = specs[campo.label] || ''
                   const esOtra = val.startsWith('otra:')
@@ -461,7 +464,7 @@ export default function PublicarPage() {
                         <select value={esOtra ? 'otra:' : val} onChange={e => handleSpecChange(campo.label, e.target.value === 'otra:' ? '' : e.target.value)} className="w-full border border-gray-300 rounded-lg px-4 py-3 bg-white text-gray-800">
                           <option value="">{campo.placeholder}</option>
                           {campo.options?.map(o => <option key={o} value={o}>{o}</option>)}
-                          {campo.label.toLowerCase().includes('marca') && <option value="otra:">Otra (no está en la lista)</option>}
+                          {campo.label.toLowerCase().includes('marca') && <option value="otra:">{t('otherBrand')}</option>}
                         </select>
                         {esOtra && (
                           <input
@@ -483,13 +486,13 @@ export default function PublicarPage() {
             )}
 
             <div>
-              <label className="block text-sm font-semibold text-gray-900 mb-1.5">Descripcion</label>
-              <textarea value={descripcion} onChange={e => setDescripcion(e.target.value)} rows={5} maxLength={2000} required className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-800 resize-none bg-white" placeholder="Describe el estado, caracteristicas, accesorios incluidos..." />
+              <label className="block text-sm font-semibold text-gray-900 mb-1.5">{t('description')}</label>
+              <textarea value={descripcion} onChange={e => setDescripcion(e.target.value)} rows={5} maxLength={2000} required className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-800 resize-none bg-white" placeholder={t('descPlaceholder')} />
               <p className="text-xs text-gray-500 mt-1">{descripcion.length}/2000</p>
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-gray-900 mb-1.5">Estado</label>
+              <label className="block text-sm font-semibold text-gray-900 mb-1.5">{t('condition')}</label>
               <div className="grid grid-cols-2 gap-2">
                 {estadosProducto.map(e => (
                   <button key={e} onClick={() => setEstadoProd(e)} className={`px-4 py-3 rounded-lg text-sm font-medium border transition ${estadoProd === e ? 'bg-brand-primary text-white border-brand-primary' : 'bg-white text-gray-700 border-gray-200 hover:border-brand-accent'}`}>{e}</button>
@@ -498,23 +501,23 @@ export default function PublicarPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-gray-900 mb-1.5">Precio (USD)</label>
-              <input type="number" value={precioUsd} onChange={e => setPrecioUsd(e.target.value)} placeholder="Ej: 250" min="0" step="0.01" required className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-800 bg-white" />
-              <p className="text-xs text-gray-500 mt-1">Se muestra en USD y equivalente en Bs.</p>
+              <label className="block text-sm font-semibold text-gray-900 mb-1.5">{t('priceUsd')}</label>
+              <input type="number" value={precioUsd} onChange={e => setPrecioUsd(e.target.value)} placeholder={t('pricePlaceholder')} min="0" step="0.01" required className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-800 bg-white" />
+              <p className="text-xs text-gray-500 mt-1">{t('priceNote')}</p>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-sm font-semibold text-gray-900 mb-1.5">Estado</label>
+                <label className="block text-sm font-semibold text-gray-900 mb-1.5">{t('state')}</label>
                 <select value={ubicacionEstado} onChange={e => setUbicacionEstado(e.target.value)} required className="w-full border border-gray-300 rounded-lg px-3 py-3 bg-white text-gray-800">
-                  <option value="">Estado...</option>
+                  <option value="">{t('statePlaceholder')}</option>
                   {ESTADOS.map(e => <option key={e} value={e}>{e}</option>)}
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-900 mb-1.5">Municipio</label>
+                <label className="block text-sm font-semibold text-gray-900 mb-1.5">{t('municipality')}</label>
                 <select value={ubicacionCiudad} onChange={e => setUbicacionCiudad(e.target.value)} required disabled={!ubicacionEstado} className="w-full border border-gray-300 rounded-lg px-3 py-3 bg-white text-gray-800">
-                  <option value="">Municipio...</option>
+                  <option value="">{t('municipalityPlaceholder')}</option>
                   {(ubicacionEstado ? getMunicipiosNombres(ubicacionEstado) : []).map(m => <option key={m} value={m}>{m}</option>)}
                 </select>
               </div>
@@ -524,9 +527,9 @@ export default function PublicarPage() {
             <div className="bg-blue-50/60 border border-blue-200 rounded-xl p-5 space-y-4">
               <h3 className="font-bold text-gray-900 flex items-center gap-2">
                 <MapPin size={18} />
-                Como te contactan en esta publicacion?
+                {t('contactTitle')}
               </h3>
-              <p className="text-xs text-gray-500">Los metodos de contacto son por publicacion. Elige los que quieras mostrar a los compradores.</p>
+              <p className="text-xs text-gray-500">{t('contactDesc')}</p>
 
               <div className="space-y-3">
                 {/* WhatsApp */}
@@ -542,7 +545,7 @@ export default function PublicarPage() {
                 <div className="flex items-start gap-3 bg-white border border-gray-200 rounded-lg p-3">
                   <input type="checkbox" id="usePhone" checked={!!contactPhone} onChange={e => setContactPhone(e.target.checked ? '+' : '')} className="mt-1 rounded text-brand-primary" />
                   <label htmlFor="usePhone" className="flex-1">
-                    <span className="text-sm font-medium flex items-center gap-1.5"><Phone size={14} /> Llamadas</span>
+                    <span className="text-sm font-medium flex items-center gap-1.5"><Phone size={14} /> {t('calls')}</span>
                     {contactPhone && <input type="tel" value={contactPhone} onChange={e => setContactPhone(e.target.value)} placeholder="+58 412 1234567" className="mt-1 w-full border border-gray-200 rounded px-2 py-1.5 text-sm" />}
                   </label>
                 </div>
@@ -569,13 +572,13 @@ export default function PublicarPage() {
               {/* Chat interno siempre activo */}
               <div className="flex items-center gap-2 text-xs text-gray-500">
                 <MessageSquare size={12} />
-                <span>Chat interno activado automaticamente</span>
+                <span>{t('chatAuto')}</span>
               </div>
             </div>
 
             <div className="flex gap-3">
-              <button onClick={() => setStep(1)} className="px-6 py-3 rounded-lg font-medium border border-gray-200 hover:bg-gray-50"> atras</button>
-              <button onClick={() => setStep(3)} disabled={!canGoToStep3} className="flex-1 bg-brand-primary text-white py-3 rounded-lg font-bold hover:bg-brand-dark transition disabled:opacity-50">Siguiente</button>
+              <button onClick={() => setStep(1)} className="px-6 py-3 rounded-lg font-medium border border-gray-200 hover:bg-gray-50">{t('back')}</button>
+              <button onClick={() => setStep(3)} disabled={!canGoToStep3} className="flex-1 bg-brand-primary text-white py-3 rounded-lg font-bold hover:bg-brand-dark transition disabled:opacity-50">{t('next')}</button>
             </div>
           </div>
         )}
@@ -583,13 +586,13 @@ export default function PublicarPage() {
         {/* PASO 3: Fotos */}
         {step === 3 && (
           <div className="space-y-5 animate-fadeIn">
-            <h2 className="text-xl font-bold text-gray-900">Anade fotos</h2>
-            <p className="text-sm text-gray-500">Sube hasta 10 fotos. La primera sera la portada.</p>
+            <h2 className="text-xl font-bold text-gray-900">{t('addPhotos')}</h2>
+            <p className="text-sm text-gray-500">{t('photosDesc')}</p>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
               {imagenes.map((img, i) => (
                 <div key={i} className="aspect-square relative rounded-lg overflow-hidden group border border-gray-200">
-                  <img src={img.preview} alt="" className="w-full h-full object-cover" />
-                  {i === 0 && img.uploadedUrl && <span className="absolute top-1 left-1 bg-brand-accent text-brand-primary text-[10px] font-bold px-1.5 py-0.5 rounded">Portada</span>}
+                  <Image src={img.preview} alt="" className="w-full h-full object-cover" fill sizes="100px" unoptimized />
+                  {i === 0 && img.uploadedUrl && <span className="absolute top-1 left-1 bg-brand-accent text-brand-primary text-[10px] font-bold px-1.5 py-0.5 rounded">{t('cover')}</span>}
                   {img.uploading && (
                     <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
                       <div className="w-8 h-8 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -609,7 +612,7 @@ export default function PublicarPage() {
               ))}
               {imagenes.length < 10 && (
                 <label className="aspect-square rounded-lg border-2 border-dashed border-gray-300 flex flex-col items-center justify-center cursor-pointer hover:border-brand-accent hover:bg-yellow-50 transition">
-                  <Camera size={24} className="text-gray-400" /><span className="text-xs text-gray-500 mt-1">Anadir</span>
+                  <Camera size={24} className="text-gray-400" /><span className="text-xs text-gray-500 mt-1">{t('add')}</span>
                   <input type="file" accept="image/*" multiple onChange={handleImageUpload} className="hidden" />
                 </label>
               )}
@@ -621,8 +624,8 @@ export default function PublicarPage() {
                 <div className="flex gap-2">
                   <AlertCircle size={18} className="text-yellow-600 flex-shrink-0 mt-0.5" />
                   <div>
-                    <p className="text-sm font-semibold text-yellow-800">Revisión automática activada</p>
-                    <p className="text-xs text-yellow-600 mt-1">Tu publicación se publicará pero pasará por revisión. Recibirás confirmación.</p>
+                    <p className="text-sm font-semibold text-yellow-800">{t('moderationReview')}</p>
+                    <p className="text-xs text-yellow-600 mt-1">{t('moderationDesc')}</p>
                   </div>
                 </div>
               </div>
@@ -630,7 +633,7 @@ export default function PublicarPage() {
 
             {loading && imagenes.length > 0 && (
               <div>
-                <p className="text-sm text-gray-500 mb-2">Subiendo imagenes: {uploadProgress}%</p>
+                <p className="text-sm text-gray-500 mb-2">{t('uploading')} {uploadProgress}%</p>
                 <div className="w-full bg-gray-200 rounded-full h-2">
                   <div className="bg-brand-primary h-2 rounded-full transition-all" style={{ width: `${uploadProgress}%` }} />
                 </div>
@@ -638,8 +641,8 @@ export default function PublicarPage() {
             )}
 
             <div className="flex gap-3">
-              <button onClick={() => setStep(2)} className="px-6 py-3 rounded-lg font-medium border border-gray-200 hover:bg-gray-50"> atras</button>
-              <button onClick={() => setStep(4)} className="flex-1 bg-brand-primary text-white py-3 rounded-lg font-bold hover:bg-brand-dark transition">Revisar</button>
+              <button onClick={() => setStep(2)} className="px-6 py-3 rounded-lg font-medium border border-gray-200 hover:bg-gray-50">{t('back')}</button>
+              <button onClick={() => setStep(4)} className="flex-1 bg-brand-primary text-white py-3 rounded-lg font-bold hover:bg-brand-dark transition">{t('stepReview')}</button>
             </div>
           </div>
         )}
@@ -647,34 +650,34 @@ export default function PublicarPage() {
         {/* PASO 4: Revisar */}
         {step === 4 && (
           <div className="space-y-5 animate-fadeIn">
-            <h2 className="text-xl font-bold text-gray-900">Revisa tu publicacion</h2>
+            <h2 className="text-xl font-bold text-gray-900">{t('reviewTitle')}</h2>
             <div className="border rounded-lg p-5 space-y-3">
-              {imagenes.length > 0 && <div className="aspect-video bg-gray-100 rounded-lg overflow-hidden"><img src={imagenes[0].preview} alt="" className="w-full h-full object-cover" /></div>}
+              {imagenes.length > 0 && <div className="aspect-video bg-gray-100 rounded-lg overflow-hidden"><Image src={imagenes[0].preview} alt="" className="w-full h-full object-cover" fill sizes="300px" unoptimized /></div>}
               <h3 className="text-lg font-bold text-gray-900">{titulo}</h3>
               <div className="space-y-1 text-sm">
-                <p><span className="text-gray-500">Categoria:</span> {categoria} → {subcategoria}</p>
-                {marca && <p><span className="text-gray-500">Marca:</span> {marca.replace('otra:', '').trim()}</p>}
+                <p><span className="text-gray-500">{t('category')}:</span> {categoria} → {subcategoria}</p>
+                {marca && <p><span className="text-gray-500">{t('brand')}:</span> {marca.replace('otra:', '').trim()}</p>}
                 {Object.entries(specs).filter(([,v]) => v).map(([k,v]) => <p key={k}><span className="text-gray-500">{k}:</span> {v}</p>)}
-                <p><span className="text-gray-500">Estado:</span> {estadoProd}</p>
-                <p><span className="text-gray-500">Precio:</span> <strong className="text-brand-primary text-lg">${precioUsd}</strong></p>
-                <p><span className="text-gray-500">Ubicacion:</span> {ubicacionCiudad}, {ubicacionEstado}</p>
+                <p><span className="text-gray-500">{t('condition')}:</span> {estadoProd}</p>
+                <p><span className="text-gray-500">{t('priceUsd')}:</span> <strong className="text-brand-primary text-lg">${precioUsd}</strong></p>
+                <p><span className="text-gray-500">{t('location')}:</span> {ubicacionCiudad}, {ubicacionEstado}</p>
               </div>
 
               {/* Metodos contacto resumen */}
               {(contactEmail || contactPhone || contactWhatsApp || contactMessenger) && (
                 <div className="mt-3 p-3 bg-blue-50 rounded-lg">
-                  <p className="text-xs font-semibold text-gray-500 mb-1">Metodos de contacto:</p>
+                  <p className="text-xs font-semibold text-gray-500 mb-1">{t('contactMethods')}</p>
                   <div className="flex flex-wrap gap-2 text-xs">
                     {contactEmail && <span className="bg-white px-2 py-1 rounded border">📧 {contactEmail}</span>}
                     {contactPhone && <span className="bg-white px-2 py-1 rounded border">📞 {contactPhone}</span>}
                     {contactWhatsApp && <span className="bg-white px-2 py-1 rounded border">💚 WhatsApp</span>}
                     {contactMessenger && <span className="bg-white px-2 py-1 rounded border">👤 Messenger</span>}
-                    <span className="bg-white px-2 py-1 rounded border">💬 Chat interno</span>
+                    <span className="bg-white px-2 py-1 rounded border">{t('internalChat')}</span>
                   </div>
                 </div>
               )}
 
-              <div className="mt-4 p-4 bg-gray-50 rounded-lg"><p className="text-sm text-gray-600"><strong>Descripcion:</strong></p><p className="text-sm text-gray-700 mt-1">{descripcion}</p></div>
+              <div className="mt-4 p-4 bg-gray-50 rounded-lg"><p className="text-sm text-gray-600"><strong>{t('description')}:</strong></p><p className="text-sm text-gray-700 mt-1">{descripcion}</p></div>
             </div>
 
             {moderacionResultado && moderacionResultado.nivel === 'sospechoso' && (
@@ -682,8 +685,8 @@ export default function PublicarPage() {
                 <div className="flex gap-2">
                   <AlertCircle size={18} className="text-yellow-600 flex-shrink-0 mt-0.5" />
                   <div>
-                    <p className="text-sm font-semibold text-yellow-800">Revisión automática activada</p>
-                    <p className="text-xs text-yellow-600 mt-1">Tu publicación se publicará pero pasará por revisión. Recibirás confirmación.</p>
+                    <p className="text-sm font-semibold text-yellow-800">{t('moderationReview')}</p>
+                    <p className="text-xs text-yellow-600 mt-1">{t('moderationDesc')}</p>
                   </div>
                 </div>
               </div>
@@ -702,8 +705,8 @@ export default function PublicarPage() {
             {pubCount > 0 && pubCount < 10 && (
               <div className="p-3 bg-purple-50 border border-purple-200 rounded-lg mb-4">
                 <div className="flex justify-between text-xs mb-1.5">
-                  <span className="font-semibold text-purple-800">🎯 {pubCount}/10 publicaciones → Bonus Emprendedor</span>
-                  <span className="text-purple-600">{10 - pubCount} restantes → 5 créditos gratis</span>
+                  <span className="font-semibold text-purple-800">{t('entrepreneurProgress', { count: pubCount })}</span>
+                  <span className="text-purple-600">{t('entrepreneurRemaining', { remaining: 10 - pubCount })}</span>
                 </div>
                 <div className="w-full bg-purple-200 rounded-full h-2">
                   <div className="bg-purple-500 h-2 rounded-full transition-all" style={{ width: `${(pubCount / 10) * 100}%` }} />
@@ -712,13 +715,13 @@ export default function PublicarPage() {
             )}
             {pubCount >= 10 && !showEmprendedor && (
               <div className="p-3 bg-green-50 border border-green-200 rounded-lg mb-4 flex items-center gap-2">
-                <span className="text-sm font-semibold text-green-800">🎁 Ya desbloqueaste el Bonus Emprendedor (+5 créditos)</span>
+                <span className="text-sm font-semibold text-green-800">{t('entrepreneurUnlocked')}</span>
               </div>
             )}
 
             {loading && (
               <div>
-                <p className="text-sm text-gray-500 mb-2">Publicando: {uploadProgress}%</p>
+                <p className="text-sm text-gray-500 mb-2">{t('publishing')} {uploadProgress}%</p>
                 <div className="w-full bg-gray-200 rounded-full h-2">
                   <div className="bg-brand-primary h-2 rounded-full transition-all" style={{ width: `${uploadProgress}%` }} />
                 </div>
@@ -726,8 +729,8 @@ export default function PublicarPage() {
             )}
 
             <div className="flex gap-3">
-              <button onClick={() => setStep(3)} className="px-6 py-3 rounded-lg font-medium border border-gray-200 hover:bg-gray-50">Editar</button>
-              <button onClick={handleSubmit} disabled={loading} className="flex-1 bg-brand-accent text-brand-primary py-3 rounded-lg font-bold hover:bg-accent/90 transition disabled:opacity-50">{loading ? 'Publicando...' : 'Publicar gratis'}</button>
+              <button onClick={() => setStep(3)} className="px-6 py-3 rounded-lg font-medium border border-gray-200 hover:bg-gray-50">{t('edit')}</button>
+              <button onClick={handleSubmit} disabled={loading} className="flex-1 bg-brand-accent text-brand-primary py-3 rounded-lg font-bold hover:bg-accent/90 transition disabled:opacity-50">{loading ? t('publishing') : t('publishFree')}</button>
             </div>
           </div>
         )}

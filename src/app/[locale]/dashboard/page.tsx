@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useAuth } from '@/components/AuthProvider'
 import dynamic from 'next/dynamic'
 import { getTasaBCVClient, actualizarTasaClient } from '@/lib/tasaBCV'
+import { useTranslations } from 'next-intl'
 import { Package, MessageSquare, CreditCard, Eye, Heart, LogOut, X, Zap, Star, ShieldCheck, BarChart3, Settings } from 'lucide-react'
 import LocalLink from '@/components/LocalLink'
 
@@ -27,6 +28,7 @@ import { useDashboard } from './hooks/useDashboard'
 import { supabase } from '@/lib/supabase'
 
 function PasswordModal({ user, setToast, onClose }: { user: any; setToast: (s: string | null) => void; onClose: () => void }) {
+  const t = useTranslations('dashboard')
   const [pwActual, setPwActual] = useState('')
   const [pwNueva, setPwNueva] = useState('')
   const [pwRepetir, setPwRepetir] = useState('')
@@ -36,8 +38,8 @@ function PasswordModal({ user, setToast, onClose }: { user: any; setToast: (s: s
   async function handleCambiarPassword(e: React.FormEvent) {
     e.preventDefault()
     setPwError('')
-    if (pwNueva !== pwRepetir) { setPwError('Las contraseñas no coinciden'); return }
-    if (pwNueva.length < 8) { setPwError('La contraseña debe tener al menos 8 caracteres'); return }
+    if (pwNueva !== pwRepetir) { setPwError(t('pwMismatch')); return }
+    if (pwNueva.length < 8) { setPwError(t('pwMinLength')); return }
     setPwGuardando(true)
 
     const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
@@ -45,7 +47,7 @@ function PasswordModal({ user, setToast, onClose }: { user: any; setToast: (s: s
       password: pwActual,
     })
     if (signInError || !signInData.user) {
-      setPwError('La contraseña actual es incorrecta')
+      setPwError(t('pwWrong'))
       setPwGuardando(false)
       return
     }
@@ -54,7 +56,7 @@ function PasswordModal({ user, setToast, onClose }: { user: any; setToast: (s: s
     if (error) {
       setPwError(error.message)
     } else {
-      setToast('✅ Contraseña actualizada correctamente')
+      setToast(t('pwSuccess'))
     }
     setPwGuardando(false)
     setTimeout(() => setToast(null), 4000)
@@ -64,26 +66,26 @@ function PasswordModal({ user, setToast, onClose }: { user: any; setToast: (s: s
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={onClose}>
       <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-xl font-bold text-gray-800">Cambiar contraseña</h3>
+          <h3 className="text-xl font-bold text-gray-800">{t('passwordTitle')}</h3>
           <button onClick={onClose} className="p-1 hover:bg-gray-100 rounded-lg"><X size={20} /></button>
         </div>
         {pwError && <div className="bg-red-50 text-red-700 p-3 rounded-lg mb-4 text-sm">⚠️ {pwError}</div>}
         <form onSubmit={handleCambiarPassword} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Contraseña actual</label>
-            <input type="password" value={pwActual} onChange={e => setPwActual(e.target.value)} required className="w-full border rounded-lg px-3 py-2 text-sm bg-white" placeholder="Tu contraseña actual" />
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t('pwCurrent')}</label>
+            <input type="password" value={pwActual} onChange={e => setPwActual(e.target.value)} required className="w-full border rounded-lg px-3 py-2 text-sm bg-white" placeholder={t('pwCurrentPlaceholder')} />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Nueva contraseña</label>
-            <input type="password" value={pwNueva} onChange={e => setPwNueva(e.target.value)} required className="w-full border rounded-lg px-3 py-2 text-sm bg-white" placeholder="Mínimo 8 caracteres" />
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t('pwNew')}</label>
+            <input type="password" value={pwNueva} onChange={e => setPwNueva(e.target.value)} required className="w-full border rounded-lg px-3 py-2 text-sm bg-white" placeholder={t('pwNewPlaceholder')} />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Repetir nueva contraseña</label>
-            <input type="password" value={pwRepetir} onChange={e => setPwRepetir(e.target.value)} required className="w-full border rounded-lg px-3 py-2 text-sm bg-white" placeholder="Repite la nueva contraseña" />
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t('pwRepeat')}</label>
+            <input type="password" value={pwRepetir} onChange={e => setPwRepetir(e.target.value)} required className="w-full border rounded-lg px-3 py-2 text-sm bg-white" placeholder={t('pwRepeatPlaceholder')} />
           </div>
           <div className="flex gap-3">
-            <button type="button" onClick={onClose} className="flex-1 py-3 border border-gray-200 rounded-lg font-medium text-gray-600 hover:bg-gray-50">Cancelar</button>
-            <button type="submit" disabled={pwGuardando} className="flex-1 py-3 bg-brand-primary text-white rounded-lg font-bold hover:bg-brand-dark disabled:opacity-50">{pwGuardando ? 'Guardando...' : 'Cambiar contraseña'}</button>
+            <button type="button" onClick={onClose} className="flex-1 py-3 border border-gray-200 rounded-lg font-medium text-gray-600 hover:bg-gray-50">{t('cancelEdit')}</button>
+            <button type="submit" disabled={pwGuardando} className="flex-1 py-3 bg-brand-primary text-white rounded-lg font-bold hover:bg-brand-dark disabled:opacity-50">{pwGuardando ? t('pwSaving') : t('pwChange')}</button>
           </div>
         </form>
       </div>
@@ -92,6 +94,7 @@ function PasswordModal({ user, setToast, onClose }: { user: any; setToast: (s: s
 }
 
 export default function DashboardPage() {
+  const t = useTranslations('dashboard')
   const { user, session, loading: authLoading } = useAuth()
   const router = useRouter()
   const data = useDashboard()
@@ -110,15 +113,15 @@ export default function DashboardPage() {
   }, [])
 
   useEffect(() => {
-    const t = getTasaBCVClient()
-    setTasaBs(t.tasa)
+    const tasaData = getTasaBCVClient()
+    setTasaBs(tasaData.tasa)
     actualizarTasaClient().then(d => setTasaBs(d.tasa))
   }, [])
 
   async function handleFoto(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file || !user || !file.type.startsWith('image/')) return
-    if (file.size > 2 * 1024 * 1024) { data.setToast('La imagen debe ser menor a 2MB'); return }
+    if (file.size > 2 * 1024 * 1024) { data.setToast(t('imageTooLarge')); return }
 
     const formData = new FormData()
     formData.append('file', file)
@@ -131,7 +134,7 @@ export default function DashboardPage() {
     const json = await res.json()
 
     if (!res.ok) {
-      data.setToast('Error subiendo foto: ' + json.error)
+      data.setToast(t('photoError') + json.error)
       return
     }
 
@@ -146,10 +149,10 @@ export default function DashboardPage() {
   async function handleBoost(productId: string) {
     const { data: result, error } = await supabase.rpc('usar_boost', { p_producto_id: productId, p_user_id: user!.id })
     if (error || !result?.ok) {
-      data.setToast(`Error: ${result?.error || error?.message || 'No se pudo hacer boost'}`)
+      data.setToast(`Error: ${result?.error || error?.message || t('boostError')}`)
     } else {
       data.setCreditos(result.balance)
-      data.setToast('⚡ Boost aplicado! Tu publicación ahora está #1')
+      data.setToast(t('boostApplied'))
       const { data: prods } = await supabase.from('productos').select('*').eq('user_id', user!.id).order('creado_en', { ascending: false })
       data.setProductos(prods || [])
     }
@@ -160,10 +163,10 @@ export default function DashboardPage() {
   async function handleDestacar(productId: string, horas: number) {
     const { data: result, error } = await supabase.rpc('usar_destacado', { p_producto_id: productId, p_user_id: user!.id, p_horas: horas })
     if (error || !result?.ok) {
-      data.setToast(`Error: ${result?.error || error?.message || 'No se pudo destacar'}`)
+      data.setToast(`Error: ${result?.error || error?.message || t('featuredError')}`)
     } else {
       data.setCreditos(result.balance)
-      data.setToast(`⭐ Destacado activado por ${horas} horas!`)
+      data.setToast(t('featuredActivated', { hours: horas }))
       const { data: prods } = await supabase.from('productos').select('*').eq('user_id', user!.id).order('creado_en', { ascending: false })
       data.setProductos(prods || [])
     }
@@ -177,9 +180,9 @@ export default function DashboardPage() {
     return (
       <div className="min-h-[60vh] flex items-center justify-center px-4">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">Inicia sesión</h2>
-          <p className="text-gray-500 mb-6">Necesitas una cuenta para acceder al panel</p>
-          <LocalLink href="/login" className="inline-block bg-brand-primary text-white px-8 py-3 rounded-lg font-bold hover:bg-brand-dark transition">Iniciar sesión</LocalLink>
+          <h2 className="text-2xl font-bold text-gray-800 mb-4">{t('loginRequired')}</h2>
+          <p className="text-gray-500 mb-6">{t('loginRequiredDesc')}</p>
+          <LocalLink href="/login" className="inline-block bg-brand-primary text-white px-8 py-3 rounded-lg font-bold hover:bg-brand-dark transition">{t('loginButton')}</LocalLink>
         </div>
       </div>
     )
@@ -237,40 +240,40 @@ export default function DashboardPage() {
 
       {/* Resumen */}
       <div className="bg-gradient-to-r from-brand-primary to-blue-800 rounded-xl p-5 text-white mb-6">
-        <h3 className="font-bold text-lg mb-3 flex items-center gap-2">📊 Resumen de rendimiento</h3>
+        <h3 className="font-bold text-lg mb-3 flex items-center gap-2">{t('performance')}</h3>
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
           <div>
             <p className="text-2xl font-black">{data.visitasTotales}</p>
-            <p className="text-xs text-blue-200">Vistas totales</p>
+            <p className="text-xs text-blue-200">{t('totalViews')}</p>
           </div>
           <div>
             <p className="text-2xl font-black">{data.productos.length ? Math.round(data.visitasTotales / data.productos.length) : 0}</p>
-            <p className="text-xs text-blue-200">Promedio por producto</p>
+            <p className="text-xs text-blue-200">{t('avgPerProduct')}</p>
           </div>
           <div>
             <p className="text-2xl font-black">{data.pubCount}</p>
-            <p className="text-xs text-blue-200">Productos activos</p>
+            <p className="text-xs text-blue-200">{t('activeProducts')}</p>
           </div>
           <div>
             <p className="text-2xl font-black">{data.productos.filter((p: any) => p.boosteado_en || (p.destacado && p.destacado_hasta > new Date().toISOString())).length}</p>
-            <p className="text-xs text-blue-200">Promocionados ahora</p>
+            <p className="text-xs text-blue-200">{t('promotedNow')}</p>
           </div>
           <div>
             <p className="text-2xl font-black">{data.favoritosCount}</p>
-            <p className="text-xs text-blue-200">Favoritos</p>
+            <p className="text-xs text-blue-200">{t('favorites')}</p>
           </div>
           <div>
             <p className="text-2xl font-black">{data.creditos}</p>
-            <p className="text-xs text-blue-200">Créditos</p>
+            <p className="text-xs text-blue-200">{t('creditsLabel')}</p>
           </div>
         </div>
         <div className="mt-4 pt-4 border-t border-white/20">
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="flex items-center gap-2 text-sm">
-              <span>🎁 1 crédito gratis al registrarte</span>
+              <span>{t('freeCredit')}</span>
             </div>
             <div className="flex items-center gap-2 text-sm">
-              <span>🎯 {data.pubCount}/10 publicaciones → 5 créditos gratis</span>
+              <span>{t('pubProgress', { count: data.pubCount })}</span>
               <div className="w-24 bg-white/30 rounded-full h-1.5">
                 <div className="bg-brand-accent h-1.5 rounded-full transition-all" style={{ width: `${Math.min((data.pubCount / 10) * 100, 100)}%` }} />
               </div>
@@ -282,13 +285,13 @@ export default function DashboardPage() {
       {/* Tabs */}
       <div className="flex gap-1 overflow-x-auto hide-scrollbar mb-6 bg-gray-100 p-1 rounded-xl">
         {[
-          { id: 'resumen', label: 'Resumen', icon: BarChart3 },
-          { id: 'productos', label: 'Mis publicaciones', icon: Package },
-          { id: 'mensajes', label: 'Mensajes', icon: MessageSquare },
-          { id: 'creditos', label: 'Créditos', icon: CreditCard },
-          { id: 'favoritos', label: 'Favoritos', icon: Heart },
-          { id: 'verificacion', label: 'Verificación', icon: ShieldCheck },
-          { id: 'reputacion', label: 'Mi reputación', icon: Star },
+          { id: 'resumen', label: t('tabSummary'), icon: BarChart3 },
+          { id: 'productos', label: t('tabListings'), icon: Package },
+          { id: 'mensajes', label: t('tabMessages'), icon: MessageSquare },
+          { id: 'creditos', label: t('tabCredits'), icon: CreditCard },
+          { id: 'favoritos', label: t('tabFavorites'), icon: Heart },
+          { id: 'verificacion', label: t('tabVerification'), icon: ShieldCheck },
+          { id: 'reputacion', label: t('tabReputation'), icon: Star },
         ].map((item) => (
           <button
             key={item.id}
@@ -306,7 +309,7 @@ export default function DashboardPage() {
       {/* Tab Content */}
       {activeTab === 'resumen' && <TabResumen userId={user!.id} />}
       {activeTab === 'productos' && (
-        <Suspense fallback={<div className="p-12 text-center text-gray-400">Cargando publicaciones...</div>}>
+        <Suspense fallback={<div className="p-12 text-center text-gray-400">{t('loadingListings')}</div>}>
           <TabProductos
             productos={data.productos}
             onBoost={setBoostTarget}

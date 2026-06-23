@@ -7,12 +7,15 @@ import { useAuth } from '@/components/AuthProvider'
 import { categoriasData } from '@/lib/categorias'
 import { ESTADOS, getMunicipiosNombres } from '@/lib/ubicaciones'
 import { Camera, X, ArrowLeft, Save, AlertCircle, Trash2 } from 'lucide-react'
+import { useTranslations } from 'next-intl'
+import Image from 'next/image'
 
 const currentYear = new Date().getFullYear()
 const years = Array.from({ length: 30 }, (_, i) => String(currentYear - i))
 const estadosProducto = ['Nuevo', 'Como nuevo', 'Bueno', 'Usado']
 
 export default function EditarPage() {
+  const t = useTranslations('editProduct')
   const params = useParams()
   const router = useRouter()
   const { user, session, loading: authLoading } = useAuth()
@@ -224,10 +227,10 @@ export default function EditarPage() {
   return (
     <div className="max-w-3xl mx-auto px-4 py-8">
       <button onClick={() => router.back()} className="flex items-center gap-2 text-gray-500 hover:text-gray-800 mb-6 text-sm">
-        <ArrowLeft size={16} /> Volver
+        <ArrowLeft size={16} /> {t('back')}
       </button>
 
-      <h1 className="text-3xl font-bold text-gray-900 mb-2">Editar publicación</h1>
+      <h1 className="text-3xl font-bold text-gray-900 mb-2">{t('title')}</h1>
       <p className="text-gray-500 mb-6">Modifica los campos que necesites</p>
 
       {/* Alerts */}
@@ -237,21 +240,21 @@ export default function EditarPage() {
       <div className="bg-white rounded-2xl shadow-sm p-6 border space-y-5">
         {/* Título */}
         <div>
-          <label className="block text-sm font-semibold text-gray-900 mb-1.5">Título</label>
+          <label className="block text-sm font-semibold text-gray-900 mb-1.5">{t('title2')}</label>
           <input type="text" value={titulo} onChange={e => setTitulo(e.target.value)} maxLength={100} className="w-full border rounded-lg px-4 py-3" />
           <p className="text-xs text-gray-500 mt-1">{titulo.length}/100</p>
         </div>
 
         {/* Descripción */}
         <div>
-          <label className="block text-sm font-semibold text-gray-900 mb-1.5">Descripción</label>
+          <label className="block text-sm font-semibold text-gray-900 mb-1.5">{t('description')}</label>
           <textarea value={descripcion} onChange={e => setDescripcion(e.target.value)} rows={4} className="w-full border rounded-lg px-4 py-3 resize-none" />
         </div>
 
         {/* Precio + Estado + Categoria/Sub */}
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="block text-sm font-semibold text-gray-900 mb-1.5">Precio (USD)</label>
+            <label className="block text-sm font-semibold text-gray-900 mb-1.5">{t('priceUsd')}</label>
             <input type="number" value={precioUsd} onChange={e => setPrecioUsd(e.target.value)} className="w-full border rounded-lg px-4 py-3" />
           </div>
           <div>
@@ -265,7 +268,7 @@ export default function EditarPage() {
 
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="block text-sm font-semibold text-gray-900 mb-1.5">Categoría</label>
+            <label className="block text-sm font-semibold text-gray-900 mb-1.5">{t('category')}</label>
             <select value={categoria} onChange={e => { setCategoria(e.target.value); setSubcategoria('') }} className="w-full border rounded-lg px-4 py-3 bg-white">
               <option value="">...</option>
               {Object.entries(categoriasData).map(([k, v]: any) => <option key={k} value={k}>{v.icon} {v.label}</option>)}
@@ -285,7 +288,7 @@ export default function EditarPage() {
         {/* Campos especiales */}
         {camposEspeciales.length > 0 && (
           <div className="bg-gray-50 rounded-xl p-5 space-y-4">
-            <h3 className="font-bold text-gray-900">Especificaciones</h3>
+            <h3 className="font-bold text-gray-900">{t('specs')}</h3>
             {camposEspeciales.map((campo: any) => (
               <div key={campo.label}>
                 <label className="block text-sm font-semibold text-gray-900 mb-1.5">{campo.label}</label>
@@ -305,7 +308,7 @@ export default function EditarPage() {
         {/* Ubicación */}
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="block text-sm font-semibold text-gray-900 mb-1.5">Estado</label>
+            <label className="block text-sm font-semibold text-gray-900 mb-1.5">{t('condition')}</label>
             <select value={ubicacionEstado} onChange={e => setUbicacionEstado(e.target.value)} className="w-full border rounded-lg px-4 py-3 bg-white">
               <option value="">Estado...</option>
               {ESTADOS.map(e => <option key={e} value={e}>{e}</option>)}
@@ -322,7 +325,7 @@ export default function EditarPage() {
 
         {/* Métodos de contacto */}
         <div className="bg-blue-50/60 border border-blue-200 rounded-xl p-5 space-y-3">
-          <h3 className="font-bold text-gray-900">Métodos de contacto</h3>
+          <h3 className="font-bold text-gray-900">{t('contactTitle')}</h3>
 
           {showWhatsApp ? (
             <div className="bg-white border rounded-lg p-3">
@@ -392,7 +395,7 @@ export default function EditarPage() {
             <div className="grid grid-cols-4 gap-2">
               {currentImages.map((url, i) => (
                 <div key={i} className="relative aspect-square rounded-lg overflow-hidden group">
-                  <img src={url} alt="" className="w-full h-full object-cover" />
+                  <Image src={url} alt="" className="w-full h-full object-cover" fill sizes="100px" unoptimized />
                   <button onClick={() => removeCurrentImage(i)} className="absolute top-1 right-1 p-1 bg-red-500 rounded-full text-white opacity-0 group-hover:opacity-100 transition"><X size={12} /></button>
                 </div>
               ))}
@@ -412,7 +415,7 @@ export default function EditarPage() {
             <div className="grid grid-cols-4 gap-2 mt-3">
               {newImages.map((img, i) => (
                 <div key={i} className="relative aspect-square rounded-lg overflow-hidden">
-                  <img src={img.preview} alt="" className="w-full h-full object-cover" />
+                  <Image src={img.preview} alt="" className="w-full h-full object-cover" fill sizes="100px" unoptimized />
                   <button onClick={() => removeNewImage(i)} className="absolute top-1 right-1 p-1 bg-red-500 rounded-full text-white"><X size={12} /></button>
                 </div>
               ))}
@@ -431,7 +434,7 @@ export default function EditarPage() {
         {/* Actions */}
         <div className="flex items-center gap-3 pt-4 border-t">
           <button onClick={handleSubmit} disabled={guardando} className="flex items-center gap-2 bg-brand-accent text-brand-primary px-6 py-3 rounded-lg font-bold hover:bg-accent/90 transition disabled:opacity-50">
-            <Save size={16} /> {guardando ? 'Guardando...' : 'Guardar cambios'}
+            <Save size={16} /> {guardando ? t('saving') : t('save')}
           </button>
           <button onClick={() => router.push(`/producto/${productoId}`)} className="px-4 py-3 border rounded-lg hover:bg-gray-50">Cancelar</button>
           <button onClick={handleEliminar} disabled={eliminando} className="flex items-center gap-2 ml-auto text-red-600 hover:bg-red-50 px-4 py-2.5 rounded-lg transition disabled:opacity-50">
