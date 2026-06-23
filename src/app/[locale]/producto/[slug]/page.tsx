@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { supabase } from '@/lib/supabase'
+import { routing } from '@/i18n/routing'
 import { Suspense } from 'react'
 import ProductoPageClient from './ProductoPageClient'
 
@@ -69,7 +70,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export async function generateStaticParams() {
-  // Pre-render los 100 productos más recientes para SSG
+  // Pre-render los 100 productos más recientes para SSG en ambos idiomas
   const { data } = await supabase
     .from('productos')
     .select('id')
@@ -78,7 +79,10 @@ export async function generateStaticParams() {
     .order('creado_en', { ascending: false })
     .limit(100)
 
-  return (data || []).map((p: any) => ({ slug: p.id }))
+  const locales = routing.locales
+  return (data || []).flatMap((p: any) =>
+    locales.map((locale) => ({ locale, slug: p.id }))
+  )
 }
 
 export default async function ProductoPage({ params }: Props) {
