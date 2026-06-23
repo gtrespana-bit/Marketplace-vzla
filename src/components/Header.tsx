@@ -279,16 +279,20 @@ export function Header() {
                 )}
                 <LocalLink href="/blog" onClick={() => setMobileOpen(false)} className="px-3 py-2 rounded-lg hover:bg-white/10 transition">📝 {t('header.blog')}</LocalLink>
                 <LocalLink href="/catalogo" onClick={() => setMobileOpen(false)} className="px-3 py-2 rounded-lg hover:bg-white/10 transition">{t('header.viewCatalog')}</LocalLink>
-                {/* Language switcher for mobile */}
-                <a href={altLocaleHref} onClick={() => setMobileOpen(false)} className="px-3 py-2 rounded-lg hover:bg-white/10 transition flex items-center gap-2">
-                  <Globe size={16} />
-                  <span>{isEn ? 'Español' : 'English'}</span>
-                </a>
               </nav>
             </div>
           )}
         </div>
       </header>
+
+      {/* Floating language toggle for mobile */}
+      <a
+        href={altLocaleHref}
+        className="fixed bottom-20 right-4 z-50 md:hidden bg-brand-primary text-white shadow-lg rounded-full w-12 h-12 flex items-center justify-center text-xl hover:scale-110 transition-transform"
+        title={isEn ? 'Español' : 'English'}
+      >
+        {isEn ? '🇻🇪' : '🇺🇸'}
+      </a>
 
       {/* ============ SUB-HEADER: CATEGORIES ============ */}
       <div className="hidden md:block bg-white border-b border-gray-200 shadow-sm sticky top-14 z-40">
