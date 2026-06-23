@@ -243,7 +243,7 @@ export default function CatalogoClient({ initialProducts = [], initialCount = 0 
         : t('catalog.allProducts')
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8">
+    <div className="max-w-7xl mx-auto px-4 py-8" suppressHydrationWarning>
       <nav className="flex items-center gap-2 text-sm text-gray-500 mb-6 flex-wrap">
         <LocalLink href="/" className="hover:text-brand-primary">{t('catalog.breadcrumb')}</LocalLink>
         <ChevronRight size={14} />
@@ -259,8 +259,8 @@ export default function CatalogoClient({ initialProducts = [], initialCount = 0 
             <h3 className="font-bold text-lg text-gray-900 mb-4">🔍 {t('catalog.filters')}</h3>
 
             <div className="mb-4">
-              <label className="block text-sm font-bold text-gray-900 mb-1.5">{t('catalog.category')}</label>
-              <select value={categoria} onChange={e => setParam('categoria', e.target.value)} className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm text-gray-800 bg-white font-medium focus:outline-none focus:ring-2 focus:ring-brand-accent">
+              <label htmlFor="filter-categoria" className="block text-sm font-bold text-gray-900 mb-1.5">{t('catalog.category')}</label>
+              <select id="filter-categoria" value={categoria} onChange={e => setParam('categoria', e.target.value)} className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm text-gray-800 bg-white font-medium focus:outline-none focus:ring-2 focus:ring-brand-accent">
                 <option value="">{t('catalog.all')}</option>
                 {Object.entries(categoriasData).map(([key, c]) => (
                   <option key={key} value={key}>{c.icon} {c.label}</option>
@@ -270,8 +270,8 @@ export default function CatalogoClient({ initialProducts = [], initialCount = 0 
 
             {subs.length > 0 && (
               <div className="mb-4">
-                <label className="block text-sm font-bold text-gray-900 mb-1.5">Subcategoría</label>
-                <select value={subcategoria} onChange={e => setParam('subcategoria', e.target.value)} className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm text-gray-800 bg-white font-medium focus:outline-none focus:ring-2 focus:ring-brand-accent">
+                <label htmlFor="filter-subcategoria" className="block text-sm font-bold text-gray-900 mb-1.5">Subcategoría</label>
+                <select id="filter-subcategoria" value={subcategoria} onChange={e => setParam('subcategoria', e.target.value)} className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm text-gray-800 bg-white font-medium focus:outline-none focus:ring-2 focus:ring-brand-accent">
                   <option value="">Todas</option>
                   {subs.map(s => (
                     <option key={s.label} value={s.label}>{s.icon} {s.label}</option>
@@ -283,14 +283,14 @@ export default function CatalogoClient({ initialProducts = [], initialCount = 0 
             {allMarcas.length > 0 && (
               <div className="mb-4">
                 <div className="flex items-center justify-between">
-                  <label className="block text-sm font-bold text-gray-900 mb-1.5">Marca</label>
+                  <label htmlFor="filter-marca" className="block text-sm font-bold text-gray-900 mb-1.5">Marca</label>
                   {marca && (
                     <button onClick={() => setParam('marca', '')} className="text-xs text-red-500 hover:text-red-700 flex items-center gap-1">
                       <XCircle size={12} /> Quitar
                     </button>
                   )}
                 </div>
-                <select value={marca} onChange={e => setParam('marca', e.target.value)} className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm text-gray-800 bg-white font-medium focus:outline-none focus:ring-2 focus:ring-brand-accent">
+                <select id="filter-marca" value={marca} onChange={e => setParam('marca', e.target.value)} className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm text-gray-800 bg-white font-medium focus:outline-none focus:ring-2 focus:ring-brand-accent">
                   <option value="">Todas las marcas</option>
                   {allMarcas.map(m => (
                     <option key={m} value={m}>{m}</option>
@@ -300,9 +300,10 @@ export default function CatalogoClient({ initialProducts = [], initialCount = 0 
             )}
 
             <div className="mb-4">
-              <label className="block text-sm font-bold text-gray-900 mb-1.5">{t('catalog.priceUsd')}</label>
+              <label htmlFor="filter-precio-min" className="block text-sm font-bold text-gray-900 mb-1.5">{t('catalog.priceUsd')}</label>
               <div className="flex gap-2">
                 <input
+                  id="filter-precio-min"
                   type="number"
                   value={precioMin}
                   onChange={e => setParam('precioMin', e.target.value)}
