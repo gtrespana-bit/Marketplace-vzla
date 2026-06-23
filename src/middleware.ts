@@ -6,30 +6,27 @@ import { type NextRequest } from 'next/server'
 const nextIntlMiddleware = createMiddleware(routing)
 
 export default async function middleware(request: NextRequest) {
-  // 1. Apply next-intl routing (reads locale from URL path, sets cookie)
-  const response = nextIntlMiddleware(request)
-
-  // 2. Inject detected locale into request headers for root layout SSR
+  // 1. Detect locale from URL pathname FIRST
   const pathnameLocale = request.nextUrl.pathname.split('/')[1]
   const locale = routing.locales.includes(pathnameLocale as any)
     ? pathnameLocale
     : routing.defaultLocale
+
+  // 2. Inject locale header BEFORE next-intl processes the request
+  // This ensures the header propagates to server components via headers()
   request.headers.set('x-detected-locale', locale)
 
-  // 3. Refresh Supabase auth session on the intl response
-  //    so both next-intl and Supabase cookies are preserved
-  const supabaseResponse = await updateSession(request, response)
+  // 3. Apply next-intl routing (reads locale from URL path, sets cookie)
+  const intlResponse = nextIntlMiddleware(request)
+
+  // 4. Refresh Supabase auth session on the intl response
+  const supabaseResponse = await updateSession(request, intlResponse)
 
   return supabaseResponse
 }
 
 export const config = {
   matcher: [
-    // Match all pathnames except for
-    // - api routes (handled separately)
-    // - _next (Next.js internals)
-    // - _vercel (Vercel internals)
-    // - static files (favicon, images, etc.)
     '/((?!api|_next|_vercel|.*\\..*).*)',
   ],
 }

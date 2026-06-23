@@ -6,15 +6,18 @@ import { Header } from '@/components/Header'
 import { Footer } from '@/components/Footer'
 import { AuthProvider } from '@/components/AuthProvider'
 import IntlBridgeInit from '@/components/IntlBridgeInit'
-import dynamic from 'next/dynamic'
+import nextDynamic from 'next/dynamic'
 import BottomTabNav from '@/components/BottomTabNav'
 import { Analytics } from '@vercel/analytics/react'
 import { SpeedInsights } from '@vercel/speed-insights/next'
 import { headers, cookies } from 'next/headers'
 import { routing } from '@/i18n/routing'
 
-const PWAInstallBanner = dynamic(() => import('@/components/PWAInstallBanner'), { ssr: false })
-const PushNotificationBanner = dynamic(() => import('@/components/PushNotificationBanner'), { ssr: false })
+// Force dynamic rendering to ensure headers() reads fresh values on each request
+export const dynamic = 'force-dynamic'
+
+const PWAInstallBanner = nextDynamic(() => import('@/components/PWAInstallBanner'), { ssr: false })
+const PushNotificationBanner = nextDynamic(() => import('@/components/PushNotificationBanner'), { ssr: false })
 
 const inter = Inter({
   subsets: ['latin'],
