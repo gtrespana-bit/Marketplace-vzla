@@ -1,0 +1,41 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { createClient } from '@supabase/supabase-js'
+
+const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || '').split(',').map(e => e.trim().toLowerCase())
+
+export async function POST(req: NextRequest) {
+  try {
+    const body = await req.json()
+    const { productId, action, adminEmail } = body
+    
+    if (!adminEmail || !ADMIN_EMAILS.includes(adminEmail.toLowerCase())) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
+    }
+
+    if (!productId || !['aprobar', 'rechazar'].includes(action)) {
+      return NextResponse.json({ error: 'Invalid parameters' }, { status: 400 })
+    }
+
+    const sb = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    )
+
+    const updateData = action === 'aprobar'
+      ? { estado_moderacion: 'aprobado', motivo_moderacion: null }
+      : { estado_moderacion: 'rechazado', motivo_moderacion: 'Bloqueado por admin', activo: false }
+
+    const { error } = await sb
+      .from('productos')
+      .update(updateData)
+      .eq('id', productId)
+
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 })
+    }
+
+    return NextResponse.json({ ok: true })
+  } catch (e: any) {
+    return NextResponse.json({ error: e.message }, { status: 500 })
+  }
+}

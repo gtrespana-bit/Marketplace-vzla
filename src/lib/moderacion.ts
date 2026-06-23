@@ -47,17 +47,12 @@ export const palabrasProhibidas: string[] = [
 
 // ⚠️ SOSPECHOSO: se publica pero se marca para revisión
 export const palabrasSospechosas: string[] = [
-  // Precios sospechosos
-  'precio especial', 'oferta exclusiva', 'urgente vender', 'necesito dinero',
-  'urgente', 'remate total', 'regalo', 'gratis', 'donación',
+  // Precios sospechosos (solo los muy específicos)
+  'solo cripto', 'solo bitcoin', 'transferencia previa',
+  'pago por adelantado',
 
-  // Métodos de pago sospechosos
-  'solo cripto', 'solo bitcoin', 'transferencia previa', 'adelantar',
-  'enviar primero', 'pago por adelantado',
-
-  // Eufemismos comunes
-  'material', 'sustancia natural', 'producto especial', 'artículo importado',
-  'medicina', 'fórmula', 'medicamento sin receta',
+  // Eufemismos comunes de drogas
+  'sustancia natural', 'medicamento sin receta',
 
   // Contacto fuera de plataforma (potencial estafa)
   'escribe a mi email', 'contacta por telegram', 'whatsapp antes',

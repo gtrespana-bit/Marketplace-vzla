@@ -237,9 +237,9 @@ export default function CatalogoClient({ initialProducts = [], initialCount = 0 
   const tituloMostrar = q
     ? t('catalog.resultsFor').replace('{q}', q)
     : subcategoria
-      ? subcategoria
+      ? t('catalog.subcategories.' + subcategoria)
       : cat
-        ? cat.label
+        ? t('catalog.categories.' + categoria)
         : t('catalog.allProducts')
 
   return (
@@ -248,9 +248,9 @@ export default function CatalogoClient({ initialProducts = [], initialCount = 0 
         <LocalLink href="/" className="hover:text-brand-primary">{t('catalog.breadcrumb')}</LocalLink>
         <ChevronRight size={14} />
         <span className="text-gray-800 font-medium">{t('catalog.title')}</span>
-        {categoria && (<><ChevronRight size={14} /><span className="text-gray-900 font-semibold">{cat?.icon} {cat?.label}</span></>)}
-        {subcategoria && (<><ChevronRight size={14} /><span className="text-gray-900 font-semibold">{subcategoria}</span></>)}
-        {q && (<><ChevronRight size={14} /><span>Buscar: &ldquo;{q}&rdquo;</span></>)}
+        {categoria && (<><ChevronRight size={14} /><span className="text-gray-900 font-semibold">{cat?.icon} {t('catalog.categories.' + categoria)}</span></>)}
+        {subcategoria && (<><ChevronRight size={14} /><span className="text-gray-900 font-semibold">{t('catalog.subcategories.' + subcategoria)}</span></>)}
+        {q && (<><ChevronRight size={14} /><span>{t('catalog.searchLabel')}: &ldquo;{q}&rdquo;</span></>)}
       </nav>
 
       <div className="flex flex-col lg:flex-row gap-6">
@@ -263,7 +263,7 @@ export default function CatalogoClient({ initialProducts = [], initialCount = 0 
               <select id="filter-categoria" value={categoria} onChange={e => setParam('categoria', e.target.value)} className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm text-gray-800 bg-white font-medium focus:outline-none focus:ring-2 focus:ring-brand-accent">
                 <option value="">{t('catalog.all')}</option>
                 {Object.entries(categoriasData).map(([key, c]) => (
-                  <option key={key} value={key}>{c.icon} {c.label}</option>
+                  <option key={key} value={key}>{c.icon} {t('catalog.categories.' + key)}</option>
                 ))}
               </select>
             </div>
@@ -274,7 +274,7 @@ export default function CatalogoClient({ initialProducts = [], initialCount = 0 
                 <select id="filter-subcategoria" value={subcategoria} onChange={e => setParam('subcategoria', e.target.value)} className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm text-gray-800 bg-white font-medium focus:outline-none focus:ring-2 focus:ring-brand-accent">
                   <option value="">{t('catalog.allSubs')}</option>
                   {subs.map(s => (
-                    <option key={s.label} value={s.label}>{s.icon} {s.label}</option>
+                    <option key={s.label} value={s.label}>{s.icon} {t('catalog.subcategories.' + s.label)}</option>
                   ))}
                 </select>
               </div>

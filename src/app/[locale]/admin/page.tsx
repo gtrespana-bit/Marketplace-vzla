@@ -508,9 +508,9 @@ function PublicacionesTab({ notify }: Notifier) {
           <div key={p.id} className={`bg-white rounded-xl border p-4 transition ${!p.activo ? 'opacity-60' : ''}`}>
             <div className="flex gap-4">
               {/* Miniatura */}
-              <LocalLink href={`/producto/${p.id}`} className="w-20 h-20 rounded-lg bg-gray-100 flex-shrink-0 overflow-hidden">
+              <LocalLink href={`/producto/${p.id}`} className="w-20 h-20 rounded-lg bg-gray-100 flex-shrink-0 overflow-hidden relative block">
                 {p.imagen_url ? (
-                  <Image src={p.imagen_url} alt="" className="w-full h-full object-cover" fill sizes="100px" />
+                  <Image src={p.imagen_url} alt="" className="object-cover" fill sizes="80px" />
                 ) : <div className="w-full h-full flex items-center justify-center text-gray-300 text-2xl">📦</div>}
               </LocalLink>
 
@@ -926,7 +926,7 @@ function TabExportar() {
 // ============================================================
 // TAB: CREDITOS (añadir manualmente)
 
-function ModeracionTab({ notify }: { notify: (msg: string) => void }) {
+function ModeracionTab({ notify, adminEmail }: { notify: (msg: string) => void; adminEmail: string }) {
   const [denuncias, setDenuncias] = useState<any[]>([])
   const [productosPendientes, setProductosPendientes] = useState<any[]>([])
   const [tabM, setTabM] = useState<'denuncias' | 'pendientes'>('denuncias')
@@ -963,19 +963,32 @@ function ModeracionTab({ notify }: { notify: (msg: string) => void }) {
 
   async function aprobarDenuncia(id: string, productoId: string) {
     await supabase.from('denuncias').update({ estado: 'resuelta' }).eq('id', id)
-    await supabase.from('productos').update({ estado_moderacion: 'rechazado', motivo_moderacion: 'Bloqueado por admin', activo: false }).eq('id', productoId)
-    notify('Producto bloqueado'); cargar()
+    const res = await fetch('/api/admin/moderar-producto', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ productId: productoId, action: 'rechazar', adminEmail }),
+    })
+    const json = await res.json()
+    if (!res.ok) notify('Error: ' + (json.error || 'desconocido'))
+    else { notify('Producto bloqueado'); cargar() }
   }
 
   async function aprobarProducto(id: string) {
-    const { error } = await supabase.from('productos').update({ estado_moderacion: 'aprobado', motivo_moderacion: null }).eq('id', id)
-    if (error) notify('Error: ' + error.message)
+    const res = await fetch('/api/admin/moderar-producto', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ productId: id, action: 'aprobar', adminEmail }),
+    })
+    const json = await res.json()
+    if (!res.ok) notify('Error: ' + (json.error || 'desconocido'))
     else { notify('Producto aprobado'); cargar() }
   }
 
   async function rechazarProducto(id: string) {
-    const { error } = await supabase.from('productos').update({ estado_moderacion: 'rechazado', motivo_moderacion: 'Bloqueado por admin', activo: false }).eq('id', id)
-    if (error) notify('Error: ' + error.message)
+    const res = await fetch('/api/admin/moderar-producto', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ productId: id, action: 'rechazar', adminEmail }),
+    })
+    const json = await res.json()
+    if (!res.ok) notify('Error: ' + (json.error || 'desconocido'))
     else { notify('Producto rechazado'); cargar() }
   }
 
@@ -1161,7 +1174,7 @@ export default function AdminPage() {
       {tab === 'usuarios' && <UsuariosTab notify={notify} />}
       {tab === 'publicaciones' && <PublicacionesTab notify={notify} />}
       {tab === 'verificacion' && <VerificacionTab notify={notify} />}
-      {tab === 'moderacion' && <ModeracionTab notify={notify} />}
+      {tab === 'moderacion' && <ModeracionTab notify={notify} adminEmail={user?.email || ''} />}
       {tab === 'transacciones' && <TabTransacciones perfiles={perfiles} notify={notify} />}
       {tab === 'anuncios' && <TabAnuncios notify={notify} />}
       {tab === 'categorias' && <TabCategorias notify={notify} />}
