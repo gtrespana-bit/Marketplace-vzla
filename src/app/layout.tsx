@@ -10,6 +10,8 @@ import dynamic from 'next/dynamic'
 import BottomTabNav from '@/components/BottomTabNav'
 import { Analytics } from '@vercel/analytics/react'
 import { SpeedInsights } from '@vercel/speed-insights/next'
+import { headers, cookies } from 'next/headers'
+import { routing } from '@/i18n/routing'
 
 const PWAInstallBanner = dynamic(() => import('@/components/PWAInstallBanner'), { ssr: false })
 const PushNotificationBanner = dynamic(() => import('@/components/PushNotificationBanner'), { ssr: false })
@@ -104,13 +106,29 @@ export default function RootLayout({
 }: {
   children: React.ReactNode
 }) {
+  // Detect locale from middleware header (x-detected-locale)
+  // or fallback to NEXT_LOCALE cookie
+  const headersList = headers()
+  const detectedLocale = headersList.get('x-detected-locale')
+  
+  let lang = 'es'
+  if (detectedLocale && routing.locales.includes(detectedLocale as any)) {
+    lang = detectedLocale
+  } else {
+    const cookieStore = cookies()
+    const localeCookie = cookieStore.get('NEXT_LOCALE')
+    if (localeCookie?.value && routing.locales.includes(localeCookie.value as any)) {
+      lang = localeCookie.value
+    }
+  }
+
   const partytownForward = {
     rel: 'preconnect' as const,
     href: 'https://www.googletagmanager.com',
   }
 
   return (
-    <html lang="es" className={inter.variable} suppressHydrationWarning>
+    <html lang={lang} className={inter.variable} suppressHydrationWarning>
       <head>
         {/* Preconnect para recursos externos críticos */}
         <link rel="preconnect" href="https://jmbkqelkusxjebsdnjoc.supabase.co" />
