@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-
-const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || '').split(',').map(e => e.trim().toLowerCase())
+import { ADMIN_EMAILS } from '@/lib/admin-config'
 
 export async function POST(req: NextRequest) {
   try {

@@ -14,8 +14,7 @@ import {
 import VerificacionTab from './VerificacionTab'
 import Image from 'next/image'
 
-// ← TU EMAIL
-const ADMIN_EMAILS = ['gtrespana@gmail.com']
+import { ADMIN_EMAILS } from '@/lib/admin-config'
 
 const TABS = [
   { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
@@ -941,7 +940,7 @@ function ModeracionTab({ notify, adminEmail }: { notify: (msg: string) => void; 
     const [{ data: denies }, { data: pends }] = await Promise.all([
       supabase
         .from('denuncias')
-        .select(`*, producto:productos(titulo, user_id, precio_usd, imagen_url), reportante:perfiles!denuncias_reportante_id_fkey(nombre)`)
+        .select(`*, producto:productos(titulo, user_id, precio_usd, imagen_url), reportante:perfiles(nombre)`)
         .eq('estado', 'activa')
         .order('creada_en', { ascending: false }),
       supabase
