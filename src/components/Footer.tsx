@@ -2,10 +2,10 @@
 
 import LocalLink from '@/components/LocalLink'
 import Image from 'next/image'
-import { useBridge } from '@/components/IntlBridge'
+import { useLocalizedMessages } from '@/hooks/useLocalizedMessages'
 
 export function Footer() {
-  const { t } = useBridge()
+  const { t } = useLocalizedMessages()
 
   return (
     <footer className="bg-brand-dark text-gray-400 mt-auto">

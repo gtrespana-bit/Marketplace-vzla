@@ -7,12 +7,12 @@ import { usePathname } from 'next/navigation'
 import { Menu, X, Search, PlusCircle, MessageCircle, Zap, ChevronLeft, Globe } from 'lucide-react'
 import { useAuth } from '@/components/AuthProvider'
 import Avatar from '@/components/Avatar'
-import { useBridge } from '@/components/IntlBridge'
+import { useLocalizedMessages } from '@/hooks/useLocalizedMessages'
 import { supabase } from '@/lib/supabase'
 
 export function Header() {
   const { user, loading } = useAuth()
-  const { t } = useBridge()
+  const { t } = useLocalizedMessages()
   const [mobileOpen, setMobileOpen] = useState(false)
   const [creditoBalance, setCreditoBalance] = useState<number | null>(null)
   const [unreadCount, setUnreadCount] = useState(0)

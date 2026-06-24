@@ -2,10 +2,10 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { Download, X, Share, Smartphone } from 'lucide-react'
-import { useBridge } from '@/components/IntlBridge'
+import { useLocalizedMessages } from '@/hooks/useLocalizedMessages'
 
 export default function PWAInstallBanner() {
-  const { t } = useBridge()
+  const { t } = useLocalizedMessages()
   const [mounted, setMounted] = useState(false)
   const [showBanner, setShowBanner] = useState(false)
   const [showIOS, setShowIOS] = useState(false)

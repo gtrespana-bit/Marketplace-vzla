@@ -3,7 +3,7 @@
 import { usePathname } from 'next/navigation'
 import LocalLink from '@/components/LocalLink'
 import { Home, Search, PlusCircle, MessageCircle, User } from 'lucide-react'
-import { useBridge } from '@/components/IntlBridge'
+import { useLocalizedMessages } from '@/hooks/useLocalizedMessages'
 
 function isPWA(): boolean {
   if (typeof window === 'undefined') return false
@@ -15,7 +15,7 @@ function isPWA(): boolean {
 
 export default function BottomTabNav() {
   const pathname = usePathname()
-  const { t } = useBridge()
+  const { t } = useLocalizedMessages()
 
   const navItems = [
     { href: '/', icon: Home, label: t('bottomNav.home') },

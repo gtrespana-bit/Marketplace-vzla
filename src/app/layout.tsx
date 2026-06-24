@@ -5,13 +5,14 @@ import './globals.css'
 import { Header } from '@/components/Header'
 import { Footer } from '@/components/Footer'
 import { AuthProvider } from '@/components/AuthProvider'
-import IntlBridgeInit from '@/components/IntlBridgeInit'
 import nextDynamic from 'next/dynamic'
 import BottomTabNav from '@/components/BottomTabNav'
 import { Analytics } from '@vercel/analytics/react'
 import { SpeedInsights } from '@vercel/speed-insights/next'
 import { headers, cookies } from 'next/headers'
 import { routing } from '@/i18n/routing'
+import { NextIntlClientProvider } from 'next-intl'
+import { getMessages } from 'next-intl/server'
 
 // Force dynamic rendering to ensure headers() reads fresh values on each request
 export const dynamic = 'force-dynamic'
@@ -161,7 +162,6 @@ export default function RootLayout({
         />
       </head>
       <body className="bg-white antialiased" suppressHydrationWarning>
-        <IntlBridgeInit>
         <AuthProvider>
           <Header />
           <main className="min-h-screen bg-white" suppressHydrationWarning>{children}</main>
@@ -170,7 +170,6 @@ export default function RootLayout({
           <PushNotificationBanner />
           <BottomTabNav />
         </AuthProvider>
-        </IntlBridgeInit>
         <Analytics />
         <SpeedInsights />
       </body>
