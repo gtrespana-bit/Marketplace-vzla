@@ -165,9 +165,10 @@ export function Header() {
 
             {/* Actions (desktop) */}
             <div className="flex items-center gap-2">
-              {/* Language toggle - uses <a> to avoid LocalLink adding locale prefix */}
+              {/* Language toggle - full page reload to avoid root layout hydration mismatch */}
               <a
                 href={altLocaleHref}
+                onClick={(e) => { e.preventDefault(); window.location.href = altLocaleHref; }}
                 className="hidden md:flex items-center gap-1 px-2 py-1.5 text-sm hover:bg-white/10 rounded-lg transition text-white/90"
                 title={isEn ? 'Español' : 'English'}
                 aria-label={isEn ? 'Cambiar a Español' : 'Switch to English'}
@@ -199,9 +200,10 @@ export function Header() {
                 )}
               </LocalLink>
 
-              {/* Language toggle for mobile */}
+              {/* Language toggle for mobile - full page reload */}
               <a
                 href={altLocaleHref}
+                onClick={(e) => { e.preventDefault(); window.location.href = altLocaleHref; }}
                 className="md:hidden p-2 hover:bg-white/10 rounded-lg transition"
                 title={isEn ? 'Español' : 'English'}
                 aria-label={isEn ? 'Cambiar a Español' : 'Switch to English'}
