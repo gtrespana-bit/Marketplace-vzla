@@ -46,6 +46,9 @@ async function loadMessages(locale: string): Promise<Messages> {
   return messages
 }
 
+// Synchronous message cache for initial render
+const syncMessageCache: Record<string, Messages> = {}
+
 export function IntlBridgeSetter({
   locale: serverLocale,
   messages: serverMessages,
@@ -55,10 +58,28 @@ export function IntlBridgeSetter({
   messages: Messages
   children: ReactNode
 }) {
-  // Always use serverLocale - no client-side locale switching
-  // This prevents hydration mismatches between server and client
-  const [locale] = useState(serverLocale)
-  const [messages] = useState(serverMessages)
+  const pathname = usePathname()
+  
+  // Detect locale from pathname (works for both server and client)
+  const detectedLocale = getLocaleFromPathname(pathname)
+  
+  // Use detected locale for initial render (matches server)
+  // Update when pathname changes (client-side navigation)
+  const [locale, setLocale] = useState(detectedLocale)
+  const [messages, setMessages] = useState(serverMessages)
+
+  useEffect(() => {
+    setLocale(detectedLocale)
+    // Load messages for new locale if not cached
+    if (!syncMessageCache[detectedLocale]) {
+      loadMessages(detectedLocale).then(msgs => {
+        setMessages(msgs)
+        syncMessageCache[detectedLocale] = msgs
+      })
+    } else {
+      setMessages(syncMessageCache[detectedLocale])
+    }
+  }, [detectedLocale])
 
   const t = createTranslator(messages)
 
