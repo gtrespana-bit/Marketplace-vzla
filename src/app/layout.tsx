@@ -12,13 +12,17 @@ import { SpeedInsights } from '@vercel/speed-insights/next'
 import { headers, cookies } from 'next/headers'
 import { routing } from '@/i18n/routing'
 import { NextIntlClientProvider } from 'next-intl'
-import { getMessages } from 'next-intl/server'
 
 // Force dynamic rendering to ensure headers() reads fresh values on each request
 export const dynamic = 'force-dynamic'
 
 const PWAInstallBanner = nextDynamic(() => import('@/components/PWAInstallBanner'), { ssr: false })
 const PushNotificationBanner = nextDynamic(() => import('@/components/PushNotificationBanner'), { ssr: false })
+
+// Load dictionary directly - NEVER use getMessages() (uses cookie detection)
+async function getDictionary(locale: string) {
+  return (await import(`@/i18n/dictionaries/${locale}.json`)).default
+}
 
 const inter = Inter({
   subsets: ['latin'],
@@ -105,7 +109,7 @@ export const metadata: Metadata = {
   category: 'marketplace',
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode
@@ -125,6 +129,9 @@ export default function RootLayout({
       lang = localeCookie.value
     }
   }
+
+  // Load messages for THIS locale directly - same source as [locale]/layout.tsx
+  const messages = await getDictionary(lang)
 
   const partytownForward = {
     rel: 'preconnect' as const,
@@ -162,14 +169,16 @@ export default function RootLayout({
         />
       </head>
       <body className="bg-white antialiased" suppressHydrationWarning>
-        <AuthProvider>
-          <Header />
-          <main className="min-h-screen bg-white" suppressHydrationWarning>{children}</main>
-          <Footer />
-          <PWAInstallBanner />
-          <PushNotificationBanner />
-          <BottomTabNav />
-        </AuthProvider>
+        <NextIntlClientProvider locale={lang} messages={messages}>
+          <AuthProvider>
+            <Header />
+            <main className="min-h-screen bg-white" suppressHydrationWarning>{children}</main>
+            <Footer />
+            <PWAInstallBanner />
+            <PushNotificationBanner />
+            <BottomTabNav />
+          </AuthProvider>
+        </NextIntlClientProvider>
         <Analytics />
         <SpeedInsights />
       </body>

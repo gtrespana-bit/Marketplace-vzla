@@ -2,10 +2,10 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { Download, X, Share, Smartphone } from 'lucide-react'
-import { useLocalizedMessages } from '@/hooks/useLocalizedMessages'
+import { useTranslations } from 'next-intl'
 
 export default function PWAInstallBanner() {
-  const { t } = useLocalizedMessages()
+  const t = useTranslations('pwa')
   const [mounted, setMounted] = useState(false)
   const [showBanner, setShowBanner] = useState(false)
   const [showIOS, setShowIOS] = useState(false)
