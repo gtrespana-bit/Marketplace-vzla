@@ -18,11 +18,11 @@ export default function BottomTabNav() {
   const t = useTranslations('bottomNav')
 
   const navItems = [
-    { href: '/', icon: Home, label: t('bottomNav.home') },
-    { href: '/buscar', icon: Search, label: t('bottomNav.search') },
-    { href: '/publicar', icon: PlusCircle, label: t('bottomNav.publish'), highlight: true },
-    { href: '/chat', icon: MessageCircle, label: t('bottomNav.chat') },
-    { href: '/dashboard', icon: User, label: t('bottomNav.profile') },
+    { href: '/', icon: Home, label: t('home') },
+    { href: '/buscar', icon: Search, label: t('search') },
+    { href: '/publicar', icon: PlusCircle, label: t('publish'), highlight: true },
+    { href: '/chat', icon: MessageCircle, label: t('chat') },
+    { href: '/dashboard', icon: User, label: t('profile') },
   ]
 
   if (!isPWA()) return null
