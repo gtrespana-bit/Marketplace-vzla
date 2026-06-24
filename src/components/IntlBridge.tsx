@@ -63,14 +63,24 @@ export function IntlBridgeSetter({
   // Detect locale from pathname (works for both server and client)
   const detectedLocale = getLocaleFromPathname(pathname)
   
-  // Use detected locale for initial render (matches server)
-  // Update when pathname changes (client-side navigation)
-  const [locale, setLocale] = useState(detectedLocale)
+  // On client, also check <html lang> attribute (set by server)
+  // This is the most reliable source of truth after full page reload
+  const getInitialLocale = (): string => {
+    if (typeof document !== 'undefined') {
+      const htmlLang = document.documentElement.lang
+      if (htmlLang && routing.locales.includes(htmlLang as any)) {
+        return htmlLang
+      }
+    }
+    return detectedLocale
+  }
+  
+  const [locale, setLocale] = useState(getInitialLocale)
   const [messages, setMessages] = useState(serverMessages)
 
   useEffect(() => {
+    // Sync with pathname changes during client-side navigation
     setLocale(detectedLocale)
-    // Load messages for new locale if not cached
     if (!syncMessageCache[detectedLocale]) {
       loadMessages(detectedLocale).then(msgs => {
         setMessages(msgs)
