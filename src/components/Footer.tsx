@@ -2,21 +2,10 @@
 
 import LocalLink from '@/components/LocalLink'
 import Image from 'next/image'
-import { useTranslations } from 'next-intl'
+import { useLocalizedMessages } from '@/hooks/useLocalizedMessages'
 
 export function Footer() {
-  const tfooter = useTranslations('footer')
-  const theader = useTranslations('header')
-  const tnav = useTranslations('nav')
-  const t = (key: string) => {
-    const parts = key.split('.')
-    const ns = parts[0]
-    const rest = parts.slice(1).join('.')
-    if (ns === 'footer') return tfooter(rest)
-    if (ns === 'header') return theader(rest)
-    if (ns === 'nav') return tnav(rest)
-    return key
-  }
+  const { t } = useLocalizedMessages()
 
   return (
     <footer className="bg-brand-dark text-gray-400 mt-auto">

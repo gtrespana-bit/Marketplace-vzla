@@ -2,7 +2,7 @@
 
 import LocalLink from '@/components/LocalLink'
 import Image from 'next/image'
-import { useTranslations } from 'next-intl'
+import { useLocalizedMessages } from '@/hooks/useLocalizedMessages'
 
 export interface ProductCardData {
   id: string
@@ -23,7 +23,7 @@ const PLACEHOLDER_IMAGES = [
 ]
 
 export default function ProductCard({ p, isPromoted, isFeatured }: { p: ProductCardData; isPromoted?: boolean; isFeatured?: boolean }) {
-  const t = useTranslations('product')
+  const { t } = useLocalizedMessages()
   const isBoosted = p.boosteado_en != null
   const promoted = isPromoted ?? (isBoosted || isFeatured)
 

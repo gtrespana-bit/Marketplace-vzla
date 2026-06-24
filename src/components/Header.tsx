@@ -7,25 +7,12 @@ import { usePathname } from 'next/navigation'
 import { Menu, X, Search, PlusCircle, MessageCircle, Zap, ChevronLeft, Globe } from 'lucide-react'
 import { useAuth } from '@/components/AuthProvider'
 import Avatar from '@/components/Avatar'
-import { useTranslations } from 'next-intl'
+import { useLocalizedMessages } from '@/hooks/useLocalizedMessages'
 import { supabase } from '@/lib/supabase'
 
 export function Header() {
   const { user, loading } = useAuth()
-  const th = useTranslations('header')
-  const tc = useTranslations('catalog')
-  const tp = useTranslations('product')
-  const tm = useTranslations('common')
-  const t = (key: string) => {
-    const parts = key.split('.')
-    const ns = parts[0]
-    const rest = parts.slice(1).join('.')
-    if (ns === 'header') return th(rest)
-    if (ns === 'catalog') return tc(rest)
-    if (ns === 'product') return tp(rest)
-    if (ns === 'common') return tm(rest)
-    return key
-  }
+  const { t } = useLocalizedMessages()
   const [mobileOpen, setMobileOpen] = useState(false)
   const [creditoBalance, setCreditoBalance] = useState<number | null>(null)
   const [unreadCount, setUnreadCount] = useState(0)

@@ -3,7 +3,7 @@
 import { usePathname } from 'next/navigation'
 import LocalLink from '@/components/LocalLink'
 import { Home, Search, PlusCircle, MessageCircle, User } from 'lucide-react'
-import { useTranslations } from 'next-intl'
+import { useLocalizedMessages } from '@/hooks/useLocalizedMessages'
 
 function isPWA(): boolean {
   if (typeof window === 'undefined') return false
@@ -15,14 +15,14 @@ function isPWA(): boolean {
 
 export default function BottomTabNav() {
   const pathname = usePathname()
-  const t = useTranslations('bottomNav')
+  const { t } = useLocalizedMessages()
 
   const navItems = [
-    { href: '/', icon: Home, label: t('home') },
-    { href: '/buscar', icon: Search, label: t('search') },
-    { href: '/publicar', icon: PlusCircle, label: t('publish'), highlight: true },
-    { href: '/chat', icon: MessageCircle, label: t('chat') },
-    { href: '/dashboard', icon: User, label: t('profile') },
+    { href: '/', icon: Home, label: t('bottomNav.home') },
+    { href: '/buscar', icon: Search, label: t('bottomNav.search') },
+    { href: '/publicar', icon: PlusCircle, label: t('bottomNav.publish'), highlight: true },
+    { href: '/chat', icon: MessageCircle, label: t('bottomNav.chat') },
+    { href: '/dashboard', icon: User, label: t('bottomNav.profile') },
   ]
 
   if (!isPWA()) return null

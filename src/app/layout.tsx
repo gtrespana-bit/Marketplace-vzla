@@ -6,23 +6,18 @@ import { Header } from '@/components/Header'
 import { Footer } from '@/components/Footer'
 import { AuthProvider } from '@/components/AuthProvider'
 import nextDynamic from 'next/dynamic'
-import BottomTabNav from '@/components/BottomTabNav'
 import { Analytics } from '@vercel/analytics/react'
 import { SpeedInsights } from '@vercel/speed-insights/next'
 import { headers, cookies } from 'next/headers'
 import { routing } from '@/i18n/routing'
-import { NextIntlClientProvider } from 'next-intl'
 
 // Force dynamic rendering to ensure headers() reads fresh values on each request
 export const dynamic = 'force-dynamic'
 
 const PWAInstallBanner = nextDynamic(() => import('@/components/PWAInstallBanner'), { ssr: false })
 const PushNotificationBanner = nextDynamic(() => import('@/components/PushNotificationBanner'), { ssr: false })
-
-// Load dictionary directly - NEVER use getMessages() (uses cookie detection)
-async function getDictionary(locale: string) {
-  return (await import(`@/i18n/dictionaries/${locale}.json`)).default
-}
+// BottomTabNav: client-only to prevent null→nav hydration mismatch
+const BottomTabNavDynamic = nextDynamic(() => import('@/components/BottomTabNav'), { ssr: false })
 
 const inter = Inter({
   subsets: ['latin'],
@@ -130,9 +125,6 @@ export default async function RootLayout({
     }
   }
 
-  // Load messages for THIS locale directly - same source as [locale]/layout.tsx
-  const messages = await getDictionary(lang)
-
   const partytownForward = {
     rel: 'preconnect' as const,
     href: 'https://www.googletagmanager.com',
@@ -169,16 +161,14 @@ export default async function RootLayout({
         />
       </head>
       <body className="bg-white antialiased" suppressHydrationWarning>
-        <NextIntlClientProvider locale={lang} messages={messages}>
-          <AuthProvider>
-            <Header />
-            <main className="min-h-screen bg-white" suppressHydrationWarning>{children}</main>
-            <Footer />
-            <PWAInstallBanner />
-            <PushNotificationBanner />
-            <BottomTabNav />
-          </AuthProvider>
-        </NextIntlClientProvider>
+        <AuthProvider>
+          <Header />
+          <main className="min-h-screen bg-white" suppressHydrationWarning>{children}</main>
+          <Footer />
+          <PWAInstallBanner />
+          <PushNotificationBanner />
+          <BottomTabNavDynamic />
+        </AuthProvider>
         <Analytics />
         <SpeedInsights />
       </body>

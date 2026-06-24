@@ -1,6 +1,5 @@
 'use client'
 
-import { useState, useEffect } from 'react'
 import { usePathname } from 'next/navigation'
 import { routing } from '@/i18n/routing'
 
@@ -28,13 +27,7 @@ const messageCache: Record<string, Messages> = {
 
 export function useLocalizedMessages() {
   const pathname = usePathname()
-  const pathnameLocale = getLocaleFromPathname(pathname)
-  
-  // On client, trust <html lang> attribute set by server (most reliable)
-  // On server, use pathname detection
-  const locale = typeof document !== 'undefined' && document.documentElement.lang
-    ? document.documentElement.lang
-    : pathnameLocale
+  const locale = getLocaleFromPathname(pathname)
   
   // Cached messages are available synchronously (prevents hydration mismatch)
   const cachedMessages = messageCache[locale] || messageCache[routing.defaultLocale] || {}
