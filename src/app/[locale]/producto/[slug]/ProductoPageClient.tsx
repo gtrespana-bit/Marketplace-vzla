@@ -1,8 +1,8 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { Component, useEffect, useState } from 'react'
 import { getTasaBCVClient, actualizarTasaClient } from '@/lib/tasaBCV'
-import { useParams, useRouter, useSearchParams } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import LocalLink from '@/components/LocalLink'
 import Image from 'next/image'
 import { supabase } from '@/lib/supabase'
@@ -11,18 +11,34 @@ import { MapPin, Tag, MessageCircle, Phone, Mail, ChevronRight, Shield, Clock, H
 import Avatar from '@/components/Avatar'
 import ReportarButton from '@/components/ReportarButton'
 import BadgeVerificado from '@/components/BadgeVerificado'
-import dynamic from 'next/dynamic'
+import ImageGallery from '@/components/ImageGallery'
+import SellerReputation from '@/components/SellerReputation'
 import { useTranslations } from 'next-intl'
 
-// Lazy-load heavy components — only needed when user scrolls
-const ImageGallery = dynamic(() => import('@/components/ImageGallery'), { ssr: true })
-const SellerReputation = dynamic(() => import('@/components/SellerReputation'), { ssr: true })
+// Error boundary to catch render errors
+class ProductErrorBoundary extends Component<{children: React.ReactNode}, {hasError: boolean}> {
+  state = { hasError: false }
+  static getDerivedStateFromError() { return { hasError: true } }
+  componentDidCatch(error: Error) { console.error('ProductPage error:', error) }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="max-w-7xl mx-auto px-4 py-20 text-center">
+          <h1 className="text-2xl font-bold text-gray-800 mb-4">Algo salió mal</h1>
+          <p className="text-gray-500 mb-6">Error al cargar el producto. Intenta recargar la página.</p>
+          <a href="/" className="inline-block bg-brand-primary text-white px-8 py-3 rounded-lg font-bold">Volver al inicio</a>
+        </div>
+      )
+    }
+    return this.props.children
+  }
+}
 
 interface ProductoPageClientProps {
   initialProduct: any
 }
 
-export default function ProductoPageClient({ initialProduct }: ProductoPageClientProps) {
+function ProductoPageClientInner({ initialProduct }: ProductoPageClientProps) {
   const t = useTranslations('productDetail')
   const router = useRouter()
   const { user, loading: authLoading } = useAuth()
@@ -176,20 +192,7 @@ export default function ProductoPageClient({ initialProduct }: ProductoPageClien
     </div>
   )
 
-  const SuccessBanner = () => esNuevaPublicacion ? (
-    <div className="mb-6 bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-300 rounded-2xl p-5 animate-fadeIn">
-      <div className="flex items-start gap-3">
-        <span className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center shrink-0 mt-0.5">
-          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-        </span>
-        <div>
-          <h3 className="font-bold text-green-800 text-lg">{t('successTitle')}</h3>
-          <p className="text-green-700 text-sm mt-1">{t('successDesc')}</p>
-          <p className="text-green-600 text-xs mt-2 font-bold">{t('successFree')}</p>
-        </div>
-      </div>
-    </div>
-  ) : null
+
 
   const mc = producto.metodos_contacto
   const mcConfigured = mc && Object.keys(mc).length > 0
@@ -208,7 +211,20 @@ export default function ProductoPageClient({ initialProduct }: ProductoPageClien
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
-      <SuccessBanner />
+      {esNuevaPublicacion && (
+        <div className="mb-6 bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-300 rounded-2xl p-5 animate-fadeIn">
+          <div className="flex items-start gap-3">
+            <span className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center shrink-0 mt-0.5">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            </span>
+            <div>
+              <h3 className="font-bold text-green-800 text-lg">{t('successTitle')}</h3>
+              <p className="text-green-700 text-sm mt-1">{t('successDesc')}</p>
+              <p className="text-green-600 text-xs mt-2 font-bold">{t('successFree')}</p>
+            </div>
+          </div>
+        </div>
+      )}
       <nav className="flex items-center gap-1.5 text-sm text-gray-500 mb-6 overflow-x-auto hide-scrollbar">
         <LocalLink href="/" className="hover:text-brand-primary flex-shrink-0">{t('breadcrumbHome')}</LocalLink>
         <ChevronRight size={14} className="flex-shrink-0" />
@@ -347,5 +363,13 @@ export default function ProductoPageClient({ initialProduct }: ProductoPageClien
         </div>
       </div>
     </div>
+  )
+}
+
+export default function ProductoPageClient(props: ProductoPageClientProps) {
+  return (
+    <ProductErrorBoundary>
+      <ProductoPageClientInner {...props} />
+    </ProductErrorBoundary>
   )
 }
