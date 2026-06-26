@@ -203,9 +203,9 @@ function ProductoPageClientInner({ initialProduct }: ProductoPageClientProps) {
 
   let whatsappLink = ''
   if (contactPhone.trim()) {
-    const t = contactPhone.replace(/[^0-9]/g, '')
-    const t2 = t.startsWith('0') ? t.slice(1) : t
-    const finalPhone = t2.startsWith('58') ? t2 : '58' + t2
+    const phoneClean = contactPhone.replace(/[^0-9]/g, '')
+    const phoneNoZero = phoneClean.startsWith('0') ? phoneClean.slice(1) : phoneClean
+    const finalPhone = phoneNoZero.startsWith('58') ? phoneNoZero : '58' + phoneNoZero
     whatsappLink = 'https://wa.me/' + finalPhone + '?text=' + encodeURIComponent(t('whatsappMsg').replace('{title}', producto.titulo))
   }
 
