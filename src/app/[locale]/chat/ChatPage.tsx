@@ -275,12 +275,10 @@ export default function ChatPageClient() {
     setMensajes(data || [])
   }, [])
 
-  // Poll for new messages every 5s (redundant with Supabase realtime but acts as fallback)
+  // Load messages on mount/conv change (realtime handles live updates)
   useEffect(() => {
     if (!convId) return
     loadMensajes(convId)
-    const interval = setInterval(() => loadMensajes(convId), 5000)
-    return () => clearInterval(interval)
   }, [convId, loadMensajes])
 
   // ─── Realtime: listen for new inserts en mensajes ───

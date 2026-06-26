@@ -92,12 +92,9 @@ export function Header() {
     const bc = new BroadcastChannel('vendete_unread_sync')
     bc.onmessage = () => fetchUnread()
 
-    const interval = setInterval(fetchUnread, 30000)
-
     return () => {
       supabase.removeChannel(channel)
       bc.close()
-      clearInterval(interval)
     }
   }, [user])
 
