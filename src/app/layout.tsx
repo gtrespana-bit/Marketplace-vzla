@@ -10,7 +10,7 @@ import { Analytics } from '@vercel/analytics/react'
 import { SpeedInsights } from '@vercel/speed-insights/next'
 import { headers, cookies } from 'next/headers'
 import { routing } from '@/i18n/routing'
-import { createSupabaseServerClient } from '@/lib/supabase-server'
+import { getServerUser } from '@/lib/supabase-server'
 
 // Force dynamic rendering to ensure headers() reads fresh values on each request
 export const dynamic = 'force-dynamic'
@@ -110,15 +110,9 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode
 }) {
-  // ✅ HYDRATION FIX: Fetch user server-side so AuthProvider first render matches server HTML
-  let initialUser: any = null
-  try {
-    const supabaseServer = createSupabaseServerClient()
-    const { data: { user } } = await supabaseServer.auth.getUser()
-    initialUser = user
-  } catch {
-    // Not authenticated or error — pass null
-  }
+  // ✅ HYDRATION FIX: Parse JWT directly from cookies (NO network call, 100% reliable).
+  // This always matches the client's session because both read the same cookie.
+  const initialUser = getServerUser()
 
   // Detect locale from middleware header (x-detected-locale)
   // or fallback to NEXT_LOCALE cookie
