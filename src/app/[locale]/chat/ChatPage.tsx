@@ -228,64 +228,27 @@ export default function ChatPageClient() {
         setConvId(match.id)
         setShowMobileChat(true)
       } else {
-        // Get fresh session token and create conversation via direct fetch
-        const { data: { session: freshSession } } = await supabase.auth.getSession()
-        if (!freshSession?.access_token) {
-          console.error('No active session - user needs to log in')
-          return
-        }
-
+        // Create conversation directly in DB
         const u1 = uid < vendedorId ? uid : vendedorId
         const u2 = uid < vendedorId ? vendedorId : uid
+        const { data: newConv, error: insErr } = await supabase
+          .from('conversaciones')
+          .insert({ user1_id: u1, user2_id: u2, producto_id: productoId })
+          .select()
+          .single()
 
-        const convRes = await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/conversaciones?select=*`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${freshSession.access_token}`,
-            'apikey': process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '',
-            'Prefer': 'return=representation',
-          },
-          body: JSON.stringify({ user1_id: u1, user2_id: u2, producto_id: productoId }),
-        })
-
-        let convData: any = null
-        let convErr: any = null
-
-        if (convRes.ok) {
-          const arr = await convRes.json()
-          convData = Array.isArray(arr) ? arr[0] : arr
-        } else {
-          // If 409 (already exists), fetch existing conversation
-          if (convRes.status === 409) {
-            const existRes = await fetch(
-              `${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/conversaciones?select=*&or=(and(user1_id.eq.${uid},user2_id.eq.${vendedorId}),and(user1_id.eq.${vendedorId},user2_id.eq.${uid}))&producto_id=eq.${productoId}&limit=1`,
-              {
-                headers: {
-                  'Authorization': `Bearer ${freshSession.access_token}`,
-                  'apikey': process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '',
-                },
-              }
-            )
-            const existArr = await existRes.json()
-            convData = existArr[0]
-          } else {
-            convErr = await convRes.json()
-          }
-        }
-
-        if (convErr || !convData) {
-          console.error('Error creating conversation:', convErr)
+        if (insErr || !newConv) {
+          console.error('Error creating conversation:', insErr)
         } else {
           const perfil = perfilMap.get(vendedorId)
           setConversaciones(prev => [{
-            ...convData,
+            ...newConv,
             otro_nombre: perfil?.nombre || 'Usuario',
             otro_foto: perfil?.foto || null,
             producto_titulo: prodMap.get(productoId) || null,
             no_leidos: 0,
           }, ...prev])
-          setConvId(convData.id)
+          setConvId(newConv.id)
           setShowMobileChat(true)
         }
       }
