@@ -120,14 +120,14 @@ export default function CatalogoClient({ initialProducts = [], initialCount = 0 
   const tc = useTranslations('catalog')
   const tp = useTranslations('product')
   const tcm = useTranslations('common')
-  // Universal translator function (supports any namespace)
-  const t = (key: string) => {
+  // Universal translator function (supports any namespace with variables)
+  const t = (key: string, vars?: Record<string, string | number>) => {
     const parts = key.split('.')
     const ns = parts[0]
     const rest = parts.slice(1).join('.')
-    if (ns === 'catalog') return tc(rest)
-    if (ns === 'product') return tp(rest)
-    if (ns === 'common') return tcm(rest)
+    if (ns === 'catalog') return tc(rest, vars as any)
+    if (ns === 'product') return tp(rest, vars as any)
+    if (ns === 'common') return tcm(rest, vars as any)
     return key
   }
   const searchParams = useSearchParams()
@@ -247,7 +247,7 @@ export default function CatalogoClient({ initialProducts = [], initialCount = 0 
   }, [categoria, subcategoria, marca, q, precioMin, precioMax, ubicacionEstado, ubicacionCiudad, hasActiveFilters])
 
   const tituloMostrar = q
-    ? t('catalog.resultsFor').replace('{q}', q)
+    ? t('catalog.resultsFor', { q })
     : subcategoria
       ? t('catalog.subcategories.' + subcategoria)
       : cat
@@ -348,7 +348,7 @@ export default function CatalogoClient({ initialProducts = [], initialCount = 0 
               <div>
                 <h1 className="text-xl font-bold text-gray-900">{tituloMostrar}</h1>
                 <p className="text-sm text-gray-500 mt-1">
-                  {loading ? t('common.loading') : t('catalog.results').replace('{count}', String(totalCount))}
+                  {loading ? t('common.loading') : t('catalog.results', { count: totalCount })}
                 </p>
               </div>
               <form action="/buscar" method="GET" className="flex gap-2 w-full sm:w-auto">
