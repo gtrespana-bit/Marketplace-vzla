@@ -67,7 +67,7 @@ export default function VendedorPage() {
       setLoading(false)
     }
     loadVendedor()
-  }, [vendedorId])
+  }, [vendedorId, router])
 
   if (loading) {
     return (

@@ -111,7 +111,7 @@ export default function PublicarPage() {
         if (img.preview.startsWith('blob:')) URL.revokeObjectURL(img.preview)
       })
     }
-  }, [])
+  }, [imagenes])
 
   if (authLoading) return <div className="min-h-[60vh] flex items-center justify-center"><p>{t('loading')}</p></div>
   if (!session) return null

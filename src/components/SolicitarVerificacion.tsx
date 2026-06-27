@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { supabase, isSupabaseConfigured } from '@/lib/supabase'
 import { useAuth } from '@/components/AuthProvider'
 import { BadgeCheck, Upload, X, Shield, Camera, AlertCircle, CheckCircle2, Clock } from 'lucide-react'
@@ -34,11 +34,7 @@ export default function SolicitarVerificacion() {
   const [enviando, setEnviando] = useState(false)
   const [exito, setExito] = useState(false)
 
-  useEffect(() => {
-    if (user) cargarEstadoVerificacion()
-  }, [user])
-
-  async function cargarEstadoVerificacion() {
+  const cargarEstadoVerificacion = useCallback(async () => {
     // Ver perfil (columnas verificado)
     const { data: perfil } = await supabase
       .from('perfiles')
@@ -80,7 +76,11 @@ export default function SolicitarVerificacion() {
       setRechazoMotivo(solRech.rechazo_motivo || '')
       setSolicitudActual(solRech)
     }
-  }
+  }, [user])
+
+  useEffect(() => {
+    if (user) cargarEstadoVerificacion()
+  }, [user, cargarEstadoVerificacion])
 
   function handleFrenteFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]

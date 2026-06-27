@@ -109,7 +109,7 @@ export default function EditarPage() {
       setLoading(false)
     }
     load()
-  }, [productoId, user])
+  }, [productoId, user, authLoading, router])
 
   if (!session) return null
 

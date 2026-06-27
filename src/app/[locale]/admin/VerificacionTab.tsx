@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { Loader2, ShieldCheck } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import Image from 'next/image'
@@ -14,11 +14,7 @@ export default function VerificacionTab({ notify }: { notify: (msg: string) => v
   const [rechazoMotivo, setRechazoMotivo] = useState('')
   const [stats, setStats] = useState({ pendientes: 0, aprobadas: 0, rechazadas: 0, total: 0 })
 
-  useEffect(() => {
-    cargar()
-  }, [filtro])
-
-  async function cargar() {
+  const cargar = useCallback(async () => {
     setCargando(true)
 
     // 1. Obtener solicitudes
@@ -67,7 +63,11 @@ export default function VerificacionTab({ notify }: { notify: (msg: string) => v
       rechazadas: combinado.filter((s: any) => s.estado === 'rechazada').length,
       total: combinado.length,
     })
-  }
+  }, [filtro, notify])
+
+  useEffect(() => {
+    cargar()
+  }, [cargar])
 
   async function aprobarSol(id: string, userId: string, sol: any) {
     // 1. Solicitud aprobada

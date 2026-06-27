@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/components/AuthProvider'
 
@@ -84,7 +84,7 @@ export function useDashboard() {
   }, [user])
 
   // Realtime level-up notification
-  const prevLevelRef = { current: nivelConfianza }
+  const prevLevelRef = useRef(nivelConfianza)
 
   useEffect(() => {
     prevLevelRef.current = nivelConfianza

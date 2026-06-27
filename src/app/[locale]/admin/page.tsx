@@ -1097,7 +1097,7 @@ export default function AdminPage() {
     if (urlTab && TABS.some(t => t.id === urlTab)) {
       setTab(urlTab)
     }
-  }, [user, session, isAdmin, searchParams])
+  }, [user, session, isAdmin, searchParams, router])
 
   async function cargarPerfiles() {
     const { data } = await supabase.from('perfiles').select('id, nombre, telefono')
