@@ -228,30 +228,23 @@ export default function ChatPageClient() {
         setConvId(match.id)
         setShowMobileChat(true)
       } else {
-        // Create conversation via API (bypasses RLS with service_role key)
-        const { data: newConv, error: insErr } = await supabase
-          .from('conversaciones')
-          .insert({ user1_id: uid < vendedorId ? uid : vendedorId, user2_id: uid < vendedorId ? vendedorId : uid, producto_id: productoId })
-          .select()
-          .single()
-
-        // If direct insert fails (RLS), fallback to API route
-        let convData = newConv
-        let convErr = insErr
-        if (insErr || !newConv) {
-          try {
-            const res = await fetch('/api/crear-conversacion', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ vendedorId, productoId }),
-            })
-            if (res.ok) {
-              convData = await res.json()
-              convErr = null
-            }
-          } catch (fetchErr) {
-            console.error('API fallback also failed:', fetchErr)
+        // Create conversation via API (service_role key, bypasses RLS)
+        let convData: any = null
+        let convErr: any = null
+        try {
+          const res = await fetch('/api/crear-conversacion', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ vendedorId, productoId }),
+          })
+          if (res.ok) {
+            convData = await res.json()
+          } else {
+            const errJson = await res.json()
+            convErr = errJson.error || 'Error desconocido'
           }
+        } catch (fetchErr) {
+          convErr = fetchErr
         }
 
         if (convErr || !convData) {
