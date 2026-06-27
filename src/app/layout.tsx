@@ -98,6 +98,10 @@ export const metadata: Metadata = {
   },
   alternates: {
     canonical: 'https://vende-t.com',
+    languages: {
+      'es-VE': 'https://vende-t.com',
+      'en-US': 'https://vende-t.com/en',
+    },
   },
   verification: {
     google: 'TuGoogleVerificationCode',

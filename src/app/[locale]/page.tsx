@@ -4,6 +4,19 @@ import { ArrowRight, Star, Zap, Eye, TrendingUp } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { BotonDescargarApp } from '@/components/BotonDescargarApp'
 import { getTranslations } from 'next-intl/server'
+import type { Metadata } from 'next'
+
+export function generateMetadata(): Metadata {
+  return {
+    alternates: {
+      canonical: 'https://vende-t.com/',
+      languages: {
+        es: 'https://vende-t.com/',
+        en: 'https://vende-t.com/en/',
+      },
+    },
+  }
+}
 
 const PLACEHOLDER_IMAGES = ['/placeholder-product.webp']
 

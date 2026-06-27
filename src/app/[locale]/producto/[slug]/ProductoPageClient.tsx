@@ -11,8 +11,9 @@ import { MapPin, Tag, MessageCircle, Phone, Mail, ChevronRight, Shield, Clock, H
 import Avatar from '@/components/Avatar'
 import ReportarButton from '@/components/ReportarButton'
 import BadgeVerificado from '@/components/BadgeVerificado'
-import ImageGallery from '@/components/ImageGallery'
-import SellerReputation from '@/components/SellerReputation'
+import nextDynamic from 'next/dynamic'
+const ImageGallery = nextDynamic(() => import('@/components/ImageGallery'), { loading: () => <div className="aspect-square md:aspect-[16/10] bg-gray-100 animate-pulse" />, ssr: false })
+const SellerReputation = nextDynamic(() => import('@/components/SellerReputation'), { loading: () => <div className="h-48 bg-gray-100 animate-pulse rounded-xl" />, ssr: false })
 import { useTranslations } from 'next-intl'
 
 // Error boundary to catch render errors

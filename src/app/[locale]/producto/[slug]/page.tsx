@@ -66,7 +66,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       description: desc,
       images: image,
     },
-    alternates: { canonical: `https://vendet.online/producto/${slug}` },
+    alternates: {
+      canonical: `https://vende-t.com/producto/${slug}`,
+      languages: {
+        es: `https://vende-t.com/producto/${slug}`,
+        en: `https://vende-t.com/en/producto/${slug}`,
+      },
+    },
   }
 }
 

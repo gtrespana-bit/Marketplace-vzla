@@ -6,6 +6,13 @@ import { Suspense } from 'react'
 export const metadata: Metadata = {
   title: 'Catálogo — Compra y Venta en Venezuela | VendeT-Venezuela',
   description: 'Explora el catálogo de productos en VendeT-Venezuela. Carros, tecnología, moda, hogar, herramientas y más.',
+  alternates: {
+    canonical: 'https://vende-t.com/catalogo',
+    languages: {
+      es: 'https://vende-t.com/catalogo',
+      en: 'https://vende-t.com/en/catalogo',
+    },
+  },
 }
 
 // ✅ Fetch server-side de productos iniciales

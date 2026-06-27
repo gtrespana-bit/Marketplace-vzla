@@ -47,50 +47,36 @@ export function Header() {
     }
   }, [])
 
-  // Fetch user credit balance when logged in
+  // Consolidated fetch: credit balance + unread count in single query
   useEffect(() => {
     if (!user) {
       setCreditoBalance(null)
-      return
-    }
-    async function fetchCredito() {
-      const { data: perfil } = await supabase
-        .from('perfiles')
-        .select('credito_balance')
-        .eq('id', user!.id)
-        .single()
-      setCreditoBalance(perfil?.credito_balance ?? 0)
-    }
-    fetchCredito()
-  }, [user])
-
-  // Fetch unread message count
-  useEffect(() => {
-    if (!user) {
       setUnreadCount(0)
       return
     }
-    async function fetchUnread() {
-      const { count: mensajes } = await supabase
-        .from('mensajes')
-        .select('id', { count: 'exact', head: true })
-        .eq('destinatario_id', user!.id)
-        .eq('leido', false)
-      setUnreadCount(mensajes || 0)
-    }
-    fetchUnread()
 
+    async function fetchAll() {
+      const [credResult, unreadResult] = await Promise.all([
+        supabase.from('perfiles').select('credito_balance').eq('id', user!.id).single(),
+        supabase.from('mensajes').select('id', { count: 'exact', head: true }).eq('destinatario_id', user!.id).eq('leido', false),
+      ])
+      setCreditoBalance(credResult.data?.credito_balance ?? 0)
+      setUnreadCount(unreadResult.count || 0)
+    }
+    fetchAll()
+
+    // Realtime subscription for unread messages
     const channel = supabase
       .channel('header-unread')
       .on(
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'mensajes', filter: `destinatario_id=eq.${user!.id}` },
-        () => fetchUnread()
+        () => fetchAll()
       )
       .subscribe()
 
     const bc = new BroadcastChannel('vendete_unread_sync')
-    bc.onmessage = () => fetchUnread()
+    bc.onmessage = () => fetchAll()
 
     return () => {
       supabase.removeChannel(channel)
