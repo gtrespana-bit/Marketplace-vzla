@@ -139,10 +139,15 @@ export default async function RootLayout({
         {/* Preconnect para recursos externos críticos */}
         <link rel="preconnect" href="https://jmbkqelkusxjebsdnjoc.supabase.co" />
         <link rel="preconnect" href="https://pub-d212837165c545e3956251da001fa37a.r2.dev" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link rel="preconnect" href="https://www.googletagmanager.com" />
         <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
         <link rel="preconnect" href="https://fcm.googleapis.com" />
         <link rel="dns-prefetch" href="https://fcm.googleapis.com" />
+        
+        {/* Preload recursos críticos */}
+        <link rel="preload" href="/placeholder-product.webp" as="image" />
+        <link rel="preload" href="/logo-vendet.webp" as="image" />
 
         {/* PWA Meta Tags */}
         <meta name="mobile-web-app-capable" content="yes" />

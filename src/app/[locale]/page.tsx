@@ -270,7 +270,7 @@ export default async function HomePage() {
                   key={p.id}
                   p={p}
                   highlighted
-                  priority={index === 0}
+                  priority={index < 2} // Prioridad para las primeras 2 imágenes
                   t={t}
                 />
               ))}
@@ -417,7 +417,7 @@ export default async function HomePage() {
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-            {trending.map((p) => (
+            {trending.map((p, index) => (
               <LocalLink
                 key={p.id}
                 href={`/producto/${p.id}`}
@@ -431,8 +431,10 @@ export default async function HomePage() {
                     fill
                     sizes="(max-width: 480px) 45vw, (max-width: 768px) 45vw, (max-width: 1024px) 23vw, 320px"
                     className="object-cover group-hover:scale-105 transition-transform duration-300"
-                    loading="lazy"
+                    loading={index < 2 ? 'eager' : 'lazy'}
                     decoding="async"
+                    priority={index < 2} // Prioridad para las primeras 2 imágenes
+                    fetchPriority={index < 2 ? 'high' : 'auto'}
                     quality={75}
                   />
                   <div className="absolute top-2 left-2 z-10 bg-gradient-to-r from-orange-500 to-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 shadow-sm">
@@ -482,10 +484,10 @@ export default async function HomePage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {productos.map((p) => {
+            {productos.map((p, index) => {
               const isHighlighted =
                 (p.destacado && p.destacado_hasta > new Date().toISOString()) || p.boosteado_en
-              return <ProductCard key={p.id} p={p} highlighted={isHighlighted} t={t} />
+              return <ProductCard key={p.id} p={p} highlighted={isHighlighted} priority={index < 2} t={t} />
             })}
           </div>
         )}
