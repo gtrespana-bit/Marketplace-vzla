@@ -268,7 +268,7 @@ export default function TabProductos({
                   <h4 className="font-medium text-gray-800 truncate group-hover:text-brand-primary transition">
                     {isBoosted && '⚡ '}{isFeatured && !isBoosted && '⭐ '}{p.titulo}
                   </h4>
-                  <p className="text-sm text-brand-primary font-bold">${p.precio_usd?.toLocaleString()}</p>
+                  <p className="text-sm text-brand-primary font-bold">${new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 }).format(Number(p.precio_usd || 0))}</p>
                   <div className="flex items-center gap-3 mt-1 text-xs text-gray-500">
                     <span>👀 {p.visitas || 0} vistas</span>
                     {isVendido

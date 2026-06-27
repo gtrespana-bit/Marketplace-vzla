@@ -64,7 +64,7 @@ export default function LandingCiudad({ slug, nombre }: Props) {
               </div>
               <div className="p-3">
                 <h3 className="font-semibold text-gray-900 text-sm truncate">{p.titulo}</h3>
-                <p className="text-lg font-black text-brand-primary mt-1">${Number(p.precio_usd || 0).toLocaleString()}</p>
+                <p className="text-lg font-black text-brand-primary mt-1">${new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 }).format(Number(p.precio_usd || 0))}</p>
                 <p className="text-xs text-gray-500">{p.estado}</p>
                 {p.ubicacion_ciudad && (
                   <p className="text-xs text-gray-400 flex items-center gap-1"><MapPin size={10} />{p.ubicacion_ciudad}</p>

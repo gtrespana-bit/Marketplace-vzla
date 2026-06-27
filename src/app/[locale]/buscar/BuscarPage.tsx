@@ -86,7 +86,7 @@ function ProductCard({ p }: { p: Producto }) {
           {p.titulo}
         </h3>
         <p className="text-xl font-black text-brand-primary mt-1">
-          ${Number(p.precio_usd || 0).toLocaleString()}
+          ${new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 }).format(Number(p.precio_usd || 0))}
         </p>
         {p.vendedor_verificado && (
           <div className="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded-full mt-1">

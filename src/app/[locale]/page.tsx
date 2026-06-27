@@ -109,7 +109,7 @@ function ProductCard({ p, highlighted = false, priority = false, t }: { p: any; 
           {p.titulo}
         </h3>
         <p className="text-xl font-black text-brand-primary mt-1">
-          ${Number(p.precio_usd || 0).toLocaleString()}
+          ${new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 }).format(Number(p.precio_usd || 0))}
         </p>
         <p className="text-xs text-gray-500 mt-1">
           {p.estado} · {p.ubicacion_ciudad || 'Venezuela'}
@@ -431,7 +431,7 @@ export default async function HomePage() {
                     {p.titulo}
                   </h3>
                   <p className="text-xl font-black text-brand-primary mt-1">
-                    ${Number(p.precio_usd || 0).toLocaleString()}
+                    ${new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 }).format(Number(p.precio_usd || 0))}
                   </p>
                   <div className="flex items-center gap-1 mt-1">
                     <Eye size={11} className="text-gray-400" />

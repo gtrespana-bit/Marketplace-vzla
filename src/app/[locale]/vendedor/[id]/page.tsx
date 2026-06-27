@@ -222,7 +222,7 @@ export default function VendedorPage() {
                 </div>
                 <div className="p-3">
                   <h3 className="font-semibold text-gray-800 text-sm truncate">{p.titulo}</h3>
-                  <p className="text-brand-primary font-bold mt-1">${p.precio_usd?.toLocaleString()}</p>
+                  <p className="text-brand-primary font-bold mt-1">${new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 }).format(Number(p.precio_usd || 0))}</p>
                 </div>
               </LocalLink>
             ))}
