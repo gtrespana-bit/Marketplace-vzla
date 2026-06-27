@@ -272,7 +272,7 @@ export default function CatalogoClient({ initialProducts = [], initialCount = 0 
               <div>
                 <h1 className="text-xl font-bold text-gray-900">{tituloMostrar}</h1>
                 <p className="text-sm text-gray-500 mt-1">
-                  {loading ? t('common.loading') : t('catalog.results', { count: totalCount })}
+                  {loading ? t('common.loading') : t('catalog.results', { count: totalCount || 0 })}
                 </p>
               </div>
               <form action="/buscar" method="GET" className="flex gap-2 w-full sm:w-auto">
