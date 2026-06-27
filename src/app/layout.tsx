@@ -10,6 +10,7 @@ import { Analytics } from '@vercel/analytics/react'
 import { SpeedInsights } from '@vercel/speed-insights/next'
 import { headers, cookies } from 'next/headers'
 import { routing } from '@/i18n/routing'
+import { createSupabaseServerClient } from '@/lib/supabase-server'
 
 // Force dynamic rendering to ensure headers() reads fresh values on each request
 export const dynamic = 'force-dynamic'
@@ -110,6 +111,16 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode
 }) {
+  // ✅ HYDRATION FIX: Fetch user server-side so AuthProvider first render matches server HTML
+  let initialUser: any = null
+  try {
+    const supabaseServer = createSupabaseServerClient()
+    const { data: { user } } = await supabaseServer.auth.getUser()
+    initialUser = user
+  } catch {
+    // Not authenticated or error — pass null
+  }
+
   // Detect locale from middleware header (x-detected-locale)
   // or fallback to NEXT_LOCALE cookie
   const headersList = headers()
@@ -162,7 +173,7 @@ export default async function RootLayout({
         />
       </head>
       <body className="bg-white antialiased" suppressHydrationWarning>
-        <AuthProvider>
+        <AuthProvider initialUser={initialUser}>
           <Header />
           <main className="min-h-screen bg-white" suppressHydrationWarning>{children}</main>
           <Footer />
