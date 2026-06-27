@@ -228,30 +228,44 @@ export default function ChatPageClient() {
         setConvId(match.id)
         setShowMobileChat(true)
       } else {
-        // Refresh session to ensure JWT is fresh for RLS
-        await supabase.auth.refreshSession()
-        
-        // Create conversation directly in DB
-        const u1 = uid < vendedorId ? uid : vendedorId
-        const u2 = uid < vendedorId ? vendedorId : uid
+        // Create conversation via API (bypasses RLS with service_role key)
         const { data: newConv, error: insErr } = await supabase
           .from('conversaciones')
-          .insert({ user1_id: u1, user2_id: u2, producto_id: productoId })
+          .insert({ user1_id: uid < vendedorId ? uid : vendedorId, user2_id: uid < vendedorId ? vendedorId : uid, producto_id: productoId })
           .select()
           .single()
 
+        // If direct insert fails (RLS), fallback to API route
+        let convData = newConv
+        let convErr = insErr
         if (insErr || !newConv) {
-          console.error('Error creating conversation:', insErr)
+          try {
+            const res = await fetch('/api/crear-conversacion', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ vendedorId, productoId }),
+            })
+            if (res.ok) {
+              convData = await res.json()
+              convErr = null
+            }
+          } catch (fetchErr) {
+            console.error('API fallback also failed:', fetchErr)
+          }
+        }
+
+        if (convErr || !convData) {
+          console.error('Error creating conversation:', convErr)
         } else {
           const perfil = perfilMap.get(vendedorId)
           setConversaciones(prev => [{
-            ...newConv,
+            ...convData,
             otro_nombre: perfil?.nombre || 'Usuario',
             otro_foto: perfil?.foto || null,
             producto_titulo: prodMap.get(productoId) || null,
             no_leidos: 0,
           }, ...prev])
-          setConvId(newConv.id)
+          setConvId(convData.id)
           setShowMobileChat(true)
         }
       }
