@@ -22,7 +22,7 @@ const PLACEHOLDER_IMAGES = [
   '/placeholder-product.webp',
 ]
 
-export default function ProductCard({ p, isPromoted, isFeatured }: { p: ProductCardData; isPromoted?: boolean; isFeatured?: boolean }) {
+export default function ProductCard({ p, isPromoted, isFeatured, priority }: { p: ProductCardData; isPromoted?: boolean; isFeatured?: boolean; priority?: boolean }) {
   const { t } = useLocalizedMessages()
   const isBoosted = p.boosteado_en != null
   const promoted = isPromoted ?? (isBoosted || isFeatured)
@@ -57,7 +57,9 @@ export default function ProductCard({ p, isPromoted, isFeatured }: { p: ProductC
           height={400}
           sizes="(max-width: 768px) 50vw, 25vw"
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-          loading="lazy"
+          loading={priority ? 'eager' : 'lazy'}
+          priority={priority}
+          fetchPriority={priority ? 'high' : undefined}
           decoding="async"
           onError={(e) => {
             const target = e.target as HTMLImageElement

@@ -10,7 +10,6 @@ interface ImageGalleryProps {
 }
 
 const FALLBACK_IMAGE = '/placeholder-product.png'
-const BLUR_DATA_URL = 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAADAAQDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k='
 
 export default function ImageGallery({ images, alt }: ImageGalleryProps) {
   const [activeIndex, setActiveIndex] = useState(0)
@@ -73,8 +72,6 @@ export default function ImageGallery({ images, alt }: ImageGalleryProps) {
           priority={activeIndex === 0}
           fetchPriority={activeIndex === 0 ? 'high' : undefined}
           decoding="async"
-          placeholder="blur"
-          blurDataURL={BLUR_DATA_URL}
           onError={handleImageError}
         />
 

@@ -144,6 +144,7 @@ export default async function RootLayout({
       <head>
         {/* Preconnect para recursos externos críticos */}
         <link rel="preconnect" href="https://jmbkqelkusxjebsdnjoc.supabase.co" />
+        <link rel="preconnect" href="https://pub-d212837165c545e3956251da001fa37a.r2.dev" />
         <link rel="preconnect" href="https://www.googletagmanager.com" />
         <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
         <link rel="preconnect" href="https://fcm.googleapis.com" />
