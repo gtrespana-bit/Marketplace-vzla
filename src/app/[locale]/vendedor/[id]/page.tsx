@@ -27,7 +27,7 @@ export default function VendedorPage() {
     async function loadVendedor() {
       const { data: perfil } = await supabase
         .from('perfiles')
-        .select('*')
+        .select('id, nombre, telefono, estado, ciudad, credito_balance, verificado, nivel_confianza, creado_en, foto_perfil_url, badges_automaticos')
         .eq('id', vendedorId)
         .single()
 
@@ -41,7 +41,7 @@ export default function VendedorPage() {
       // Reseñas (para calcular promedio)
       const { data: res } = await supabase
         .from('resenas')
-        .select('*')
+        .select('id, puntuacion, comentario, producto_id, producto_titulo, creado_en')
         .eq('vendedor_id', vendedorId)
         .order('creado_en', { ascending: false })
 

@@ -50,7 +50,7 @@ export default function SolicitarVerificacion() {
     // Ver solicitud activa
     const { data: sol } = await supabase
       .from('solicitudes_verificacion')
-      .select('*')
+      .select('id, user_id, pago_movil_telefono, pago_movil_cedula, pago_movil_banco, mensaje, estado, creada_en')
       .eq('user_id', user?.id)
       .eq('estado', 'pendiente')
       .single()
@@ -64,7 +64,7 @@ export default function SolicitarVerificacion() {
     // Ver solicitud rechazada
     const { data: solRech } = await supabase
       .from('solicitudes_verificacion')
-      .select('*')
+      .select('id, user_id, pago_movil_telefono, pago_movil_cedula, pago_movil_banco, mensaje, estado, creada_en, rechazo_motivo')
       .eq('user_id', user?.id)
       .eq('estado', 'rechazada')
       .order('creada_en', { ascending: false })

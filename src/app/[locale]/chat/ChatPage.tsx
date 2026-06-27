@@ -150,7 +150,7 @@ export default function ChatPageClient() {
 
     const { data: convs, error } = await supabase
       .from('conversaciones')
-      .select('*')
+      .select('id, user1_id, user2_id, ultimo_mensaje_en, ultimo_mensaje_contenido')
       .or(`user1_id.eq.${uid},user2_id.eq.${uid}`)
       .order('ultimo_mensaje_en', { ascending: false })
 
@@ -267,7 +267,7 @@ export default function ChatPageClient() {
   const loadMensajes = useCallback(async (id: string) => {
     const { data, error } = await supabase
       .from('mensajes')
-      .select('*')
+      .select('id, remitente_id, destinatario_id, contenido, leido, creado_en, conversacion_id')
       .eq('conversacion_id', id)
       .order('creado_en', { ascending: true })
 

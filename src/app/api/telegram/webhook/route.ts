@@ -72,7 +72,7 @@ async function procesarAprobacion(txId: string, url: string, key: string) {
   const sb = createClient(url, key)
 
   // Obtener transacción
-  const { data: tx, error } = await sb.from('transacciones_creditos').select('*').eq('id', txId).single()
+  const { data: tx, error } = await sb.from('transacciones_creditos').select('id, user_id, tipo, monto, metodo_pago, estado, creado_en, precio_usd, comprobante_url').eq('id', txId).single()
   if (error || !tx) return { alert: '❌ No encontrada', text: '❌ Transacción no encontrada' }
 
   // Actualizar crédito del usuario

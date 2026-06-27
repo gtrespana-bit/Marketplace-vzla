@@ -51,7 +51,8 @@ export function useDashboard() {
     if (!user) return
 
     Promise.all([
-      supabase.from('productos').select('*').eq('user_id', user.id).order('creado_en', { ascending: false }).then(({ data }) => setProductos(data || [])),
+      supabase.from('productos').select('id, titulo, precio_usd, estado, categoria_id, subcategoria, marca, ubicacion_ciudad, activo, visitas, creado_en, imagen_url, destacado, destacado_hasta, boosteado_en, estado_moderacion').eq('user_id', user.id).order('creado_en', { ascending: false }).then(({ data }) => setProductos(data || [])),
+
       supabase.from('productos').select('visitas').eq('user_id', user.id).then(({ data }) => setVisitasTotales(data?.reduce((sum: number, p: any) => sum + (p.visitas || 0), 0) || 0)),
       supabase.from('favoritos').select('producto_id, creado_en, productos!inner(id, titulo, precio_usd, imagen_url, activo, user_id, ubicacion_ciudad)').eq('user_id', user.id).order('creado_en', { ascending: false }).then(({ data }) => {
         setFavoritos(data || [])
@@ -73,7 +74,7 @@ export function useDashboard() {
         }
       }),
       supabase.from('productos').select('*', { count: 'exact' }).eq('user_id', user.id).eq('activo', true).then(({ count }) => setPubCount(count || 0)),
-      supabase.from('resenas').select('*').eq('vendedor_id', user.id).order('creado_en', { ascending: false }).then(({ data }) => {
+      supabase.from('resenas').select('id, puntuacion, comentario, producto_id, producto_titulo, creado_en').eq('vendedor_id', user.id).order('creado_en', { ascending: false }).then(({ data }) => {
         setResenas(data || [])
         if (data && data.length > 0) {
           const avg = data.reduce((sum: number, r: any) => sum + r.puntuacion, 0) / data.length

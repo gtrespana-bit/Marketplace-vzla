@@ -31,7 +31,7 @@ export default function AprobacionPage() {
     setCargando(true)
     const { data, error } = await supabase
       .from('transacciones_creditos')
-      .select('*')
+      .select('id, user_id, tipo, monto, metodo_pago, estado, creado_en, precio_usd, comprobante_url')
       .eq('estado', 'pendiente')
       .eq('tipo', 'compra')
       .order('creado_en', { ascending: false })

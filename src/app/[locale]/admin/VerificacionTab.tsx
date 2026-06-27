@@ -20,7 +20,7 @@ export default function VerificacionTab({ notify }: { notify: (msg: string) => v
     // 1. Obtener solicitudes
     let query = supabase
       .from('solicitudes_verificacion')
-      .select('*')
+      .select('id, user_id, pago_movil_telefono, pago_movil_cedula, pago_movil_banco, mensaje, estado, creada_en, revisada_en, rechazo_motivo, cedula_foto_frente_url')
       .order('creada_en', { ascending: false })
 
     if (filtro !== 'todas') {

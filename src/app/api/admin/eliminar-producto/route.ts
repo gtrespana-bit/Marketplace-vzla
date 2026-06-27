@@ -45,7 +45,7 @@ export async function POST(req: NextRequest) {
     // Get the product
     const { data: producto, error: prodError } = await supabaseAdmin
       .from('productos')
-      .select('*')
+      .select('id, titulo, precio_usd, estado, categoria_id, subcategoria, marca, ubicacion_ciudad, activo, visitas, creado_en, user_id, imagen_url, imagenes, destacado, destacado_hasta, boosteado_en')
       .eq('id', productId)
       .single()
 
