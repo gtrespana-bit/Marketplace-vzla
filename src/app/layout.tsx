@@ -4,6 +4,8 @@ import './globals.css'
 import { Header } from '@/components/Header'
 import { Footer } from '@/components/Footer'
 import { AuthProvider } from '@/components/AuthProvider'
+import { PerformanceMetrics } from '@/components/PerformanceMetrics'
+import { PerformanceMonitor } from '@/components/PerformanceMonitor'
 import nextDynamic from 'next/dynamic'
 import { Analytics } from '@vercel/analytics/react'
 import { SpeedInsights } from '@vercel/speed-insights/next'
@@ -32,6 +34,8 @@ export const viewport: Viewport = {
   maximumScale: 5,
   userScalable: true,
   viewportFit: 'cover',
+  // Agregar mejoras de rendimiento
+  colorScheme: 'light',
 }
 
 export const metadata: Metadata = {
@@ -148,6 +152,15 @@ export default async function RootLayout({
         {/* Preload recursos críticos */}
         <link rel="preload" href="/placeholder-product.webp" as="image" />
         <link rel="preload" href="/logo-vendet.webp" as="image" />
+        
+        {/* Estrategia de precarga para mejorar LCP */}
+        <link rel="prefetch" href="/_next/static/chunks/3366-f452843a6fe519b1.js" />
+        <link rel="prefetch" href="/_next/static/chunks/main-app-66f3ae415ceb47ed.js" />
+        
+        {/* DNS prefetch para recursos externos */}
+        <link rel="dns-prefetch" href="https://jmbkqelkusxjebsdnjoc.supabase.co" />
+        <link rel="dns-prefetch" href="https://pub-d212837165c545e3956251da001fa37a.r2.dev" />
+        <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
 
         {/* PWA Meta Tags */}
         <meta name="mobile-web-app-capable" content="yes" />
@@ -178,6 +191,7 @@ export default async function RootLayout({
           <PushNotificationBanner />
           <BottomTabNavDynamic />
         </AuthProvider>
+        <PerformanceMonitor />
         <Analytics />
         <SpeedInsights />
       </body>

@@ -5,8 +5,12 @@
     "scripts": {
         "dev": "next dev",
         "build": "next build",
+        "build:analyze": "ANALYZE=true next build",
         "start": "next start",
-        "lint": "next lint"
+        "lint": "next lint",
+        "optimize-images": "node scripts/optimize-images.js",
+        "performance-test": "npm run build && node scripts/performance-test.js",
+        "apply-optimizations": "node scripts/apply-optimizations.js"
     },
     "dependencies": {
         "@aws-sdk/client-s3": "^3.1044.0",

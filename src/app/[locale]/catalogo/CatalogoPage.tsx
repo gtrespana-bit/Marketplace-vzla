@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState, useRef, memo } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { usePathname } from 'next/navigation'
 import { useTranslations } from 'next-intl'
@@ -10,6 +10,13 @@ import { Search, ChevronRight, XCircle } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { categoriasData } from '@/lib/categorias'
 import UbicacionSelector from '@/components/UbicacionSelector'
+import { Pagination } from '@/components/Pagination'
+import { OptimizedProductGrid } from '@/components/OptimizedProductGrid'
+import { CatalogFilters } from '@/components/CatalogFilters'
+import { useProductPagination } from '@/hooks/useProductPagination'
+import { useProductLoader } from '@/hooks/useProductLoader'
+import { LoadingIndicator } from '@/components/LoadingIndicator'
+import { usePrefetch } from '@/hooks/usePrefetch'
 
 type Producto = {
   id: string
@@ -55,7 +62,7 @@ function ProductCardSkeleton() {
   )
 }
 
-function ProductCard({ p, priority = false, t }: { p: Producto; priority?: boolean; t: (key: string) => string }) {
+const ProductCard = memo(({ p, priority = false, t }: { p: Producto; priority?: boolean; t: (key: string) => string }) => {
   const isBoosted = p.boosteado_en != null
   // Usar flag pre-computado del servidor para evitar hydration mismatch
   // Si no existe (datos frescos del cliente), calcular en el cliente
@@ -82,16 +89,16 @@ function ProductCard({ p, priority = false, t }: { p: Producto; priority?: boole
         <Image
           src={imgUrl}
           alt={p.titulo}
-          width={400}
-          height={400}
-          sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
-          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+          width={300}  // Reducir tamaño para optimización
+          height={300}
+          sizes="(max-width: 768px) 50vw, (max-width: 1200px) 25vw, 20vw"
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           loading={priority ? 'eager' : 'lazy'}
           priority={priority}
           decoding="async"
           placeholder="blur"
           blurDataURL={BLUR_DATA_URL}
-          fetchPriority={priority ? 'high' : 'auto'}
+          fetchPriority={priority ? 'high' : 'low'} // Cambiar a 'low' para no prioritarios
           onError={(e) => {
             // ✅ CORREGIDO: Previene loop infinito
             const target = e.target as HTMLImageElement
@@ -114,7 +121,9 @@ function ProductCard({ p, priority = false, t }: { p: Producto; priority?: boole
       </div>
     </LocalLink>
   )
-}
+})
+
+ProductCard.displayName = 'ProductCard'
 
 export default function CatalogoClient({ initialProducts = [], initialCount = 0 }: CatalogoPageProps) {
   const tc = useTranslations('catalog')
@@ -134,6 +143,9 @@ export default function CatalogoClient({ initialProducts = [], initialCount = 0 
   const pathname = usePathname()
   const router = useRouter()
 
+  // Usar hook de paginación
+  const { currentPage, itemsPerPage } = useProductPagination({ itemsPerPage: 24 })
+
   const categoria = searchParams.get('categoria') || ''
   const subcategoria = searchParams.get('subcategoria') || ''
   const marca = searchParams.get('marca') || ''
@@ -144,9 +156,21 @@ export default function CatalogoClient({ initialProducts = [], initialCount = 0 
   const ubicacionCiudad = searchParams.get('ciudad') || ''
 
   const hasActiveFilters = !!(categoria || subcategoria || marca || q || precioMin || precioMax || ubicacionEstado || ubicacionCiudad)
-  const [productos, setProductos] = useState<Producto[]>(hasActiveFilters ? [] : initialProducts)
-  const [loading, setLoading] = useState(hasActiveFilters)
-  const [totalCount, setTotalCount] = useState(hasActiveFilters ? 0 : initialCount)
+  
+  // Usar los hooks de carga y precarga de productos
+  const { productos: loadedProductos, loading, error, totalCount: loaderTotalCount, loadProducts } = useProductLoader();
+  const { prefetchPage } = usePrefetch();
+  
+  // Determinar qué productos usar
+  const productosToUse = hasActiveFilters ? loadedProductos : initialProducts;
+  const totalCountToUse = hasActiveFilters ? loaderTotalCount : initialCount;
+  
+  // Calcular productos para la página actual
+  const startIndex = (currentPage - 1) * itemsPerPage
+  const endIndex = startIndex + itemsPerPage
+  const productosPagina = productosToUse.slice(startIndex, endIndex)
+  const totalPages = Math.ceil(productosToUse.length / itemsPerPage)
+  
   const isFirstRender = useRef(true)
 
   const cat = categoriasData[categoria]
@@ -163,88 +187,51 @@ export default function CatalogoClient({ initialProducts = [], initialCount = 0 
   useEffect(() => {
     if (isFirstRender.current) {
       isFirstRender.current = false
-      if (!hasActiveFilters) return
-    }
-
-    let cancelled = false
-    setLoading(true)
-
-    async function fetchProductos() {
-      let query = supabase
-        .from('productos')
-        .select('*', { count: 'exact' })
-        .eq('activo', true)
-        .or('estado_moderacion.is.null,estado_moderacion.eq.aprobado')
-
-      if (categoria) {
-        const { data: catRow } = await supabase
-          .from('categorias')
-          .select('id')
-          .eq('nombre', categoria)
-          .single()
-        if (catRow) {
-          query = query.eq('categoria_id', catRow.id)
-        }
-      }
-
-      if (subcategoria) {
-        query = query.eq('subcategoria', subcategoria)
-      }
-
-      if (marca) {
-        query = query.eq('marca', marca)
-      }
-
-      if (q) {
-        query = query.textSearch('search_vector', q, { config: 'spanish', type: 'plain' })
-      }
-
-      if (ubicacionCiudad) {
-        query = query.eq('ubicacion_ciudad', ubicacionCiudad)
-      } else if (ubicacionEstado) {
-        query = query.eq('ubicacion_estado', ubicacionEstado)
-      }
-
-      if (precioMin) {
-        query = query.gte('precio_usd', parseFloat(precioMin))
-      }
-      if (precioMax) {
-        query = query.lte('precio_usd', parseFloat(precioMax))
-      }
-
-      query = query.order('creado_en', { ascending: false }).limit(200)
-
-      const { data, count, error } = await query
-      if (!cancelled) {
-        if (!error) {
-          const now = new Date().toISOString()
-          const sorted = (data as Producto[]).sort((a, b) => {
-            const aBoost = a.boosteado_en || null
-            const bBoost = b.boosteado_en || null
-            if (aBoost && !bBoost) return -1
-            if (!aBoost && bBoost) return 1
-            if (aBoost && bBoost) return bBoost.localeCompare(aBoost)
-            const aDest = a.destacado && a.destacado_hasta && a.destacado_hasta > now
-            const bDest = b.destacado && b.destacado_hasta && b.destacado_hasta > now
-            if (aDest && !bDest) return -1
-            if (!aDest && bDest) return 1
-            if (aDest && bDest) return b.destacado_hasta!.localeCompare(a.destacado_hasta!)
-            return b.creado_en.localeCompare(a.creado_en)
-          })
-          setProductos(sorted)
-          setTotalCount(count ?? 0)
-        } else {
-          console.error('Error fetching:', error)
-          setProductos([])
-          setTotalCount(0)
-        }
-        setLoading(false)
+      if (!hasActiveFilters) {
+        // Si no hay filtros activos, usar los productos iniciales
+        return
       }
     }
 
-    fetchProductos()
-    return () => { cancelled = true }
-  }, [categoria, subcategoria, marca, q, precioMin, precioMax, ubicacionEstado, ubicacionCiudad, hasActiveFilters])
+    if (hasActiveFilters) {
+      // Cargar productos con los filtros actuales solo si hay filtros activos
+      loadProducts({
+        categoria,
+        subcategoria,
+        marca,
+        q,
+        precioMin,
+        precioMax,
+        ubicacionEstado,
+        ubicacionCiudad
+      });
+    }
+  }, [categoria, subcategoria, marca, q, precioMin, precioMax, ubicacionEstado, ubicacionCiudad, hasActiveFilters, loadProducts]);
+
+  // Precargar la siguiente página cuando sea apropiado
+  useEffect(() => {
+    if (!loading && productosToUse.length > 0 && totalPages > currentPage) {
+      // Precargar la siguiente página después de un breve retraso
+      const prefetchTimer = setTimeout(() => {
+        prefetchPage(
+          currentPage + 1,
+          itemsPerPage,
+          {
+            categoria,
+            subcategoria,
+            marca,
+            q,
+            precioMin,
+            precioMax,
+            ubicacionEstado,
+            ubicacionCiudad
+          }
+        );
+      }, 2000); // Precargar después de 2 segundos para permitir la carga completa de la página actual
+
+      return () => clearTimeout(prefetchTimer);
+    }
+  }, [currentPage, totalPages, loading, productosToUse.length, categoria, subcategoria, marca, q, precioMin, precioMax, ubicacionEstado, ubicacionCiudad, itemsPerPage, prefetchPage]);
 
   const tituloMostrar = q
     ? t('catalog.resultsFor', { q })
@@ -267,79 +254,16 @@ export default function CatalogoClient({ initialProducts = [], initialCount = 0 
 
       <div className="flex flex-col lg:flex-row gap-6">
         <aside className="w-full lg:w-72 flex-shrink-0">
-          <div className="bg-white rounded-xl p-5 shadow-sm sticky top-20">
-            <h3 className="font-bold text-lg text-gray-900 mb-4">🔍 {t('catalog.filters')}</h3>
-
-            <div className="mb-4">
-              <label htmlFor="filter-categoria" className="block text-sm font-bold text-gray-900 mb-1.5">{t('catalog.category')}</label>
-              <select id="filter-categoria" value={categoria} onChange={e => setParam('categoria', e.target.value)} className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm text-gray-800 bg-white font-medium focus:outline-none focus:ring-2 focus:ring-brand-accent">
-                <option value="">{t('catalog.all')}</option>
-                {Object.entries(categoriasData).map(([key, c]) => (
-                  <option key={key} value={key}>{c.icon} {t('catalog.categories.' + key)}</option>
-                ))}
-              </select>
-            </div>
-
-            {subs.length > 0 && (
-              <div className="mb-4">
-                <label htmlFor="filter-subcategoria" className="block text-sm font-bold text-gray-900 mb-1.5">{t('catalog.subcategory')}</label>
-                <select id="filter-subcategoria" value={subcategoria} onChange={e => setParam('subcategoria', e.target.value)} className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm text-gray-800 bg-white font-medium focus:outline-none focus:ring-2 focus:ring-brand-accent">
-                  <option value="">{t('catalog.allSubs')}</option>
-                  {subs.map(s => (
-                    <option key={s.label} value={s.label}>{s.icon} {t('catalog.subcategories.' + s.label)}</option>
-                  ))}
-                </select>
-              </div>
-            )}
-
-            {allMarcas.length > 0 && (
-              <div className="mb-4">
-                <div className="flex items-center justify-between">
-                  <label htmlFor="filter-marca" className="block text-sm font-bold text-gray-900 mb-1.5">{t('catalog.brandLabel')}</label>
-                  {marca && (
-                    <button onClick={() => setParam('marca', '')} className="text-xs text-red-500 hover:text-red-700 flex items-center gap-1">
-                      <XCircle size={12} /> {t('catalog.remove')}
-                    </button>
-                  )}
-                </div>
-                <select id="filter-marca" value={marca} onChange={e => setParam('marca', e.target.value)} className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm text-gray-800 bg-white font-medium focus:outline-none focus:ring-2 focus:ring-brand-accent">
-                  <option value="">{t('catalog.allBrands')}</option>
-                  {allMarcas.map(m => (
-                    <option key={m} value={m}>{m}</option>
-                  ))}
-                </select>
-              </div>
-            )}
-
-            <div className="mb-4">
-              <label htmlFor="filter-precio-min" className="block text-sm font-bold text-gray-900 mb-1.5">{t('catalog.priceUsd')}</label>
-              <div className="flex gap-2">
-                <input
-                  id="filter-precio-min"
-                  type="number"
-                  value={precioMin}
-                  onChange={e => setParam('precioMin', e.target.value)}
-                  placeholder={t('catalog.min')}
-                  min="0"
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm text-gray-800 bg-white focus:outline-none focus:ring-2 focus:ring-brand-accent"
-                />
-                <input
-                  type="number"
-                  value={precioMax}
-                  onChange={e => setParam('precioMax', e.target.value)}
-                  placeholder={t('catalog.max')}
-                  min="0"
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm text-gray-800 bg-white focus:outline-none focus:ring-2 focus:ring-brand-accent"
-                />
-              </div>
-            </div>
-
-            {(categoria || subcategoria || marca || q || precioMin || precioMax) && (
-              <button onClick={() => router.push(pathname)} className="w-full text-sm text-red-500 hover:text-red-700 py-2 border border-red-200 rounded-lg hover:bg-red-50 transition flex items-center justify-center gap-1">
-                <XCircle size={14} /> {t('catalog.clearFilters')}
-              </button>
-            )}
-          </div>
+          <CatalogFilters 
+            categoria={categoria}
+            subcategoria={subcategoria}
+            marca={marca}
+            precioMin={precioMin}
+            precioMax={precioMax}
+            ubicacionEstado={ubicacionEstado}
+            ubicacionCiudad={ubicacionCiudad}
+            t={t}
+          />
         </aside>
 
         <div className="flex-1">
@@ -372,12 +296,8 @@ export default function CatalogoClient({ initialProducts = [], initialCount = 0 
           </div>
 
           {loading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
-              {Array.from({ length: 6 }).map((_, i) => (
-                <ProductCardSkeleton key={i} />
-              ))}
-            </div>
-          ) : productos.length === 0 ? (
+            <LoadingIndicator count={6} />
+          ) : productosToUse.length === 0 ? (
             <div className="bg-white rounded-xl p-16 text-center shadow-sm border">
               <Search size={48} className="text-gray-300 mx-auto mb-4" />
               <h3 className="text-xl font-bold text-gray-800 mb-2">{t('catalog.empty')}</h3>
@@ -387,19 +307,23 @@ export default function CatalogoClient({ initialProducts = [], initialCount = 0 
               </LocalLink>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
-              {productos.map((p, index) => (
-                <ProductCard
-                  key={p.id}
-                  p={p}
-                  t={t}
-                  priority={index === 0}
-                />
-              ))}
-            </div>
+            <OptimizedProductGrid 
+              productos={productos} 
+              t={t} 
+              currentPage={currentPage} 
+              itemsPerPage={itemsPerPage} 
+            />
           )}
         </div>
       </div>
+
+      {/* Componente de paginación optimizado */}
+      <Pagination 
+        currentPage={currentPage} 
+        totalPages={totalPages} 
+        itemsPerPage={itemsPerPage} 
+        totalItems={productos.length} 
+      />
     </div>
   )
 }
