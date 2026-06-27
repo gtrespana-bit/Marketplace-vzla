@@ -11,7 +11,7 @@ import { useLocalizedMessages } from '@/hooks/useLocalizedMessages'
 import { supabase } from '@/lib/supabase'
 
 export function Header() {
-  const { user, loading } = useAuth()
+  const { user } = useAuth()
   const { t } = useLocalizedMessages()
   const [mobileOpen, setMobileOpen] = useState(false)
   const [creditoBalance, setCreditoBalance] = useState<number | null>(null)
@@ -49,11 +49,7 @@ export function Header() {
 
   // Consolidated fetch: credit balance + unread count in single query
   useEffect(() => {
-    if (!user) {
-      setCreditoBalance(null)
-      setUnreadCount(0)
-      return
-    }
+    if (!user) return
 
     async function fetchAll() {
       const [credResult, unreadResult] = await Promise.all([
@@ -84,21 +80,8 @@ export function Header() {
     }
   }, [user])
 
-  if (loading) return (
-    <header className="bg-brand-primary text-white sticky top-0 z-50 shadow-lg">
-      <div className="max-w-7xl mx-auto px-4">
-        <div className="flex items-center justify-between h-14">
-          <div className="w-9 h-9 bg-brand-accent/50 rounded-lg" />
-          <div className="w-48 h-8 bg-white/10 rounded-lg hidden sm:block" />
-          <div className="flex gap-2">
-            <div className="w-20 h-8 bg-white/10 rounded-lg hidden md:block" />
-            <div className="w-20 h-8 bg-white/10 rounded-lg hidden md:block" />
-          </div>
-        </div>
-      </div>
-    </header>
-  )
-
+  // ✅ FIX: Don't block the entire header while auth loads.
+  // Treat loading as guest → render immediately → update when session resolves.
   const showCreditoBadge = !user
 
   return (
