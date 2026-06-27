@@ -1,6 +1,5 @@
 import type { Metadata, Viewport } from 'next'
 import { Inter } from 'next/font/google'
-import { Partytown } from '@qwik.dev/partytown/react'
 import './globals.css'
 import { Header } from '@/components/Header'
 import { Footer } from '@/components/Footer'
@@ -134,11 +133,6 @@ export default async function RootLayout({
     }
   }
 
-  const partytownForward = {
-    rel: 'preconnect' as const,
-    href: 'https://www.googletagmanager.com',
-  }
-
   return (
     <html lang={lang} className={inter.variable} suppressHydrationWarning>
       <head>
@@ -164,11 +158,6 @@ export default async function RootLayout({
         {/* Manifest */}
         <link rel="manifest" href="/manifest.json" />
 
-        {/* Partytown - Third-party scripts optimization */}
-        <Partytown
-          forward={['dataLayer.push', 'fbq']}
-          debug={false}
-        />
       </head>
       <body className="bg-white antialiased">
         <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-brand-primary focus:text-white focus:rounded-lg focus:shadow-lg">

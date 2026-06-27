@@ -77,59 +77,28 @@ function ProductoPageClientInner({ initialProduct }: ProductoPageClientProps) {
   useEffect(() => {
     if (!producto) return
     async function loadAll() {
-      await Promise.all([
-        // Fetch vendedor
-        (async () => {
-          const { data: v } = await supabase
-            .from('perfiles')
-            .select('id, nombre, telefono, ciudad, estado, whatsapp_disponible, telefono_visible, email_visible, foto_perfil_url, verificado, verificado_desde, nivel_confianza, badges_automaticos, ultima_actividad, creado_en')
-            .eq('id', producto.user_id)
-            .single()
-          if (v) setVendedor(v)
-        })(),
+      // Single RPC call: consolidates 6 queries into 1 round-trip
+      const { data: detalle, error } = await supabase.rpc('obtener_detalle_producto', {
+        p_producto_id: producto.id,
+        p_user_id: user?.id || null,
+      })
 
-        // Fetch vendedor stats
-        (async () => {
-          const [{ count: vendidas }, { count: activas }, { data: resData }] = await Promise.all([
-            supabase.from('productos').select('*', { count: 'exact' }).eq('user_id', producto.user_id).eq('activo', false).neq('estado_moderacion', 'rechazado'),
-            supabase.from('productos').select('*', { count: 'exact' }).eq('user_id', producto.user_id).eq('activo', true),
-            supabase.from('resenas').select('puntuacion').eq('vendedor_id', producto.user_id),
-          ])
-          const prom = resData && resData.length > 0 ? resData.reduce((s: number, r: any) => s + r.puntuacion, 0) / resData.length : 0
-          const anti = producto.user_id ? Math.floor((Date.now() - new Date(producto.creado_en).getTime()) / (1000*60*60*24)) : 0
-          setVendedorStats({ vendidas: vendidas || 0, activas: activas || 0, resenasCount: resData?.length || 0, resenasAvg: prom, antiguedad: anti })
-        })(),
+      if (!error && detalle) {
+        if (detalle.vendedor) setVendedor(detalle.vendedor)
+        if (detalle.stats) {
+          const anti = producto.user_id
+            ? Math.floor((Date.now() - new Date(producto.creado_en).getTime()) / (1000 * 60 * 60 * 24))
+            : 0
+          setVendedorStats({ ...detalle.stats, antiguedad: anti })
+        }
+        if (detalle.totalResenas != null) setTotalResenas(detalle.totalResenas)
+        if (detalle.esFavorito != null) setEsFavorito(detalle.esFavorito)
+        if (detalle.historial) setHistorial(detalle.historial)
+      }
 
-        // Fetch reseñas count
-        (async () => {
-          const { count: rc } = await supabase.from('resenas').select('*', { count: 'exact', head: true }).eq('vendedor_id', producto.user_id)
-          setTotalResenas(rc || 0)
-        })(),
+      // Fire and forget: increment views
+      supabase.from('productos').update({ visitas: (producto.visitas || 0) + 1 }).eq('id', producto.id).then()
 
-        // Check favorito
-        (async () => {
-          if (user) {
-            const { count } = await supabase.from('favoritos').select('*', { count: 'exact', head: true }).eq('user_id', user.id).eq('producto_id', producto.id)
-            setEsFavorito((count || 0) > 0)
-          }
-        })(),
-
-        // Increment views (fire and forget)
-        (async () => {
-          supabase.from('productos').update({ visitas: (producto.visitas || 0) + 1 }).eq('id', producto.id).then()
-        })(),
-
-        // Fetch historial de precios
-        (async () => {
-          const { data: hist } = await supabase
-            .from('historial_precios')
-            .select('*')
-            .eq('producto_id', producto.id)
-            .order('creado_en', { ascending: false })
-            .limit(10)
-          if (hist) setHistorial(hist)
-        })(),
-      ])
       setLoading(false)
     }
     loadAll()
