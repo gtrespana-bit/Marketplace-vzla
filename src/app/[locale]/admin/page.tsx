@@ -75,7 +75,7 @@ function MetricasTab() {
     { label: 'Usuarios', value: stats.totalUsuarios, icon: Users, color: 'bg-blue-50 text-blue-600' },
     { label: 'Productos', value: stats.totalProductos, icon: Package, color: 'bg-green-50 text-green-600' },
     { label: 'Activos', value: stats.productosActivos, icon: Zap, color: 'bg-yellow-50 text-yellow-600' },
-    { label: 'Créditos vendidos', value: stats.ingresosUSD.toLocaleString(), icon: CreditCard, color: 'bg-purple-50 text-purple-600' },
+    { label: 'Créditos vendidos', value: new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 }).format(Number(stats.ingresosUSD)), icon: CreditCard, color: 'bg-purple-50 text-purple-600' },
     { label: 'Ventas hoy', value: stats.nuevosHoy, icon: Star, color: 'bg-emerald-50 text-emerald-600' },
     { label: 'Pausados', value: stats.totalProductos - stats.productosActivos, icon: Pause, color: 'bg-gray-50 text-gray-500' },
   ]
@@ -284,7 +284,7 @@ function UsuariosTab({ notify }: Notifier) {
                       {u.verificado ? 'Sí' : 'No'}
                     </button>
                   </td>
-                  <td className="py-3 px-4 text-center text-gray-400 text-xs hidden lg:table-cell">{u.creado_en ? new Date(u.creado_en).toLocaleDateString('es-VE') : '—'}</td>
+                  <td className="py-3 px-4 text-center text-gray-400 text-xs hidden lg:table-cell">{u.creado_en ? new Intl.DateTimeFormat('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date(u.creado_en)) : '—'}</td>
                   <td className="py-3 px-4 text-center">
                     <div className="flex items-center justify-center gap-1">
                       <button onClick={() => { setCreditModal(u.id); setCreditCantidad(''); setCreditMotivo('') }}
@@ -522,8 +522,8 @@ function PublicacionesTab({ notify }: Notifier) {
                   {!p.activo && <span className="text-[10px] bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">Pausado</span>}
                   {p.estado_moderacion === 'pendiente' && <span className="text-[10px] bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full">Pendiente</span>}
                 </div>
-                <p className="text-sm text-brand-primary font-bold mt-0.5">${Number(p.precio_usd || 0).toLocaleString()}</p>
-                <p className="text-xs text-gray-400">👀 {p.visitas || 0} · 📍 {p.ubicacion_ciudad || 'VE'} · {new Date(p.creado_en).toLocaleDateString('es-VE')}</p>
+                <p className="text-sm text-brand-primary font-bold mt-0.5">${new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 }).format(Number(p.precio_usd || 0))}</p>
+                <p className="text-xs text-gray-400">👀 {p.visitas || 0} · 📍 {p.ubicacion_ciudad || 'VE'} · {new Intl.DateTimeFormat('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date(p.creado_en))}</p>
               </div>
 
               {/* Acciones */}
@@ -661,7 +661,7 @@ Transacción procesada correctamente.`
                         <p>👤 <strong>{perfil.nombre || 'Sin nombre'}</strong></p>
                         {perfil.telefono && <p>📱 {perfil.telefono}</p>}
                         <p>💳 Método: <strong>{t.metodo_pago}</strong></p>
-                        <p>📅 {new Date(t.creado_en).toLocaleString('es-VE')}</p>
+                        <p>📅 {new Intl.DateTimeFormat('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date(t.creado_en))}</p>
                       </div>
                       {t.comprobante_url && (
                         <a href={t.comprobante_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-sm text-brand-primary hover:underline">
@@ -718,7 +718,7 @@ Transacción procesada correctamente.`
                           {t.estado}
                         </span>
                       </td>
-                      <td className="py-3 px-4 text-center text-gray-500">{new Date(t.creado_en).toLocaleDateString('es-VE')}</td>
+                      <td className="py-3 px-4 text-center text-gray-500">{new Intl.DateTimeFormat('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date(t.creado_en))}</td>
                     </tr>
                   )
                 })}
@@ -1020,7 +1020,7 @@ function ModeracionTab({ notify, adminEmail }: { notify: (msg: string) => void; 
                       <p className="font-semibold text-sm">{d.producto?.titulo || 'N/A'}</p>
                       <div className="flex gap-2 mt-1">
                         <span className="text-xs bg-gray-100 px-2 py-0.5 rounded">{d.motivo}</span>
-                        <span className="text-xs text-gray-400">{new Date(d.creada_en).toLocaleDateString('es-ES')} — {d.reportante?.nombre || 'Desconocido'}</span>
+                        <span className="text-xs text-gray-400">{new Intl.DateTimeFormat('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date(d.creada_en))} — {d.reportante?.nombre || 'Desconocido'}</span>
                       </div>
                       {d.descripcion && <p className="text-xs text-gray-500 mt-1">{d.descripcion}</p>}
                     </div>
@@ -1053,9 +1053,9 @@ function ModeracionTab({ notify, adminEmail }: { notify: (msg: string) => void; 
                       {p.imagen_url ? <Image src={p.imagen_url} alt="" className="w-16 h-16 rounded-lg object-cover" width={64} height={64} /> : null}
                       <div>
                         <p className="font-semibold">{p.titulo}</p>
-                        {p.precio_usd && <p className="text-brand-primary font-bold">${Number(p.precio_usd).toLocaleString()}</p>}
+                        {p.precio_usd && <p className="text-brand-primary font-bold">${new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 }).format(Number(p.precio_usd))}</p>}
                         {p.motivo_moderacion && <p className="text-xs text-orange-600 mt-1">⚠️ {p.motivo_moderacion}</p>}
-                        <span className="text-xs text-gray-400">{new Date(p.creado_en).toLocaleDateString('es-ES')}</span>
+                        <span className="text-xs text-gray-400">{new Intl.DateTimeFormat('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date(p.creado_en))}</span>
                       </div>
                     </div>
                     <div className="flex gap-1.5">

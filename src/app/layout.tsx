@@ -165,10 +165,10 @@ export default async function RootLayout({
           debug={false}
         />
       </head>
-      <body className="bg-white antialiased" suppressHydrationWarning>
+      <body className="bg-white antialiased">
         <AuthProvider initialUser={initialUser}>
           <Header />
-          <main className="min-h-screen bg-white" suppressHydrationWarning>{children}</main>
+          <main className="min-h-screen bg-white">{children}</main>
           <Footer />
           <PWAInstallBanner />
           <PushNotificationBanner />

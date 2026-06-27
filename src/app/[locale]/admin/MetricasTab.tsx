@@ -136,12 +136,12 @@ export default function MetricasTab() {
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-gray-800 truncate">{p.titulo}</p>
                   <p className="text-xs text-gray-400">
-                    ${Number(p.precio_usd || 0).toLocaleString()} · {p.seller_nombre}
+                    ${new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 }).format(Number(p.precio_usd || 0))} · {p.seller_nombre}
                   </p>
                 </div>
                 <div className="text-right ml-4">
                   <p className="text-xs text-gray-500">
-                    {new Date(p.creado_en).toLocaleDateString('es-VE', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                    {new Intl.DateTimeFormat('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date(p.creado_en))}
                   </p>
                   <p className="text-xs text-gray-400 flex items-center gap-1 justify-end">
                     <Eye size={10} /> {p.visitas || 0}
@@ -176,7 +176,7 @@ export default function MetricasTab() {
                 </div>
                 <div className="flex items-center gap-1.5 text-sm font-bold text-brand-primary">
                   <Eye size={14} />
-                  {s.totalVisits.toLocaleString()}
+                  {new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 }).format(Number(s.totalVisits))}
                 </div>
               </div>
             ))}

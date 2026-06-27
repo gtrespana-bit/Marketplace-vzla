@@ -255,7 +255,7 @@ export default function CatalogoClient({ initialProducts = [], initialCount = 0 
         : t('catalog.allProducts')
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8" suppressHydrationWarning>
+    <div className="max-w-7xl mx-auto px-4 py-8">
       <nav className="flex items-center gap-2 text-sm text-gray-500 mb-6 flex-wrap">
         <LocalLink href="/" className="hover:text-brand-primary">{t('catalog.breadcrumb')}</LocalLink>
         <ChevronRight size={14} />

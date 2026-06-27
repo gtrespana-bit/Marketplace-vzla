@@ -34,7 +34,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   const parts = [producto.titulo]
   if (producto.precio_usd) {
-    parts.push(`$${Number(producto.precio_usd).toLocaleString()}`)
+    parts.push(`$${new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 }).format(Number(producto.precio_usd))}`)
   }
   const ubicacion = [producto.ubicacion_ciudad, producto.ubicacion_estado].filter(Boolean).join(', ')
   if (ubicacion) parts.push(ubicacion)

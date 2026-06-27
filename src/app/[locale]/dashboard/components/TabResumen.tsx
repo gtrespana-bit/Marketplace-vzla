@@ -71,7 +71,7 @@ export default function TabResumen({ userId }: { userId: string }) {
 
   const tarjetas = [
     { label: t('activeListings'), value: stats.activos, icon: BarChart3, color: 'text-brand-primary', bg: 'bg-brand-primary/10' },
-    { label: t('totalVisits'), value: stats.totalVisitas.toLocaleString(), icon: Eye, color: 'text-brand-primary', bg: 'bg-brand-primary/10' },
+    { label: t('totalVisits'), value: new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 }).format(Number(stats.totalVisitas)), icon: Eye, color: 'text-brand-primary', bg: 'bg-brand-primary/10' },
     { label: t('unreadMessages'), value: stats.mensajesNoLeidos, icon: MessageCircle, color: stats.mensajesNoLeidos > 0 ? 'text-red-500' : 'text-gray-400', bg: stats.mensajesNoLeidos > 0 ? 'bg-red-50' : 'bg-gray-50' },
     { label: t('savedFavorites'), value: stats.favoritos || 0, icon: TrendingUp, color: 'text-brand-accent', bg: 'bg-brand-accent/10' },
   ]

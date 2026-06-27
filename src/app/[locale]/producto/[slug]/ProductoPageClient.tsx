@@ -199,7 +199,7 @@ function ProductoPageClientInner({ initialProduct }: ProductoPageClientProps) {
   const contactPhone = mcConfigured ? (mc.telefono || mc.whatsapp || '') : (vendedor?.telefono || '')
   const metodos = { chat: true, whatsapp: contactPhone.trim().length > 0, telefono: mcConfigured ? !!(mc.telefono && mc.telefono.trim()) : false, email: mcConfigured ? !!(mc.email && vendedor?.email) : !!(vendedor?.email) }
   const imagenes = producto.imagenes && producto.imagenes.length > 0 ? producto.imagenes : producto.imagen_url ? [producto.imagen_url] : []
-  const precioBs = producto.precio_usd && tasaBs > 0 ? Math.round(producto.precio_usd * tasaBs).toLocaleString('es-VE') : ''
+  const precioBs = producto.precio_usd && tasaBs > 0 ? new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 }).format(Math.round(producto.precio_usd * tasaBs)) : ''
 
   let whatsappLink = ''
   if (contactPhone.trim()) {
@@ -284,7 +284,7 @@ function ProductoPageClientInner({ initialProduct }: ProductoPageClientProps) {
                     const subio = Number(pct) > 0
                     return (
                       <div key={h.id} className="flex items-center justify-between text-xs">
-                        <span className="text-gray-400">{new Date(h.creado_en).toLocaleDateString('es-VE')}</span>
+                        <span className="text-gray-400">{new Intl.DateTimeFormat('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date(h.creado_en))}</span>
                         <div className="flex items-center gap-1.5">
                           <span className="text-gray-400 line-through">${new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 }).format(Number(h.precio_anterior))}</span>
                           <span className="font-bold text-brand-primary">${new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 }).format(Number(h.precio_nuevo))}</span>

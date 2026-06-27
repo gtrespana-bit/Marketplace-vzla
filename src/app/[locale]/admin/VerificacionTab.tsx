@@ -205,7 +205,7 @@ export default function VerificacionTab({ notify }: { notify: (msg: string) => v
                     )}
 
                     <p className="text-xs text-gray-400 mt-2">
-                      Solicitada: {new Date(sol.creada_en).toLocaleDateString('es-ES')}
+                      Solicitada: {new Intl.DateTimeFormat('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date(sol.creada_en))}
                     </p>
                   </div>
 
