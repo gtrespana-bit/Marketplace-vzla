@@ -2,21 +2,19 @@ import type { Metadata, Viewport } from 'next'
 import { Inter } from 'next/font/google'
 import { Partytown } from '@qwik.dev/partytown/react'
 import './globals.css'
+import { Header } from '@/components/Header'
+import { Footer } from '@/components/Footer'
 import { AuthProvider } from '@/components/AuthProvider'
 import nextDynamic from 'next/dynamic'
 import { Analytics } from '@vercel/analytics/react'
 import { SpeedInsights } from '@vercel/speed-insights/next'
 import { headers, cookies } from 'next/headers'
 import { routing } from '@/i18n/routing'
+import { createSupabaseServerClient } from '@/lib/supabase-server'
 
 // Force dynamic rendering to ensure headers() reads fresh values on each request
 export const dynamic = 'force-dynamic'
 
-// ✅ HYDRATION FIX: Make all interactive components client-only to prevent React #425/#422.
-// These components depend on auth state, localStorage, or browser APIs that differ between
-// server and client. Rendering them client-only eliminates hydration mismatches entirely.
-const Header = nextDynamic(() => import('@/components/Header').then(m => ({ default: m.Header })), { ssr: false })
-const Footer = nextDynamic(() => import('@/components/Footer').then(m => ({ default: m.Footer })), { ssr: false })
 const PWAInstallBanner = nextDynamic(() => import('@/components/PWAInstallBanner'), { ssr: false })
 const PushNotificationBanner = nextDynamic(() => import('@/components/PushNotificationBanner'), { ssr: false })
 const BottomTabNavDynamic = nextDynamic(() => import('@/components/BottomTabNav'), { ssr: false })
@@ -112,6 +110,16 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode
 }) {
+  // ✅ HYDRATION FIX: Fetch user server-side so AuthProvider first render matches server HTML
+  let initialUser: any = null
+  try {
+    const supabaseServer = createSupabaseServerClient()
+    const { data: { user } } = await supabaseServer.auth.getUser()
+    initialUser = user
+  } catch {
+    // Not authenticated or error — pass null
+  }
+
   // Detect locale from middleware header (x-detected-locale)
   // or fallback to NEXT_LOCALE cookie
   const headersList = headers()
@@ -164,9 +172,9 @@ export default async function RootLayout({
         />
       </head>
       <body className="bg-white antialiased" suppressHydrationWarning>
-        <AuthProvider>
+        <AuthProvider initialUser={initialUser}>
           <Header />
-          <main className="min-h-screen bg-white">{children}</main>
+          <main className="min-h-screen bg-white" suppressHydrationWarning>{children}</main>
           <Footer />
           <PWAInstallBanner />
           <PushNotificationBanner />

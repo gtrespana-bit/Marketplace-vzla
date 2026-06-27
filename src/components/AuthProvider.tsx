@@ -15,10 +15,11 @@ const AuthContext = createContext<AuthContextType>({
   loading: true,
 })
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
+export function AuthProvider({ children, initialUser }: { children: React.ReactNode; initialUser?: User | null }) {
+  // ✅ HYDRATION FIX: Use server user on first render so client matches server HTML
   const [session, setSession] = useState<Session | null>(null)
-  const [user, setUser] = useState<User | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [user, setUser] = useState<User | null>(initialUser ?? null)
+  const [loading, setLoading] = useState(!initialUser)
   const initialized = useRef(false)
 
   useEffect(() => {
