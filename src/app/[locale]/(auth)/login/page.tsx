@@ -2,14 +2,27 @@
 
 import { useState } from 'react'
 import LocalLink from '@/components/LocalLink'
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { AlertCircle } from 'lucide-react'
 import { useTranslations } from 'next-intl'
+import { routing } from '@/i18n/routing'
+
+function getLocaleFromPathname(pathname: string): string {
+  for (const locale of routing.locales) {
+    if (locale === routing.defaultLocale) continue
+    if (pathname === `/${locale}` || pathname.startsWith(`/${locale}/`)) {
+      return locale
+    }
+  }
+  return routing.defaultLocale
+}
 
 export default function LoginPage() {
   const t = useTranslations('auth')
   const router = useRouter()
+  const pathname = usePathname()
+  const locale = getLocaleFromPathname(pathname)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
@@ -22,22 +35,49 @@ export default function LoginPage() {
   const [resetLoading, setResetLoading] = useState(false)
   const [resetError, setResetError] = useState('')
 
+  // Build locale-aware redirect path
+  const redirectPath = (path: string) => {
+    if (locale === routing.defaultLocale) return path
+    return `/${locale}${path === '/' ? '' : path}`
+  }
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
     setLoading(true)
 
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    })
+    try {
+      // ✅ FIX: Use API route for login so server-side cookies are written.
+      // This ensures the middleware and server components can read the auth session.
+      const res = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      })
 
-    if (error) {
-      setError(error.message === 'Invalid login credentials'
-        ? 'Email o contraseña incorrectos. Verifica tus datos.'
-        : error.message)
-    } else {
-      router.push('/dashboard')
+      const data = await res.json()
+
+      if (!res.ok) {
+        setError(data.error === 'Invalid login credentials'
+          ? 'Email o contraseña incorrectos. Verifica tus datos.'
+          : data.error)
+        setLoading(false)
+        return
+      }
+
+      // ✅ FIX: Sync the singleton client with the session from the API.
+      // This fires onAuthStateChange → AuthProvider picks it up → session is set.
+      if (data.session?.access_token && data.session?.refresh_token) {
+        await supabase.auth.setSession({
+          access_token: data.session.access_token,
+          refresh_token: data.session.refresh_token,
+        })
+      }
+
+      // Redirect with locale prefix
+      router.push(redirectPath('/dashboard'))
+    } catch (err) {
+      setError('Error de conexión. Intenta de nuevo.')
     }
     setLoading(false)
   }
@@ -69,7 +109,7 @@ export default function LoginPage() {
     setResetLoading(true)
 
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/reset-password`,
+      redirectTo: `${window.location.origin}${redirectPath('/reset-password')}`,
     })
 
     if (error) {
@@ -240,7 +280,7 @@ export default function LoginPage() {
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="tu@email.com"
                       required
-                      className="w-full border rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-brand-accent bg-white text-sm"
+                      className="w-full border rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-brand-accent bg-white text-sm"
                     />
                   </div>
                   <button

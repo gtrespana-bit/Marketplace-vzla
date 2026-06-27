@@ -1,13 +1,14 @@
 "use client"
 
 import { useEffect, useState, lazy, Suspense } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import { useAuth } from '@/components/AuthProvider'
 import dynamic from 'next/dynamic'
 import { getTasaBCVClient, actualizarTasaClient } from '@/lib/tasaBCV'
 import { useTranslations } from 'next-intl'
 import { Package, MessageSquare, CreditCard, Eye, Heart, LogOut, X, Zap, Star, ShieldCheck, BarChart3, Settings } from 'lucide-react'
 import LocalLink from '@/components/LocalLink'
+import { routing } from '@/i18n/routing'
 
 // Components
 import DashboardHeader from './components/DashboardHeader'
@@ -98,6 +99,7 @@ export default function DashboardPage() {
   const { user, session, loading: authLoading } = useAuth()
   const router = useRouter()
   const data = useDashboard()
+  const pathname = usePathname()
   const [activeTab, setActiveTab] = useState('resumen')
   const [cambiarPw, setCambiarPw] = useState(false)
   const [guardandoPerfil, setGuardandoPerfil] = useState(false)
@@ -141,9 +143,29 @@ export default function DashboardPage() {
     data.setFotoUrl(json.url)
   }
 
+  // Build locale-aware redirect path
+  const redirectPath = (path: string) => {
+    const currentLocale = (() => {
+      for (const locale of routing.locales) {
+        if (locale === routing.defaultLocale) continue
+        if (pathname === `/${locale}` || pathname.startsWith(`/${locale}/`)) return locale
+      }
+      return routing.defaultLocale
+    })()
+    if (currentLocale === routing.defaultLocale) return path
+    return `/${currentLocale}${path === '/' ? '' : path}`
+  }
+
   async function handleLogout() {
+    // ✅ FIX: Call API route to clear server-side cookies,
+    // then signOut from singleton to clear localStorage + notify AuthProvider
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' })
+    } catch {
+      // Continue even if API call fails
+    }
     await supabase.auth.signOut()
-    router.push('/')
+    router.push(redirectPath('/'))
   }
 
   async function handleBoost(productId: string) {

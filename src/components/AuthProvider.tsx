@@ -26,41 +26,46 @@ export function AuthProvider({ children, initialUser }: { children: React.ReactN
     if (initialized.current) return
     initialized.current = true
 
-    const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-    const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    // ✅ FIX: Use the singleton supabase client so login/logout events
+    // from other components (login page, dashboard) are received here.
+    // Previously this created a SEPARATE client instance that never
+    // received onAuthStateChange events from the singleton.
+    let unsub: (() => void) | null = null
 
-    if (!url || !key || url.includes('placeholder')) {
-      // No Supabase configured — skip entirely, don't crash
-      setSession(null)
-      setUser(null)
+    const initAuth = async () => {
+      const { isSupabaseConfigured } = await import('@/lib/supabase')
+      if (!isSupabaseConfigured()) {
+        setSession(null)
+        setUser(null)
+        setLoading(false)
+        return
+      }
+
+      const { supabase } = await import('@/lib/supabase')
+
+      // Get current session from the singleton
+      try {
+        const { data, error } = await supabase.auth.getSession()
+        if (!error && data.session) {
+          setSession(data.session)
+          setUser(data.session.user)
+        }
+      } catch {
+        // Ignore errors
+      }
       setLoading(false)
-      return
+
+      // Listen for auth changes from the singleton
+      // This is the KEY fix: when login page calls supabase.auth.signInWithPassword()
+      // or dashboard calls supabase.auth.signOut(), this listener fires.
+      const { data } = supabase.auth.onAuthStateChange((_e, s) => {
+        setSession(s)
+        setUser(s?.user ?? null)
+      })
+      unsub = data.subscription.unsubscribe
     }
 
-    let unsub: (() => void) | null = null
-    import('@supabase/supabase-js')
-      .then(({ createClient }) => {
-        const client = createClient(url, key, {
-          auth: { persistSession: true, detectSessionInUrl: true, autoRefreshToken: true },
-        })
-
-        client.auth.getSession()
-          .then(({ data, error }) => {
-            if (!error) {
-              setSession(data.session)
-              setUser(data.session?.user ?? null)
-            }
-            setLoading(false)
-          })
-          .catch(() => setLoading(false))
-
-        const { data } = client.auth.onAuthStateChange((_e, s) => {
-          setSession(s)
-          setUser(s?.user ?? null)
-        })
-        unsub = data.subscription.unsubscribe
-      })
-      .catch(() => setLoading(false))
+    initAuth().catch(() => setLoading(false))
 
     return () => unsub?.()
   }, [])

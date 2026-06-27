@@ -2,15 +2,17 @@
 
 import { useState } from 'react'
 import LocalLink from '@/components/LocalLink'
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { AlertCircle } from 'lucide-react'
 import { ESTADOS, CIUDADES_POR_ESTADO } from '@/lib/ubicaciones'
 import { useTranslations } from 'next-intl'
+import { routing } from '@/i18n/routing'
 
 export default function RegisterPage() {
   const t = useTranslations('auth')
   const router = useRouter()
+  const pathname = usePathname()
   const [nombre, setNombre] = useState('')
   const [email, setEmail] = useState('')
   const [telefono, setTelefono] = useState('')
@@ -58,7 +60,16 @@ export default function RegisterPage() {
     } else {
       // Mostrar mensaje de confirmación y redirigir a pantalla de confirmación
       sessionStorage.setItem('tempEmail', email)
-      router.push('/confirmacion')
+      // Redirect with locale prefix
+      const locale = (() => {
+        for (const l of routing.locales) {
+          if (l === routing.defaultLocale) continue
+          if (pathname === `/${l}` || pathname.startsWith(`/${l}/`)) return l
+        }
+        return routing.defaultLocale
+      })()
+      const confirmPath = locale === routing.defaultLocale ? '/confirmacion' : `/${locale}/confirmacion`
+      router.push(confirmPath)
     }
     setLoading(false)
   }

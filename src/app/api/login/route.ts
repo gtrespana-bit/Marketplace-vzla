@@ -1,13 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
+import { createServerClient } from '@supabase/ssr'
 import { checkRateLimit } from '@/lib/rate-limit'
 
 export async function POST(req: NextRequest) {
   try {
-    const { email, password, data } = await req.json()
-    if (!email || !password) return NextResponse.json({ error: 'Missing fields' }, { status: 400 })
+    const { email, password } = await req.json()
+    if (!email || !password) {
+      return NextResponse.json({ error: 'Missing fields' }, { status: 400 })
+    }
 
-    // Rate limit by email (not user id since they may not exist yet)
+    // Rate limit by email
     const rl = checkRateLimit('auth:login', email)
     if (!rl.ok) {
       return NextResponse.json(
@@ -16,10 +18,45 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    const sb = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_ANON_KEY!)
-    const { data: result, error } = await sb.auth.signInWithPassword({ email, password })
-    if (error) return NextResponse.json({ error: error.message }, { status: 401 })
-    return NextResponse.json({ ok: true, user: result.user, session: result.session })
+    // ✅ In Next.js 14 Route Handlers, cookies() is read-only.
+    // We must collect cookies via setAll and write them to the response manually.
+    let responseCookies: Array<{ name: string; value: string; options?: Record<string, any> }> = []
+
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          getAll() {
+            return req.cookies.getAll()
+          },
+          setAll(cookiesToSet) {
+            responseCookies = cookiesToSet
+          },
+        },
+      }
+    )
+
+    const { data: result, error } = await supabase.auth.signInWithPassword({ email, password })
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 401 })
+    }
+
+    // ✅ Build response and set auth cookies on it
+    const response = NextResponse.json({
+      ok: true,
+      user: result.user,
+      session: {
+        access_token: result.session?.access_token,
+        refresh_token: result.session?.refresh_token,
+      },
+    })
+
+    responseCookies.forEach(({ name, value, options }) => {
+      response.cookies.set(name, value, options)
+    })
+
+    return response
   } catch (e: any) {
     return NextResponse.json({ error: e.message }, { status: 500 })
   }
