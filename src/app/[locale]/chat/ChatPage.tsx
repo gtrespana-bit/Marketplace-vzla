@@ -228,6 +228,9 @@ export default function ChatPageClient() {
         setConvId(match.id)
         setShowMobileChat(true)
       } else {
+        // Refresh session to ensure JWT is fresh for RLS
+        await supabase.auth.refreshSession()
+        
         // Create conversation directly in DB
         const u1 = uid < vendedorId ? uid : vendedorId
         const u2 = uid < vendedorId ? vendedorId : uid
