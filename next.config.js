@@ -11,8 +11,7 @@ const nextConfig = withNextIntl({
     } : false,
     
     // Habilitar optimizaciones de compilación
-    reactRemoveProperties: process.env.NODE_ENV === 'production' ? { properties: ['data-testid'] } : false,
-    relay: false,
+    reactRemoveProperties: process.env.NODE_ENV === 'production' ? { properties: ['data-testid'] } : undefined,
   },
 
   experimental: {
