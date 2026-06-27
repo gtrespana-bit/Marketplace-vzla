@@ -16,11 +16,34 @@ const AuthContext = createContext<AuthContextType>({
 })
 
 export function AuthProvider({ children, initialUser }: { children: React.ReactNode; initialUser?: User | null }) {
-  // ✅ HYDRATION FIX: Use server user on first render so client matches server HTML
+  // ✅ HYDRATION-SAFE AUTH: Use server user on first render, defer all updates
+  // until after hydration completes to prevent React #425/#422.
+  // Root cause: After multiple locale switches, localStorage session can be
+  // stale vs cookies. getSession() returns different user → hydration mismatch.
   const [session, setSession] = useState<Session | null>(null)
   const [user, setUser] = useState<User | null>(initialUser ?? null)
   const [loading, setLoading] = useState(!initialUser)
   const initialized = useRef(false)
+  const hydrated = useRef(false)
+  const pendingRef = useRef<(() => void) | null>(null)
+
+  // Defer a state update until after hydration completes
+  const safeUpdate = (fn: () => void) => {
+    if (hydrated.current) {
+      fn()
+    } else {
+      pendingRef.current = fn
+    }
+  }
+
+  // Mark hydrated AFTER first paint (hydration completes before paint)
+  useEffect(() => {
+    hydrated.current = true
+    if (pendingRef.current) {
+      pendingRef.current()
+      pendingRef.current = null
+    }
+  }, [])
 
   useEffect(() => {
     if (initialized.current) return
@@ -30,7 +53,6 @@ export function AuthProvider({ children, initialUser }: { children: React.ReactN
     const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
     if (!url || !key || url.includes('placeholder')) {
-      // No Supabase configured — skip entirely, don't crash
       setSession(null)
       setUser(null)
       setLoading(false)
@@ -44,23 +66,29 @@ export function AuthProvider({ children, initialUser }: { children: React.ReactN
           auth: { persistSession: true, detectSessionInUrl: true, autoRefreshToken: true },
         })
 
+        // ✅ Defer getSession to avoid hydration mismatch with stale localStorage
         client.auth.getSession()
           .then(({ data, error }) => {
-            if (!error) {
-              setSession(data.session)
-              setUser(data.session?.user ?? null)
-            }
-            setLoading(false)
+            safeUpdate(() => {
+              if (!error) {
+                setSession(data.session)
+                setUser(data.session?.user ?? null)
+              }
+              setLoading(false)
+            })
           })
-          .catch(() => setLoading(false))
+          .catch(() => safeUpdate(() => setLoading(false)))
 
+        // ✅ Defer onAuthStateChange updates too
         const { data } = client.auth.onAuthStateChange((_e, s) => {
-          setSession(s)
-          setUser(s?.user ?? null)
+          safeUpdate(() => {
+            setSession(s)
+            setUser(s?.user ?? null)
+          })
         })
         unsub = data.subscription.unsubscribe
       })
-      .catch(() => setLoading(false))
+      .catch(() => safeUpdate(() => setLoading(false)))
 
     return () => unsub?.()
   }, [])
