@@ -228,23 +228,50 @@ export default function ChatPageClient() {
         setConvId(match.id)
         setShowMobileChat(true)
       } else {
-        // Create conversation via API (service_role key, bypasses RLS)
+        // Get fresh session token and create conversation via direct fetch
+        const { data: { session: freshSession } } = await supabase.auth.getSession()
+        if (!freshSession?.access_token) {
+          console.error('No active session - user needs to log in')
+          return
+        }
+
+        const u1 = uid < vendedorId ? uid : vendedorId
+        const u2 = uid < vendedorId ? vendedorId : uid
+
+        const convRes = await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/conversaciones?select=*`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${freshSession.access_token}`,
+            'apikey': process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '',
+            'Prefer': 'return=representation',
+          },
+          body: JSON.stringify({ user1_id: u1, user2_id: u2, producto_id: productoId }),
+        })
+
         let convData: any = null
         let convErr: any = null
-        try {
-          const res = await fetch('/api/crear-conversacion', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ vendedorId, productoId }),
-          })
-          if (res.ok) {
-            convData = await res.json()
+
+        if (convRes.ok) {
+          const arr = await convRes.json()
+          convData = Array.isArray(arr) ? arr[0] : arr
+        } else {
+          // If 409 (already exists), fetch existing conversation
+          if (convRes.status === 409) {
+            const existRes = await fetch(
+              `${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/conversaciones?select=*&or=(and(user1_id.eq.${uid},user2_id.eq.${vendedorId}),and(user1_id.eq.${vendedorId},user2_id.eq.${uid}))&producto_id=eq.${productoId}&limit=1`,
+              {
+                headers: {
+                  'Authorization': `Bearer ${freshSession.access_token}`,
+                  'apikey': process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '',
+                },
+              }
+            )
+            const existArr = await existRes.json()
+            convData = existArr[0]
           } else {
-            const errJson = await res.json()
-            convErr = errJson.error || 'Error desconocido'
+            convErr = await convRes.json()
           }
-        } catch (fetchErr) {
-          convErr = fetchErr
         }
 
         if (convErr || !convData) {
