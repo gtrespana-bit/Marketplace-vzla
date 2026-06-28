@@ -13,8 +13,8 @@ import { headers, cookies } from 'next/headers'
 import { routing } from '@/i18n/routing'
 import { getServerUser } from '@/lib/supabase-server'
 
-// Force dynamic rendering to ensure headers() reads fresh values on each request
-export const dynamic = 'force-dynamic'
+// Allow static generation where possible
+// export const dynamic = 'force-dynamic'
 
 // Lazy load banners only after initial render to prevent blocking
 const PWAInstallBanner = nextDynamic(() => import('@/components/PWAInstallBanner'), { 
