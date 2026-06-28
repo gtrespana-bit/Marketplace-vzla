@@ -70,7 +70,7 @@ export function Header() {
         
         setCreditoBalance(credResult.data?.credito_balance ?? 0)
         setUnreadCount(unreadResult.count || 0)
-      } catch (error) {
+      } catch (error: any) {
         // Clear timeout on error
         clearTimeout(timeoutId)
         
