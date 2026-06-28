@@ -26,7 +26,7 @@ async function getInitialProducts() {
       .eq('activo', true)
       .or('estado_moderacion.is.null,estado_moderacion.eq.aprobado')
       .order('creado_en', { ascending: false })
-      .limit(48) // Reducir de 200 a 48 para mejor rendimiento inicial
+      .limit(12) // Reducir de 48 a 12 para mejor rendimiento inicial
 
     if (error || !data) return { products: [], count: 0 }
 

@@ -12,6 +12,7 @@ import { SpeedInsights } from '@vercel/speed-insights/next'
 import { headers, cookies } from 'next/headers'
 import { routing } from '@/i18n/routing'
 import { getServerUser } from '@/lib/supabase-server'
+import { criticalCSS } from '@/lib/criticalCSS'
 
 // Force dynamic rendering to ensure headers() reads fresh values on each request
 export const dynamic = 'force-dynamic'
@@ -140,23 +141,24 @@ export default async function RootLayout({
   return (
     <html lang={lang} className={inter.variable} suppressHydrationWarning>
       <head>
+        {/* CSS crítico inline para mejorar FCP y LCP */}
+        <style dangerouslySetInnerHTML={{ __html: criticalCSS }} />
+        
         {/* Preconnect para recursos externos críticos */}
         <link rel="preconnect" href="https://jmbkqelkusxjebsdnjoc.supabase.co" />
-        <link rel="preconnect" href="https://pub-d212837165c545e3956251da001fa37a.r2.dev" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link rel="preconnect" href="https://www.googletagmanager.com" />
-        <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
-        <link rel="preconnect" href="https://fcm.googleapis.com" />
-        <link rel="dns-prefetch" href="https://fcm.googleapis.com" />
-        
-        {/* Preload recursos críticos - Eliminado para evitar warnings de uso tardío */}
-        
-        {/* Estrategia de precarga para mejorar LCP - Eliminado para evitar errores 404 */}
         
         {/* DNS prefetch para recursos externos */}
         <link rel="dns-prefetch" href="https://jmbkqelkusxjebsdnjoc.supabase.co" />
-        <link rel="dns-prefetch" href="https://pub-d212837165c545e3956251da001fa37a.r2.dev" />
         <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
+
+        {/* Preload de fuentes críticas */}
+        <link 
+          rel="preload" 
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" 
+          as="style" 
+          onLoad={() => {}}
+        />
 
         {/* PWA Meta Tags */}
         <meta name="mobile-web-app-capable" content="yes" />
