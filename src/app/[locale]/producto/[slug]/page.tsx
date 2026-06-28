@@ -13,15 +13,25 @@ type Props = {
 }
 
 async function getProduct(slug: string) {
+  // Validate slug format first to avoid unnecessary DB queries
+  if (!slug || typeof slug !== 'string' || slug.length < 10) {
+    return null;
+  }
+  
   const { data, error } = await supabase
     .from('productos')
     .select('id, titulo, descripcion, precio_usd, estado, categoria_id, subcategoria, marca, modelo, color, tamano, material, condicion, garantia, ubicacion_estado, ubicacion_ciudad, activo, visitas, creado_en, user_id, imagen_url, destacado, destacado_hasta, boosteado_en')
     .eq('id', slug)
     .eq('activo', true)
-    .or('estado_moderacion.is.null,estado_moderacion.eq.aprobado')
+    // Check for approved status, pending (still show), or null (default to approved)
+    .or('estado_moderacion.is.null,estado_moderacion.eq.aprobado,estado_moderacion.eq.pendiente')
     .single()
-  if (error || !data) return null
-  return data
+  
+  if (error || !data) {
+    console.error('Error fetching product:', error, 'Slug:', slug);
+    return null;
+  }
+  return data;
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -76,13 +86,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 }
 
+// Enable dynamic parameters to handle products not included in static generation
+export const dynamicParams = true;
+
 export async function generateStaticParams() {
-  // Pre-render los 100 productos más recientes para SSG en ambos idiomas
+  // Pre-render the 100 most recent products for SSG in both locales
   const { data } = await supabase
     .from('productos')
     .select('id')
     .eq('activo', true)
-    .or('estado_moderacion.is.null,estado_moderacion.eq.aprobado')
+    .or('estado_moderacion.is.null,estado_moderacion.eq.aprobado,estado_moderacion.eq.pendiente')
     .order('creado_en', { ascending: false })
     .limit(100)
 
