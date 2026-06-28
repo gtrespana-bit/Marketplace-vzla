@@ -1,7 +1,10 @@
 import createMiddleware from 'next-intl/middleware'
 import { routing } from './i18n/routing'
-import { updateSession } from './lib/supabase/middleware'
 import { type NextRequest } from 'next/server'
+
+// REMOVED: Supabase auth middleware was causing Edge Runtime errors
+// because @supabase/ssr uses Node.js APIs not available in Edge Runtime.
+// Auth is handled by getServerUser() in root layout instead.
 
 const nextIntlMiddleware = createMiddleware(routing)
 
@@ -16,13 +19,10 @@ export default async function middleware(request: NextRequest) {
   // This is the proper way to add headers in middleware
   request.headers.set('x-detected-locale', locale)
 
-  // 3. Apply next-intl routing first
+  // 3. Apply next-intl routing only (no Supabase blocking)
   const intlResponse = nextIntlMiddleware(request)
 
-  // 4. Refresh Supabase auth session on the intl response
-  const supabaseResponse = await updateSession(request, intlResponse)
-
-  return supabaseResponse
+  return intlResponse
 }
 
 export const config = {
