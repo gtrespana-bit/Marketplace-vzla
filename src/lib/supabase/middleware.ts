@@ -26,8 +26,22 @@ export async function updateSession(request: NextRequest, response?: NextRespons
     }
   )
 
-  // Refresh the auth session and fetch user data
-  await supabase.auth.getUser()
+  // Refresh the auth session and fetch user data with timeout to prevent blocking
+  try {
+    // Set a reasonable timeout to prevent middleware from blocking too long
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 3000); // 3 second timeout
+
+    await Promise.race([
+      supabase.auth.getUser(),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('Supabase auth timeout')), 3000))
+    ]);
+
+    clearTimeout(timeoutId);
+  } catch (error) {
+    // Log error but don't fail the request - auth is not critical for page load
+    console.warn('Supabase auth getUser timeout or error:', error);
+  }
 
   return supabaseResponse
 }
