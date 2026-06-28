@@ -19,7 +19,7 @@ export const LazyImage = ({
   useEffect(() => {
     if (!src) return;
 
-    const img = new Image();
+    const img = document.createElement('img');
     img.src = src as string;
     
     img.onload = () => {
