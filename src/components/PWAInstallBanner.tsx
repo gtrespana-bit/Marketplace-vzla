@@ -10,7 +10,6 @@ export default function PWAInstallBanner() {
   const [showBanner, setShowBanner] = useState(false)
   const [showIOS, setShowIOS] = useState(false)
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null)
-  const deferredPrompt = useRef<any>(null)
 
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -49,7 +48,7 @@ export default function PWAInstallBanner() {
   useEffect(() => {
     const handleDismissed = () => {
       const d = localStorage.getItem('pwa_install_dismissed')
-      if (d && deferredPrompt.current) {
+      if (d && deferredPrompt) {
         const elapsed = Date.now() - parseInt(d)
         if (elapsed > 6 * 60 * 60 * 1000) {
           localStorage.removeItem('pwa_install_dismissed')
@@ -59,7 +58,7 @@ export default function PWAInstallBanner() {
     }
     const interval = setInterval(handleDismissed, 60000)
     return () => clearInterval(interval)
-  }, [])
+  }, [deferredPrompt])
 
   const handleInstall = async () => {
     if (!deferredPrompt) return
