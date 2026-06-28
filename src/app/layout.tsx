@@ -153,9 +153,7 @@ export default async function RootLayout({
         <link rel="preload" href="/placeholder-product.webp" as="image" />
         <link rel="preload" href="/logo-vendet.webp" as="image" />
         
-        {/* Estrategia de precarga para mejorar LCP */}
-        <link rel="prefetch" href="/_next/static/chunks/3366-f452843a6fe519b1.js" />
-        <link rel="prefetch" href="/_next/static/chunks/main-app-66f3ae415ceb47ed.js" />
+        {/* Estrategia de precarga para mejorar LCP - Eliminado para evitar errores 404 */}
         
         {/* DNS prefetch para recursos externos */}
         <link rel="dns-prefetch" href="https://jmbkqelkusxjebsdnjoc.supabase.co" />
