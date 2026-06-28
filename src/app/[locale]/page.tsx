@@ -31,7 +31,7 @@ async function getDestacados(limit = 8) {
 
     const { data: data2 } = await supabase
       .from('productos')
-      .select('id, titulo, precio_usd, estado, imagen_url, ubicacion_ciudad, destacado, destacado_hasta')
+      .select('id, titulo, precio_usd, estado, imagen_url, ubicacion_ciudad, creado_en')
       .eq('activo', true)
       .or('estado_moderacion.is.null,estado_moderacion.eq.aprobado,estado_moderacion.eq.pendiente')
       .eq('destacado', true)
@@ -48,7 +48,7 @@ async function getDestacados(limit = 8) {
 async function getTrending(limit = 8) {
   const { data } = await supabase
     .from('productos')
-    .select('id, titulo, precio_usd, imagen_url, ubicacion_ciudad, visitas')
+    .select('id, titulo, precio_usd, imagen_url, ubicacion_ciudad, visitas, creado_en')
     .eq('activo', true)
     .or('estado_moderacion.is.null,estado_moderacion.eq.aprobado')
     .order('visitas', { ascending: false })
@@ -62,7 +62,7 @@ async function getRecentProducts(limit = 8) {
     .select('id, titulo, precio_usd, estado, imagen_url, ubicacion_ciudad, creado_en, boosteado_en, destacado, destacado_hasta')
     .eq('activo', true)
     .or('estado_moderacion.is.null,estado_moderacion.eq.aprobado')
-    .limit(50)
+    .limit(20)
 
   if (error) return []
 
@@ -115,6 +115,8 @@ function ProductCard({ p, highlighted = false, priority = false, t }: { p: any; 
           priority={priority}
           fetchPriority={priority ? 'high' : 'auto'}
           quality={75}
+          placeholder="blur"
+          blurDataURL="/placeholder-product.webp"
         />
       </div>
       <div className="p-4">
@@ -436,6 +438,8 @@ export default async function HomePage() {
                     priority={index < 2} // Prioridad para las primeras 2 imágenes
                     fetchPriority={index < 2 ? 'high' : 'auto'}
                     quality={75}
+                    placeholder="blur"
+                    blurDataURL="/placeholder-product.webp"
                   />
                   <div className="absolute top-2 left-2 z-10 bg-gradient-to-r from-orange-500 to-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 shadow-sm">
                     🔥 Trending
