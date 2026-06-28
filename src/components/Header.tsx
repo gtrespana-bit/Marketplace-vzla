@@ -48,17 +48,40 @@ export function Header() {
   }, [])
 
   // Consolidated fetch: credit balance + unread count in single query
+  // ✅ PERFORMANCE FIX: Add timeout to prevent hanging requests
   useEffect(() => {
     if (!user) return
 
+    let timeoutId: NodeJS.Timeout
+    const controller = new AbortController()
+    
     async function fetchAll() {
-      const [credResult, unreadResult] = await Promise.all([
-        supabase.from('perfiles').select('credito_balance').eq('id', user!.id).single(),
-        supabase.from('mensajes').select('id', { count: 'exact', head: true }).eq('destinatario_id', user!.id).eq('leido', false),
-      ])
-      setCreditoBalance(credResult.data?.credito_balance ?? 0)
-      setUnreadCount(unreadResult.count || 0)
+      // Timeout after 5 seconds
+      timeoutId = setTimeout(() => controller.abort(), 5000)
+      
+      try {
+        const [credResult, unreadResult] = await Promise.all([
+          supabase.from('perfiles').select('credito_balance').eq('id', user!.id).single({ signal: controller.signal }),
+          supabase.from('mensajes').select('id', { count: 'exact', head: true }).eq('destinatario_id', user!.id).eq('leido', false).abortSignal(controller.signal),
+        ])
+        
+        // Clear timeout on success
+        clearTimeout(timeoutId)
+        
+        setCreditoBalance(credResult.data?.credito_balance ?? 0)
+        setUnreadCount(unreadResult.count || 0)
+      } catch (error) {
+        // Clear timeout on error
+        clearTimeout(timeoutId)
+        
+        // Reset on abort or network error
+        if (error?.name === 'AbortError' || error?.message?.includes('timeout')) {
+          setCreditoBalance(0)
+          setUnreadCount(0)
+        }
+      }
     }
+    
     fetchAll()
 
     // Realtime subscription for unread messages
@@ -77,6 +100,8 @@ export function Header() {
     return () => {
       supabase.removeChannel(channel)
       bc.close()
+      clearTimeout(timeoutId)
+      controller.abort()
     }
   }, [user])
 

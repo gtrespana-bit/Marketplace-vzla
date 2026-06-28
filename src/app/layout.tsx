@@ -16,9 +16,19 @@ import { getServerUser } from '@/lib/supabase-server'
 // Force dynamic rendering to ensure headers() reads fresh values on each request
 export const dynamic = 'force-dynamic'
 
-const PWAInstallBanner = nextDynamic(() => import('@/components/PWAInstallBanner'), { ssr: false })
-const PushNotificationBanner = nextDynamic(() => import('@/components/PushNotificationBanner'), { ssr: false })
-const BottomTabNavDynamic = nextDynamic(() => import('@/components/BottomTabNav'), { ssr: false })
+// Lazy load banners only after initial render to prevent blocking
+const PWAInstallBanner = nextDynamic(() => import('@/components/PWAInstallBanner'), { 
+  ssr: false,
+  loading: () => null
+})
+const PushNotificationBanner = nextDynamic(() => import('@/components/PushNotificationBanner'), { 
+  ssr: false,
+  loading: () => null
+})
+const BottomTabNavDynamic = nextDynamic(() => import('@/components/BottomTabNav'), { 
+  ssr: false,
+  loading: () => null
+})
 
 const inter = Inter({
   subsets: ['latin'],

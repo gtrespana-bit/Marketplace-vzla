@@ -9,6 +9,7 @@ export default function PWAInstallBanner() {
   const [mounted, setMounted] = useState(false)
   const [showBanner, setShowBanner] = useState(false)
   const [showIOS, setShowIOS] = useState(false)
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null)
   const deferredPrompt = useRef<any>(null)
 
   useEffect(() => {
@@ -31,7 +32,7 @@ export default function PWAInstallBanner() {
     // Android/Desktop: capturar evento beforeinstallprompt
     const handler = (e: Event) => {
       e.preventDefault()
-      deferredPrompt.current = e
+      setDeferredPrompt(e)
       const dismissed = localStorage.getItem('pwa_install_dismissed')
       if (!dismissed) {
         setShowBanner(true)
@@ -61,12 +62,12 @@ export default function PWAInstallBanner() {
   }, [])
 
   const handleInstall = async () => {
-    if (!deferredPrompt.current) return
-    deferredPrompt.current.prompt()
-    const { outcome } = await deferredPrompt.current.userChoice
+    if (!deferredPrompt) return
+    deferredPrompt.prompt()
+    const { outcome } = await deferredPrompt.userChoice
     if (outcome === 'accepted') {
       setShowBanner(false)
-      deferredPrompt.current = null
+      setDeferredPrompt(null)
     }
     localStorage.setItem('pwa_install_dismissed', '1')
   }
