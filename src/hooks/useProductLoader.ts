@@ -13,6 +13,7 @@ interface ProductFilter {
   precioMax?: string;
   ubicacionEstado?: string;
   ubicacionCiudad?: string;
+  [key: string]: string | number | boolean | undefined;
 }
 
 interface UseProductLoaderResult {

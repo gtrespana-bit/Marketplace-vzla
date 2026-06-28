@@ -39,7 +39,7 @@ function getPlaceholderImage(titulo: string) {
 
 export const ProductCardLazy = ({ p, t, priority = false }: ProductCardLazyProps) => {
   const [isVisible, setIsVisible] = useState(false);
-  const elementRef = useRef<HTMLAnchorElement>(null);
+  const elementRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -85,11 +85,11 @@ export const ProductCardLazy = ({ p, t, priority = false }: ProductCardLazyProps
 
   // Componente real cuando está visible
   return (
-    <LocalLink 
-      ref={elementRef}
-      href={`/producto/${p.id}`} 
-      className={`bg-white rounded-xl overflow-hidden transition-all duration-200 group block border ${isPromoted ? 'border-2 border-brand-accent shadow-md hover:shadow-xl hover:-translate-y-1' : 'border-gray-100 shadow-sm hover:shadow-lg hover:-translate-y-1 hover:border-gray-200'}`}
-    >
+    <div ref={elementRef}>
+      <LocalLink 
+        href={`/producto/${p.id}`} 
+        className={`bg-white rounded-xl overflow-hidden transition-all duration-200 group block border ${isPromoted ? 'border-2 border-brand-accent shadow-md hover:shadow-xl hover:-translate-y-1' : 'border-gray-100 shadow-sm hover:shadow-lg hover:-translate-y-1 hover:border-gray-200'}`}
+      >
       <div className="aspect-square bg-gray-100 relative overflow-hidden">
         {isFeatured && (
           <div className="absolute top-2 left-2 z-10 bg-brand-accent text-brand-primary text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 shadow-sm">
@@ -134,5 +134,6 @@ export const ProductCardLazy = ({ p, t, priority = false }: ProductCardLazyProps
         <p className="text-xs text-gray-500 mt-1">{p.ubicacion_ciudad || p.ubicacion_estado || 'Venezuela'}</p>
       </div>
     </LocalLink>
-  );
+  </div>
+);
 };

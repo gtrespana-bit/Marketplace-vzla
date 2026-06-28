@@ -33,8 +33,8 @@ export const Pagination = ({ currentPage, totalPages, itemsPerPage, totalItems }
   // Generar rango de páginas a mostrar
   const getPageRange = () => {
     const delta = 2;
-    const range = [];
-    const rangeWithDots = [];
+    const range: number[] = [];
+    const rangeWithDots: (number | '...')[] = [];
 
     for (
       let i = Math.max(2, currentPage - delta);
