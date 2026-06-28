@@ -19,39 +19,57 @@ export const PerformanceMonitor = () => {
     const perfNav = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
     setNavigationType(perfNav.type);
 
-    // FCP (First Contentful Paint)
-    const fcpEntry = performance.getEntriesByName('first-contentful-paint')[0];
-    if (fcpEntry) {
-      setMetrics(prev => ({ ...prev, fcp: Math.round(fcpEntry.startTime) }));
-    }
+    // FCP (First Contentful Paint) - con timeout para evitar bloqueo
+    setTimeout(() => {
+      const fcpEntry = performance.getEntriesByName('first-contentful-paint')[0];
+      if (fcpEntry) {
+        setMetrics(prev => ({ ...prev, fcp: Math.round(fcpEntry.startTime) }));
+      }
+    }, 0);
 
-    // LCP (Largest Contentful Paint)
-    new PerformanceObserver((entryList) => {
-      const entries = entryList.getEntries();
-      const lastEntry = entries[entries.length - 1];
-      setMetrics(prev => ({ ...prev, lcp: Math.round(lastEntry.startTime) }));
-    }).observe({ entryTypes: ['largest-contentful-paint'] });
+    // LCP (Largest Contentful Paint) - con timeout y límite
+    setTimeout(() => {
+      try {
+        new PerformanceObserver((entryList) => {
+          const entries = entryList.getEntries();
+          if (entries.length > 0) {
+            const lastEntry = entries[entries.length - 1];
+            setMetrics(prev => ({ ...prev, lcp: Math.round(lastEntry.startTime) }));
+          }
+        }).observe({ entryTypes: ['largest-contentful-paint'] });
+      } catch (e) {
+        console.warn('LCP observer failed:', e);
+      }
+    }, 100);
 
-    // CLS (Cumulative Layout Shift)
-    let clsValue = 0;
-    new PerformanceObserver((entryList) => {
-      const entries = entryList.getEntries();
-      entries.forEach((entry) => {
-        if (!(entry as any).hadRecentInput) {
-          clsValue += (entry as any).value;
-        }
-      });
-      setMetrics(prev => ({ ...prev, cls: parseFloat(clsValue.toFixed(3)) }));
-    }).observe({ entryTypes: ['layout-shift'] });
+    // CLS (Cumulative Layout Shift) - con timeout y límite
+    setTimeout(() => {
+      try {
+        let clsValue = 0;
+        new PerformanceObserver((entryList) => {
+          const entries = entryList.getEntries();
+          entries.forEach((entry) => {
+            if (!(entry as any).hadRecentInput) {
+              clsValue += (entry as any).value;
+            }
+          });
+          setMetrics(prev => ({ ...prev, cls: parseFloat(clsValue.toFixed(3)) }));
+        }).observe({ entryTypes: ['layout-shift'] });
+      } catch (e) {
+        console.warn('CLS observer failed:', e);
+      }
+    }, 100);
 
-    // TTFB (Time to First Byte)
-    const navEntry = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
-    if (navEntry) {
-      setMetrics(prev => ({ 
-        ...prev, 
-        ttfb: Math.round(navEntry.responseStart - navEntry.requestStart) 
-      }));
-    }
+    // TTFB (Time to First Byte) - con timeout
+    setTimeout(() => {
+      const navEntry = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
+      if (navEntry) {
+        setMetrics(prev => ({ 
+          ...prev, 
+          ttfb: Math.round(navEntry.responseStart - navEntry.requestStart) 
+        }));
+      }
+    }, 0);
   }, []);
 
   // Mostrar métricas en la consola para monitoreo

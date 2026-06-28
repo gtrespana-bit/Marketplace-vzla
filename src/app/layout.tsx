@@ -187,9 +187,12 @@ export default async function RootLayout({
           <PushNotificationBanner />
           <BottomTabNavDynamic />
         </AuthProvider>
-        <PerformanceMonitor />
-        <Analytics />
-        <SpeedInsights />
+        {/* Move performance monitoring to end to prevent blocking */}
+        <div style={{ display: 'none' }}>
+          <PerformanceMonitor />
+          <Analytics />
+          <SpeedInsights />
+        </div>
       </body>
     </html>
   )
