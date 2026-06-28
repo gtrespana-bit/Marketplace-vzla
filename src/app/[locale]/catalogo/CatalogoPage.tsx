@@ -156,21 +156,21 @@ export default function CatalogoClient({ initialProducts = [], initialCount = 0 
   const ubicacionCiudad = searchParams.get('ciudad') || ''
 
   const hasActiveFilters = !!(categoria || subcategoria || marca || q || precioMin || precioMax || ubicacionEstado || ubicacionCiudad)
-  
+
   // Usar los hooks de carga y precarga de productos
   const { productos: loadedProductos, loading, error, totalCount: loaderTotalCount, loadProducts } = useProductLoader();
   const { prefetchPage } = usePrefetch();
-  
+
   // Determinar qué productos usar
   const productosToUse = hasActiveFilters ? loadedProductos : initialProducts;
   const totalCountToUse = hasActiveFilters ? loaderTotalCount : initialCount;
-  
+
   // Calcular productos para la página actual
   const startIndex = (currentPage - 1) * itemsPerPage
   const endIndex = startIndex + itemsPerPage
   const productosPagina = productosToUse.slice(startIndex, endIndex)
   const totalPages = Math.ceil(productosToUse.length / itemsPerPage)
-  
+
   const isFirstRender = useRef(true)
 
   const cat = categoriasData[categoria]
@@ -254,7 +254,7 @@ export default function CatalogoClient({ initialProducts = [], initialCount = 0 
 
       <div className="flex flex-col lg:flex-row gap-6">
         <aside className="w-full lg:w-72 flex-shrink-0">
-          <CatalogFilters 
+          <CatalogFilters
             categoria={categoria}
             subcategoria={subcategoria}
             marca={marca}
@@ -307,11 +307,11 @@ export default function CatalogoClient({ initialProducts = [], initialCount = 0 
               </LocalLink>
             </div>
           ) : (
-            <OptimizedProductGrid 
-              productos={productosToUse} 
-              t={t} 
-              currentPage={currentPage} 
-              itemsPerPage={itemsPerPage} 
+            <OptimizedProductGrid
+              productos={productosToUse}
+              t={t}
+              currentPage={currentPage}
+              itemsPerPage={itemsPerPage}
             />
           )}
         </div>
@@ -320,9 +320,9 @@ export default function CatalogoClient({ initialProducts = [], initialCount = 0 
       {/* Componente de paginación optimizado */}
       <Pagination 
         currentPage={currentPage} 
-        totalPages={totalPages} 
-        itemsPerPage={itemsPerPage} 
-        totalItems={productos.length} 
+        totalPages={totalPages}
+        itemsPerPage={itemsPerPage}
+        totalItems={productosToUse.length} 
       />
     </div>
   )
