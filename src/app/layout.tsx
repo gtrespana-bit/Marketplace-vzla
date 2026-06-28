@@ -4,31 +4,17 @@ import './globals.css'
 import { Header } from '@/components/Header'
 import { Footer } from '@/components/Footer'
 import { AuthProvider } from '@/components/AuthProvider'
-import { PerformanceMetrics } from '@/components/PerformanceMetrics'
-import { PerformanceMonitor } from '@/components/PerformanceMonitor'
-import nextDynamic from 'next/dynamic'
 import { Analytics } from '@vercel/analytics/react'
 import { SpeedInsights } from '@vercel/speed-insights/next'
 import { headers, cookies } from 'next/headers'
 import { routing } from '@/i18n/routing'
 import { getServerUser } from '@/lib/supabase-server'
 
-// Allow static generation where possible
-// export const dynamic = 'force-dynamic'
-
-// Lazy load banners only after initial render to prevent blocking
-const PWAInstallBanner = nextDynamic(() => import('@/components/PWAInstallBanner'), { 
-  ssr: false,
-  loading: () => null
-})
-const PushNotificationBanner = nextDynamic(() => import('@/components/PushNotificationBanner'), { 
-  ssr: false,
-  loading: () => null
-})
-const BottomTabNavDynamic = nextDynamic(() => import('@/components/BottomTabNav'), { 
-  ssr: false,
-  loading: () => null
-})
+// Importar directamente SIN next/dynamic para evitar BAILOUT_TO_CLIENT_SIDE_RENDERING
+// Estos componentes son pequeños y no justifican el overhead de dynamic imports
+import PWAInstallBanner from '@/components/PWAInstallBanner'
+import PushNotificationBanner from '@/components/PushNotificationBanner'
+import BottomTabNav from '@/components/BottomTabNav'
 
 const inter = Inter({
   subsets: ['latin'],
@@ -44,7 +30,6 @@ export const viewport: Viewport = {
   maximumScale: 5,
   userScalable: true,
   viewportFit: 'cover',
-  // Agregar mejoras de rendimiento
   colorScheme: 'light',
 }
 
@@ -127,12 +112,8 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode
 }) {
-  // ✅ HYDRATION FIX: Parse JWT directly from cookies (NO network call, 100% reliable).
-  // This always matches the client's session because both read the same cookie.
   const initialUser = getServerUser()
 
-  // Detect locale from middleware header (x-detected-locale)
-  // or fallback to NEXT_LOCALE cookie
   const headersList = headers()
   const detectedLocale = headersList.get('x-detected-locale')
   
@@ -150,46 +131,33 @@ export default async function RootLayout({
   return (
     <html lang={lang} className={inter.variable} suppressHydrationWarning>
       <head>
-        {/* Preconnect para recursos externos críticos */}
         <link rel="preconnect" href="https://jmbkqelkusxjebsdnjoc.supabase.co" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        
-        {/* DNS prefetch para recursos externos */}
         <link rel="dns-prefetch" href="https://jmbkqelkusxjebsdnjoc.supabase.co" />
         <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
-
-        {/* PWA Meta Tags */}
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="apple-mobile-web-app-title" content="VendeT" />
         <meta name="application-name" content="VendeT" />
-
-        {/* Apple Touch Icons */}
         <link rel="apple-touch-icon" sizes="180x180" href="/icons/icon-192x192.png" />
         <link rel="apple-touch-icon" sizes="152x152" href="/icons/icon-192x192.png" />
-
-        {/* Manifest */}
         <link rel="manifest" href="/manifest.json" />
-
-        {/* Service Worker Registration */}
         <script src="/sw-register.js" defer />
       </head>
-      <body className="bg-white antialiased">
+      <body className="bg-white antialiased" suppressHydrationWarning>
         <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-brand-primary focus:text-white focus:rounded-lg focus:shadow-lg">
           Skip to main content
         </a>
         <AuthProvider initialUser={initialUser}>
           <Header />
-          <main id="main-content" className="min-h-screen bg-white">{children}</main>
+          <main id="main-content" className="min-h-screen bg-white" suppressHydrationWarning>{children}</main>
           <Footer />
           <PWAInstallBanner />
           <PushNotificationBanner />
-          <BottomTabNavDynamic />
+          <BottomTabNav />
         </AuthProvider>
-        {/* Move performance monitoring to end to prevent blocking */}
         <div style={{ display: 'none' }}>
-          <PerformanceMonitor />
           <Analytics />
           <SpeedInsights />
         </div>

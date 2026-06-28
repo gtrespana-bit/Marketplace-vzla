@@ -1,9 +1,8 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useRef } from 'react';
 import LocalLink from './LocalLink';
 import Image from 'next/image';
-import { useTranslations } from 'next-intl';
 
 interface Producto {
   id: string;
@@ -19,6 +18,7 @@ interface Producto {
   destacado: boolean;
   destacado_hasta: string | null;
   vendedor_verificado: boolean | null;
+  _isFeatured?: boolean;
 }
 
 interface ProductCardLazyProps {
@@ -27,69 +27,29 @@ interface ProductCardLazyProps {
   priority?: boolean;
 }
 
-const PLACEHOLDER_IMAGES = [
-  '/placeholder-product.webp',
-];
+const PLACEHOLDER_IMAGE = '/placeholder-product.webp';
 
 const BLUR_DATA_URL = 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAADAAQDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k='
 
-function getPlaceholderImage(titulo: string) {
-  return PLACEHOLDER_IMAGES[Math.abs(titulo.charCodeAt(0)) % PLACEHOLDER_IMAGES.length];
-}
-
 export const ProductCardLazy = ({ p, t, priority = false }: ProductCardLazyProps) => {
-  const [isVisible, setIsVisible] = useState(false);
-  const elementRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsVisible(true);
-          observer.disconnect();
-        }
-      },
-      { threshold: 0.1, rootMargin: '50px' }
-    );
-
-    if (elementRef.current) {
-      observer.observe(elementRef.current);
-    }
-
-    return () => {
-      if (elementRef.current) {
-        observer.unobserve(elementRef.current);
-      }
-    };
-  }, []);
+  // Empezar visible para SSR - el IntersectionObserver solo optimiza imágenes lazy
+  // pero el contenido del producto SIEMPRE se muestra
+  const [imageLoaded, setImageLoaded] = useState(false);
 
   const isBoosted = p.boosteado_en != null;
-  const isFeatured = !!(p.destacado && p.destacado_hasta && new Date(p.destacado_hasta) > new Date());
+  // Usar flag pre-computado del servidor para evitar hydration mismatch
+  const isFeatured = p._isFeatured !== undefined
+    ? p._isFeatured
+    : !!(p.destacado && p.destacado_hasta && new Date(p.destacado_hasta) > new Date());
   const isPromoted = isBoosted || isFeatured;
 
-  const imgUrl = p.imagen_url || getPlaceholderImage(p.titulo);
+  const imgUrl = p.imagen_url || PLACEHOLDER_IMAGE;
 
-  if (!isVisible) {
-    // Placeholder ligero mientras no está visible
-    return (
-      <div className="bg-white rounded-xl overflow-hidden border border-gray-100 shadow-sm animate-pulse">
-        <div className="aspect-square bg-gray-200" />
-        <div className="p-4 space-y-2">
-          <div className="h-4 bg-gray-200 rounded w-3/4" />
-          <div className="h-6 bg-gray-200 rounded w-1/2" />
-          <div className="h-3 bg-gray-200 rounded w-1/3" />
-        </div>
-      </div>
-    );
-  }
-
-  // Componente real cuando está visible
   return (
-    <div ref={elementRef}>
-      <LocalLink 
-        href={`/producto/${p.id}`} 
-        className={`bg-white rounded-xl overflow-hidden transition-all duration-200 group block border ${isPromoted ? 'border-2 border-brand-accent shadow-md hover:shadow-xl hover:-translate-y-1' : 'border-gray-100 shadow-sm hover:shadow-lg hover:-translate-y-1 hover:border-gray-200'}`}
-      >
+    <LocalLink 
+      href={`/producto/${p.id}`} 
+      className={`bg-white rounded-xl overflow-hidden transition-all duration-200 group block border ${isPromoted ? 'border-2 border-brand-accent shadow-md hover:shadow-xl hover:-translate-y-1' : 'border-gray-100 shadow-sm hover:shadow-lg hover:-translate-y-1 hover:border-gray-200'}`}
+    >
       <div className="aspect-square bg-gray-100 relative overflow-hidden">
         {isFeatured && (
           <div className="absolute top-2 left-2 z-10 bg-brand-accent text-brand-primary text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 shadow-sm">
@@ -116,8 +76,8 @@ export const ProductCardLazy = ({ p, t, priority = false }: ProductCardLazyProps
           fetchPriority={priority ? 'high' : 'low'}
           onError={(e) => {
             const target = e.target as HTMLImageElement;
-            if (!target.src.includes('/placeholder-product.webp')) {
-              target.src = '/placeholder-product.webp';
+            if (!target.src.includes(PLACEHOLDER_IMAGE)) {
+              target.src = PLACEHOLDER_IMAGE;
             }
           }}
         />
@@ -134,6 +94,5 @@ export const ProductCardLazy = ({ p, t, priority = false }: ProductCardLazyProps
         <p className="text-xs text-gray-500 mt-1">{p.ubicacion_ciudad || p.ubicacion_estado || 'Venezuela'}</p>
       </div>
     </LocalLink>
-  </div>
-);
+  );
 };

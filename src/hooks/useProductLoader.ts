@@ -49,7 +49,7 @@ export const useProductLoader = (): UseProductLoaderResult => {
         .from('productos')
         .select('id, titulo, precio_usd, estado, imagen_url, ubicacion_ciudad, ubicacion_estado, creado_en, subcategoria, boosteado_en, destacado, destacado_hasta, vendedor_verificado', { count: 'exact' })
         .eq('activo', true)
-        .or('estado_moderacion.is.null,estado_moderacion.eq.aprobado');
+        .or('estado_moderacion.is.null,estado_moderacion.eq.aprobado,estado_moderacion.eq.pendiente');
 
       if (filters.categoria) {
         const { data: catRow } = await supabase
