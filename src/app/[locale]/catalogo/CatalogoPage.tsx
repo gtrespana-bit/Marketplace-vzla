@@ -308,7 +308,7 @@ export default function CatalogoClient({ initialProducts = [], initialCount = 0 
             </div>
           ) : (
             <OptimizedProductGrid 
-              productos={productos} 
+              productos={productosToUse} 
               t={t} 
               currentPage={currentPage} 
               itemsPerPage={itemsPerPage} 
