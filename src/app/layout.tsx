@@ -150,7 +150,7 @@ export default async function RootLayout({
         <link rel="dns-prefetch" href="https://fcm.googleapis.com" />
         
         {/* Preload recursos críticos - Solo si se usan en el viewport inicial */}
-        <link rel="preload" href="/logo-vendet.webp" as="image" fetchpriority="high" />
+        <link rel="preload" href="/logo-vendet.webp" as="image" fetchPriority="high" />
         {/* Eliminado preload de placeholder-product.webp ya que no se usa inmediatamente */}
         
         {/* Estrategia de precarga para mejorar LCP - Eliminado para evitar errores 404 */}
