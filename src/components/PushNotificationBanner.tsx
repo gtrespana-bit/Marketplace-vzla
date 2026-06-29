@@ -29,7 +29,15 @@ function usePushNotification() {
       if (Notification.permission === 'granted') {
         setEnabled(true)
       } else {
-        navigator.serviceWorker.ready.then(async (reg) => {
+        // Fix: Add timeout to prevent hanging promises that block Lighthouse
+        const swReadyTimeout = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('SW ready timeout')), 3000)
+        );
+        
+        Promise.race([
+          navigator.serviceWorker.ready,
+          swReadyTimeout
+        ]).then(async (reg: any) => {
           const existing = await reg.pushManager.getSubscription()
           if (existing) setEnabled(true)
         }).catch(() => {})
@@ -61,8 +69,15 @@ function usePushNotification() {
         return false
       }
 
-      // 2. Get service worker registration
-      const reg = await navigator.serviceWorker.ready
+      // 2. Get service worker registration (with timeout to prevent hanging)
+      const swReadyTimeout = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('SW ready timeout')), 3000)
+      );
+      
+      const reg = await Promise.race([
+        navigator.serviceWorker.ready,
+        swReadyTimeout
+      ]) as ServiceWorkerRegistration;
       console.log('[Push] Step 3: SW ready, scope =', reg.scope)
 
       // 3. Subscribe to push
