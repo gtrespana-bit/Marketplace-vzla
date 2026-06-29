@@ -133,8 +133,8 @@ export function Header() {
                 width={44} 
                 height={44} 
                 className="h-11 w-auto drop-shadow-[0_0_6px_rgba(255,255,255,0.5)] bg-white/10 p-0.5 rounded-lg backdrop-blur" 
-                priority={true}
                 fetchPriority="high"
+                decoding="async"
               />
               <span className="hidden sm:block">
                 <span className="font-black text-xl tracking-tight">

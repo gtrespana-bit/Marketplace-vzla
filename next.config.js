@@ -83,10 +83,38 @@ const nextConfig = withNextIntl({
         ...config.optimization,
         splitChunks: {
           chunks: 'all',
+          maxInitialRequests: 25,
+          minSize: 20000,
           cacheGroups: {
+            // React core - needed immediately
+            framework: {
+              test: /[\\/]node_modules[\\/](react|react-dom|scheduler|next[\\/]dist)[\\/]/,
+              name: 'framework',
+              priority: 40,
+              chunks: 'all',
+              enforce: true,
+            },
+            // Supabase - defer load (only needed for auth, not initial render)
+            supabase: {
+              test: /[\\/]node_modules[\\/]@supabase[\\/]/,
+              name: 'supabase',
+              priority: 30,
+              chunks: 'all',
+              enforce: true,
+            },
+            // Internationalization - needed but can be separate
+            intl: {
+              test: /[\\/]node_modules[\\/](next-intl|intl-messageformat|@formatjs)[\\/]/,
+              name: 'intl',
+              priority: 25,
+              chunks: 'all',
+              enforce: true,
+            },
+            // Remaining vendors
             vendor: {
               test: /[\\/]node_modules[\\/]/,
               name: 'vendors',
+              priority: 10,
               chunks: 'all',
             },
           },

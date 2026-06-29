@@ -69,11 +69,10 @@ export const ProductCardLazy = ({ p, t, priority = false }: ProductCardLazyProps
           sizes="(max-width: 768px) 50vw, (max-width: 1200px) 25vw, 20vw"
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           loading={priority ? 'eager' : 'lazy'}
-          priority={priority}
           decoding="async"
+          fetchPriority={priority ? 'high' : 'low'}
           placeholder="blur"
           blurDataURL={BLUR_DATA_URL}
-          fetchPriority={priority ? 'high' : 'low'}
           onError={(e) => {
             const target = e.target as HTMLImageElement;
             if (!target.src.includes(PLACEHOLDER_IMAGE)) {

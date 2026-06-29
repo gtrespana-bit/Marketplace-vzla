@@ -6,6 +6,7 @@ import { Footer } from '@/components/Footer'
 import { AuthProvider } from '@/components/AuthProvider'
 import { Analytics } from '@vercel/analytics/react'
 import { SpeedInsights } from '@vercel/speed-insights/next'
+import { ServiceWorkerRegistration } from '@/components/ServiceWorkerRegistration'
 import { headers, cookies } from 'next/headers'
 import { routing } from '@/i18n/routing'
 import { getServerUser } from '@/lib/supabase-server'
@@ -143,7 +144,6 @@ export default async function RootLayout({
         <link rel="apple-touch-icon" sizes="180x180" href="/icons/icon-192x192.png" />
         <link rel="apple-touch-icon" sizes="152x152" href="/icons/icon-192x192.png" />
         <link rel="manifest" href="/manifest.json" />
-        <script src="/sw-register.js" defer />
       </head>
       <body className="bg-white antialiased" suppressHydrationWarning>
         <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-brand-primary focus:text-white focus:rounded-lg focus:shadow-lg">
@@ -161,6 +161,7 @@ export default async function RootLayout({
           <Analytics />
           <SpeedInsights />
         </div>
+        <ServiceWorkerRegistration />
       </body>
     </html>
   )
