@@ -14,7 +14,7 @@ export const getSupabaseClient = () => {
       auth: {
         persistSession: true,  // Activar persistencia para mantener sesión entre recargas
         autoRefreshToken: true,  // Activar refresh automático para mantener sesión válida
-        detectSessionInUrl: false,
+        detectSessionInUrl: true,  // Habilitar detección de sesión en URL para casos de OAuth
         storageKey: 'sb-auth-token',
         flowType: 'pkce'
       }
