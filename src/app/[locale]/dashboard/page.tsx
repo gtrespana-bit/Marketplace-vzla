@@ -196,7 +196,17 @@ export default function DashboardPage() {
     setTimeout(() => data.setToast(null), 4000)
   }
 
-  if (authLoading) return null
+  if (authLoading) {
+    // Show loading state while authentication is being resolved
+    return (
+      <div className="min-h-[60vh] flex items-center justify-center px-4">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-primary mx-auto mb-4"></div>
+          <p className="text-gray-500">Cargando...</p>
+        </div>
+      </div>
+    )
+  }
 
   if (!session) {
     return (
