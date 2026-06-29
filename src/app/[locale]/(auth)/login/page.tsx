@@ -72,6 +72,9 @@ export default function LoginPage() {
           access_token: data.session.access_token,
           refresh_token: data.session.refresh_token,
         })
+        
+        // Wait briefly to allow AuthProvider to process the session change
+        await new Promise(resolve => setTimeout(resolve, 100))
       }
 
       // Redirect with locale prefix
