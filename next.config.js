@@ -150,30 +150,17 @@ const nextConfig = withNextIntl({
   },
 });
 
-// Configuración de Sentry con configuración cuidadosa para no afectar Lighthouse
-module.exports = withSentryConfig(nextConfig, {
-  org: 'vendet-venezuela',
-  project: 'vendet-venezuela',
-  silent: true,
-  hideSourceMaps: true,
-  widenClientFileUpload: true,
-  sourcemaps: { deleteSourcemapsAfterUpload: true },
-  tunnelRoute: '/monitoring',
-  
-  // Deshabilitar características que puedan afectar rendimiento
-  disableServerWebpackPlugin: true,
-  disableClientWebpackPlugin: true,
-  
-  // Configuración específica para evitar inyección en rutas que afectan Lighthouse
-  autoInstrument: {
-    // Evitar instrumentación automática que pueda afectar rendimiento
-    http: false,
-    httpSsr: false,
-    express: false,
-    postgresql: false,
-    mysql: false,
-    mongodb: false,
-    redis: false,
-    graphql: false,
-  },
-});
+// Configuración de Sentry - DESHABILITADO completamente para evitar problemas de Lighthouse
+// module.exports = withSentryConfig(nextConfig, {
+//   org: 'vendet-venezuela',
+//   project: 'vendet-venezuela',
+//   silent: true,
+//   hideSourceMaps: true,
+//   widenClientFileUpload: true,
+//   sourcemaps: { deleteSourcemapsAfterUpload: true },
+//   tunnelRoute: '/monitoring',
+//   disableServerWebpackPlugin: true,
+//   disableClientWebpackPlugin: true,
+// });
+
+module.exports = nextConfig;
