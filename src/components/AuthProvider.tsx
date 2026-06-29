@@ -18,57 +18,73 @@ const AuthContext = createContext<AuthContextType>({
 export function AuthProvider({ children, initialUser }: { children: React.ReactNode; initialUser?: User | null }) {
   const [session, setSession] = useState<Session | null>(null)
   const [user, setUser] = useState<User | null>(initialUser ?? null)
-  const [loading, setLoading] = useState(!initialUser) // Show loading only if we need to check auth
+  const [loading, setLoading] = useState(true)
   const initialized = useRef(false)
+  const initPromiseRef = useRef<Promise<void> | null>(null)
 
   useEffect(() => {
     if (initialized.current) return
     initialized.current = true
 
     let unsub: (() => void) | null = null
+    let cancelled = false
 
     const initAuth = async () => {
       try {
         const { isSupabaseConfigured } = await import('@/lib/supabase')
         if (!isSupabaseConfigured()) {
-          setSession(null)
-          setUser(null)
-          setLoading(false)
+          if (!cancelled) {
+            setSession(null)
+            setUser(null)
+            setLoading(false)
+          }
           return
         }
 
         const { supabase } = await import('@/lib/supabase')
 
-        // Get current session from the singleton
-        try {
-          const { data, error } = await supabase.auth.getSession()
-          if (!error && data.session) {
-            setSession(data.session)
-            setUser(data.session.user)
-          }
-        } catch {
-          // Ignore errors
-        }
-
-        // Listen for auth changes from the singleton
-        const { data } = supabase.auth.onAuthStateChange((_e, s) => {
+        // Listen for auth changes FIRST (before getSession) to avoid race conditions
+        const { data } = supabase.auth.onAuthStateChange((_event, s) => {
+          if (cancelled) return
           setSession(s)
           setUser(s?.user ?? null)
           setLoading(false)
         })
         unsub = data.subscription.unsubscribe
-        
-        // Set loading to false after initial check
-        setLoading(false)
+
+        // Then check current session
+        try {
+          const { data: sessionData, error } = await supabase.auth.getSession()
+          if (cancelled) return
+          if (!error && sessionData.session) {
+            setSession(sessionData.session)
+            setUser(sessionData.session.user)
+          }
+        } catch {
+          // Ignore errors - onAuthStateChange will handle it
+        }
+
+        // Also check if server passed a user (hydration consistency)
+        if (initialUser && !session) {
+          setUser(initialUser)
+        }
+
+        if (!cancelled) {
+          setLoading(false)
+        }
       } catch {
-        setLoading(false)
+        if (!cancelled) {
+          setLoading(false)
+        }
       }
     }
 
-    // Always initialize auth to allow login functionality
     initAuth()
 
-    return () => unsub?.()
+    return () => {
+      cancelled = true
+      unsub?.()
+    }
   }, [])
 
   return (
