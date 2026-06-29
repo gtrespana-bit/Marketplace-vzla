@@ -43,16 +43,7 @@ export function AuthProvider({ children, initialUser }: { children: React.ReactN
 
         const { supabase } = await import('@/lib/supabase')
 
-        // Listen for auth changes FIRST (before getSession) to avoid race conditions
-        const { data } = supabase.auth.onAuthStateChange((_event, s) => {
-          if (cancelled) return
-          setSession(s)
-          setUser(s?.user ?? null)
-          setLoading(false)
-        })
-        unsub = data.subscription.unsubscribe
-
-        // Then check current session
+        // Then check current session FIRST (before listening for changes)
         try {
           const { data: sessionData, error } = await supabase.auth.getSession()
           if (cancelled) return
@@ -61,8 +52,17 @@ export function AuthProvider({ children, initialUser }: { children: React.ReactN
             setUser(sessionData.session.user)
           }
         } catch {
-          // Ignore errors - onAuthStateChange will handle it
+          // Ignore errors
         }
+
+        // Listen for auth changes AFTER getting initial session
+        const { data } = supabase.auth.onAuthStateChange((_event, s) => {
+          if (cancelled) return
+          setSession(s)
+          setUser(s?.user ?? null)
+          setLoading(false)
+        })
+        unsub = data.subscription.unsubscribe
 
         // Also check if server passed a user (hydration consistency)
         if (initialUser && !session) {
