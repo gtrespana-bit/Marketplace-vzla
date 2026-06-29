@@ -83,18 +83,34 @@ const nextConfig = withNextIntl({
         ...config.optimization,
         splitChunks: {
           chunks: 'all',
-          maxInitialRequests: 25,
+          maxInitialRequests: 30,
           minSize: 20000,
           cacheGroups: {
-            // React core - needed immediately
-            framework: {
-              test: /[\\/]node_modules[\\/](react|react-dom|scheduler|next[\\/]dist)[\\/]/,
-              name: 'framework',
+            // React DOM only (needed for rendering)
+            reactDom: {
+              test: /[\\/]node_modules[\\/](react-dom)[\\/]/,
+              name: 'react-dom',
+              priority: 50,
+              chunks: 'all',
+              enforce: true,
+            },
+            // React core (needed for hooks, JSX)
+            react: {
+              test: /[\\/]node_modules[\\/](react|scheduler)[\\/]/,
+              name: 'react',
+              priority: 45,
+              chunks: 'all',
+              enforce: true,
+            },
+            // Next.js internals (routing, hydration)
+            nextjs: {
+              test: /[\\/]node_modules[\\/]next[\\/]dist[\\/]/,
+              name: 'nextjs',
               priority: 40,
               chunks: 'all',
               enforce: true,
             },
-            // Supabase - defer load (only needed for auth, not initial render)
+            // Supabase - defer load (only needed for auth)
             supabase: {
               test: /[\\/]node_modules[\\/]@supabase[\\/]/,
               name: 'supabase',
@@ -102,11 +118,19 @@ const nextConfig = withNextIntl({
               chunks: 'all',
               enforce: true,
             },
-            // Internationalization - needed but can be separate
+            // Internationalization
             intl: {
               test: /[\\/]node_modules[\\/](next-intl|intl-messageformat|@formatjs)[\\/]/,
               name: 'intl',
               priority: 25,
+              chunks: 'all',
+              enforce: true,
+            },
+            // Lucide icons (can be loaded later)
+            lucide: {
+              test: /[\\/]node_modules[\\/]lucide-react[\\/]/,
+              name: 'lucide',
+              priority: 20,
               chunks: 'all',
               enforce: true,
             },

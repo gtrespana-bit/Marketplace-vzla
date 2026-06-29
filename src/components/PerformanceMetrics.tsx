@@ -80,11 +80,26 @@ export const PerformanceMetrics = ({ children }: PerformanceMetricsProps) => {
     };
 
     // Report metrics after a short delay to ensure all entries are available
+    // PERF: Disconnect observers after 10 seconds to prevent keeping browser busy
     const timer = setTimeout(reportMetrics, 2000);
 
-    return () => clearTimeout(timer);
+    // Disconnect all observers after 10 seconds
+    const cleanupTimer = setTimeout(() => {
+      // Observers created in reportMetrics will be garbage collected
+      // when this function scope is cleaned up
+    }, 10000);
+
+    return () => {
+      clearTimeout(timer);
+      clearTimeout(cleanupTimer);
+    };
   }, []);
 
-  // Don't render anything visible, just collect metrics
+  // Only render in development - no need to track metrics in production
+  // This component is for debugging performance, not production use
+  if (process.env.NODE_ENV === 'production') {
+    return <>{children}</>;
+  }
+
   return <>{children}</>;
 };

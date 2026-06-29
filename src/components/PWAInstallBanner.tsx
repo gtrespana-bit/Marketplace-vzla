@@ -44,20 +44,29 @@ export default function PWAInstallBanner() {
     return () => window.removeEventListener('beforeinstallprompt', handler)
   }, [])
 
-  // Re-show banner every 6 hours if dismissed
+  // PERF FIX: Replaced setInterval(60s) with a single setTimeout.
+  // The old interval ran forever, keeping Chrome from reaching "idle" state
+  // and causing Lighthouse timeout warnings. Now we schedule ONE check
+  // at the right time instead of polling every 60 seconds.
   useEffect(() => {
-    const handleDismissed = () => {
-      const d = localStorage.getItem('pwa_install_dismissed')
-      if (d && deferredPrompt) {
-        const elapsed = Date.now() - parseInt(d)
-        if (elapsed > 6 * 60 * 60 * 1000) {
-          localStorage.removeItem('pwa_install_dismissed')
-          setShowBanner(true)
-        }
-      }
+    const checkDeferred = localStorage.getItem('pwa_install_dismissed')
+    if (!checkDeferred || !deferredPrompt) return
+
+    const elapsed = Date.now() - parseInt(checkDeferred)
+    const remaining = 6 * 60 * 60 * 1000 - elapsed
+
+    if (remaining <= 0) {
+      // Already past 6 hours, show now
+      localStorage.removeItem('pwa_install_dismissed')
+      setShowBanner(true)
+    } else {
+      // Schedule ONE check at the exact time it should reappear
+      const timer = setTimeout(() => {
+        localStorage.removeItem('pwa_install_dismissed')
+        setShowBanner(true)
+      }, remaining)
+      return () => clearTimeout(timer)
     }
-    const interval = setInterval(handleDismissed, 60000)
-    return () => clearInterval(interval)
   }, [deferredPrompt])
 
   const handleInstall = async () => {
