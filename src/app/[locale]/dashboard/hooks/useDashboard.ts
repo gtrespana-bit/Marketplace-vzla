@@ -50,19 +50,7 @@ export function useDashboard() {
   const refreshAll = useCallback(() => {
     if (!user) return
 
-    // Ensure the Supabase client has the latest session before making requests
-    supabase.auth.getSession().then(({ data, error }) => {
-      if (error) {
-        console.warn('Session error:', error)
-        return
-      }
-      
-      if (data.session) {
-        // Update the authorization header with the latest access token
-        supabase.auth.setAuth(data.session.access_token)
-      }
-    })
-
+    // Supabase client automatically handles auth tokens via persistSession + autoRefreshToken
     Promise.all([
       supabase.from('productos').select('id, titulo, precio_usd, estado, categoria_id, subcategoria, marca, ubicacion_ciudad, activo, visitas, creado_en, imagen_url, destacado, destacado_hasta, boosteado_en, estado_moderacion').eq('user_id', user.id).order('creado_en', { ascending: false }).then(({ data }) => setProductos(data || [])),
 
