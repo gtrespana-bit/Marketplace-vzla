@@ -157,10 +157,11 @@ export default async function RootLayout({
           <PushNotificationBanner />
           <BottomTabNav />
         </AuthProvider>
-        <div style={{ display: 'none' }}>
+        {/* Analytics and SpeedInsights temporarily disabled for Lighthouse testing */}
+        {/* <div style={{ display: 'none' }}>
           <Analytics />
           <SpeedInsights />
-        </div>
+        </div> */}
         <ServiceWorkerRegistration />
       </body>
     </html>
