@@ -157,11 +157,9 @@ export default async function RootLayout({
           <PushNotificationBanner />
           <BottomTabNav />
         </AuthProvider>
-        {/* Analytics and SpeedInsights temporarily disabled for Lighthouse testing */}
-        {/* <div style={{ display: 'none' }}>
-          <Analytics />
-          <SpeedInsights />
-        </div> */}
+        {/* Re-enable Vercel Analytics and SpeedInsights with lazy initialization */}
+        <Analytics />
+        <SpeedInsights />
         <ServiceWorkerRegistration />
       </body>
     </html>
