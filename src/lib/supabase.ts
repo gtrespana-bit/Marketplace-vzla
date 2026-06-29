@@ -7,13 +7,13 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 let globalSupabase: ReturnType<typeof createClient> | null = null
 let globalSupabaseAuth: ReturnType<typeof createClient> | null = null
 
-// Cliente estándar sin auto-refresh (para consultas de datos)
+// Cliente estándar con persistencia de sesión (para consultas de datos y mantener estado de autenticación)
 export const getSupabaseClient = () => {
   if (!globalSupabase) {
     globalSupabase = createClient(supabaseUrl, supabaseAnonKey, {
       auth: {
-        persistSession: false,  // Desactivar persistencia global
-        autoRefreshToken: false,  // Desactivar refresh automático
+        persistSession: true,  // Activar persistencia para mantener sesión entre recargas
+        autoRefreshToken: true,  // Activar refresh automático para mantener sesión válida
         detectSessionInUrl: false,
         storageKey: 'sb-auth-token',
         flowType: 'pkce'
