@@ -16,23 +16,14 @@ const AuthContext = createContext<AuthContextType>({
 })
 
 export function AuthProvider({ children, initialUser }: { children: React.ReactNode; initialUser?: User | null }) {
-  // ✅ PERF FIX: If no initialUser (unauthenticated), skip Supabase entirely.
-  // This means the Supabase chunk (~60KB compressed) NEVER loads for anonymous users.
   const [session, setSession] = useState<Session | null>(null)
   const [user, setUser] = useState<User | null>(initialUser ?? null)
-  const [loading, setLoading] = useState(false) // No loading state for anonymous users
+  const [loading, setLoading] = useState(!initialUser) // Show loading only if we need to check auth
   const initialized = useRef(false)
 
   useEffect(() => {
     if (initialized.current) return
     initialized.current = true
-
-    // ✅ CRITICAL: Only load Supabase if the server detected an authenticated user.
-    // For 95%+ of traffic (anonymous visitors), this entire block is skipped,
-    // meaning the Supabase chunk is never downloaded or executed.
-    if (!initialUser) {
-      return
-    }
 
     let unsub: (() => void) | null = null
 
@@ -42,6 +33,7 @@ export function AuthProvider({ children, initialUser }: { children: React.ReactN
         if (!isSupabaseConfigured()) {
           setSession(null)
           setUser(null)
+          setLoading(false)
           return
         }
 
@@ -62,17 +54,22 @@ export function AuthProvider({ children, initialUser }: { children: React.ReactN
         const { data } = supabase.auth.onAuthStateChange((_e, s) => {
           setSession(s)
           setUser(s?.user ?? null)
+          setLoading(false)
         })
         unsub = data.subscription.unsubscribe
+        
+        // Set loading to false after initial check
+        setLoading(false)
       } catch {
-        // Ignore errors
+        setLoading(false)
       }
     }
 
+    // Always initialize auth to allow login functionality
     initAuth()
 
     return () => unsub?.()
-  }, [initialUser])
+  }, [])
 
   return (
     <AuthContext.Provider value={{ session, user, loading }}>
