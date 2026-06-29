@@ -10,6 +10,7 @@ export default function PWAInstallBanner() {
   const [showBanner, setShowBanner] = useState(false)
   const [showIOS, setShowIOS] = useState(false)
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null)
+  const dismissTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -41,7 +42,14 @@ export default function PWAInstallBanner() {
     window.addEventListener('beforeinstallprompt', handler)
     setMounted(true)
 
-    return () => window.removeEventListener('beforeinstallprompt', handler)
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handler)
+      // Clean up dismiss timeout on unmount
+      if (dismissTimeoutRef.current) {
+        clearTimeout(dismissTimeoutRef.current)
+        dismissTimeoutRef.current = null
+      }
+    }
   }, [])
 
   // PERF FIX: Replaced setInterval(60s) with a single setTimeout.
@@ -85,9 +93,17 @@ export default function PWAInstallBanner() {
     setShowIOS(false)
     localStorage.setItem('pwa_install_dismissed', Date.now().toString())
     localStorage.setItem('pwa_ios_dismissed', Date.now().toString())
-    setTimeout(() => {
+    
+    // Clear any existing timeout first
+    if (dismissTimeoutRef.current) {
+      clearTimeout(dismissTimeoutRef.current)
+    }
+    
+    // Set new timeout and store reference
+    dismissTimeoutRef.current = setTimeout(() => {
       localStorage.removeItem('pwa_install_dismissed')
       localStorage.removeItem('pwa_ios_dismissed')
+      dismissTimeoutRef.current = null
     }, 6 * 60 * 60 * 1000)
   }
 

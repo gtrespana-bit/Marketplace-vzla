@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 
 interface PerformanceMetrics {
   fcp?: number;
@@ -13,6 +13,9 @@ interface PerformanceMetrics {
 export const PerformanceMonitor = () => {
   const [metrics, setMetrics] = useState<PerformanceMetrics>({});
   const [navigationType, setNavigationType] = useState<string>('');
+  
+  // Store observer references for cleanup
+  const observersRef = useRef<PerformanceObserver[]>([]);
 
   useEffect(() => {
     // Registrar el tipo de navegación
@@ -30,13 +33,18 @@ export const PerformanceMonitor = () => {
     // LCP (Largest Contentful Paint) - con timeout y límite
     setTimeout(() => {
       try {
-        new PerformanceObserver((entryList) => {
+        const lcpObserver = new PerformanceObserver((entryList) => {
           const entries = entryList.getEntries();
           if (entries.length > 0) {
             const lastEntry = entries[entries.length - 1];
             setMetrics(prev => ({ ...prev, lcp: Math.round(lastEntry.startTime) }));
+            // Disconnect after first meaningful entry
+            lcpObserver.disconnect();
+            observersRef.current = observersRef.current.filter(obs => obs !== lcpObserver);
           }
-        }).observe({ entryTypes: ['largest-contentful-paint'] });
+        });
+        lcpObserver.observe({ entryTypes: ['largest-contentful-paint'] });
+        observersRef.current.push(lcpObserver);
       } catch (e) {
         console.warn('LCP observer failed:', e);
       }
@@ -46,7 +54,7 @@ export const PerformanceMonitor = () => {
     setTimeout(() => {
       try {
         let clsValue = 0;
-        new PerformanceObserver((entryList) => {
+        const clsObserver = new PerformanceObserver((entryList) => {
           const entries = entryList.getEntries();
           entries.forEach((entry) => {
             if (!(entry as any).hadRecentInput) {
@@ -54,7 +62,10 @@ export const PerformanceMonitor = () => {
             }
           });
           setMetrics(prev => ({ ...prev, cls: parseFloat(clsValue.toFixed(3)) }));
-        }).observe({ entryTypes: ['layout-shift'] });
+          // Keep observing CLS throughout page lifecycle
+        });
+        clsObserver.observe({ entryTypes: ['layout-shift'] });
+        observersRef.current.push(clsObserver);
       } catch (e) {
         console.warn('CLS observer failed:', e);
       }
@@ -70,6 +81,14 @@ export const PerformanceMonitor = () => {
         }));
       }
     }, 0);
+  }, []);
+
+  // Cleanup observers on unmount
+  useEffect(() => {
+    return () => {
+      observersRef.current.forEach(observer => observer.disconnect());
+      observersRef.current = [];
+    };
   }, []);
 
   // Mostrar métricas en la consola para monitoreo

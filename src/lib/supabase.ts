@@ -5,10 +5,28 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 
 // Patrón Singleton estricto para evitar múltiples instancias de GoTrueClient
 let globalSupabase: ReturnType<typeof createClient> | null = null
+let globalSupabaseAuth: ReturnType<typeof createClient> | null = null
 
+// Cliente estándar sin auto-refresh (para consultas de datos)
 export const getSupabaseClient = () => {
   if (!globalSupabase) {
     globalSupabase = createClient(supabaseUrl, supabaseAnonKey, {
+      auth: {
+        persistSession: false,  // Desactivar persistencia global
+        autoRefreshToken: false,  // Desactivar refresh automático
+        detectSessionInUrl: false,
+        storageKey: 'sb-auth-token',
+        flowType: 'pkce'
+      }
+    })
+  }
+  return globalSupabase
+}
+
+// Cliente de autenticación con refresh (solo para login/logout)
+export const getSupabaseAuthClient = () => {
+  if (!globalSupabaseAuth) {
+    globalSupabaseAuth = createClient(supabaseUrl, supabaseAnonKey, {
       auth: {
         persistSession: true,
         autoRefreshToken: true,
@@ -18,7 +36,7 @@ export const getSupabaseClient = () => {
       }
     })
   }
-  return globalSupabase
+  return globalSupabaseAuth
 }
 
 // Exportación por defecto para compatibilidad con el código existente
