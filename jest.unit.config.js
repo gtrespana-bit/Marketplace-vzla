@@ -2,7 +2,7 @@ module.exports = {
   preset: 'ts-jest',
   testEnvironment: 'jsdom',
   roots: ['<rootDir>/tests/unit'],
-  testMatch: ['**/?(*.)+(unit|validation).[jt]s?(x)'],
+  testMatch: ['**/*.test.[jt]s?(x)'],
   setupFilesAfterEnv: ['<rootDir>/tests/setupTests.ts'],
   collectCoverageFrom: [
     'src/**/*.{js,jsx,ts,tsx}',
