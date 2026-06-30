@@ -1,10 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 import { checkRateLimit } from '@/lib/rate-limit'
+import { validateLoginData } from '@/lib/validation'
 
 export async function POST(req: NextRequest) {
   try {
     const { email, password } = await req.json()
+
+    // Validar datos de login
+    const validation = validateLoginData({ email, password })
+    if (!validation.valid) {
+      return NextResponse.json({ error: validation.error }, { status: 400 })
+    }
+
     if (!email || !password) {
       return NextResponse.json({ error: 'Missing fields' }, { status: 400 })
     }

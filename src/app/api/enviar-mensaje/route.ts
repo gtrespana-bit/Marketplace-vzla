@@ -1,11 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { checkRateLimit } from '@/lib/rate-limit'
 import { createClient } from '@supabase/supabase-js'
+import { validateMessageData, sanitizeString } from '@/lib/validation'
 
 export async function POST(req: NextRequest) {
   try {
-    const { conversacion_id, remitente_id, destinatario_id, contenido } = await req.json()
+    const body = await req.json()
+    const { conversacion_id, remitente_id, destinatario_id, contenido } = body
     if (!remitente_id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+    // Validar datos del mensaje
+    const validation = validateMessageData({ conversacion_id, remitente_id, destinatario_id, contenido })
+    if (!validation.valid) {
+      return NextResponse.json({ error: validation.error }, { status: 400 })
+    }
+
+    // Sanitizar contenido para prevenir XSS
+    const contenidoSanitizado = sanitizeString(contenido, 5000)
 
     const rl = checkRateLimit('mensaje:create', remitente_id)
     if (!rl.ok) {
@@ -17,7 +28,7 @@ export async function POST(req: NextRequest) {
 
     const sb = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
     const { data, error } = await sb.from('mensajes').insert({
-      conversacion_id, remitente_id, destinatario_id, contenido
+      conversacion_id, remitente_id, destinatario_id, contenido: contenidoSanitizado
     }).select().single()
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })

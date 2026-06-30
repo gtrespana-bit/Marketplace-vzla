@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
+import { validateConversationData } from '@/lib/validation'
 
 export async function POST(req: Request) {
   try {
@@ -23,10 +24,18 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Usuario no encontrado' }, { status: 401 })
     }
 
-    const { vendedorId, productoId } = await req.json()
+    const body = await req.json()
+    const { vendedorId, productoId } = body
 
-    if (!vendedorId || vendedorId === uid) {
-      return NextResponse.json({ error: 'Datos inválidos' }, { status: 400 })
+    // Validar datos de la conversación
+    const validation = validateConversationData({ vendedorId, productoId })
+    if (!validation.valid) {
+      return NextResponse.json({ error: validation.error }, { status: 400 })
+    }
+
+    // No permitir conversaciones consigo mismo
+    if (vendedorId === uid) {
+      return NextResponse.json({ error: 'No puedes iniciar conversación contigo mismo' }, { status: 400 })
     }
 
     // Create admin client inside function (avoids build-time env errors)

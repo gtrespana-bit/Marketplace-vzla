@@ -2,12 +2,22 @@ import { NextRequest, NextResponse } from 'next/server'
 import { revalidatePath } from 'next/cache'
 import { checkRateLimit } from '@/lib/rate-limit'
 import { createClient } from '@supabase/supabase-js'
+import { validateProductData, sanitizeObject } from '@/lib/validation'
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
     const { userId, moderacionAlerta, ...productoData } = body
     if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+    // Validar datos del producto
+    const validation = validateProductData({ userId, ...productoData })
+    if (!validation.valid) {
+      return NextResponse.json({ error: validation.error }, { status: 400 })
+    }
+
+    // Sanitizar strings para prevenir XSS
+    const sanitizedData = sanitizeObject(productoData)
 
     const rl = checkRateLimit('producto:create', userId)
     if (!rl.ok) {
@@ -18,7 +28,7 @@ export async function POST(req: NextRequest) {
     }
 
     const sb = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
-    const { data, error } = await sb.from('productos').insert(productoData).select().single()
+    const { data, error } = await sb.from('productos').insert({ ...sanitizedData, user_id: userId }).select().single()
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
     // Revalidate ISR cache — product appears immediately on home/catalogo
