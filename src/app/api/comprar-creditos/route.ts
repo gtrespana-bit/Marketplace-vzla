@@ -25,8 +25,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: false, error: 'Missing fields' }, { status: 400 })
   }
 
-  // Rate limiting: max 3 compras por hora por usuario
-  const rl = checkRateLimit('creditos:comprar', userId)
+  // Rate limiting: max 5 compras por hora por usuario
+  const ip = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown'
+  const rl = await checkRateLimit('creditos:comprar', userId, { ip })
   if (!rl.ok) {
     return NextResponse.json({ ok: false, error: `Demasiados intentos. Espera ${Math.ceil(rl.resetIn / 60000)} min` }, { status: 429 })
   }

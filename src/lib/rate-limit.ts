@@ -1,61 +1,129 @@
 /**
- * Rate limiter usando memoria del server (Vercel serverless).
+ * Rate limiter distribuido usando Supabase como storage.
+ * Funciona correctamente en Vercel serverless (cada invocación comparte la DB).
  *
- * Cada función serverless en Vercel es efímera, pero dentro de la misma
- * invocación podemos limitar. Para un rate limit real distribuido necesitarías
- * Redis (Upstash) — este es un primer paso que protege contra bursts locales.
+ * Protección por userId Y por IP address.
  */
+import { createClient } from '@supabase/supabase-js'
 
 const LIMITS: Record<string, { max: number; windowMs: number }> = {
-  // Publicaciones: máximo 30 por hora (empresas pueden subir inventario)
-  'producto:create': { max: 30, windowMs: 60 * 60 * 1000 },
-  // Mensajes: máximo 60 por hora (chat activo sin spam masivo)
-  'mensaje:create': { max: 60, windowMs: 60 * 60 * 1000 },
-  // Denuncias: máximo 10 por hora
-  'denuncia:create': { max: 10, windowMs: 60 * 60 * 1000 },
-  // Login: máximo 10 por 15 minutos (anti brute force)
-  'auth:login': { max: 10, windowMs: 15 * 60 * 1000 },
-  // Comprar créditos: máximo 20 por hora
-  'creditos:comprar': { max: 20, windowMs: 60 * 60 * 1000 },
+  // Publicaciones: 10 por hora por usuario
+  'producto:create': { max: 10, windowMs: 60 * 60 * 1000 },
+  // Mensajes: 30 por hora por usuario
+  'mensaje:create': { max: 30, windowMs: 60 * 60 * 1000 },
+  // Denuncias: 5 por hora
+  'denuncia:create': { max: 5, windowMs: 60 * 60 * 1000 },
+  // Login: 5 por 15 min por IP (anti brute force)
+  'auth:login': { max: 5, windowMs: 15 * 60 * 1000 },
+  // Comprar créditos: 5 por hora
+  'creditos:comprar': { max: 5, windowMs: 60 * 60 * 1000 },
+  // Registro de usuarios: 3 por hora por IP
+  'auth:register': { max: 3, windowMs: 60 * 60 * 1000 },
+  // Reset password: 3 por hora por IP
+  'auth:reset': { max: 3, windowMs: 60 * 60 * 1000 },
+  // Contacto: 5 por hora por IP
+  'contacto:send': { max: 5, windowMs: 60 * 60 * 1000 },
+  // Conversaciones: 10 por hora por usuario
+  'conversacion:create': { max: 10, windowMs: 60 * 60 * 1000 },
+  // Favoritos: 50 por hora por usuario
+  'favorito:toggle': { max: 50, windowMs: 60 * 60 * 1000 },
+  // Foto perfil: 5 por hora por usuario
+  'foto-perfil:update': { max: 5, windowMs: 60 * 60 * 1000 },
+  // Subida R2: 20 por hora por usuario
+  'r2-upload': { max: 20, windowMs: 60 * 60 * 1000 },
+  // Consultar tasa BCV: 30 por hora por IP
+  'tasa-bcv': { max: 30, windowMs: 60 * 60 * 1000 },
+  // Webhook Telegram: 60 por hora
+  'telegram:webhook': { max: 60, windowMs: 60 * 60 * 1000 },
 }
 
-// In-memory store: { key: [{ userId: ..., timestamp: ... }] }
-const store: Record<string, { userId: string; ts: number }[]> = {}
+function getSupabaseClient() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
+}
 
-export function checkRateLimit(key: string, userId: string): { ok: boolean; remaining: number; resetIn: number } {
+export async function checkRateLimit(
+  key: string,
+  identifier: string, // userId o IP
+  extraData?: { ip?: string }
+): Promise<{ ok: boolean; remaining: number; resetIn: number; limit: number }> {
   const limit = LIMITS[key]
-  if (!limit) return { ok: true, remaining: 999, resetIn: 0 }
+  if (!limit) return { ok: true, remaining: 999, resetIn: 0, limit: 0 }
 
   const now = Date.now()
-  const windowStart = now - limit.windowMs
+  const windowStart = new Date(now - limit.windowMs).toISOString()
 
-  // Limpiar entradas antiguas
-  if (!store[key]) store[key] = []
-  store[key] = store[key].filter(entry => entry.ts > windowStart)
+  const sb = getSupabaseClient()
 
-  const count = store[key].filter(entry => entry.userId === userId).length
-  const remaining = Math.max(0, limit.max - count)
+  try {
+    // Contar intentos en la ventana actual
+    const { count, error: countError } = await sb
+      .from('rate_limit')
+      .select('*', { count: 'exact', head: true })
+      .eq('key', key)
+      .eq('identifier', identifier)
+      .gte('created_at', windowStart)
 
-  if (count >= limit.max) {
-    // Calcular cuándo se resetea
-    const oldestInWindow = store[key]
-      .filter(entry => entry.userId === userId)
-      .sort((a, b) => a.ts - b.ts)[0]
-    const resetIn = oldestInWindow ? oldestInWindow.ts + limit.windowMs - now : limit.windowMs
+    if (countError) {
+      console.error('Rate limit count error:', countError)
+      // Si falla la DB, permitir por defecto (fail-open)
+      return { ok: true, remaining: 999, resetIn: 0, limit: limit.max }
+    }
 
-    return { ok: false, remaining: 0, resetIn: Math.max(0, resetIn) }
+    const currentCount = count || 0
+    const remaining = Math.max(0, limit.max - currentCount)
+
+    if (currentCount >= limit.max) {
+      // Calcular reset: encontrar el registro más antiguo en la ventana
+      const { data: oldest } = await sb
+        .from('rate_limit')
+        .select('created_at')
+        .eq('key', key)
+        .eq('identifier', identifier)
+        .gte('created_at', windowStart)
+        .order('created_at', { ascending: true })
+        .limit(1)
+        .single()
+
+      const resetIn = oldest
+        ? new Date(oldest.created_at).getTime() + limit.windowMs - now
+        : limit.windowMs
+
+      return { ok: false, remaining: 0, resetIn: Math.max(0, resetIn), limit: limit.max }
+    }
+
+    // Registrar este intento (async, no bloquear)
+    sb.from('rate_limit').insert({
+      key,
+      identifier,
+      ip: extraData?.ip || null,
+    }).then(({ error }) => {
+      if (error) console.error('Rate limit insert error:', error)
+    })
+
+    return { ok: true, remaining: remaining - 1, resetIn: limit.windowMs, limit: limit.max }
+  } catch (err) {
+    console.error('Rate limit check error:', err)
+    return { ok: true, remaining: 999, resetIn: 0, limit: limit.max }
   }
-
-  // Registrar este intento
-  store[key].push({ userId, ts: now })
-
-  return { ok: true, remaining: remaining - 1, resetIn: limit.windowMs }
 }
 
-export function getRateLimitHeaders(result: { ok: boolean; remaining: number; resetIn: number }) {
-  return {
-    'X-RateLimit-Limit': 'limited',
-    'X-RateLimit-Remaining': String(result.remaining),
-    'X-RateLimit-Reset': String(result.resetIn),
+// Limpiar registros antiguos (más de 24 horas)
+export async function cleanOldRateLimits(): Promise<number> {
+  const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
+  const sb = getSupabaseClient()
+
+  const { count, error } = await sb
+    .from('rate_limit')
+    .delete()
+    .lt('created_at', cutoff)
+
+  if (error) {
+    console.error('Rate limit cleanup error:', error)
+    return 0
   }
+
+  return count || 0
 }

@@ -18,7 +18,8 @@ export async function POST(req: NextRequest) {
     // Sanitizar contenido para prevenir XSS
     const contenidoSanitizado = sanitizeString(contenido, 5000)
 
-    const rl = checkRateLimit('mensaje:create', remitente_id)
+    const ip = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown'
+    const rl = await checkRateLimit('mensaje:create', remitente_id, { ip })
     if (!rl.ok) {
       return NextResponse.json({
         error: `Demasiados mensajes. Espera ${Math.ceil(rl.resetIn / 60000)} min`,

@@ -6,6 +6,7 @@ import { validateLoginData } from '@/lib/validation'
 export async function POST(req: NextRequest) {
   try {
     const { email, password } = await req.json()
+    const ip = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown'
 
     // Validar datos de login
     const validation = validateLoginData({ email, password })
@@ -13,12 +14,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: validation.error }, { status: 400 })
     }
 
-    if (!email || !password) {
-      return NextResponse.json({ error: 'Missing fields' }, { status: 400 })
-    }
-
-    // Rate limit by email
-    const rl = checkRateLimit('auth:login', email)
+    // Rate limit por IP (anti brute force)
+    const rl = await checkRateLimit('auth:login', ip, { ip })
     if (!rl.ok) {
       return NextResponse.json(
         { error: `Demasiados intentos. Espera ${Math.ceil(rl.resetIn / 60000)} min`, resetIn: rl.resetIn },

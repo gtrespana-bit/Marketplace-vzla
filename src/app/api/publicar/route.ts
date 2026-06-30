@@ -19,7 +19,8 @@ export async function POST(req: NextRequest) {
     // Sanitizar strings para prevenir XSS
     const sanitizedData = sanitizeObject(productoData)
 
-    const rl = checkRateLimit('producto:create', userId)
+    const ip = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown'
+    const rl = await checkRateLimit('producto:create', userId, { ip })
     if (!rl.ok) {
       return NextResponse.json(
         { error: `Demasiadas publicaciones. Espera ${Math.ceil(rl.resetIn / 60000)} min`, resetIn: rl.resetIn },
