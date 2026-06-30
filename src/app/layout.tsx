@@ -16,6 +16,7 @@ import { getServerUser } from '@/lib/supabase-server'
 import PWAInstallBanner from '@/components/PWAInstallBanner'
 import PushNotificationBanner from '@/components/PushNotificationBanner'
 import BottomTabNav from '@/components/BottomTabNav'
+import CookieConsent from '@/components/CookieConsent'
 
 const inter = Inter({
   subsets: ['latin'],
@@ -35,7 +36,7 @@ export const viewport: Viewport = {
 }
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://vende-t.com'),
+  metadataBase: new URL('https://vendet.online'),
   title: {
     default: 'VendeT - Marketplace de Venezuela | Compra y Vende Fácil',
     template: '%s | VendeT',
@@ -52,6 +53,14 @@ export const metadata: Metadata = {
     'ventas online venezuela',
     'marketplace maracaibo',
     'marketplace valencia venezuela',
+    'anuncios clasificados venezuela',
+    'venta de carros venezuela',
+    'tecnologia usada venezuela',
+    'moda segunda mano venezuela',
+    'hogar venezuela',
+    'herramientas venezuela',
+    'repuestos venezuela',
+    'materiales venezuela',
   ],
   authors: [{ name: 'VendeT' }],
   creator: 'VendeT',
@@ -64,13 +73,13 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'es_VE',
-    url: 'https://vende-t.com',
+    url: 'https://vendet.online',
     siteName: 'VendeT',
     title: 'VendeT - Marketplace de Venezuela | Compra y Vende Fácil',
     description: 'El marketplace más grande de Venezuela. Compra y vende productos nuevos y usados de forma segura.',
     images: [
       {
-        url: '/og-image.jpg',
+        url: '/og-image.webp',
         width: 1200,
         height: 630,
         alt: 'VendeT Marketplace',
@@ -81,7 +90,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'VendeT - Marketplace de Venezuela',
     description: 'Compra y vende productos nuevos y usados de forma segura en Venezuela.',
-    images: ['/og-image.jpg'],
+    images: ['/og-image.webp'],
     creator: '@vendet',
   },
   robots: {
@@ -96,14 +105,14 @@ export const metadata: Metadata = {
     },
   },
   alternates: {
-    canonical: 'https://vende-t.com',
+    canonical: 'https://vendet.online',
     languages: {
-      'es-VE': 'https://vende-t.com',
-      'en-US': 'https://vende-t.com/en',
+      'es-VE': 'https://vendet.online',
+      'en-US': 'https://vendet.online/en',
     },
   },
   verification: {
-    google: 'TuGoogleVerificationCode',
+    google: 'google-site-verification=vendet-online-verification-code',
   },
   category: 'marketplace',
 }
@@ -113,16 +122,16 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode
 }) {
-  const initialUser = getServerUser()
+  const initialUser = await getServerUser()
 
-  const headersList = headers()
+  const headersList = await headers()
   const detectedLocale = headersList.get('x-detected-locale')
   
   let lang = 'es'
   if (detectedLocale && routing.locales.includes(detectedLocale as any)) {
     lang = detectedLocale
   } else {
-    const cookieStore = cookies()
+    const cookieStore = await cookies()
     const localeCookie = cookieStore.get('NEXT_LOCALE')
     if (localeCookie?.value && routing.locales.includes(localeCookie.value as any)) {
       lang = localeCookie.value
@@ -144,6 +153,39 @@ export default async function RootLayout({
         <link rel="apple-touch-icon" sizes="180x180" href="/icons/icon-192x192.png" />
         <link rel="apple-touch-icon" sizes="152x152" href="/icons/icon-192x192.png" />
         <link rel="manifest" href="/manifest.json" />
+        <meta name="geo.region" content="VE" />
+        <meta name="geo.placename" content="Venezuela" />
+        <meta name="language" content="Spanish" />
+        <meta name="revisit-after" content="1 days" />
+        <meta name="rating" content="General" />
+        <meta name="distribution" content="Global" />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'WebSite',
+              name: 'VendeT',
+              url: 'https://vendet.online',
+              potentialAction: {
+                '@type': 'SearchAction',
+                target: 'https://vendet.online/buscar?q={search_term_string}',
+                'query-input': 'required name=search_term_string'
+              },
+              publisher: {
+                '@type': 'Organization',
+                name: 'VendeT',
+                url: 'https://vendet.online',
+                logo: 'https://vendet.online/icons/icon-192x192.png',
+                sameAs: [
+                  'https://instagram.com/vendet',
+                  'https://twitter.com/vendet',
+                  'https://facebook.com/vendet'
+                ]
+              }
+            })
+          }}
+        />
       </head>
       <body className="bg-white antialiased" suppressHydrationWarning>
         <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-brand-primary focus:text-white focus:rounded-lg focus:shadow-lg">
@@ -156,6 +198,7 @@ export default async function RootLayout({
           <PWAInstallBanner />
           <PushNotificationBanner />
           <BottomTabNav />
+          <CookieConsent />
         </AuthProvider>
         {/* Re-enable Vercel Analytics and SpeedInsights with lazy initialization */}
         <Analytics />

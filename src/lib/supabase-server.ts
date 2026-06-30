@@ -11,9 +11,9 @@ import { cookies } from 'next/headers'
  * This is synchronous, reliable, and always matches the client's session
  * because both read from the same cookie.
  */
-export function getServerUser(): any | null {
+export async function getServerUser(): Promise<any | null> {
   try {
-    const cookieStore = cookies()
+    const cookieStore = await cookies()
     const allCookies = cookieStore.getAll()
 
     // Supabase stores auth token in cookie named 'sb-{projectRef}-auth-token'

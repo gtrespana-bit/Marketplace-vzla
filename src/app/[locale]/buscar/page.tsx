@@ -1,10 +1,6 @@
-import type { Metadata } from 'next'
-import dynamic from 'next/dynamic'
+'use client'
 
-export const metadata: Metadata = {
-  title: 'Buscar — VendeT-Venezuela',
-  description: 'Busca productos en el marketplace venezolano',
-}
+import dynamic from 'next/dynamic'
 
 const BuscarClient = dynamic(() => import('./BuscarPage'), { ssr: false })
 

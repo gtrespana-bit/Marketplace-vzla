@@ -2,7 +2,7 @@ import { Metadata } from 'next'
 import LandingCategoria from './LandingCategoria'
 
 type Props = {
-  params: { ciudad: string; categoria: string }
+  params: Promise<{ ciudad: string; categoria: string }>
 }
 
 const CIUDADES: Record<string, { nombre: string; estado?: string }> = {
@@ -31,7 +31,7 @@ const CATEGORIAS: Record<string, { nombre: string }> = {
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { ciudad, categoria } = params
+  const { ciudad, categoria } = await params
   const c = CIUDADES[ciudad.replace(/á/g, 'a')] || { nombre: ciudad }
   const cat = CATEGORIAS[categoria] || { nombre: categoria }
   const title = `${cat.nombre} en ${c.nombre} — Compra y Venta | VendeT-Venezuela`
@@ -46,7 +46,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function CategoriaPage({ params }: Props) {
-  const { ciudad, categoria } = params
+  const { ciudad, categoria } = await params
   const c = CIUDADES[ciudad.replace(/á/g, 'a')] || { nombre: ciudad }
   const cat = CATEGORIAS[categoria] || { nombre: categoria }
   return <LandingCategoria ciudadSlug={ciudad} ciudadNombre={c.nombre} categoriaSlug={categoria} categoriaNombre={cat.nombre} />

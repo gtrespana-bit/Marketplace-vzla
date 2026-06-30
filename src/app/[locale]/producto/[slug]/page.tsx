@@ -9,7 +9,7 @@ import { getTranslations } from 'next-intl/server'
 export const revalidate = 300
 
 type Props = {
-  params: { slug: string }
+  params: Promise<{ slug: string }>
 }
 
 async function getProduct(slug: string) {
@@ -35,7 +35,7 @@ async function getProduct(slug: string) {
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { slug } = params
+  const { slug } = await params
   const producto = await getProduct(slug)
 
   if (!producto) {
@@ -77,10 +77,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       images: image,
     },
     alternates: {
-      canonical: `https://vende-t.com/producto/${slug}`,
+      canonical: `https://vendet.online/producto/${slug}`,
       languages: {
-        es: `https://vende-t.com/producto/${slug}`,
-        en: `https://vende-t.com/en/producto/${slug}`,
+        es: `https://vendet.online/producto/${slug}`,
+        en: `https://vendet.online/en/producto/${slug}`,
       },
     },
   }
@@ -106,7 +106,7 @@ export async function generateStaticParams() {
 }
 
 export default async function ProductoPage({ params }: Props) {
-  const { slug } = params
+  const { slug } = await params
   const producto = await getProduct(slug)
   const t = await getTranslations('productDetail')
 

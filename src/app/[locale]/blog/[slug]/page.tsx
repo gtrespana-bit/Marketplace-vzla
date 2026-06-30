@@ -61,8 +61,8 @@ function generateStaticParams(): { slug: string }[] {
   return getAllSlugs().map(slug => ({ slug }))
 }
 
-async function generateMetadata(props: { params: { slug: string } }): Promise<Metadata> {
-  const { slug } = props.params
+async function generateMetadata(props: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await props.params
   const post = getPostBySlug(slug)
   if (!post) return { title: 'Post not found — VendeT' }
 
@@ -185,8 +185,8 @@ function renderMarkdown(content: string): string {
 }
 
 // Static pages for SSR
-export default async function BlogPost(props: { params: { slug: string } }) {
-  const { slug } = props.params
+export default async function BlogPost(props: { params: Promise<{ slug: string }> }) {
+  const { slug } = await props.params
   const post = getPostBySlug(slug)
   const t = await getTranslations('blog')
 

@@ -22,13 +22,6 @@ const nextConfig = withNextIntl({
       'date-fns',
     ],
     scrollRestoration: true,
-    
-    // Habilitar compresión Brotli
-    turbo: {
-      resolveAlias: {
-        // Optimizaciones de alias para reducir el tamaño del bundle
-      }
-    }
   },
 
   images: {
