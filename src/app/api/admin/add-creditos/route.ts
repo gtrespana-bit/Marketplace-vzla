@@ -2,14 +2,21 @@ import { createClient } from '@supabase/supabase-js'
 import { NextRequest, NextResponse } from 'next/server'
 import { revalidatePath } from 'next/cache'
 import { notifyUser } from '@/lib/push-notify'
+import { requireUUIDs } from '@/lib/validation'
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
     const { userId, cantidad, motivo } = body
 
-    if (!userId || !cantidad || parseInt(cantidad) < 1) {
-      return NextResponse.json({ error: 'Datos inválidos' }, { status: 400 })
+    // Validar UUID
+    const uuidCheck = requireUUIDs(body, ['userId'])
+    if (!uuidCheck.valid) {
+      return NextResponse.json({ error: uuidCheck.error }, { status: 400 })
+    }
+
+    if (!cantidad || parseInt(cantidad) < 1) {
+      return NextResponse.json({ error: 'Cantidad inválida' }, { status: 400 })
     }
 
     const supabaseAdmin = createClient(

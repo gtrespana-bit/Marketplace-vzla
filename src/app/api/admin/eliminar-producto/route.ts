@@ -12,6 +12,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { S3Client, DeleteObjectCommand } from '@aws-sdk/client-s3'
+import { requireUUIDs } from '@/lib/validation'
 
 const ADMIN_EMAILS = ['gtrespana@gmail.com']
 
@@ -32,6 +33,17 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
     const { productId, userId } = body
+
+    // Validar UUIDs
+    const uuidCheck = requireUUIDs(body, ['productId'])
+    if (!uuidCheck.valid) {
+      return NextResponse.json({ error: uuidCheck.error }, { status: 400 })
+    }
+    
+    // userId es opcional pero si existe debe ser válido
+    if (userId && !requireUUIDs({ userId }, ['userId']).valid) {
+      return NextResponse.json({ error: 'userId inválido' }, { status: 400 })
+    }
 
     if (!productId) {
       return NextResponse.json({ error: 'Missing productId' }, { status: 400 })

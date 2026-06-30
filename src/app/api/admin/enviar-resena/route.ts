@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import { NextRequest, NextResponse } from 'next/server'
+import { requireUUIDs } from '@/lib/validation'
 
 /**
  * Enviar reseña desde el vendedor al comprador.
@@ -10,8 +11,10 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { producto_id, evaluador_id, evaluado_id, puntuacion, comentario } = body
 
-    if (!producto_id || !evaluador_id || !evaluado_id) {
-      return NextResponse.json({ error: 'Datos incompletos' }, { status: 400 })
+    // Validar UUIDs
+    const uuidCheck = requireUUIDs(body, ['producto_id', 'evaluador_id', 'evaluado_id'])
+    if (!uuidCheck.valid) {
+      return NextResponse.json({ error: uuidCheck.error }, { status: 400 })
     }
 
     const supabaseAdmin = createClient(

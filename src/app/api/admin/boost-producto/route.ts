@@ -1,14 +1,17 @@
 import { createClient } from '@supabase/supabase-js'
 import { NextRequest, NextResponse } from 'next/server'
 import { revalidatePath } from 'next/cache'
+import { requireUUIDs } from '@/lib/validation'
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
     const { productId } = body
 
-    if (!productId) {
-      return NextResponse.json({ error: 'productId requerido' }, { status: 400 })
+    // Validar UUID
+    const uuidCheck = requireUUIDs(body, ['productId'])
+    if (!uuidCheck.valid) {
+      return NextResponse.json({ error: uuidCheck.error }, { status: 400 })
     }
 
     const supabaseAdmin = createClient(

@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import { NextRequest, NextResponse } from 'next/server'
+import { requireUUIDs } from '@/lib/validation'
 
 /**
  * Verifica un vendedor desde el admin.
@@ -10,8 +11,10 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { userId, cedula_numero, pago_movil_telefono, pago_movil_cedula, pago_movil_banco } = body
 
-    if (!userId) {
-      return NextResponse.json({ error: 'userId requerido' }, { status: 400 })
+    // Validar UUID
+    const uuidCheck = requireUUIDs(body, ['userId'])
+    if (!uuidCheck.valid) {
+      return NextResponse.json({ error: uuidCheck.error }, { status: 400 })
     }
 
     const supabaseAdmin = createClient(

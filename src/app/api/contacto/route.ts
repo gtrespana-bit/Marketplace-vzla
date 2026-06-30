@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import nodemailer from 'nodemailer'
+import { checkRateLimit } from '@/lib/rate-limit'
+import { sanitizeString, isValidEmail, isValidLength } from '@/lib/validation'
 
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN
 const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID
@@ -14,15 +16,10 @@ function getTransporter() {
   })
 }
 
-/** Rate limiter simple en memoria */
-const rateLimit = new Map<string, number>()
-
-function checkRateLimit(ip: string): boolean {
-  const now = Date.now()
-  const last = rateLimit.get(ip) || 0
-  if (now - last < 60_000) return false // 1 min entre envios
-  rateLimit.set(ip, now)
-  return true
+/** Rate limiter distribuido vía Supabase */
+async function checkContactRateLimit(ip: string): Promise<boolean> {
+  const rl = await checkRateLimit('contacto:send', ip, { ip })
+  return rl.ok
 }
 
 async function sendTelegramAlert(asunto: string, nombre: string, email: string, mensaje: string) {
@@ -45,10 +42,10 @@ async function sendTelegramAlert(asunto: string, nombre: string, email: string, 
 }
 
 export async function POST(req: NextRequest) {
-  const ip = req.headers.get('x-forwarded-for') || 'unknown'
+  const ip = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown'
 
-  if (!checkRateLimit(ip)) {
-    return NextResponse.json({ error: 'Demasiados intentos. Espera un minuto.' }, { status: 429 })
+  if (!(await checkContactRateLimit(ip))) {
+    return NextResponse.json({ error: 'Demasiados intentos. Espera un momento.' }, { status: 429 })
   }
 
   const body = await req.json()
@@ -59,9 +56,22 @@ export async function POST(req: NextRequest) {
     mensaje: string
   }
 
-  if (!nombre || !email || !mensaje) {
-    return NextResponse.json({ error: 'Faltan campos obligatorios' }, { status: 400 })
+  // Validación
+  if (!nombre || !isValidLength(nombre, 2, 100)) {
+    return NextResponse.json({ error: 'Nombre inválido' }, { status: 400 })
   }
+  if (!email || !isValidEmail(email)) {
+    return NextResponse.json({ error: 'Email inválido' }, { status: 400 })
+  }
+  if (!mensaje || !isValidLength(mensaje, 10, 5000)) {
+    return NextResponse.json({ error: 'Mensaje debe tener entre 10 y 5000 caracteres' }, { status: 400 })
+  }
+
+  // Sanitización (anti-XSS)
+  const nombreClean = sanitizeString(nombre, 100)
+  const emailClean = sanitizeString(email, 254)
+  const asuntoClean = sanitizeString(asunto || '(sin asunto)', 200)
+  const mensajeClean = sanitizeString(mensaje, 5000)
 
   if (!process.env.ZOHO_SMTP_USER || !process.env.ZOHO_SMTP_PASS) {
     console.warn('⚠️ SMTP no configurado - contacto')
@@ -73,19 +83,19 @@ export async function POST(req: NextRequest) {
       <div style="font-family:sans-serif;max-width:600px;padding:24px">
         <h2 style="color:#7B2D3B">📩 Nuevo mensaje de contacto</h2>
         <table style="width:100%;border-collapse:collapse;margin:16px 0">
-          <tr><td style="padding:8px 0;font-weight:bold;color:#333">Nombre</td><td style="padding:8px 0">${nombre}</td></tr>
-          <tr><td style="padding:8px 0;font-weight:bold;color:#333">Email</td><td style="padding:8px 0"><a href="mailto:${email}">${email}</a></td></tr>
-          <tr><td style="padding:8px 0;font-weight:bold;color:#333">Asunto</td><td style="padding:8px 0">${asunto}</td></tr>
+          <tr><td style="padding:8px 0;font-weight:bold;color:#333">Nombre</td><td style="padding:8px 0">${nombreClean}</td></tr>
+          <tr><td style="padding:8px 0;font-weight:bold;color:#333">Email</td><td style="padding:8px 0"><a href="mailto:${emailClean}">${emailClean}</a></td></tr>
+          <tr><td style="padding:8px 0;font-weight:bold;color:#333">Asunto</td><td style="padding:8px 0">${asuntoClean}</td></tr>
         </table>
         <div style="background:#f5f5f5;border-radius:8px;padding:16px;margin-top:8px">
           <strong>Mensaje:</strong><br>
-          <div style="margin-top:8px;white-space:pre-wrap">${mensaje}</div>
+          <div style="margin-top:8px;white-space:pre-wrap">${mensajeClean}</div>
         </div>
         <p style="margin-top:24px;color:#999;font-size:12px">VendeT-Venezuela · ${new Date().toLocaleString('es-VE')}</p>
       </div>
     `
 
-    console.log('📧 Enviando email a soporte@vendet.online:', { nombre, email, asunto })
+    console.log('📧 Enviando email de contacto:', { nombreClean, emailClean })
     console.log('SMTP config:', {
       host: process.env.ZOHO_SMTP_HOST,
       port: process.env.ZOHO_SMTP_PORT,
@@ -101,15 +111,15 @@ export async function POST(req: NextRequest) {
     await transporter.sendMail({
       from: '"VendeT-Venezuela" <noreply@vendet.online>',
       to: 'soporte@vendet.online',
-      replyTo: email,
-      subject: `📩 Contacto: ${asunto || '(sin asunto)'}`,
+      replyTo: emailClean,
+      subject: `📩 Contacto: ${asuntoClean}`,
       html,
     })
 
     console.log('✅ Email enviado correctamente')
 
     // Telegram notification
-    await sendTelegramAlert(asunto, nombre, email, mensaje)
+    await sendTelegramAlert(asuntoClean, nombreClean, emailClean, mensajeClean)
 
     return NextResponse.json({ success: true })
   } catch (e: any) {

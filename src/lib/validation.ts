@@ -21,6 +21,18 @@ export function isValidUUID(str: string): boolean {
   return uuidRegex.test(str)
 }
 
+// Validar y extraer UUIDs de un body (rechaza si falta o es inválido)
+export function requireUUIDs(body: any, fields: string[]): { valid: boolean; values: Record<string, string>; error?: string } {
+  const values: Record<string, string> = {}
+  for (const field of fields) {
+    if (!body[field] || !isValidUUID(body[field])) {
+      return { valid: false, values: {}, error: `${field} inválido` }
+    }
+    values[field] = body[field]
+  }
+  return { valid: true, values }
+}
+
 // Validar email
 export function isValidEmail(email: string): boolean {
   if (typeof email !== 'string') return false
