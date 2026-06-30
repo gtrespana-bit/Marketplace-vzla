@@ -20,20 +20,8 @@ const nextConfig = withNextIntl({
       '@supabase/supabase-js',
       '@supabase/ssr',
       'date-fns',
-      'react',
-      'react-dom',
-      'next',
     ],
     scrollRestoration: true,
-  },
-
-  // Optimizaciones de rendimiento
-  optimizeFonts: true,
-  modularizeImports: {
-    'lucide-react': {
-      transform: 'lucide-react/dist/esm/{{kebabCase member}}',
-      skipDefaultConversion: true,
-    },
   },
 
   images: {
