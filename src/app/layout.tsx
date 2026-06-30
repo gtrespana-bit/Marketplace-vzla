@@ -16,7 +16,6 @@ import { getServerUser } from '@/lib/supabase-server'
 import PWAInstallBanner from '@/components/PWAInstallBanner'
 import PushNotificationBanner from '@/components/PushNotificationBanner'
 import BottomTabNav from '@/components/BottomTabNav'
-import CookieConsent from '@/components/CookieConsent'
 
 const inter = Inter({
   subsets: ['latin'],
@@ -198,7 +197,6 @@ export default async function RootLayout({
           <PWAInstallBanner />
           <PushNotificationBanner />
           <BottomTabNav />
-          <CookieConsent />
         </AuthProvider>
         {/* Re-enable Vercel Analytics and SpeedInsights with lazy initialization */}
         <Analytics />
