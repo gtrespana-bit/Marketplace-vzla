@@ -1,15 +1,18 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useTranslations } from 'next-intl';
-import { CheckCircle, Mail, ExternalLink, ArrowRight } from 'lucide-react'
+import { useTranslations } from 'next-intl'
+import { CheckCircle, Mail, ExternalLink, ArrowRight, RefreshCw } from 'lucide-react'
 import LocalLink from '@/components/LocalLink'
 import { useRouter } from 'next/navigation'
+import { supabase } from '@/lib/supabase'
 
 function ConfirmacionContent() {
   const t = useTranslations('auth')
   const router = useRouter()
   const [email, setEmail] = useState('')
+  const [resending, setResending] = useState(false)
+  const [resendStatus, setResendStatus] = useState<'idle' | 'success' | 'error'>('idle')
 
   useEffect(() => {
     setEmail(sessionStorage.getItem('tempEmail') || 'tu correo electrónico')
@@ -18,6 +21,30 @@ function ConfirmacionContent() {
   const handleConfirmClick = () => {
     sessionStorage.removeItem('tempEmail')
     router.push('/login')
+  }
+
+  const handleResend = async () => {
+    if (!email || email === 'tu correo electrónico') return
+    setResending(true)
+    setResendStatus('idle')
+
+    try {
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email: email,
+      })
+
+      if (error) {
+        setResendStatus('error')
+        console.error('Resend error:', error.message)
+      } else {
+        setResendStatus('success')
+      }
+    } catch (e: any) {
+      setResendStatus('error')
+      console.error('Resend error:', e.message)
+    }
+    setResending(false)
   }
 
   return (
@@ -62,7 +89,7 @@ function ConfirmacionContent() {
             </p>
           </div>
 
-          {/* Bloque de confirmación manual */}
+          {/* Reenviar email */}
           <div className="bg-yellow-50 border-l-4 border-yellow-500 p-4 rounded-lg mb-6">
             <p className="text-sm text-yellow-900 font-semibold mb-2">
               {t('confirmacion.not_received')}
@@ -70,13 +97,33 @@ function ConfirmacionContent() {
             <p className="text-sm text-yellow-800 mb-3">
               {t('confirmacion.resend_hint')}
             </p>
-            <LocalLink
-              href="/login"
-              className="w-full bg-yellow-500 text-brand-dark font-bold py-3 rounded-lg hover:bg-accent/90 transition flex items-center justify-center gap-2"
+            <button
+              onClick={handleResend}
+              disabled={resending || !email || email === 'tu correo electrónico'}
+              className="w-full bg-yellow-500 text-brand-dark font-bold py-3 rounded-lg hover:bg-accent/90 transition flex items-center justify-center gap-2 disabled:opacity-50"
             >
-              <ExternalLink size={16} />
-              {t('confirmacion.go_to_login')}
-            </LocalLink>
+              {resending ? (
+                <>
+                  <RefreshCw size={16} className="animate-spin" />
+                  Enviando...
+                </>
+              ) : resendStatus === 'success' ? (
+                <>
+                  <CheckCircle size={16} />
+                  ¡Email reenviado!
+                </>
+              ) : (
+                <>
+                  <RefreshCw size={16} />
+                  Reenviar email de confirmación
+                </>
+              )}
+            </button>
+            {resendStatus === 'error' && (
+              <p className="text-xs text-red-600 mt-2">
+                Error al reenviar. Verifica que el email sea correcto.
+              </p>
+            )}
           </div>
 
           {/* Botón principal */}

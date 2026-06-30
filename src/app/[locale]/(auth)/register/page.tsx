@@ -29,12 +29,35 @@ export default function RegisterPage() {
     e.preventDefault()
     setError('')
 
-    if (password !== repeatPassword) {
-      setError(t('register.password_mismatch'))
+    // Validación de email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(email)) {
+      setError('Ingresa un email válido')
       return
     }
+
+    // Validación de nombre
+    if (!nombre || nombre.trim().length < 2) {
+      setError('El nombre debe tener al menos 2 caracteres')
+      return
+    }
+
+    // Validación de contraseña
     if (password.length < 8) {
       setError('La contraseña debe tener al menos 8 caracteres')
+      return
+    }
+    if (!/[A-Z]/.test(password)) {
+      setError('La contraseña debe tener al menos una mayúscula')
+      return
+    }
+    if (!/[0-9]/.test(password)) {
+      setError('La contraseña debe tener al menos un número')
+      return
+    }
+
+    if (password !== repeatPassword) {
+      setError(t('register.password_mismatch'))
       return
     }
 

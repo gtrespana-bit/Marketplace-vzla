@@ -20,13 +20,13 @@ export async function POST(req: NextRequest) {
     }
 
     // Verificar config
-    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_KEY) {
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
       return NextResponse.json({ error: 'Config missing' }, { status: 503 })
     }
 
     const sb = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_KEY!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
     )
 
     // Obtener subscriptions del usuario
