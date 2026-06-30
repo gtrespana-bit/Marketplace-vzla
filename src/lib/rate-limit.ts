@@ -7,34 +7,34 @@
 import { createClient } from '@supabase/supabase-js'
 
 const LIMITS: Record<string, { max: number; windowMs: number }> = {
-  // Publicaciones: 10 por hora por usuario
-  'producto:create': { max: 10, windowMs: 60 * 60 * 1000 },
-  // Mensajes: 30 por hora por usuario
-  'mensaje:create': { max: 30, windowMs: 60 * 60 * 1000 },
-  // Denuncias: 5 por hora
-  'denuncia:create': { max: 5, windowMs: 60 * 60 * 1000 },
+  // Publicaciones: 20 por hora (nuevos usuarios subiendo inventario)
+  'producto:create': { max: 20, windowMs: 60 * 60 * 1000 },
+  // Mensajes: 200 por hora (conversaciones activas entre usuarios)
+  'mensaje:create': { max: 200, windowMs: 60 * 60 * 1000 },
+  // Denuncias: 10 por hora
+  'denuncia:create': { max: 10, windowMs: 60 * 60 * 1000 },
   // Login: 5 por 15 min por IP (anti brute force)
   'auth:login': { max: 5, windowMs: 15 * 60 * 1000 },
-  // Comprar créditos: 5 por hora
-  'creditos:comprar': { max: 5, windowMs: 60 * 60 * 1000 },
+  // Comprar créditos: SIN límite práctico (no bloquear ventas)
+  'creditos:comprar': { max: 999, windowMs: 60 * 60 * 1000 },
   // Registro de usuarios: 3 por hora por IP
   'auth:register': { max: 3, windowMs: 60 * 60 * 1000 },
-  // Reset password: 3 por hora por IP
-  'auth:reset': { max: 3, windowMs: 60 * 60 * 1000 },
-  // Contacto: 5 por hora por IP
-  'contacto:send': { max: 5, windowMs: 60 * 60 * 1000 },
-  // Conversaciones: 10 por hora por usuario
-  'conversacion:create': { max: 10, windowMs: 60 * 60 * 1000 },
-  // Favoritos: 50 por hora por usuario
-  'favorito:toggle': { max: 50, windowMs: 60 * 60 * 1000 },
-  // Foto perfil: 5 por hora por usuario
-  'foto-perfil:update': { max: 5, windowMs: 60 * 60 * 1000 },
-  // Subida R2: 20 por hora por usuario
-  'r2-upload': { max: 20, windowMs: 60 * 60 * 1000 },
-  // Consultar tasa BCV: 30 por hora por IP
-  'tasa-bcv': { max: 30, windowMs: 60 * 60 * 1000 },
-  // Webhook Telegram: 60 por hora
-  'telegram:webhook': { max: 60, windowMs: 60 * 60 * 1000 },
+  // Reset password: 5 por hora por IP
+  'auth:reset': { max: 5, windowMs: 60 * 60 * 1000 },
+  // Contacto: 10 por hora por IP
+  'contacto:send': { max: 10, windowMs: 60 * 60 * 1000 },
+  // Conversaciones: 20 por hora por usuario
+  'conversacion:create': { max: 20, windowMs: 60 * 60 * 1000 },
+  // Favoritos: 100 por hora por usuario
+  'favorito:toggle': { max: 100, windowMs: 60 * 60 * 1000 },
+  // Foto perfil: 10 por hora por usuario
+  'foto-perfil:update': { max: 10, windowMs: 60 * 60 * 1000 },
+  // Subida R2: 50 por hora por usuario
+  'r2-upload': { max: 50, windowMs: 60 * 60 * 1000 },
+  // Consultar tasa BCV: 60 por hora por IP
+  'tasa-bcv': { max: 60, windowMs: 60 * 60 * 1000 },
+  // Webhook Telegram: 120 por hora
+  'telegram:webhook': { max: 120, windowMs: 60 * 60 * 1000 },
 }
 
 function getSupabaseClient() {
