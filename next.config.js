@@ -1,21 +1,5 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Redirecciones HTTP a HTTPS
-  async redirects() {
-    return [
-      {
-        source: '/:path*',
-        has: [
-          {
-            type: 'protocol',
-            value: 'http',
-          },
-        ],
-        destination: 'https://vendet.online/:path*',
-        permanent: true, // 308 redirect
-      },
-    ];
-  },
   // Encabezados de seguridad HSTS y otros
   async headers() {
     return [
