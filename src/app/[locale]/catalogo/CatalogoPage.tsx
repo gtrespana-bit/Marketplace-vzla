@@ -241,16 +241,70 @@ export default function CatalogoClient({ initialProducts = [], initialCount = 0 
         ? t('catalog.categories.' + categoria)
         : t('catalog.allProducts')
 
+  // Generar breadcrumbs jerárquicos con schema.org
+  const breadcrumbs = [
+    { label: t('catalog.breadcrumb'), href: '/' },
+    { label: t('catalog.title'), href: '/catalogo' }
+  ]
+  
+  if (categoria && cat) {
+    breadcrumbs.push({ 
+      label: `${cat.icon} ${t('catalog.categories.' + categoria)}`, 
+      href: `/catalogo?categoria=${categoria}` 
+    })
+  }
+  
+  if (subcategoria) {
+    breadcrumbs.push({ 
+      label: t('catalog.subcategories.' + subcategoria), 
+      href: undefined // Página actual
+    })
+  }
+  
+  if (q) {
+    breadcrumbs.push({ 
+      label: `${t('catalog.searchLabel')}: "${q}"`, 
+      href: undefined // Página actual
+    })
+  }
+  
+  // Schema.org BreadcrumbList JSON-LD
+  const breadcrumbSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: breadcrumbs.map((item, index) => ({
+      '@type': 'ListItem',
+      position: index + 1,
+      name: item.label.replace(/^[^ ]+ /, ''), // Remover emoji del nombre para schema
+      item: item.href ? `https://vendet.online${item.href}` : undefined
+    }))
+  }
+
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8">
-      <nav className="flex items-center gap-2 text-sm text-gray-500 mb-6 flex-wrap">
-        <LocalLink href="/" className="hover:text-brand-primary">{t('catalog.breadcrumb')}</LocalLink>
-        <ChevronRight size={14} />
-        <span className="text-gray-800 font-medium">{t('catalog.title')}</span>
-        {categoria && (<><ChevronRight size={14} /><span className="text-gray-900 font-semibold">{cat?.icon} {t('catalog.categories.' + categoria)}</span></>)}
-        {subcategoria && (<><ChevronRight size={14} /><span className="text-gray-900 font-semibold">{t('catalog.subcategories.' + subcategoria)}</span></>)}
-        {q && (<><ChevronRight size={14} /><span>{t('catalog.searchLabel')}: &ldquo;{q}&rdquo;</span></>)}
-      </nav>
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+      />
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        {/* Breadcrumbs visuales */}
+        <nav className="flex items-center gap-2 text-sm text-gray-500 mb-6 flex-wrap" aria-label="Breadcrumb">
+          {breadcrumbs.map((item, index) => (
+            <span key={index} className="flex items-center gap-2">
+              {index > 0 && <ChevronRight size={14} className="text-gray-400" />}
+              {item.href ? (
+                <LocalLink 
+                  href={item.href} 
+                  className="hover:text-brand-primary transition"
+                >
+                  {item.label}
+                </LocalLink>
+              ) : (
+                <span className="text-gray-900 font-medium">{item.label}</span>
+              )}
+            </span>
+          ))}
+        </nav>
 
       <div className="flex flex-col lg:flex-row gap-6">
         <aside className="w-full lg:w-72 flex-shrink-0">
@@ -325,5 +379,6 @@ export default function CatalogoClient({ initialProducts = [], initialCount = 0 
         totalItems={productosToUse.length} 
       />
     </div>
+    </>
   )
 }
