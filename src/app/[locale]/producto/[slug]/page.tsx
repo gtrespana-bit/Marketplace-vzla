@@ -20,7 +20,33 @@ async function getProduct(slug: string) {
   
   const { data, error } = await supabase
     .from('productos')
-    .select('id, titulo, descripcion, precio_usd, estado, categoria_id, subcategoria, marca, modelo, ubicacion_estado, ubicacion_ciudad, activo, visitas, creado_en, user_id, imagen_url, destacado, destacado_hasta, boosteado_en')
+    .select(`
+      id, 
+      titulo, 
+      descripcion, 
+      precio_usd, 
+      estado, 
+      categoria_id, 
+      subcategoria, 
+      marca, 
+      modelo, 
+      ubicacion_estado, 
+      ubicacion_ciudad, 
+      activo, 
+      visitas, 
+      creado_en, 
+      user_id, 
+      imagen_url, 
+      destacado, 
+      destacado_hasta, 
+      boosteado_en,
+      perfil:perfiles (
+        nombre_completo,
+        telefono,
+        ciudad,
+        estado
+      )
+    `)
     .eq('id', slug)
     .eq('activo', true)
     // Check for approved status, pending (still show), or null (default to approved)
@@ -121,7 +147,12 @@ export default async function ProductoPage({ params }: Props) {
   }
 
   // JSON-LD Product Schema
-  const jsonLd = {
+  const sellerName = producto.perfil?.nombre_completo || 'Vendedor VendeT';
+  const sellerPhone = producto.perfil?.telefono;
+  const sellerCity = producto.perfil?.ciudad || producto.ubicacion_ciudad || '';
+  const sellerState = producto.perfil?.estado || producto.ubicacion_estado || '';
+  
+  const jsonLd: any = {
     '@context': 'https://schema.org',
     '@type': 'Product',
     name: producto.titulo,
@@ -133,8 +164,15 @@ export default async function ProductoPage({ params }: Props) {
       priceCurrency: 'USD',
       availability: 'https://schema.org/InStock',
       seller: {
-        '@type': 'Organization',
-        name: producto.seller_nombre || 'VendeT-Venezuela',
+        '@type': 'Person',
+        name: sellerName,
+        ...(sellerPhone && { telephone: sellerPhone }),
+        address: {
+          '@type': 'PostalAddress',
+          addressLocality: sellerCity,
+          addressRegion: sellerState,
+          addressCountry: 'VE',
+        },
       },
     },
     category: producto.subcategoria || '',
