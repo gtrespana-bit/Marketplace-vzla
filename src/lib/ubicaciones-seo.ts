@@ -69,8 +69,8 @@ export const CATEGORIAS_POPULARES = [
 ]
 
 // Generar combinaciones ciudad-categoría para SEO programático
-export function generateCityCategoryParams() {
-  const params = []
+export function generateCityCategoryParams(): Array<{ city: string; category: string }> {
+  const params: Array<{ city: string; category: string }> = []
   for (const ciudad of CIUDADES_SEO) {
     for (const categoria of CATEGORIAS_POPULARES) {
       params.push({
