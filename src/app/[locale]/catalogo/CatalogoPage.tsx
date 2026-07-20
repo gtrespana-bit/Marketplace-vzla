@@ -257,14 +257,14 @@ export default function CatalogoClient({ initialProducts = [], initialCount = 0 
   if (subcategoria) {
     breadcrumbs.push({ 
       label: t('catalog.subcategories.' + subcategoria), 
-      href: undefined // Página actual
+      href: '' // Página actual
     })
   }
   
   if (q) {
     breadcrumbs.push({ 
       label: `${t('catalog.searchLabel')}: "${q}"`, 
-      href: undefined // Página actual
+      href: '' // Página actual
     })
   }
   
