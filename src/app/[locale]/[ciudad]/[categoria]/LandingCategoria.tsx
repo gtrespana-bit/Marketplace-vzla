@@ -11,6 +11,7 @@ interface Props {
   estado: string
   categoriaSlug: string
   categoriaNombre: string
+  descripcion: string
 }
 
 const CATEGORIA_MAP: Record<string, string> = {
