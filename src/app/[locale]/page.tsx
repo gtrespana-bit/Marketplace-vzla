@@ -6,13 +6,57 @@ import { BotonDescargarApp } from '@/components/BotonDescargarApp'
 import { getTranslations } from 'next-intl/server'
 import type { Metadata } from 'next'
 
-export function generateMetadata(): Metadata {
+export async function generateMetadata({ params }: { params: { locale: string } }): Promise<Metadata> {
+  const t = await getTranslations({ locale: params.locale, namespace: 'Home' })
+  
   return {
+    title: {
+      default: 'Clasificados Venezuela | VendeT.online - Compra y Venta en Venezuela',
+      template: `%s | VendeT.online`
+    },
+    description: 'VendeT.online es el marketplace líder de clasificados en Venezuela. Publica gratis, compra y vende productos nuevos y usados en todo el país. Únete a miles de usuarios.',
+    keywords: ['clasificados venezuela', 'compra venta venezuela', 'marketplace venezuela', 'vender en venezuela', 'clasificados online', 'tienda online venezuela', 'productos venezuela', 'mercado libre venezuela'],
+    authors: [{ name: 'VendeT.online' }],
+    creator: 'VendeT.online',
+    publisher: 'VendeT.online',
     alternates: {
       canonical: 'https://vende-t.com/',
       languages: {
         es: 'https://vende-t.com/',
         en: 'https://vende-t.com/en/',
+      },
+    },
+    openGraph: {
+      title: 'Clasificados Venezuela | VendeT.online',
+      description: 'El marketplace líder de clasificados en Venezuela. Publica gratis y vende tus productos.',
+      url: 'https://vende-t.com/',
+      siteName: 'VendeT.online',
+      images: [
+        {
+          url: 'https://vende-t.com/og-image.png',
+          width: 1200,
+          height: 630,
+          alt: 'VendeT.online - Clasificados Venezuela'
+        }
+      ],
+      locale: params.locale === 'en' ? 'en_US' : 'es_VE',
+      type: 'website',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: 'Clasificados Venezuela | VendeT.online',
+      description: 'El marketplace líder de clasificados en Venezuela. Publica gratis y vende tus productos.',
+      images: ['https://vende-t.com/og-image.png'],
+    },
+    robots: {
+      index: true,
+      follow: true,
+      googleBot: {
+        index: true,
+        follow: true,
+        'max-video-preview': -1,
+        'max-image-preview': 'large',
+        'max-snippet': -1,
       },
     },
   }
