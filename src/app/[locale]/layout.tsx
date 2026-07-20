@@ -13,13 +13,10 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   const { locale } = await params
   
   return {
-    other: {
-      'alternate': [
-        {
-          hrefLang: 'es-VE',
-          href: `https://vendet.online/${locale}`,
-        },
-      ],
+    alternates: {
+      languages: {
+        'es-VE': `https://vendet.online/${locale}`,
+      },
     },
   }
 }
