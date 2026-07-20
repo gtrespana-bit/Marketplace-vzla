@@ -226,6 +226,28 @@ export default function BuscarClient() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
+      {/* Contenido indexable para SEO */}
+      <div className="sr-only">
+        <h1>
+          {query 
+            ? `Resultados de búsqueda para "${query}" en Clasificados Venezuela`
+            : categoria 
+              ? `${categoria} en Venezuela - Clasificados VendeT.online`
+              : ciudad || estado
+                ? `Clasificados en ${ciudad || estado}, Venezuela - VendeT.online`
+                : 'Clasificados Venezuela - Busca y encuentra productos en VendeT.online'}
+        </h1>
+        <p>
+          {query 
+            ? `Encuentra los mejores productos relacionados con "${query}" en Venezuela. Compra y vende gratis en VendeT.online, el marketplace líder de clasificados venezolanos.`
+            : categoria 
+              ? `Explora ${categoria} en VendeT.online. Miles de productos nuevos y usados en Venezuela al mejor precio. Publica gratis tus propios artículos.`
+              : ciudad || estado
+                ? `Productos y clasificados en ${ciudad || estado}, Venezuela. Compra y vende localmente en VendeT.online sin comisiones.`
+                : 'Busca productos en todo Venezuela. Encuentra ofertas en electronics, vehículos, inmuebles, moda y más. Publica gratis en VendeT.online.'}
+        </p>
+      </div>
+
       <nav className="flex items-center gap-2 text-sm text-gray-500 mb-6 flex-wrap">
         <LocalLink href="/" className="hover:text-brand-primary">Inicio</LocalLink>
         <ChevronRight size={14} />
