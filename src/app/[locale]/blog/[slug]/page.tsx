@@ -81,6 +81,38 @@ async function generateMetadata(props: { params: Promise<{ slug: string }> }): P
   }
 }
 
+function generateArticleSchema(post: Post) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": post.title,
+    "description": post.excerpt,
+    "datePublished": post.date,
+    "dateModified": post.date,
+    "author": {
+      "@type": "Organization",
+      "name": "VendeT.online",
+      "url": "https://vendet.online"
+    },
+    "publisher": {
+      "@type": "Organization",
+      "name": "VendeT.online",
+      "url": "https://vendet.online",
+      "logo": {
+        "@type": "ImageObject",
+        "url": "https://vendet.online/logo.png"
+      }
+    },
+    "mainEntityOfPage": {
+      "@type": "WebPage",
+      "@id": `https://vendet.online/blog/${post.slug}`
+    },
+    "articleSection": post.category,
+    "keywords": post.tags.join(', '),
+    "inLanguage": "es-VE"
+  }
+}
+
 function inlineFormat(text: string): string {
   text = text.replace(/\*\*(.+?)\*\*/g, '<strong class="font-bold text-gray-900">$1</strong>')
   text = text.replace(/_(.+?)_/g, '<em>$1</em>')
@@ -210,9 +242,16 @@ export default async function BlogPost(props: { params: Promise<{ slug: string }
   }
 
   const htmlContent = renderMarkdown(post.content)
+  const articleSchema = generateArticleSchema(post)
 
   return (
     <article className="min-h-screen bg-white">
+      {/* Article Schema.org JSON-LD */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }}
+      />
+      
       {/* Breadcrumb */}
       <div className="bg-gray-50 border-b">
         <div className="max-w-4xl mx-auto px-4 py-3">
