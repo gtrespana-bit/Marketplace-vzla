@@ -6,6 +6,37 @@ import { BotonDescargarApp } from '@/components/BotonDescargarApp'
 import { getTranslations } from 'next-intl/server'
 import type { Metadata } from 'next'
 
+function generateItemListSchema(products: any[], baseUrl: string) {
+  if (!products || products.length === 0) return null
+  
+  const itemListElements = products.map((product, index) => ({
+    '@type': 'ListItem',
+    position: index + 1,
+    url: `${baseUrl}/producto/${product.id}`,
+    name: product.titulo,
+    description: product.descripcion || `Compra ${product.titulo} en Venezuela`,
+    image: product.imagen_url || `${baseUrl}/placeholder-product.webp`,
+    offers: {
+      '@type': 'Offer',
+      price: product.precio_usd || 0,
+      priceCurrency: 'USD',
+      availability: product.activo ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+      seller: {
+        '@type': 'Organization',
+        name: 'VendeT.online'
+      }
+    }
+  }))
+
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    itemListElement: itemListElements,
+    numberOfItems: products.length,
+    description: 'Lista de productos destacados y recientes en VendeT.online - Clasificados Venezuela'
+  }
+}
+
 export async function generateMetadata({ params }: { params: { locale: string } }): Promise<Metadata> {
   const t = await getTranslations({ locale: params.locale, namespace: 'Home' })
   
@@ -186,8 +217,19 @@ export default async function HomePage() {
     getRecentProducts(),
   ])
 
+  const baseUrl = 'https://vende-t.com'
+  const allProducts = [...destacados, ...productos].slice(0, 20)
+  const itemListSchema = generateItemListSchema(allProducts, baseUrl)
+
   return (
-    <div className="bg-gray-50">
+    <>
+      {itemListSchema && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListSchema) }}
+        />
+      )}
+      <div className="bg-gray-50">
       <section className="bg-gradient-to-br from-brand-primary to-brand-dark py-10 md:py-16 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-96 h-96 bg-brand-accent/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4" />
         <div className="absolute bottom-0 left-0 w-64 h-64 bg-brand-accent/5 rounded-full blur-2xl translate-y-1/3 -translate-x-1/4" />
@@ -568,6 +610,7 @@ export default async function HomePage() {
         </div>
       </section>
     </div>
+    </>
   )
 }
 
