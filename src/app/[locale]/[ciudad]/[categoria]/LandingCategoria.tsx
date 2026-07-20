@@ -124,14 +124,3 @@ export default async function LandingCategoria({ ciudadSlug, ciudadNombre, categ
     </div>
   )
 }
-
-const CATEGORIA_NAMES: Record<string, string> = {
-  vehiculos: 'Vehículos',
-  tecnologia: 'Tecnología',
-  moda: 'Moda',
-  hogar: 'Hogar',
-  herramientas: 'Herramientas',
-  materiales: 'Materiales',
-  repuestos: 'Repuestos',
-  otros: 'Otros',
-}
