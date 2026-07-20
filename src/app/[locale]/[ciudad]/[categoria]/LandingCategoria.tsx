@@ -8,6 +8,7 @@ import { Suspense } from 'react'
 interface Props {
   ciudadSlug: string
   ciudadNombre: string
+  estado: string
   categoriaSlug: string
   categoriaNombre: string
 }
