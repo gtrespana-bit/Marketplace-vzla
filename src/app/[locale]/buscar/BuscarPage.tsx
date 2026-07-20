@@ -226,6 +226,51 @@ export default function BuscarClient() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
+      {/* Contenido SEO visible para motores de búsqueda */}
+      <div className="mb-6">
+        {query ? (
+          <>
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">
+              Resultados de búsqueda para &ldquo;{query}&rdquo; en Venezuela
+            </h1>
+            <p className="text-gray-600">
+              Encuentra los mejores clasificados y productos relacionados con &ldquo;{query}&rdquo; en VendeT.online. 
+              Compra y vende de forma segura en todo el país.
+            </p>
+          </>
+        ) : categoria ? (
+          <>
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">
+              {cat?.label || categoria} en Venezuela — Clasificados VendeT.online
+            </h1>
+            <p className="text-gray-600">
+              Explora {cat?.label || categoria.toLowerCase()} en venta. Los mejores clasificados de {cat?.label || categoria.toLowerCase()} en Venezuela. 
+              Publica gratis y llega a miles de compradores.
+            </p>
+          </>
+        ) : ubicacionCiudad || ubicacionEstado ? (
+          <>
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">
+              Clasificados en {ubicacionCiudad || ubicacionEstado}, Venezuela
+            </h1>
+            <p className="text-gray-600">
+              Compra y vende en {ubicacionCiudad || ubicacionEstado}. Encuentra los mejores clasificados y productos 
+              en {ubicacionCiudad || ubicacionEstado}, Venezuela. Publica tu anuncio gratis hoy mismo.
+            </p>
+          </>
+        ) : (
+          <>
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">
+              Buscar productos — Clasificados Venezuela
+            </h1>
+            <p className="text-gray-600">
+              Busca y encuentra los mejores clasificados en Venezuela. Compra y vende productos nuevos y usados 
+              de forma segura en VendeT.online, el marketplace líder venezolano.
+            </p>
+          </>
+        )}
+      </div>
+
       <nav className="flex items-center gap-2 text-sm text-gray-500 mb-6 flex-wrap">
         <LocalLink href="/" className="hover:text-brand-primary">Inicio</LocalLink>
         <ChevronRight size={14} />
