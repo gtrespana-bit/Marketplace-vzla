@@ -4,6 +4,7 @@ import { routing } from '@/i18n/routing'
 import { Suspense } from 'react'
 import ProductoPageClient from './ProductoPageClient'
 import { getTranslations } from 'next-intl/server'
+import Breadcrumbs from '@/components/Breadcrumbs'
 
 // ISR: cache product pages for 5 minutes
 export const revalidate = 300
@@ -185,12 +186,20 @@ export default async function ProductoPage({ params }: Props) {
     },
   }
 
+  // Breadcrumb items
+  const breadcrumbItems = [
+    { label: producto.subcategoria || 'Categoría', href: `/catalogo?subcategoria=${producto.subcategoria}` },
+    { label: producto.ubicacion_ciudad || 'Ubicación', href: `/${producto.ubicacion_ciudad?.toLowerCase().normalize('NFD').replace(/[^\u0300-\u036f\s]/g, '').replace(/\s+/g, '-')}` },
+    { label: producto.titulo, href: undefined }
+  ]
+
   return (
     <>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
+      <Breadcrumbs items={breadcrumbItems} />
       <Suspense fallback={<div className="max-w-7xl mx-auto px-4 py-20 text-center">{t('loading')}</div>}>
         <ProductoPageClient initialProduct={producto} />
       </Suspense>

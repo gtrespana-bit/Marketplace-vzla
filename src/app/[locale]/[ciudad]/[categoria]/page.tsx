@@ -1,10 +1,7 @@
 import { Metadata } from 'next'
 import LandingCategoria from './LandingCategoria'
 import { getCiudadBySlug, generateCityCategoryParams, CATEGORIAS_POPULARES } from '@/lib/ubicaciones-seo'
-
-type Props = {
-  params: Promise<{ ciudad: string; categoria: string }>
-}
+import Breadcrumbs from '@/components/Breadcrumbs'
 
 const CATEGORIAS_SEO: Record<string, { nombre: string; descripcion: string }> = {
   vehiculos: { 
@@ -92,6 +89,10 @@ export async function generateStaticParams() {
   return generateCityCategoryParams()
 }
 
+type Props = {
+  params: Promise<{ ciudad: string; categoria: string }>
+}
+
 export default async function CategoriaPage({ params }: Props) {
   const { ciudad, categoria } = await params
   const ciudadSEO = getCiudadBySlug(ciudad)
@@ -106,14 +107,25 @@ export default async function CategoriaPage({ params }: Props) {
     )
   }
 
-  return <LandingCategoria 
-    ciudadSlug={ciudad} 
-    ciudadNombre={ciudadSEO.nombre}
-    estado={ciudadSEO.estado}
-    categoriaSlug={categoria} 
-    categoriaNombre={cat.nombre}
-    descripcion={cat.descripcion}
-  />
+  // Breadcrumb items
+  const breadcrumbItems = [
+    { label: ciudadSEO.nombre, href: `/${ciudad}` },
+    { label: cat.nombre, href: undefined }
+  ]
+
+  return (
+    <>
+      <Breadcrumbs items={breadcrumbItems} />
+      <LandingCategoria 
+        ciudadSlug={ciudad} 
+        ciudadNombre={ciudadSEO.nombre}
+        estado={ciudadSEO.estado}
+        categoriaSlug={categoria} 
+        categoriaNombre={cat.nombre}
+        descripcion={cat.descripcion}
+      />
+    </>
+  )
 }
 
 // ISR: cache category landing pages for 5 minutes

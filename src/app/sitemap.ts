@@ -1,5 +1,6 @@
 import type { MetadataRoute } from 'next'
 import { createClient } from '@supabase/supabase-js'
+import { CIUDADES_SEO, CATEGORIAS_POPULARES } from '@/lib/ubicaciones-seo'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const supabase = createClient(
@@ -21,6 +22,27 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: 'https://vendet.online/terminos-y-condiciones', lastModified: new Date(), changeFrequency: 'yearly', priority: 0.3 },
     { url: 'https://vendet.online/politica-de-privacidad', lastModified: new Date(), changeFrequency: 'yearly', priority: 0.3 },
   ]
+
+  // URLs de ciudades
+  const cityUrls: MetadataRoute.Sitemap = CIUDADES_SEO.map(ciudad => ({
+    url: `https://vendet.online/${ciudad.slug}`,
+    lastModified: new Date(),
+    changeFrequency: 'weekly' as const,
+    priority: 0.7,
+  }))
+
+  // URLs de ciudad + categoría
+  const cityCategoryUrls: MetadataRoute.Sitemap = []
+  for (const ciudad of CIUDADES_SEO) {
+    for (const categoria of CATEGORIAS_POPULARES) {
+      cityCategoryUrls.push({
+        url: `https://vendet.online/${ciudad.slug}/${categoria}`,
+        lastModified: new Date(),
+        changeFrequency: 'weekly' as const,
+        priority: 0.6,
+      })
+    }
+  }
 
   // Obtener productos activos
   let productUrls: MetadataRoute.Sitemap = []
@@ -44,5 +66,26 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // Si falla, solo incluir URLs estáticas
   }
 
-  return [...staticUrls, ...productUrls]
+  // Obtener artículos del blog
+  let blogUrls: MetadataRoute.Sitemap = []
+  try {
+    const { data: posts, error } = await supabase
+      .from('blog_posts')
+      .select('slug, actualizado_en')
+      .eq('publicado', true)
+      .limit(100)
+
+    if (!error && posts) {
+      blogUrls = posts.map(post => ({
+        url: `https://vendet.online/blog/${post.slug}`,
+        lastModified: new Date(post.actualizado_en || Date.now()),
+        changeFrequency: 'monthly' as const,
+        priority: 0.5,
+      }))
+    }
+  } catch {
+    // Si falla, continuar sin blog
+  }
+
+  return [...staticUrls, ...cityUrls, ...cityCategoryUrls, ...productUrls, ...blogUrls]
 }

@@ -1,6 +1,7 @@
 import { Metadata } from 'next'
 import LandingCiudad from './LandingCiudad'
 import { getCiudadBySlug, generateCityParams } from '@/lib/ubicaciones-seo'
+import Breadcrumbs from '@/components/Breadcrumbs'
 
 type Props = {
   params: Promise<{ ciudad: string }>
@@ -59,12 +60,44 @@ export default async function CiudadPage({ params }: Props) {
     )
   }
 
-  return <LandingCiudad 
-    slug={ciudad} 
-    nombre={ciudadSEO.nombre}
-    estado={ciudadSEO.estado}
-    descripcion={ciudadSEO.descripcion}
-  />
+  // Breadcrumb items
+  const breadcrumbItems = [
+    { label: ciudadSEO.nombre, href: undefined }
+  ]
+
+  // JSON-LD City Schema
+  const cityJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'City',
+    name: ciudadSEO.nombre,
+    containedInPlace: {
+      '@type': 'State',
+      name: ciudadSEO.estado,
+      containedInPlace: {
+        '@type': 'Country',
+        name: 'Venezuela',
+        addressCountry: 'VE'
+      }
+    },
+    description: ciudadSEO.descripcion,
+    sameAs: `https://vendet.online/${ciudad}`
+  }
+
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(cityJsonLd) }}
+      />
+      <Breadcrumbs items={breadcrumbItems} />
+      <LandingCiudad 
+        slug={ciudad} 
+        nombre={ciudadSEO.nombre}
+        estado={ciudadSEO.estado}
+        descripcion={ciudadSEO.descripcion}
+      />
+    </>
+  )
 }
 
 // ISR: cache city landing pages for 5 minutes
