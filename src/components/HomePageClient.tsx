@@ -65,7 +65,7 @@ export function HomePageClient({ destacados }: { destacados: any[] }) {
               {t('home.hero.title1', 'Compra y vende en')} <span className="text-white">{t('home.hero.title2', 'Venezuela')}</span>
             </h1>
             <p className="text-lg md:text-xl text-gray-700 mb-8">
-              {t('home.hero.subtitle', 'El marketplace hecho para ti. Publica gratis, contacta directo, vende rápido.')}
+              {t('home.hero.subtitle', 'El marketplace hecho para ti. Publica gratis, contacta directo, vende rápido. Los mejores clasificados online de Venezuela.')}
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
               <Link href="/catalogo" className="bg-brand-dark text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-gray-800 transition-all hover:scale-105 inline-flex items-center justify-center gap-2 shadow-lg">
@@ -81,7 +81,7 @@ export function HomePageClient({ destacados }: { destacados: any[] }) {
 
       {/* Categorías */}
       <section className="max-w-7xl mx-auto px-4 py-12">
-        <h2 className="text-2xl font-bold text-gray-900 mb-6">{t('home.categories', 'Categorías')}</h2>
+        <h2 className="text-2xl font-bold text-gray-900 mb-6">{t('home.categories', 'Categorías de Clasificados en Venezuela')}</h2>
         <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-9 gap-3">
           {[
             { nombre: t('cat.vehiculos', 'Vehículos'), slug: 'vehiculos', icon: '🚗' },
@@ -110,7 +110,7 @@ export function HomePageClient({ destacados }: { destacados: any[] }) {
               <div className="bg-gradient-to-r from-amber-500 to-orange-500 p-2 rounded-xl">
                 <Star className="text-white" size={24} />
               </div>
-              <h2 className="text-2xl font-bold text-gray-900">{t('home.featuredProducts', 'Productos Destacados')}</h2>
+              <h2 className="text-2xl font-bold text-gray-900">{t('home.featuredProducts', 'Productos Destacados en Venezuela')}</h2>
             </div>
             <Link href="/catalogo?destacados=true" className="text-brand-primary font-semibold hover:underline inline-flex items-center gap-1">
               {t('home.viewAll', 'Ver todos')} <ArrowRight size={16} />
@@ -127,21 +127,21 @@ export function HomePageClient({ destacados }: { destacados: any[] }) {
       {/* Cómo Funciona */}
       <section className="bg-white py-16">
         <div className="max-w-7xl mx-auto px-4">
-          <h2 className="text-2xl font-bold text-gray-900 text-center mb-12">{t('home.howItWorks', '¿Cómo funciona?')}</h2>
+          <h2 className="text-2xl font-bold text-gray-900 text-center mb-12">{t('home.howItWorks', '¿Cómo funciona VendeT.online?')}</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="text-center">
               <div className="bg-brand-primary/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Eye className="text-brand-primary" size={28} />
               </div>
-              <h3 className="font-bold text-lg mb-2">{t('home.step1.title', 'Publica tu producto')}</h3>
-              <p className="text-gray-600">{t('home.step1.desc', 'Sube fotos, ponle precio y describe lo que vendes. Es gratis.')}</p>
+              <h3 className="font-bold text-lg mb-2">{t('home.step1.title', 'Publica tu producto gratis')}</h3>
+              <p className="text-gray-600">{t('home.step1.desc', 'Sube fotos, ponle precio y describe lo que vendes. Sin comisiones.')}</p>
             </div>
             <div className="text-center">
               <div className="bg-brand-primary/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Zap className="text-brand-primary" size={28} />
               </div>
               <h3 className="font-bold text-lg mb-2">{t('home.step2.title', 'Contacta directo')}</h3>
-              <p className="text-gray-600">{t('home.step2.desc', 'Chatea con compradores o vendedores sin intermediarios.')}</p>
+              <p className="text-gray-600">{t('home.step2.desc', 'Chatea con compradores o vendedores sin intermediarios en Venezuela.')}</p>
             </div>
             <div className="text-center">
               <div className="bg-brand-primary/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -158,8 +158,8 @@ export function HomePageClient({ destacados }: { destacados: any[] }) {
       <section className="max-w-7xl mx-auto px-4 py-16">
         <div className="bg-gradient-to-r from-amber-500 to-orange-500 rounded-3xl p-8 md:p-12 text-white text-center">
           <Star className="mx-auto mb-4" size={48} />
-          <h2 className="text-3xl font-black mb-4">{t('home.cta.title', '¿Quieres vender más rápido?')}</h2>
-          <p className="text-lg mb-8 opacity-90">{t('home.cta.subtitle', 'Destaca tu producto y llega a miles de compradores potenciales.')}</p>
+          <h2 className="text-3xl font-black mb-4">{t('home.cta.title', '¿Quieres vender más rápido en Venezuela?')}</h2>
+          <p className="text-lg mb-8 opacity-90">{t('home.cta.subtitle', 'Destaca tu producto y llega a miles de compradores potenciales en todo el país.')}</p>
           <Link href="/publicar" className="bg-white text-orange-600 px-8 py-4 rounded-full font-bold text-lg hover:bg-gray-100 transition-all hover:scale-105 inline-flex items-center gap-2 shadow-lg">
             {t('home.cta.button', 'Destacar mi anuncio')}
           </Link>
