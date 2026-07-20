@@ -120,6 +120,7 @@ function ProductCardSkeleton() {
 export default function BuscarClient({ searchParams: searchParamsPromise }: { searchParams: Promise<{ [key: string]: string | undefined }> }) {
   const searchParams = use(searchParamsPromise)
   const router = useRouter()
+  const t = useTranslations('search')
   
   const query = searchParams?.q || ''
   const categoria = searchParams?.categoria || ''
