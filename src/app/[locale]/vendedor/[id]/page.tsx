@@ -10,6 +10,7 @@ import Avatar from '@/components/Avatar'
 import { MapPin, Phone, Mail, MessageSquare, Star, ArrowLeft, ShoppingBag, Calendar, ShieldCheck, Activity } from 'lucide-react'
 import SellerReputation from '@/components/SellerReputation'
 import { useTranslations } from 'next-intl'
+import Script from 'next/script'
 
 export default function VendedorPage() {
   const t = useTranslations('seller')
@@ -78,6 +79,33 @@ export default function VendedorPage() {
   }
 
   if (!vendedor) return null
+
+  // Generar Review Schema para SEO
+  const generateReviewSchema = () => {
+    if (resenas.length === 0) return null
+    
+    const schema = {
+      "@context": "https://schema.org",
+      "@type": vendedor.verificado ? "Organization" : "Person",
+      "name": vendedor.nombre || t('seller'),
+      "address": {
+        "@type": "PostalAddress",
+        "addressLocality": vendedor.ciudad || "",
+        "addressRegion": vendedor.estado || "",
+        "addressCountry": "VE"
+      },
+      "url": `https://vendet.online/vendedor/${vendedorId}`,
+      "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": promedio.toFixed(1),
+        "reviewCount": resenas.length,
+        "bestRating": "5",
+        "worstRating": "1"
+      }
+    }
+    
+    return JSON.stringify(schema)
+  }
 
   // Métodos de contacto (genéricos del perfil, si hay)
   const tieneWhatsApp = vendedor.whatsapp_disponible && vendedor.telefono
