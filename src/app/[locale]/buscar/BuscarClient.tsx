@@ -2,9 +2,8 @@
 
 import LocalLink from '@/components/LocalLink'
 import { Search, ChevronRight, XCircle, Loader2 } from 'lucide-react'
-import { useSearchParams, useRouter } from 'next/navigation'
-import { usePathname } from 'next/navigation'
-import { useEffect, useState, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
+import { useEffect, useState, useCallback, use } from 'react'
 import Image from 'next/image'
 import { supabase } from '@/lib/supabase'
 import { categoriasData } from '@/lib/categorias'
@@ -73,7 +72,6 @@ function ProductCard({ p }: { p: Producto }) {
           loading="lazy"
           decoding="async"
           onError={(e) => {
-            // ✅ CORREGIDO: Previene loop infinito
             const target = e.target as HTMLImageElement
             if (!target.src.includes('/placeholder-product.webp')) {
               target.src = '/placeholder-product.webp'
@@ -119,32 +117,31 @@ function ProductCardSkeleton() {
   )
 }
 
-export default function BuscarClient() {
-  const t = useTranslations('search')
-  const searchParams = useSearchParams()
+export default function BuscarClient({ searchParams: searchParamsPromise }: { searchParams: Promise<{ [key: string]: string | undefined }> }) {
+  const searchParams = use(searchParamsPromise)
   const router = useRouter()
-
-  const query = searchParams.get('q') || ''
-  const categoria = searchParams.get('categoria') || ''
-  const subcategoria = searchParams.get('subcategoria') || ''
-  const marca = searchParams.get('marca') || ''
-  const condicion = searchParams.get('condicion') || ''
-  const ubicacionEstado = searchParams.get('estado') || ''
-  const ubicacionCiudad = searchParams.get('ciudad') || ''
-  const precioMin = searchParams.get('precio_min') || ''
-  const precioMax = searchParams.get('precio_max') || ''
-  const orden = searchParams.get('orden') || ''
+  
+  const query = searchParams?.q || ''
+  const categoria = searchParams?.categoria || ''
+  const subcategoria = searchParams?.subcategoria || ''
+  const marca = searchParams?.marca || ''
+  const condicion = searchParams?.condicion || ''
+  const ubicacionEstado = searchParams?.estado || ''
+  const ubicacionCiudad = searchParams?.ciudad || ''
+  const precioMin = searchParams?.precio_min || ''
+  const precioMax = searchParams?.precio_max || ''
+  const orden = searchParams?.orden || ''
 
   const [productos, setProductos] = useState<Producto[]>([])
   const [loading, setLoading] = useState(false)
   const [resultCount, setResultCount] = useState(0)
 
-  const cat = categoriasData[categoria]
+  const cat = categoria ? categoriasData[categoria] : undefined
   const subs = cat ? cat.subs : []
   const allMarcas = subs.flatMap((s) => s.marcas || []).filter((v, i, a) => a.indexOf(v) === i).sort()
 
   const setParam = useCallback((key: string, value: string) => {
-    const params = new URLSearchParams(searchParams.toString())
+    const params = new URLSearchParams(searchParams ? Object.entries(searchParams).filter(([_, v]) => v).map(([k, v]) => [k, v!]) : [])
     if (value) params.set(key, value); else params.delete(key)
     if (key === 'categoria') params.delete('subcategoria')
     router.push('/buscar?' + params.toString())
@@ -283,7 +280,7 @@ export default function BuscarClient() {
           <div className="bg-white rounded-xl p-5 shadow-sm sticky top-20">
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-bold text-lg">{t('filters')}</h3>
-              {searchParams.toString() && (
+              {searchParams && Object.keys(searchParams).length > 0 && (
                 <button onClick={clearAll} className="text-xs text-red-500 hover:text-red-700 flex items-center gap-1">
                   <XCircle size={12} /> {t('clearAll')}
                 </button>
@@ -355,7 +352,7 @@ export default function BuscarClient() {
                   estado={ubicacionEstado}
                   ciudad={ubicacionCiudad}
                   onChange={(estado, ciudad) => {
-                    const params = new URLSearchParams(searchParams.toString())
+                    const params = new URLSearchParams(searchParams ? Object.entries(searchParams).filter(([_, v]) => v).map(([k, v]) => [k, v!]) : [])
                     if (estado) params.set('estado', estado); else params.delete('estado')
                     if (ciudad) params.set('ciudad', ciudad); else params.delete('ciudad')
                     router.push('/buscar?' + params.toString())
