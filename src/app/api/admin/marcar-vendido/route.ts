@@ -1,14 +1,21 @@
-﻿import { createClient } from '@supabase/supabase-js'
+import { createClient } from '@supabase/supabase-js'
 import { NextRequest, NextResponse } from 'next/server'
 import { requireUUIDs } from '@/lib/validation'
+import { requireUser, getAdminEmails } from '@/lib/require-auth'
 
 export async function POST(request: NextRequest) {
   try {
+    // El dueño del producto (o admin) debe ser la sesión real, no un userId del body
+    const auth = await requireUser(request)
+    if ('response' in auth) return auth.response
+    const sessionUserId = auth.user.id
+    const isAdmin = getAdminEmails().includes((auth.user.email || '').toLowerCase())
+
     const body = await request.json()
-    const { productoId, userId, vendidoEn, compradorId } = body
+    const { productoId, vendidoEn, compradorId } = body
 
     // Validar UUIDs
-    const uuidCheck = requireUUIDs(body, ['productoId', 'userId'])
+    const uuidCheck = requireUUIDs(body, ['productoId'])
     if (!uuidCheck.valid) {
       return NextResponse.json({ error: uuidCheck.error }, { status: 400 })
     }
@@ -27,7 +34,7 @@ export async function POST(request: NextRequest) {
     const { data: producto } = await supabaseAdmin.from('productos').select('user_id, activo, vendido').eq('id', productoId).single() as any
 
 
-    if (!producto || producto.user_id !== userId) {
+    if (!producto || (producto.user_id !== sessionUserId && !isAdmin)) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 403 })
     }
 
@@ -62,11 +69,15 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
+    const auth = await requireUser(request)
+    if ('response' in auth) return auth.response
+    const sessionUserId = auth.user.id
+    const isAdmin = getAdminEmails().includes((auth.user.email || '').toLowerCase())
+
     const { searchParams } = new URL(request.url)
     const productoId = searchParams.get('productoId')
-    const userId = searchParams.get('userId')
 
-    if (!productoId || !userId) {
+    if (!productoId) {
       return NextResponse.json({ error: 'Datos incompletos' }, { status: 400 })
     }
 
@@ -78,7 +89,7 @@ export async function GET(request: NextRequest) {
 
     const { data: producto } = await supabaseAdmin.from('productos').select('user_id').eq('id', productoId).single() as any
 
-    if (!producto || producto.user_id !== userId) {
+    if (!producto || (producto.user_id !== sessionUserId && !isAdmin)) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 403 })
     }
 
@@ -98,9 +109,9 @@ export async function GET(request: NextRequest) {
     for (const conv of conversacionesList as any[]) {
       const u1: string | null = conv.user1_id || null
       const u2: string | null = conv.user2_id || null
-      if (u1 === userId && u2 && u2 !== userId) {
+      if (u1 === sessionUserId && u2 && u2 !== sessionUserId) {
         compradorIds.add(u2)
-      } else if (u2 === userId && u1 && u1 !== userId) {
+      } else if (u2 === sessionUserId && u1 && u1 !== sessionUserId) {
         compradorIds.add(u1)
       }
     }

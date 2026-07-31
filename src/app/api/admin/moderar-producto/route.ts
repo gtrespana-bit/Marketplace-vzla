@@ -1,21 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { ADMIN_EMAILS } from '@/lib/admin-config'
 import { requireUUIDs } from '@/lib/validation'
+import { requireAdmin } from '@/lib/require-auth'
 
 export async function POST(req: NextRequest) {
   try {
+    // Solo admin con sesión real (antes se confiaba en un email enviado en el body)
+    const auth = await requireAdmin(req)
+    if ('response' in auth) return auth.response
+
     const body = await req.json()
-    const { productId, action, adminEmail } = body
+    const { productId, action } = body
     
     // Validar UUID
     const uuidCheck = requireUUIDs(body, ['productId'])
     if (!uuidCheck.valid) {
       return NextResponse.json({ error: uuidCheck.error }, { status: 400 })
-    }
-    
-    if (!adminEmail || !ADMIN_EMAILS.includes(adminEmail.toLowerCase())) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
     }
 
     if (!['aprobar', 'rechazar'].includes(action)) {

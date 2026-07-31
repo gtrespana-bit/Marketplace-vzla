@@ -1,13 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { requireUser } from '@/lib/require-auth'
 
 export async function POST(req: NextRequest) {
   try {
+    // El userId SIEMPRE sale de la sesión (evita cambiar el avatar de otros)
+    const auth = await requireUser(req)
+    if ('response' in auth) return auth.response
+    const userId = auth.user.id
+
     const formData = await req.formData()
     const file = formData.get('file') as File | null
-    const userId = formData.get('userId') as string | null
 
-    if (!file || !userId) {
+    if (!file) {
       return NextResponse.json({ error: 'Datos incompletos' }, { status: 400 })
     }
     if (!file.type.startsWith('image/')) {

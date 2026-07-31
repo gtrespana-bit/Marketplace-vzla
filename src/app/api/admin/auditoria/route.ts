@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { requireAdmin } from '@/lib/require-auth'
 
 export async function GET(req: NextRequest) {
   try {
+    const auth = await requireAdmin(req)
+    if ('response' in auth) return auth.response
+
     const { searchParams } = new URL(req.url)
     const tabla = searchParams.get('tabla')
     const usuario = searchParams.get('usuario')

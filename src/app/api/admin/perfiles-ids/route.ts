@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import { NextRequest, NextResponse } from 'next/server'
+import { requireAdmin } from '@/lib/require-auth'
 
 /**
  * Obtiene datos de múltiples perfiles (bypass RLS).
@@ -7,6 +8,9 @@ import { NextRequest, NextResponse } from 'next/server'
  */
 export async function POST(request: NextRequest) {
   try {
+    const auth = await requireAdmin(request)
+    if ('response' in auth) return auth.response
+
     const body = await request.json()
     const { userIds } = body
 

@@ -2,10 +2,10 @@
  * API Route: Eliminar producto definitivamente (owner y admin)
  * 
  * POST /api/admin/eliminar-producto
- * Body: { productId: string, userId?: string }
+ * Body: { productId: string }
  * 
- * - Si userId coincide con el owner → borrado por propietario
- * - Si viene de un admin (verificado) → borrado por admin
+ * - Si el usuario de la sesión es el dueño del producto → borrado por propietario
+ * - Si el usuario de la sesión es admin → borrado por admin
  * - Borra también las imágenes de R2
  */
 
@@ -13,36 +13,23 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { S3Client, DeleteObjectCommand } from '@aws-sdk/client-s3'
 import { requireUUIDs } from '@/lib/validation'
-
-const ADMIN_EMAILS = ['gtrespana@gmail.com']
-
-async function isAdmin(userId: string): Promise<boolean> {
-  const supabaseAdmin = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  )
-  const { data: perfil } = await supabaseAdmin
-    .from('perfiles')
-    .select('email')
-    .eq('id', userId)
-    .single()
-  return ADMIN_EMAILS.includes(perfil?.email || '')
-}
+import { requireUser, getAdminEmails } from '@/lib/require-auth'
 
 export async function POST(req: NextRequest) {
   try {
+    // El propietario (o admin) debe ser la sesión real; antes era un userId opcional del body
+    const auth = await requireUser(req)
+    if ('response' in auth) return auth.response
+    const sessionUserId = auth.user.id
+    const isAdmin = getAdminEmails().includes((auth.user.email || '').toLowerCase())
+
     const body = await req.json()
-    const { productId, userId } = body
+    const { productId } = body
 
     // Validar UUIDs
     const uuidCheck = requireUUIDs(body, ['productId'])
     if (!uuidCheck.valid) {
       return NextResponse.json({ error: uuidCheck.error }, { status: 400 })
-    }
-    
-    // userId es opcional pero si existe debe ser válido
-    if (userId && !requireUUIDs({ userId }, ['userId']).valid) {
-      return NextResponse.json({ error: 'userId inválido' }, { status: 400 })
     }
 
     if (!productId) {
@@ -66,7 +53,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Only owner or admin can delete
-    if (userId && producto.user_id !== userId && !(await isAdmin(userId))) {
+    if (producto.user_id !== sessionUserId && !isAdmin) {
       return NextResponse.json({ error: 'No tienes permisos' }, { status: 403 })
     }
 

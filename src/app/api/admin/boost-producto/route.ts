@@ -2,9 +2,13 @@ import { createClient } from '@supabase/supabase-js'
 import { NextRequest, NextResponse } from 'next/server'
 import { revalidatePath } from 'next/cache'
 import { requireUUIDs } from '@/lib/validation'
+import { requireAdmin } from '@/lib/require-auth'
 
 export async function POST(request: NextRequest) {
   try {
+    const auth = await requireAdmin(request)
+    if ('response' in auth) return auth.response
+
     const body = await request.json()
     const { productId } = body
 
