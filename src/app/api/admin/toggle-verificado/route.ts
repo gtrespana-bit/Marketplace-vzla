@@ -2,9 +2,14 @@ import { createClient } from '@supabase/supabase-js'
 import { NextRequest, NextResponse } from 'next/server'
 import { notifyUser } from '@/lib/push-notify'
 import { requireUUIDs } from '@/lib/validation'
+import { requireAdmin } from '@/lib/require-auth'
 
 export async function POST(request: NextRequest) {
   try {
+    // Solo admin: impedir auto-verificación
+    const auth = await requireAdmin(request)
+    if ('response' in auth) return auth.response
+
     const body = await request.json()
     const { userId, verificado, verificado_desde } = body
 

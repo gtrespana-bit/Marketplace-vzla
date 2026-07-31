@@ -2,12 +2,17 @@ import { NextRequest, NextResponse } from 'next/server'
 import { checkRateLimit } from '@/lib/rate-limit'
 import { createClient } from '@supabase/supabase-js'
 import { validateMessageData, sanitizeString } from '@/lib/validation'
+import { requireUser } from '@/lib/require-auth'
 
 export async function POST(req: NextRequest) {
   try {
+    // El remitente SIEMPRE sale de la sesión real (evita suplantación en el chat)
+    const auth = await requireUser(req)
+    if ('response' in auth) return auth.response
+    const remitente_id = auth.user.id
+
     const body = await req.json()
-    const { conversacion_id, remitente_id, destinatario_id, contenido } = body
-    if (!remitente_id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const { conversacion_id, destinatario_id, contenido } = body
 
     // Validar datos del mensaje
     const validation = validateMessageData({ conversacion_id, remitente_id, destinatario_id, contenido })
@@ -28,6 +33,18 @@ export async function POST(req: NextRequest) {
     }
 
     const sb = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
+
+    // Verificación adicional: si la conversación ya existe, el remitente debe ser miembro
+    const { data: conv } = await sb
+      .from('conversaciones')
+      .select('user1_id, user2_id')
+      .eq('id', conversacion_id)
+      .maybeSingle()
+
+    if (conv && conv.user1_id !== remitente_id && conv.user2_id !== remitente_id) {
+      return NextResponse.json({ error: 'No autorizado' }, { status: 403 })
+    }
+
     const { data, error } = await sb.from('mensajes').insert({
       conversacion_id, remitente_id, destinatario_id, contenido: contenidoSanitizado
     }).select().single()

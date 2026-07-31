@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js'
 import { NextRequest, NextResponse } from 'next/server'
 import { requireUUIDs } from '@/lib/validation'
+import { requireAdmin } from '@/lib/require-auth'
 
 /**
  * Verifica un vendedor desde el admin.
@@ -8,6 +9,9 @@ import { requireUUIDs } from '@/lib/validation'
  */
 export async function POST(request: NextRequest) {
   try {
+    const auth = await requireAdmin(request)
+    if ('response' in auth) return auth.response
+
     const body = await request.json()
     const { userId, cedula_numero, pago_movil_telefono, pago_movil_cedula, pago_movil_banco } = body
 

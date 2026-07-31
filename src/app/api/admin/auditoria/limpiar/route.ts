@@ -1,8 +1,13 @@
 import { NextResponse } from 'next/server'
+import { NextRequest } from 'next/server'
 import { limpiarAuditoriaAntigua } from '@/lib/auditoria'
+import { requireAdmin } from '@/lib/require-auth'
 
-export async function POST() {
+export async function POST(request: NextRequest) {
   try {
+    const auth = await requireAdmin(request)
+    if ('response' in auth) return auth.response
+
     const resultado = await limpiarAuditoriaAntigua()
     
     if (resultado.error) {

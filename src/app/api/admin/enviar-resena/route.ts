@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js'
 import { NextRequest, NextResponse } from 'next/server'
 import { requireUUIDs } from '@/lib/validation'
+import { requireUser, getAdminEmails } from '@/lib/require-auth'
 
 /**
  * Enviar reseña desde el vendedor al comprador.
@@ -8,6 +9,12 @@ import { requireUUIDs } from '@/lib/validation'
  */
 export async function POST(request: NextRequest) {
   try {
+    // El evaluador debe ser la sesión real (comprador en chat o vendedor en dashboard), o admin
+    const auth = await requireUser(request)
+    if ('response' in auth) return auth.response
+    const sessionUserId = auth.user.id
+    const isAdmin = getAdminEmails().includes((auth.user.email || '').toLowerCase())
+
     const body = await request.json()
     const { producto_id, evaluador_id, evaluado_id, puntuacion, comentario } = body
 
@@ -15,6 +22,11 @@ export async function POST(request: NextRequest) {
     const uuidCheck = requireUUIDs(body, ['producto_id', 'evaluador_id', 'evaluado_id'])
     if (!uuidCheck.valid) {
       return NextResponse.json({ error: uuidCheck.error }, { status: 400 })
+    }
+
+    // El evaluador del body debe coincidir con la sesión (o ser admin)
+    if (evaluador_id !== sessionUserId && !isAdmin) {
+      return NextResponse.json({ error: 'No autorizado' }, { status: 403 })
     }
 
     const supabaseAdmin = createClient(
