@@ -1,9 +1,8 @@
-﻿"use client"
+"use client"
 
 import Avatar from '@/components/Avatar'
 import BadgeVerificado from '@/components/BadgeVerificado'
 import { getMunicipiosNombres, ESTADOS } from '@/lib/ubicaciones'
-import { supabase } from '@/lib/supabase'
 import { Camera, Edit, Key, LogOut, X, Save, Phone, MapPin, Mail } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useTranslations } from 'next-intl'
@@ -49,12 +48,21 @@ export default function DashboardHeader({
   async function handleGuardar() {
     if (!nombre.trim() || !user) return
     setGuardando(true)
-    const { error } = await supabase.from('perfiles').upsert({ id: user.id, nombre, telefono, estado, ciudad }).eq('id', user.id)
-    if (error) {
-      setToast(t('saveError') + error.message)
-    } else {
-      setEditando(false)
-      setToast(t('profileSaved'))
+    try {
+      const response = await fetch('/api/perfil', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nombre, telefono, estado, ciudad }),
+      })
+      const result = await response.json().catch(() => ({}))
+      if (!response.ok) {
+        setToast(t('saveError') + (result.error || 'Error desconocido'))
+      } else {
+        setEditando(false)
+        setToast(t('profileSaved'))
+      }
+    } catch {
+      setToast(t('saveError') + 'Error de conexión')
     }
     setGuardando(false)
     setTimeout(() => setToast(null), 4000)

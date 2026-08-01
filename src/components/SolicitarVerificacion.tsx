@@ -38,7 +38,7 @@ export default function SolicitarVerificacion() {
     // Ver perfil (columnas verificado)
     const { data: perfil } = await supabase
       .from('perfiles')
-      .select('verificado, verificado_desde, cedula_foto_url, cedula_numero, pago_movil_telefono, pago_movil_cedula, pago_movil_banco')
+      .select('verificado, verificado_desde')
       .eq('id', user?.id)
       .single()
 
@@ -148,7 +148,7 @@ export default function SolicitarVerificacion() {
       if (dbError) throw dbError
 
       // Alert Telegram
-      fetch("'/api/verificacion-alerta'", { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ nombre: user?.email || user?.id, cedula: pagoMovilCedula, telefono: pagoMovilTelefono, banco: pagoMovilBanco }) }).catch(() => {})
+      fetch('/api/verificacion-alerta', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ nombre: user?.email || user?.id, cedula: pagoMovilCedula, telefono: pagoMovilTelefono, banco: pagoMovilBanco }) }).catch(() => {})
 
       setExito(true)
       setEstado('pendiente')

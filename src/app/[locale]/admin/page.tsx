@@ -50,14 +50,13 @@ function MetricasTab() {
         supabase.from('productos').select('id', { count: 'exact', head: true }).eq('activo', true),
       ])
 
-      const { data: trans } = await supabase
-        .from('transacciones_creditos')
-        .select('monto, estado, tipo, creado_en')
-        .limit(1000)
+      const transResponse = await fetch('/api/admin/transacciones?limit=500')
+      const transResult = await transResponse.json().catch(() => ({}))
+      const trans = transResult.transacciones || []
 
-      const ingresos = trans?.filter((t: any) => t.estado === 'aprobado' && t.tipo === 'compra').reduce((s: number, t: any) => s + t.monto, 0) || 0
+      const ingresos = trans.filter((t: any) => t.estado === 'aprobado' && t.tipo === 'compra').reduce((s: number, t: any) => s + t.monto, 0) || 0
       const hoy = new Date().toISOString().split('T')[0]
-      const nuevosHoy = trans?.filter((t: any) => t.creado_en?.startsWith(hoy) && t.estado === 'aprobado').length || 0
+      const nuevosHoy = trans.filter((t: any) => t.creado_en?.startsWith(hoy) && t.estado === 'aprobado').length || 0
 
       setStats({
         totalUsuarios: totalUsuarios || 0,
@@ -123,7 +122,7 @@ function UsuariosTab({ notify }: Notifier) {
         // Fallback: perfiles sin email si la API falla
         const { data, error } = await supabase
           .from('perfiles')
-          .select('id, nombre, telefono, estado, ciudad, credito_balance, verificado, nivel_confianza, creado_en')
+          .select('id, nombre, estado, ciudad, verificado, nivel_confianza, creado_en')
           .order('creado_en', { ascending: false })
           .limit(500)
         if (error) console.error('Error cargando usuarios (fallback):', error)
@@ -579,15 +578,10 @@ function TabTransacciones({ perfiles, notify }: { perfiles: Record<string, any>;
   const [procesando, setProcesando] = useState<string | null>(null)
 
   async function cargar() {
-    // Fase 5: optimizar query transacciones (solo columnas necesarias)
-    const { data: trans }: any = await supabase
-      .from('transacciones_creditos')
-      .select('id, user_id, tipo, monto, metodo_pago, estado, creado_en, comprobante_url')
-      .eq('tipo', 'compra')
-      .order('creado_en', { ascending: false })
-      .limit(50)
-
-    if (!trans) return
+    const response = await fetch('/api/admin/transacciones?limit=50')
+    const result = await response.json().catch(() => ({}))
+    if (!response.ok || !result.transacciones) return
+    const trans = result.transacciones
     setPendientes(trans.filter((t: any) => t.estado === 'pendiente'))
     setHistorial(trans.filter((t: any) => t.estado !== 'pendiente'))
   }
@@ -637,10 +631,19 @@ Transacción procesada correctamente.`
 
   async function rechazar(id: string) {
     setProcesando(id)
-    await supabase.from('transacciones_creditos').update({ estado: 'rechazado' }).eq('id', id)
+    const response = await fetch('/api/admin/rechazar-transaccion', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ transactionId: id }),
+    })
+    if (!response.ok) {
+      const result = await response.json().catch(() => ({}))
+      notify('Error: ' + (result.error || 'No se pudo rechazar'))
+    } else {
+      notify('Transacción rechazada')
+      await cargar()
+    }
     setProcesando(null)
-    notify('Transacción rechazada')
-    await cargar()
   }
 
   return (
@@ -678,7 +681,7 @@ Transacción procesada correctamente.`
                         <p>📅 {new Intl.DateTimeFormat('es-VE', { year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date(t.creado_en))}</p>
                       </div>
                       {t.comprobante_url && (
-                        <a href={t.comprobante_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-sm text-brand-primary hover:underline">
+                        <a href={`/api/admin/comprobante?url=${encodeURIComponent(t.comprobante_url)}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-sm text-brand-primary hover:underline">
                           <Eye size={14} /> Ver comprobante <ExternalLink size={12} />
                         </a>
                       )}
@@ -874,8 +877,10 @@ function TabExportar() {
 
   async function exportarUsuarios() {
     setExportando(true)
-    const { data } = await supabase.from('perfiles').select('id, nombre, telefono, estado, ciudad, credito_balance, verificado, nivel_confianza, creado_en')
-    if (!data) { setExportando(false); return }
+    const response = await fetch('/api/admin/usuarios')
+    const result = await response.json().catch(() => ({}))
+    const data = result.usuarios
+    if (!response.ok || !data) { setExportando(false); return }
 
     const headers = ['id', 'nombre', 'telefono', 'estado', 'ciudad', 'credito_balance', 'creado_en']
     const csv = [headers.join(','), ...data.map((u: any) => headers.map(h => `"${u[h] || ''}"`).join(','))].join('\n')
@@ -891,8 +896,10 @@ function TabExportar() {
 
   async function exportarTransacciones() {
     setExportando(true)
-    const { data } = await supabase.from('transacciones_creditos').select('id, user_id, tipo, monto, metodo_pago, estado, creado_en, precio_usd, comprobante_url')
-    if (!data) { setExportando(false); return }
+    const response = await fetch('/api/admin/transacciones?limit=500')
+    const result = await response.json().catch(() => ({}))
+    const data = result.transacciones
+    if (!response.ok || !data) { setExportando(false); return }
 
     const headers = ['id', 'user_id', 'tipo', 'monto', 'metodo_pago', 'estado', 'creado_en']
     const csv = [headers.join(','), ...data.map((t: any) => headers.map(h => `"${(t as any)[h] || ''}"`).join(','))].join('\n')
@@ -1099,11 +1106,15 @@ export default function AdminPage() {
   const isAdmin = ADMIN_EMAILS.includes(user?.email || '')
 
   async function cargarPerfiles() {
-    const { data } = await supabase.from('perfiles').select('id, nombre, telefono')
-    if (data) {
+    try {
+      const response = await fetch('/api/admin/usuarios')
+      if (!response.ok) return
+      const result = await response.json()
       const m: Record<string, any> = {}
-      data.forEach((p: any) => { m[p.id] = p })
+      ;(result.usuarios || []).forEach((p: any) => { m[p.id] = p })
       setPerfiles(m)
+    } catch {
+      // El panel sigue funcionando aunque el enriquecimiento de perfiles falle.
     }
   }
 

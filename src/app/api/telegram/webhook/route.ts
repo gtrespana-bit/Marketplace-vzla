@@ -74,21 +74,25 @@ function tgFetch(token: string, method: string, body: object) {
 }
 
 async function procesarAprobacion(txId: string, url: string, key: string) {
-  const sb = createClient(url, key)
+  const sb = createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } })
 
-  // Obtener transacción
-  const { data: tx, error } = await sb.from('transacciones_creditos').select('id, user_id, tipo, monto, metodo_pago, estado, creado_en, precio_usd, comprobante_url').eq('id', txId).single()
+  const { data: tx, error } = await sb
+    .from('transacciones_creditos')
+    .select('id, user_id, tipo, monto, metodo_pago, estado, creado_en, comprobante_url')
+    .eq('id', txId)
+    .maybeSingle()
   if (error || !tx) return { alert: '❌ No encontrada', text: '❌ Transacción no encontrada' }
 
-  // Actualizar crédito del usuario
-  const { data: perfil } = await sb.from('perfiles').select('credito_balance').eq('id', tx.user_id).single()
-  const nuevoBalance = (perfil?.credito_balance || 0) + tx.monto
+  const { data: result, error: approvalError } = await sb.rpc('aprobar_transaccion', {
+    p_transaccion_id: txId,
+    p_admin_id: null,
+  })
 
-  const { error: updErr } = await sb.from('perfiles').update({ credito_balance: nuevoBalance }).eq('id', tx.user_id)
-  const { error: txErr } = await sb.from('transacciones_creditos').update({ estado: 'aprobado' }).eq('id', txId)
-
-  if (updErr || txErr) {
-    return { alert: '❌ Error', text: `❌ Error al aprobar: ${updErr?.message || txErr?.message}` }
+  if (approvalError || !result?.ok) {
+    return {
+      alert: '❌ No aprobada',
+      text: `❌ No se pudo aprobar: ${result?.error || approvalError?.message || 'error interno'}`,
+    }
   }
 
   return {
@@ -98,8 +102,23 @@ async function procesarAprobacion(txId: string, url: string, key: string) {
 }
 
 async function procesarRechazo(txId: string, url: string, key: string) {
-  const sb = createClient(url, key)
-  await sb.from('transacciones_creditos').update({ estado: 'rechazado' }).eq('id', txId)
+  const sb = createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } })
+  const { data, error } = await sb
+    .from('transacciones_creditos')
+    .update({ estado: 'rechazado' })
+    .eq('id', txId)
+    .eq('estado', 'pendiente')
+    .eq('tipo', 'compra')
+    .select('id')
+    .maybeSingle()
+
+  if (error || !data) {
+    return {
+      alert: '❌ No rechazada',
+      text: `❌ La transacción ya fue procesada o no existe: ${txId}`,
+    }
+  }
+
   return {
     alert: '❌ Rechazada',
     text: `❌ <b>RECHAZADA</b>\nTransacción: ${txId}\nCréditos NO añadidos\n\n<i>Procesado desde Telegram</i>`,

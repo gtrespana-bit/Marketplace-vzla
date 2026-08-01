@@ -100,6 +100,7 @@ export async function POST(req: NextRequest) {
       user_id: userId,
       tipo: 'compra',
       monto: paquete.creditos, // desde servidor
+      precio_usd: precioUsdServer,
       metodo_pago: metodoPago,
       comprobante_url: comprobanteUrl,
       estado: 'pendiente',

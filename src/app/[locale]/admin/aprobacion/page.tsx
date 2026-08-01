@@ -29,17 +29,12 @@ export default function AprobacionPage() {
 
   async function cargar() {
     setCargando(true)
-    const { data, error } = await supabase
-      .from('transacciones_creditos')
-      .select('id, user_id, tipo, monto, metodo_pago, estado, creado_en, precio_usd, comprobante_url')
-      .eq('estado', 'pendiente')
-      .eq('tipo', 'compra')
-      .order('creado_en', { ascending: false })
-
-    if (error) {
-      console.error('Error:', error)
+    const response = await fetch('/api/admin/transacciones?estado=pendiente&limit=200')
+    const result = await response.json().catch(() => ({}))
+    if (!response.ok) {
+      console.error('Error:', result.error)
     } else {
-      setPendientes(data || [])
+      setPendientes(result.transacciones || [])
     }
     setCargando(false)
   }
@@ -69,7 +64,15 @@ export default function AprobacionPage() {
   async function rechazar(id: string) {
     if (!confirm('¿Rechazar esta transacción?')) return
     setProcesando(id)
-    await supabase.from('transacciones_creditos').update({ estado: 'rechazado' }).eq('id', id)
+    const response = await fetch('/api/admin/rechazar-transaccion', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ transactionId: id }),
+    })
+    if (!response.ok) {
+      const result = await response.json().catch(() => ({}))
+      alert(`Error: ${result.error || 'No se pudo rechazar'}`)
+    }
     setProcesando(null)
     await cargar()
   }
@@ -140,7 +143,7 @@ export default function AprobacionPage() {
                   {t.comprobante_url && (
                     <div className="mt-3">
                       <a
-                        href={t.comprobante_url}
+                        href={`/api/admin/comprobante?url=${encodeURIComponent(t.comprobante_url)}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="inline-flex items-center gap-2 bg-blue-50 text-blue-700 px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-blue-100 transition border border-blue-200"

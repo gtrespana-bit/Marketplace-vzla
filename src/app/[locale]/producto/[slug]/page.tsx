@@ -40,6 +40,8 @@ const PRODUCT_COLUMNS = `
   creado_en,
   user_id,
   imagen_url,
+  imagenes,
+  metodos_contacto,
   destacado,
   destacado_hasta,
   boosteado_en
@@ -115,7 +117,7 @@ async function getProduct(slugOrId: string) {
   // tables connected by a real FK, so load the public seller profile separately.
   const { data: perfil } = await supabase
     .from('perfiles')
-    .select('nombre, telefono, ciudad, estado')
+    .select('nombre, ciudad, estado')
     .eq('id', data.user_id)
     .maybeSingle()
 

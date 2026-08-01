@@ -4,9 +4,11 @@ import ProductCard, { ProductCardData } from '../src/components/ProductCard';
 
 // Mock del componente LocalLink
 jest.mock('../src/components/LocalLink', () => {
-  return ({ children, ...props }: { children: React.ReactNode; [key: string]: any }) => {
+  function MockLocalLink({ children, ...props }: { children: React.ReactNode; [key: string]: any }) {
     return <a {...props}>{children}</a>;
-  };
+  }
+  MockLocalLink.displayName = 'MockLocalLink'
+  return MockLocalLink
 });
 
 describe('ProductCard', () => {

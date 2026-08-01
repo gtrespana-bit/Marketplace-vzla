@@ -147,7 +147,7 @@ function ModalCompraCreditos({ paquete, tasa, onClose, onCompraExitosa }: { paqu
       if (!user) { alert('Debes iniciar sesión'); setEnviando(false); return }
 
       const fileExt = comprobanteFile.name.split('.').pop()
-      const fileName = `comprobante_${user.id}_${Date.now()}.${fileExt}`
+      const fileName = `${user.id}/comprobante_${Date.now()}.${fileExt}`
 
       const { error: uploadError } = await supabase.storage
         .from('comprobantes')

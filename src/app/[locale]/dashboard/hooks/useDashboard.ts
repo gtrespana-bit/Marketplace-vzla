@@ -59,7 +59,10 @@ export function useDashboard() {
         setFavoritos(data || [])
         setFavoritosCount(data?.length || 0)
       }),
-      supabase.from('perfiles').select('credito_balance, nombre, telefono, estado, ciudad, foto_perfil_url, verificado, nivel_confianza, badges_automaticos, ultima_actividad, creado_en').eq('id', user.id).single().then(({ data }) => {
+      fetch('/api/perfil').then(async (response) => {
+        if (!response.ok) return
+        const result = await response.json()
+        const data = result.profile
         setCreditos(data?.credito_balance ?? 0)
         if (data) {
           setNombre(data.nombre || '')

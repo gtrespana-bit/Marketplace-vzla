@@ -59,7 +59,16 @@ export default function TabProductos({
   const reactivarVendido = async (productoId: string) => {
     cerrarMenus()
     if (!confirm('¿Reactivar esta publicacion como no vendida?')) return
-    await supabase.from('productos').update({ activo: true, vendido: false, vendido_en: null, comprador_id: null }).eq('id', productoId)
+    const res = await fetch('/api/productos/reactivar', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ productoId }),
+    })
+    if (!res.ok) {
+      const result = await res.json().catch(() => ({}))
+      alert('Error: ' + (result.error || 'no se pudo reactivar'))
+      return
+    }
     window.location.reload()
   }
 
