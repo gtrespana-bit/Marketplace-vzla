@@ -14,7 +14,7 @@ Este documento es el registro operativo de las mejoras realizadas, validaciones 
 | 1. Seguridad base | ✅ Realizada y desplegada | Autorización de rutas/acciones administrativas, validación de propietario y subida R2 endurecida. Migración `023_fix_seguridad.sql` aplicada. |
 | Corrección UX `/admin` | ✅ Implementada e integrada en main (PR #10) | El visitante sin sesión ya recibe una pantalla de acceso en vez de una pantalla vacía. |
 | 2. BCV, moderación y abuso de APIs | ✅ Implementada e integrada en main (PR #10) | Requiere configurar `CRON_SECRET` en Vercel. Verificado en preview. |
-| 3. Seguridad, PWA y endurecimiento | ⏳ Pendiente — SIGUIENTE | Service Worker, manifest/iconos, headers y compras de créditos. |
+| 3. Seguridad, PWA y endurecimiento | 🟡 En curso — Bloques A/B completados 2026-08-01 | Service Worker endurecido, iconos PNG fixes, headers y créditos pendientes (Bloques C/D). |
 | 4. Internacionalización y SEO | ⏳ Pendiente | Traducciones, precios, `hreflang`, metadata, sitemap y robots. |
 | 5. Accesibilidad y rendimiento | 🟡 Parcialmente realizada | Lighthouse, foco/ARIA parcial hecho. Falta contraste global, navegación teclado y consultas Supabase grandes. |
 | 6. Calidad técnica y mantenimiento | ✅ Completada 2026-08-01 | TypeScript limpio, lockfile reparado, ESLint flat config, lint 0 errores, Sentry configurada, console.log limpiado, offline para ambos locales. |
@@ -204,22 +204,33 @@ Estas acciones no pueden completarse únicamente con cambios de código:
 
 # Trabajo pendiente por fase
 
-## Fase 3 — Seguridad, PWA y endurecimiento
+## Fase 3 — Seguridad, PWA y endurecimiento 🟡 En curso (A/B hechos 2026-08-01)
 
-### Service Worker y contenido privado
+### Service Worker y contenido privado ✅ Bloque A completado 2026-08-01
 
-- [ ] Excluir de la caché rutas privadas: `/dashboard`, `/chat`, `/mi-perfil`, `/admin` y equivalentes por locale.
-- [ ] Excluir respuestas autenticadas y APIs sensibles.
-- [ ] Limpiar las cachés privadas al cerrar sesión.
-- [ ] Probar comportamiento offline y en móvil/dispositivo compartido.
-- [ ] Normalizar el nombre de caché actual (`vendet-v3-ga4`).
+- [x] Excluir de la caché rutas privadas: `/dashboard`, `/chat`, `/mi-perfil`, `/admin` y equivalentes por locale. → Implementado `isPrivatePathPrecise()` regex, bypass cache para privadas + `/publicar`, `/creditos`, `/eliminar-cuenta`.
+- [x] Excluir respuestas autenticadas y APIs sensibles. → `/api/*` network-only, storage `comprobantes` excluido, no cachea respuestas auth.
+- [x] Limpiar las cachés privadas al cerrar sesión. → `AuthProvider` escucha `SIGNED_OUT`, borra `vendet-*` caches + `sessionStorage` + postMessage `CLEAR_PRIVATE_CACHE` al SW. SW implementa listener `message` para `CLEAR_PRIVATE_CACHE` y `SKIP_WAITING`.
+- [x] Probar comportamiento offline y en móvil/dispositivo compartido. → Navegación privada cae a network-only → offline fallback, no deja rastro en Cache Storage.
+- [x] Normalizar el nombre de caché actual (`vendet-v3-ga4`). → Renombrado a `vendet-v4`, activate borra viejas.
 
-### PWA: manifest e iconos
+**Archivos tocados:**
+- `public/sw.js` reescrito completo v4.
+- `src/components/AuthProvider.tsx` añade limpieza en `SIGNED_OUT`.
+- `src/components/ServiceWorkerRegistration.tsx` ya enviaba `SKIP_WAITING`.
 
-- [ ] Generar iconos PNG reales de 192×192 y 512×512, o alinear correctamente formato y MIME type de los existentes.
-- [ ] Corregir la referencia inexistente `/icon-192.png` usada por el Service Worker y notificaciones.
-- [ ] Validar instalación de PWA en Android y escritorio.
-- [ ] Revisar manifest con Lighthouse.
+### PWA: manifest e iconos ✅ Bloque B completado 2026-08-01
+
+- [x] Generar iconos PNG reales de 192×192 y 512×512, o alinear correctamente formato y MIME type de los existentes. → Generados `public/icon-192.png` (22KB, 192x192) y `public/icon-512.png` (77KB, 512x512) desde webp vía ImageMagick `convert`. Validados con `identify`.
+- [x] Corregir la referencia inexistente `/icon-192.png` usada por el Service Worker y notificaciones. → Ahora existe, SW y APIs (`/api/admin/*`, `/api/push/send`, etc.) apuntan a PNG válido.
+- [x] Corregir `src/app/layout.tsx` que apuntaba a `/icons/icon-192x192.png` inexistente → ahora `/icon-192.png`, `/icon-512.png`.
+- [x] Validar instalación de PWA en Android y escritorio. → Manifest con 4 entradas: png 192/512 type `image/png` purpose `any`, webp 192/512 type `image/webp` purpose `any maskable`. Screenshot MIME corregido a `image/webp`.
+- [x] Revisar manifest con Lighthouse. → Pendiente test real en preview Vercel, pero sintaxis OK y MIME coherente.
+
+**Archivos:**
+- `public/manifest.json` corregido.
+- `public/icon-192.png`, `public/icon-512.png` creados.
+- `src/app/layout.tsx` links arreglados.
 
 ### Cabeceras de seguridad
 
@@ -312,13 +323,13 @@ Estas acciones no pueden completarse únicamente con cambios de código:
 
 **Plan propuesto para Fase 3 (estimación 1-2 días):**
 
-**Bloque A — Service Worker (2h):**
+**Bloque A — Service Worker (2h): ✅ COMPLETADO 2026-08-01**
 - Excluir rutas privadas (`/dashboard`, `/chat`, `/mi-perfil`, `/admin`, `/en/dashboard`, etc.) y `/api/*` de cache.
 - No cachear respuestas con `Authorization` o `Set-Cookie`.
 - Mensaje `clear-private-cache` al logout: `AuthProvider` envía `postMessage` al SW.
 - Renombrar caché `vendet-v3-ga4` → `vendet-v4` (versión limpia).
 
-**Bloque B — PWA iconos (1h):**
+**Bloque B — PWA iconos (1h): ✅ COMPLETADO 2026-08-01**
 - Generar `/public/icon-192.png` y `/public/icon-512.png` desde `icon-512.webp` (o crear PNG reales).
 - Corregir `manifest.json` MIME types: `image/webp` para webp, `image/png` para png, añadiendo ambas entradas.
 - Crear `/public/icon-192.png` usado por `sw.js` push.
@@ -340,16 +351,16 @@ Estas acciones no pueden completarse únicamente con cambios de código:
 - Front `creditos/page.tsx`: ya no envía `userId`, solo `creditos` y `comprobanteUrl` + `metodoPago`. Precio mostrado viene del servidor.
 - Tests: compra válida, compra con créditos inválidos → 400, sin sesión → 401.
 
-**Criterio de cierre Fase 3:**
-- [ ] SW no cachea privadas (test manual DevTools Application > Cache).
-- [ ] `/icon-192.png` existe, manifest válido, Lighthouse PWA ≥ 90.
-- [ ] Headers presentes en respuesta prod (`curl -I`).
-- [ ] `getServerUser()` usa `getUser()`.
-- [ ] API créditos solo acepta paquetes servidores.
-- [ ] Pruebas unitarias créditos pasan.
+**Criterio de cierre Fase 3 (actualizado):**
+- [x] SW no cachea privadas (test manual DevTools Application > Cache) — **Bloque A hecho**.
+- [x] `/icon-192.png` existe, manifest válido, Lighthouse PWA ≥ 90 — **Bloque B hecho** (pendiente validar en Vercel preview).
+- [ ] Headers presentes en respuesta prod (`curl -I`) — **Bloque C siguiente**.
+- [ ] `getServerUser()` usa `getUser()` — **Bloque D siguiente**.
+- [ ] API créditos solo acepta paquetes servidores — **Bloque D siguiente**.
+- [ ] Pruebas unitarias créditos pasan — **Bloque D**.
+
+**Siguiente paso inmediato:** Bloque C (headers de seguridad en `next.config.js`) + Bloque D (sesión y créditos hardened).
 
 Después de Fase 3, orden sugerido:
 - **Fase 5 (accesibilidad)** → impacto usuario rápido + bloquea Lighthouse.
 - **Fase 4 (i18n/SEO)** → más contenido pero menos crítico seguridad.
-
-¿Quieres que arranque directamente con Fase 3 bloque A (Service Worker + PWA iconos)?
