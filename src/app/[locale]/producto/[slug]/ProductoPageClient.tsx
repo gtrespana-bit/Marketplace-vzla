@@ -43,7 +43,8 @@ function ProductoPageClientInner({ initialProduct }: ProductoPageClientProps) {
   const router = useRouter()
   const { user, loading: authLoading } = useAuth()
   const searchParams = useSearchParams()
-  const slug = initialProduct?.id || ''
+  // URL canónica para el redirect post-login: slug si existe, UUID si no
+  const slug = initialProduct?.slug || initialProduct?.id || ''
   const esNuevaPublicacion = searchParams.get('nuevo') === '1'
 
   // Auto-remove ?nuevo=1 from URL after showing banner
