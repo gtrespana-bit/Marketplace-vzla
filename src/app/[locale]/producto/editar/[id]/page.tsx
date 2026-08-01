@@ -62,9 +62,9 @@ export default function EditarPage() {
     async function load() {
       const { data: prod } = await supabase
         .from('productos')
-        .select('id, titulo, descripcion, precio_usd, estado, categoria_id, subcategoria, marca, modelo, ubicacion_estado, ubicacion_ciudad, activo, visitas, creado_en, user_id, imagen_url, destacado, destacado_hasta, boosteado_en')
+        .select('id, titulo, descripcion, precio_usd, estado, categoria_id, subcategoria, marca, modelo, ubicacion_estado, ubicacion_ciudad, activo, visitas, creado_en, user_id, imagen_url, imagenes, metodos_contacto, especificaciones, destacado, destacado_hasta, boosteado_en')
         .eq('id', productoId)
-        .single()
+        .maybeSingle()
 
       if (!prod) { setError('No encontrado'); setLoading(false); return }
       if (user && prod.user_id !== user.id) { setError('No tienes permiso'); setLoading(false); return }
@@ -216,8 +216,23 @@ export default function EditarPage() {
   const handleEliminar = async () => {
     if (!confirm('¿Eliminar permanentemente?')) return
     setEliminando(true)
-    await supabase.from('productos').delete().eq('id', productoId)
-    router.push('/dashboard')
+    try {
+      const res = await fetch('/api/admin/eliminar-producto', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ productId: productoId }),
+      })
+      if (!res.ok) {
+        const result = await res.json().catch(() => ({}))
+        setError(result.error || 'No se pudo eliminar el producto')
+        setEliminando(false)
+        return
+      }
+      router.push('/dashboard')
+    } catch {
+      setError('No se pudo eliminar el producto')
+      setEliminando(false)
+    }
   }
 
   const cat = categoriasData[categoria]

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { requireUser } from '@/lib/require-auth'
+import { requireUUIDs } from '@/lib/validation'
 
 export async function POST(req: NextRequest) {
   // Solo el propio destinatario puede marcar sus mensajes como leídos.
@@ -9,16 +10,35 @@ export async function POST(req: NextRequest) {
   if ('response' in auth) return auth.response
   const destinatario_id = auth.user.id
 
-  const { conversacion_id } = await req.json()
-  if (!conversacion_id) {
-    return NextResponse.json({ error: 'missing params' }, { status: 400 })
+  let body: any
+  try {
+    body = await req.json()
+  } catch {
+    return NextResponse.json({ error: 'JSON inválido' }, { status: 400 })
   }
+  const uuidCheck = requireUUIDs(body, ['conversacion_id'])
+  if (!uuidCheck.valid) {
+    return NextResponse.json({ error: uuidCheck.error }, { status: 400 })
+  }
+  const conversacion_id = body.conversacion_id
 
   const sb = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!,
     { auth: { persistSession: false } }
   )
+
+  const { data: conv, error: convError } = await sb
+    .from('conversaciones')
+    .select('user1_id, user2_id')
+    .eq('id', conversacion_id)
+    .maybeSingle()
+  if (convError || !conv) {
+    return NextResponse.json({ error: 'Conversación no encontrada' }, { status: 404 })
+  }
+  if (conv.user1_id !== destinatario_id && conv.user2_id !== destinatario_id) {
+    return NextResponse.json({ error: 'No autorizado' }, { status: 403 })
+  }
 
   // Contar primero
   const { count } = await sb

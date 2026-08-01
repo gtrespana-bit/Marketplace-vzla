@@ -60,34 +60,17 @@ export function Header() {
       timeoutId = setTimeout(() => controller.abort(), 5000)
       
       try {
-        // Verificar que el perfil exista antes de leerlo
-        const perfilCheck = await supabase.from('perfiles').select('id').eq('id', user!.id).single({ signal: controller.signal })
-        
-        if (perfilCheck.error) {
-          // Si el perfil no existe, crearlo automáticamente
-          if (perfilCheck.error.code === 'PGRST116') { // No rows returned
-            await supabase.from('perfiles').insert({
-              id: user!.id,
-              nombre: user!.user_metadata?.nombre || 'Usuario',
-              telefono: user!.user_metadata?.telefono || '',
-              estado: user!.user_metadata?.estado || 'Distrito Capital',
-              ciudad: user!.user_metadata?.ciudad || 'Caracas',
-              credito_balance: 0,
-            })
-          } else {
-            throw perfilCheck.error
-          }
-        }
-
-        const [credResult, unreadResult] = await Promise.all([
-          supabase.from('perfiles').select('credito_balance').eq('id', user!.id).single({ signal: controller.signal }),
+        const [profileResponse, unreadResult] = await Promise.all([
+          fetch('/api/perfil', { signal: controller.signal }),
           supabase.from('mensajes').select('id', { count: 'exact', head: true }).eq('destinatario_id', user!.id).eq('leido', false).abortSignal(controller.signal),
         ])
-        
+        if (!profileResponse.ok) throw new Error('No se pudo cargar el perfil')
+        const profileJson = await profileResponse.json()
+
         // Clear timeout on success
         clearTimeout(timeoutId)
-        
-        setCreditoBalance(credResult.data?.credito_balance ?? 0)
+
+        setCreditoBalance(profileJson.profile?.credito_balance ?? 0)
         setUnreadCount(unreadResult.count || 0)
       } catch (error: any) {
         // Clear timeout on error

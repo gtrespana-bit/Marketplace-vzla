@@ -34,9 +34,9 @@ async function analyzeResults(filePath) {
     
     console.log('\n=== RESULTADOS DE RENDIMIENTO ===');
     console.log(`Performance: ${(scores.performance.score * 100).toFixed(0)}/100`);
-    console.log(`Accessibility: ${(scores.accessibility.score * 100).toFixed(0)/100}/1});
-    console.log(`Best Practices: ${(scores['best-practices'].score * 100).toFixed(0)/100}`);
-    console.log(`SEO: ${(scores.seo.score * 100).toFixed(0)/100}`);
+    console.log(`Accessibility: ${(scores.accessibility.score * 100).toFixed(0)}/100`);
+    console.log(`Best Practices: ${(scores['best-practices'].score * 100).toFixed(0)}/100`);
+    console.log(`SEO: ${(scores.seo.score * 100).toFixed(0)}/100`);
     
     // Métricas específicas
     const metrics = data.audits;

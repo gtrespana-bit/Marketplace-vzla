@@ -3,6 +3,7 @@ import { revalidatePath } from 'next/cache'
 import { checkRateLimit } from '@/lib/rate-limit'
 import { createClient } from '@supabase/supabase-js'
 import { validateProductData, sanitizeObject } from '@/lib/validation'
+import { verificarContenido } from '@/lib/moderacion'
 import { requireUser } from '@/lib/require-auth'
 
 /**
@@ -67,7 +68,19 @@ export async function POST(req: NextRequest) {
     // más abajo. Si se colara en el INSERT, PostgREST fallaría con
     // "Could not find the 'categoria' column of 'productos'".
     const {
-      moderacionAlerta,
+      // Estos valores se calculan en el servidor y nunca se aceptan del cliente.
+      moderacionAlerta: _bodyModeracion,
+      estado_moderacion: _bodyEstadoModeracion,
+      motivo_moderacion: _bodyMotivoModeracion,
+      activo: _bodyActivo,
+      destacado: _bodyDestacado,
+      destacado_hasta: _bodyDestacadoHasta,
+      boosteado_en: _bodyBoosteadoEn,
+      vendedor_verificado: _bodyVendedorVerificado,
+      visitas: _bodyVisitas,
+      vendido: _bodyVendido,
+      vendido_en: _bodyVendidoEn,
+      comprador_id: _bodyCompradorId,
       userId: _bodyUserId,
       user_id: _bodyUserIdSnake,
       categoria: categoriaKey,
@@ -82,6 +95,31 @@ export async function POST(req: NextRequest) {
 
     // Sanitizar strings para prevenir XSS
     const sanitizedData = sanitizeObject(productoData)
+
+    // La moderación es una regla de seguridad: se recalcula en el servidor y
+    // no se confía en `estado_moderacion` ni en una alerta enviada por el
+    // navegador.
+    const textoModeracion = `${sanitizedData.titulo || ''} ${sanitizedData.descripcion || ''}`
+    const moderacion = verificarContenido(textoModeracion)
+    if (moderacion.nivel === 'prohibido') {
+      return NextResponse.json(
+        { error: 'La publicación contiene contenido que viola nuestras normas.', palabras: moderacion.palabras },
+        { status: 400 },
+      )
+    }
+    sanitizedData.estado_moderacion = moderacion.nivel === 'sospechoso' ? 'pendiente' : 'aprobado'
+    sanitizedData.motivo_moderacion = moderacion.nivel === 'sospechoso'
+      ? `Contenido sospechoso: ${moderacion.palabras.join(', ')}`
+      : null
+    sanitizedData.activo = true
+    sanitizedData.destacado = false
+    sanitizedData.destacado_hasta = null
+    sanitizedData.boosteado_en = null
+    sanitizedData.vendedor_verificado = false
+    sanitizedData.visitas = 0
+    sanitizedData.vendido = false
+    sanitizedData.vendido_en = null
+    sanitizedData.comprador_id = null
 
     const ip = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown'
     const rl = await checkRateLimit('producto:create', userId, { ip })
@@ -123,8 +161,9 @@ export async function POST(req: NextRequest) {
     revalidatePath('/')
     revalidatePath('/catalogo')
 
-    // Telegram alert if moderation needed
-    if (moderacionAlerta && moderacionAlerta.nivel) {
+    // Telegram alert if the server-side moderation marked the product pending.
+    // Plain text avoids HTML/Markdown injection through user content.
+    if (moderacion.nivel === 'sospechoso') {
       const BOT = process.env.TELEGRAM_BOT_TOKEN
       const CHAT = process.env.TELEGRAM_CHAT_ID
       if (BOT && CHAT) {
@@ -133,8 +172,7 @@ export async function POST(req: NextRequest) {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             chat_id: CHAT,
-            text: `⚠️ <b>ALERTA MODERACIÓN — ${moderacionAlerta.nivel.toUpperCase()}</b>\n\n📝 "${moderacionAlerta.titulo}"\n👤 ${moderacionAlerta.userName}\n🚫 Palabras: ${moderacionAlerta.palabras?.join(', ') || 'N/A'}`,
-            parse_mode: 'HTML',
+            text: `ALERTA MODERACIÓN — SOSPECHOSO\n\nTítulo: ${String(sanitizedData.titulo || '').slice(0, 200)}\nUsuario: ${auth.user.email || userId}\nPalabras: ${moderacion.palabras.join(', ')}`,
           }),
         }).catch(() => {})
       }

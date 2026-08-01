@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import LocalLink from '@/components/LocalLink'
 import { useRouter } from 'next/navigation'
 import { supabase, isSupabaseConfigured } from '@/lib/supabase'
@@ -75,6 +75,7 @@ export default function PublicarPage() {
   const [ubicacionEstado, setUbicacionEstado] = useState('')
   const [ubicacionCiudad, setUbicacionCiudad] = useState('')
   const [imagenes, setImagenes] = useState<ImageFile[]>([])
+  const imagenesRef = useRef<ImageFile[]>([])
   const [procesando, setProcesando] = useState(false)
   const [loading, setLoading] = useState(false)
   const [uploadProgress, setUploadProgress] = useState(0)
@@ -104,10 +105,16 @@ export default function PublicarPage() {
     }
   }, [authLoading, session, router, user])
 
-  // Cleanup preview URLs on unmount
+  // Mantener la referencia actual para limpiar previews solo al desmontar.
+  // Un efecto con `imagenes` como dependencia revocaría las URLs anteriores
+  // durante cada render y rompería las previsualizaciones aún visibles.
+  useEffect(() => {
+    imagenesRef.current = imagenes
+  }, [imagenes])
+
   useEffect(() => {
     return () => {
-      imagenes.forEach(img => {
+      imagenesRef.current.forEach(img => {
         if (img.preview.startsWith('blob:')) URL.revokeObjectURL(img.preview)
       })
     }
@@ -251,10 +258,7 @@ export default function PublicarPage() {
       return
     }
 
-    // Si es sospechoso, se publica pero marcado como pendiente y se alerta admin
-    const estadoModeracion = resultado.nivel === 'sospechoso' ? 'pendiente' : 'aprobado'
-    const motivoModeracion = resultado.nivel === 'sospechoso' ? `Contenido sospechoso: ${resultado.palabras.join(', ')}` : null
-
+    // Si es sospechoso, el servidor lo dejará pendiente y enviará la alerta.
     try {
       // Upload images first
       let imagenUrl: string | null = null
@@ -309,40 +313,16 @@ export default function PublicarPage() {
       if (contactWhatsApp) metodosContacto.whatsapp = contactWhatsApp
       if (contactMessenger) metodosContacto.messenger = contactMessenger
 
-      // Alerta al admin si contenido sospechoso (envía notificación Telegram)
-      if (estadoModeracion === 'pendiente') {
-        try {
-          const ALERTA_URL = `${process.env.NEXT_PUBLIC_BASE_URL || 'https://marketplacevzla.vercel.app'}`
-          await fetch('/api/moderacion-alerta', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              nivel: 'sospechoso',
-              titulo,
-              palabras: resultado.palabras,
-              userId: user?.id,
-              userName: user?.email || 'Desconocido',
-            }),
-          })
-        } catch (e) {
-          console.error('No se pudo enviar alerta de moderación:', e)
-        }
-      }
-
-      // Insert product via API route with rate limiting
+      // Insert product via API route with rate limiting. La moderación y la
+      // alerta se calculan en el servidor; no se envía una segunda alerta desde
+      // el navegador para evitar duplicados y manipulación del estado.
       const res = await fetch('/api/publicar', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           userId: user?.id,
-          moderacionAlerta: estadoModeracion === 'pendiente' ? {
-            nivel: 'sospechoso', titulo, palabras: resultado.palabras,
-            userName: user?.email || 'Desconocido',
-          } : undefined,
           user_id: user?.id,
           titulo,
-          estado_moderacion: estadoModeracion,
-          motivo_moderacion: motivoModeracion,
           descripcion,
           categoria: categoria || null,
           subcategoria,
@@ -386,13 +366,9 @@ export default function PublicarPage() {
         .eq('activo', true)
       
       if (pubCount && pubCount >= 10) {
-        const { data: perfil } = await supabase
-          .from('perfiles')
-          .select('emprendedor_dado, credito_balance')
-          .eq('id', user?.id)
-          .single()
-        
-        if (perfil && !perfil.emprendedor_dado) {
+        const perfilResponse = await fetch('/api/perfil')
+        const perfilResult = await perfilResponse.json().catch(() => ({}))
+        if (perfilResult.profile && !perfilResult.profile.emprendedor_dado) {
           setShowEmprendedor(true)
           setTimeout(() => setShowEmprendedor(false), 6000)
         }

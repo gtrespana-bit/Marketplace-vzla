@@ -97,8 +97,10 @@ function ProductoPageClientInner({ initialProduct }: ProductoPageClientProps) {
         if (detalle.historial) setHistorial(detalle.historial)
       }
 
-      // Fire and forget: increment views
-      supabase.from('productos').update({ visitas: (producto.visitas || 0) + 1 }).eq('id', producto.id).then()
+      // Fire and forget: el RPC incrementa solo visitas de forma atómica.
+      // No se usa UPDATE directo porque los visitantes no son dueños del
+      // producto y no deben poder modificar otras columnas.
+      supabase.rpc('incrementar_visitas', { p_producto_id: producto.id }).then()
 
       setLoading(false)
     }

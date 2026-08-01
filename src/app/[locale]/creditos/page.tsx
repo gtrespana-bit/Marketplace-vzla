@@ -63,7 +63,7 @@ function ModalPago({ paquete, tasa, onClose }: { paquete: any; tasa: number; onC
       if (!user) { router.push(`/login?redirect=/creditos`); return }
 
       const fileExt = comprobanteFile.name.split('.').pop()
-      const fileName = `comprobante_${user.id}_${Date.now()}.${fileExt}`
+      const fileName = `${user.id}/comprobante_${Date.now()}.${fileExt}`
 
       const { error: uploadError } = await supabase.storage
         .from('comprobantes')

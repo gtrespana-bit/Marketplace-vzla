@@ -59,7 +59,16 @@ export default function TabProductos({
   const reactivarVendido = async (productoId: string) => {
     cerrarMenus()
     if (!confirm('¿Reactivar esta publicacion como no vendida?')) return
-    await supabase.from('productos').update({ activo: true, vendido: false, vendido_en: null, comprador_id: null }).eq('id', productoId)
+    const res = await fetch('/api/productos/reactivar', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ productoId }),
+    })
+    if (!res.ok) {
+      const result = await res.json().catch(() => ({}))
+      alert('Error: ' + (result.error || 'no se pudo reactivar'))
+      return
+    }
     window.location.reload()
   }
 
@@ -167,38 +176,25 @@ export default function TabProductos({
   const enviarMensajeComprador = async (compradorId: string) => {
     if (!vendidoModal) return
     try {
-      // Buscar o crear conversacion
-      const u1 = userId < compradorId ? userId : compradorId
-      const u2 = userId < compradorId ? compradorId : userId
-      const { data: convExist } = await supabase
-        .from('conversaciones')
-        .select('id')
-        .eq('user1_id', u1)
-        .eq('user2_id', u2)
-        .eq('producto_id', vendidoModal)
-        .maybeSingle()
+      const convResponse = await fetch('/api/crear-conversacion', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ vendedorId: userId, otroUsuarioId: compradorId, productoId: vendidoModal }),
+      })
+      const conv = await convResponse.json().catch(() => ({}))
+      if (!convResponse.ok || !conv.id) return
 
-      let convId = convExist?.id
-      if (!convId) {
-        const { data: convNew } = await supabase
-          .from('conversaciones')
-          .insert({ user1_id: u1, user2_id: u2, producto_id: vendidoModal })
-          .select('id')
-          .single()
-        convId = convNew?.id
-      }
-
-      if (convId) {
-        await supabase.from('mensajes').insert({
-          conversacion_id: convId,
-          remitente_id: userId,
+      await fetch('/api/enviar-mensaje', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          conversacion_id: conv.id,
           destinatario_id: compradorId,
-          producto_id: vendidoModal,
           contenido: '✅ ¡Tu compra fue exitosa! El vendedor ha confirmado la venta. ¿Cómo fue tu experiencia? Déjale una reseña para ayudar a la comunidad. ⭐',
-        })
-      }
+        }),
+      })
     } catch {
-      // fail silently
+      // La venta ya está guardada; la notificación es secundaria.
     }
   }
 

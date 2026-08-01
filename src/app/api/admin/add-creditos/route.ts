@@ -1,6 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
 import { NextRequest, NextResponse } from 'next/server'
-import { revalidatePath } from 'next/cache'
 import { notifyUser } from '@/lib/push-notify'
 import { requireUUIDs } from '@/lib/validation'
 import { requireAdmin } from '@/lib/require-auth'
@@ -20,44 +19,34 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: uuidCheck.error }, { status: 400 })
     }
 
-    if (!cantidad || parseInt(cantidad) < 1) {
+    const cantidadNum = Number(cantidad)
+    if (!Number.isInteger(cantidadNum) || cantidadNum < 1 || cantidadNum > 10000) {
       return NextResponse.json({ error: 'Cantidad inválida' }, { status: 400 })
     }
 
     const supabaseAdmin = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      { auth: { persistSession: false, autoRefreshToken: false } },
     )
 
-    const { data: perfilData } = await supabaseAdmin
-      .from('perfiles')
-      .select('credito_balance')
-      .eq('id', userId)
-      .single()
+    // Operación atómica: balance e histórico se escriben en una sola
+    // transacción dentro de PostgreSQL.
+    const { data: result, error } = await supabaseAdmin.rpc('agregar_creditos_admin', {
+      p_user_id: userId,
+      p_cantidad: cantidadNum,
+      p_motivo: motivo || 'Manual admin',
+    })
+    if (error || !result?.ok) {
+      return NextResponse.json({ error: result?.error || error?.message || 'No se pudieron agregar créditos' }, { status: 500 })
+    }
 
-    const nuevoBalance = (perfilData?.credito_balance || 0) + parseInt(cantidad)
-
-    const { error: err1 } = await supabaseAdmin
-      .from('perfiles')
-      .update({ credito_balance: nuevoBalance })
-      .eq('id', userId)
-    if (err1) throw err1
-
-    const { error: err2 } = await supabaseAdmin
-      .from('transacciones_creditos')
-      .insert({
-        user_id: userId,
-        tipo: 'admin_manual',
-        monto: parseInt(cantidad),
-        estado: 'aprobado',
-        motivo_registro: motivo || 'Manual admin',
-      })
-    if (err2) throw err2
+    const nuevoBalance = result.nuevoBalance
 
     // Push notification: créditos recibidos
     await notifyUser(supabaseAdmin, userId, {
       title: '💰 Créditos recibidos',
-      body: `Recibiste ${cantidad} ${parseInt(cantidad) === 1 ? 'crédito' : 'créditos'} en tu cuenta VendeT. Nuevo balance: ${nuevoBalance}.`,
+      body: `Recibiste ${cantidadNum} ${cantidadNum === 1 ? 'crédito' : 'créditos'} en tu cuenta VendeT. Nuevo balance: ${nuevoBalance}.`,
       tag: 'creditos',
       icon: '/icon-192.png',
       click_url: '/creditos',
