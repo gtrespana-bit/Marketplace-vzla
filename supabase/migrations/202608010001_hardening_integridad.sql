@@ -510,7 +510,12 @@ $$;
 -- 11. Detalle de producto: no filtrar teléfono ni favoritos de otro usuario
 -- ────────────────────────────────────────────────────────────────────────────
 
-create or replace function public.obtener_detalle_producto(
+-- PostgreSQL no permite cambiar el tipo de retorno con CREATE OR REPLACE.
+-- Algunas instalaciones antiguas tienen esta función con una firma/retorno
+-- diferente, así que se elimina solo la sobrecarga exacta antes de recrearla.
+drop function if exists public.obtener_detalle_producto(uuid, uuid);
+
+create function public.obtener_detalle_producto(
   p_producto_id uuid,
   p_user_id uuid default null
 )
