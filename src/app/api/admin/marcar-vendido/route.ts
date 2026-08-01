@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import { NextRequest, NextResponse } from 'next/server'
-import { requireUUIDs } from '@/lib/validation'
+import { requireUUIDs, isValidUUID } from '@/lib/validation'
 import { requireUser, getAdminEmails } from '@/lib/require-auth'
 
 export async function POST(request: NextRequest) {
@@ -11,7 +11,12 @@ export async function POST(request: NextRequest) {
     const sessionUserId = auth.user.id
     const isAdmin = getAdminEmails().includes((auth.user.email || '').toLowerCase())
 
-    const body = await request.json()
+    let body: any
+    try {
+      body = await request.json()
+    } catch {
+      return NextResponse.json({ error: 'JSON inválido' }, { status: 400 })
+    }
     const { productoId, vendidoEn, compradorId } = body
 
     // Validar UUIDs
@@ -27,26 +32,47 @@ export async function POST(request: NextRequest) {
 
     const supabaseAdmin = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      { auth: { persistSession: false, autoRefreshToken: false } },
     )
 
+    const { data: producto, error: productoError } = await supabaseAdmin
+      .from('productos')
+      .select('user_id, activo, vendido')
+      .eq('id', productoId)
+      .maybeSingle()
 
-    const { data: producto } = await supabaseAdmin.from('productos').select('user_id, activo, vendido').eq('id', productoId).single() as any
-
-
-    if (!producto || (producto.user_id !== sessionUserId && !isAdmin)) {
+    if (productoError || !producto) {
+      return NextResponse.json({ error: 'Producto no encontrado' }, { status: 404 })
+    }
+    if (producto.user_id !== sessionUserId && !isAdmin) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 403 })
     }
-
-
     if (producto.vendido) {
-      return NextResponse.json({ error: 'El producto ya estÃ¡ marcado como vendido' }, { status: 400 })
+      return NextResponse.json({ error: 'El producto ya está marcado como vendido' }, { status: 400 })
     }
 
+    if (compradorId) {
+      const u1 = producto.user_id < compradorId ? producto.user_id : compradorId
+      const u2 = producto.user_id < compradorId ? compradorId : producto.user_id
+      const { data: conversation } = await supabaseAdmin
+        .from('conversaciones')
+        .select('id')
+        .eq('user1_id', u1)
+        .eq('user2_id', u2)
+        .eq('producto_id', productoId)
+        .maybeSingle()
+      if (!conversation) {
+        return NextResponse.json({ error: 'El comprador no pertenece a una conversación de este producto' }, { status: 400 })
+      }
+    }
+
+    const lugaresValidos = ['plataforma', 'otra_pagina', 'no_especificado']
+    const lugar = lugaresValidos.includes(vendidoEn) ? vendidoEn : 'no_especificado'
     const updateData: Record<string, string | boolean | null> = {
       activo: false,
       vendido: true,
-      vendido_en: vendidoEn || 'no_especificado',
+      vendido_en: lugar,
     }
     if (compradorId) {
       updateData.comprador_id = compradorId
@@ -77,17 +103,21 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const productoId = searchParams.get('productoId')
 
-    if (!productoId) {
-      return NextResponse.json({ error: 'Datos incompletos' }, { status: 400 })
+    if (!productoId || !isValidUUID(productoId)) {
+      return NextResponse.json({ error: 'Producto inválido' }, { status: 400 })
     }
 
     const supabaseAdmin = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      { auth: { persistSession: false, autoRefreshToken: false } },
     )
 
-
-    const { data: producto } = await supabaseAdmin.from('productos').select('user_id').eq('id', productoId).single() as any
+    const { data: producto } = await supabaseAdmin
+      .from('productos')
+      .select('user_id')
+      .eq('id', productoId)
+      .maybeSingle()
 
     if (!producto || (producto.user_id !== sessionUserId && !isAdmin)) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 403 })
@@ -105,14 +135,20 @@ export async function GET(request: NextRequest) {
     }
 
     const compradorIds = new Set<string>()
+    const conversationIds: string[] = []
+    const conversationByBuyer = new Map<string, string>()
 
     for (const conv of conversacionesList as any[]) {
       const u1: string | null = conv.user1_id || null
       const u2: string | null = conv.user2_id || null
-      if (u1 === sessionUserId && u2 && u2 !== sessionUserId) {
-        compradorIds.add(u2)
-      } else if (u2 === sessionUserId && u1 && u1 !== sessionUserId) {
-        compradorIds.add(u1)
+      const ownerId = producto.user_id
+      const canSeeConversation = isAdmin || ownerId === sessionUserId
+      if (!canSeeConversation) continue
+      const buyerId = u1 === ownerId ? u2 : u2 === ownerId ? u1 : null
+      if (buyerId && buyerId !== ownerId) {
+        compradorIds.add(buyerId)
+        conversationIds.push(conv.id)
+        conversationByBuyer.set(buyerId, conv.id)
       }
     }
 
@@ -121,20 +157,21 @@ export async function GET(request: NextRequest) {
     }
 
     const idsArray = Array.from(compradorIds)
+    const { data: perfiles } = await supabaseAdmin
+      .from('perfiles')
+      .select('id, nombre')
+      .in('id', idsArray) as { data: { id: string; nombre: string | null }[] | null }
 
-
-    const { data: perfiles } = await supabaseAdmin.from('perfiles').select('id, nombre').in('id', idsArray) as { data: { id: string; nombre: string | null }[] | null }
-
-    const { data: ultimosMensajes } = await supabaseAdmin.from('mensajes').select('remitente_id, contenido').in('remitente_id', idsArray).order('creado_en', { ascending: false }) as { data: { remitente_id: string; contenido: string | null }[] | null }
-
+    const { data: ultimosMensajes } = await supabaseAdmin
+      .from('mensajes')
+      .select('conversacion_id, contenido, creado_en')
+      .in('conversacion_id', conversationIds)
+      .order('creado_en', { ascending: false }) as { data: { conversacion_id: string; contenido: string | null; creado_en: string }[] | null }
 
     const ultimoMsgMap = new Map<string, string>()
-    if (ultimosMensajes) {
-
-      for (const m of ultimosMensajes as any[]) {
-        if (!ultimoMsgMap.has(m.remitente_id)) {
-          ultimoMsgMap.set(m.remitente_id, m.contenido ? m.contenido.substring(0, 60) : '')
-        }
+    for (const m of ultimosMensajes || []) {
+      if (!ultimoMsgMap.has(m.conversacion_id)) {
+        ultimoMsgMap.set(m.conversacion_id, m.contenido ? m.contenido.substring(0, 60) : '')
       }
     }
 
@@ -142,7 +179,7 @@ export async function GET(request: NextRequest) {
     const interesados = (perfiles || []).map((p: any) => ({
       userId: p.id,
       nombre: p.nombre || 'Usuario',
-      ultimoMensaje: ultimoMsgMap.get(p.id) || '',
+      ultimoMensaje: ultimoMsgMap.get(conversationByBuyer.get(p.id) || '') || '',
     }))
 
     return NextResponse.json({ ok: true, interesados })

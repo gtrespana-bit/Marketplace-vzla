@@ -1,62 +1,70 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { requireUser } from '@/lib/require-auth'
+import { isValidUUID } from '@/lib/validation'
 
-/**
- * POST /api/chat/review-status
- *
- * Devuelve toda la info para el botón de reseña del comprador.
- * Exige sesión: el userId SIEMPRE sale de la sesión (antes venía del body
- * y permitía consultar conversaciones/productos ajenos).
- */
 export async function POST(req: NextRequest) {
   try {
     const auth = await requireUser(req)
     if ('response' in auth) return auth.response
     const userId = auth.user.id
 
-    const { convId } = await req.json()
-    if (!convId) {
-      return NextResponse.json({ error: 'Datos incompletos' }, { status: 400 })
+    let body: any
+    try {
+      body = await req.json()
+    } catch {
+      return NextResponse.json({ error: 'JSON inválido' }, { status: 400 })
+    }
+    const { convId } = body
+    if (!isValidUUID(convId)) {
+      return NextResponse.json({ error: 'Conversación inválida' }, { status: 400 })
     }
 
     const sb = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!,
-      { auth: { persistSession: false } }
+      { auth: { persistSession: false, autoRefreshToken: false } },
     )
 
-    // 1. Obtener producto_id de la conversación
-    const { data: conv } = await sb
+    const { data: conv, error: convError } = await sb
       .from('conversaciones')
-      .select('producto_id')
+      .select('user1_id, user2_id, producto_id')
       .eq('id', convId)
-      .single()
-    if (!conv || !conv.producto_id) {
+      .maybeSingle()
+
+    if (convError || !conv || !conv.producto_id) {
       return NextResponse.json({ productoOwnerId: null, puedeResenar: false, yaDejoResena: false })
     }
+    if (conv.user1_id !== userId && conv.user2_id !== userId) {
+      return NextResponse.json({ error: 'No autorizado' }, { status: 403 })
+    }
 
-    // 2. Obtener datos del producto (activo = no vendido, inactivo = vendido/pausado)
-    const { data: prod } = await sb
+    const { data: prod, error: prodError } = await sb
       .from('productos')
-      .select('user_id, activo')
+      .select('user_id, activo, vendido, comprador_id')
       .eq('id', conv.producto_id)
-      .single()
-    if (!prod) {
+      .maybeSingle()
+
+    if (prodError || !prod) {
       return NextResponse.json({ productoOwnerId: null, puedeResenar: false, yaDejoResena: false })
     }
 
     const productoOwnerId = prod.user_id
+    const esVendedor = userId === productoOwnerId
+    const esComprador = userId === prod.comprador_id
+    const productoVendido = prod.vendido === true
 
-    // 3. Si soy el vendedor → no aplica
-    if (userId === productoOwnerId) {
-      return NextResponse.json({ productoOwnerId, puedeResenar: false, yaDejoResena: false, esVendedor: true })
+    if (!esComprador || esVendedor || !productoVendido) {
+      return NextResponse.json({
+        productoOwnerId,
+        productoId: conv.producto_id,
+        productoVendido,
+        puedeResenar: false,
+        yaDejoResena: false,
+        esVendedor,
+      })
     }
 
-    // 4. Solo puede reseñar si el producto NO está activo (=vendido/pausado)
-    const productoVendido = !prod.activo
-
-    // 5. Verificar si ya dejé reseña para ESTE producto
     const { count } = await sb
       .from('resenas')
       .select('id', { count: 'exact', head: true })
@@ -65,16 +73,14 @@ export async function POST(req: NextRequest) {
       .eq('producto_id', conv.producto_id)
 
     const yaDejoResena = (count ?? 0) > 0
-
     return NextResponse.json({
       productoOwnerId,
       productoId: conv.producto_id,
       productoVendido,
-      puedeResenar: productoVendido && !yaDejoResena,
+      puedeResenar: !yaDejoResena,
       yaDejoResena,
     })
-
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 })
+  } catch {
+    return NextResponse.json({ error: 'No se pudo consultar el estado de la reseña' }, { status: 500 })
   }
 }

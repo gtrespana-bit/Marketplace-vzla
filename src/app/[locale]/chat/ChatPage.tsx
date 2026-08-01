@@ -8,7 +8,6 @@ import Avatar from '@/components/Avatar'
 import { Send, ArrowLeft, Search, User, Trash2, ExternalLink, Star } from 'lucide-react'
 import LocalLink from '@/components/LocalLink'
 import { useTranslations } from 'next-intl'
-import { emailMensajeRecibido } from '@/lib/server-email'
 
 type Conversacion = {
   id: string
@@ -150,7 +149,7 @@ export default function ChatPageClient() {
 
     const { data: convs, error } = await supabase
       .from('conversaciones')
-      .select('id, user1_id, user2_id, ultimo_mensaje_en, ultimo_mensaje')
+      .select('id, user1_id, user2_id, producto_id, ultimo_mensaje_en, ultimo_mensaje')
       .or(`user1_id.eq.${uid},user2_id.eq.${uid}`)
       .order('ultimo_mensaje_en', { ascending: false })
 
@@ -228,23 +227,23 @@ export default function ChatPageClient() {
         setConvId(match.id)
         setShowMobileChat(true)
       } else {
-        // Create conversation directly in DB
-        const u1 = uid < vendedorId ? uid : vendedorId
-        const u2 = uid < vendedorId ? vendedorId : uid
-        const { data: newConv, error: insErr } = await supabase
-          .from('conversaciones')
-          .insert({ user1_id: u1, user2_id: u2, producto_id: productoId })
-          .select()
-          .single()
+        const response = await fetch('/api/crear-conversacion', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ vendedorId, productoId }),
+        })
+        const result = await response.json().catch(() => ({}))
+        const newConv = result?.id ? result : null
 
-        if (insErr || !newConv) {
-          console.error('Error creating conversation:', insErr)
+        if (!response.ok || !newConv) {
+          console.error('Error creating conversation:', result.error || response.status)
         } else {
           const perfil = perfilMap.get(vendedorId)
           setConversaciones(prev => [{
             ...newConv,
             otro_nombre: perfil?.nombre || 'Usuario',
             otro_foto: perfil?.foto || null,
+            otro_email: null,
             producto_titulo: prodMap.get(productoId) || null,
             no_leidos: 0,
           }, ...prev])
@@ -346,8 +345,17 @@ export default function ChatPageClient() {
   const eliminarConv = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation()
     if (!confirm(t('deleteConversation'))) return
-    await supabase.from('mensajes').delete().eq('conversacion_id', id)
-    await supabase.from('conversaciones').delete().eq('id', id)
+    const response = await fetch('/api/eliminar-conversacion', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ conversacionId: id }),
+    })
+    if (!response.ok) {
+      const result = await response.json().catch(() => ({}))
+      setToastMsg(result.error || 'No se pudo eliminar la conversación')
+      setTimeout(() => setToastMsg(null), 4000)
+      return
+    }
     setConversaciones(prev => prev.filter(c => c.id !== id))
     if (convId === id) {
       setConvId(null)
@@ -404,46 +412,27 @@ export default function ChatPageClient() {
     if (!conv) { console.error('ChatPage: conversacion no encontrada', convId); setEnviando(false); return }
     const destinatarioId = conv.user1_id === user.id ? conv.user2_id : conv.user1_id
 
-    // Insert directly via Supabase (always worked this way)
-    const { error } = await supabase.from('mensajes').insert({
-      conversacion_id: convId,
-      remitente_id: user.id,
-      destinatario_id: destinatarioId,
-      contenido: msg,
+    const response = await fetch('/api/enviar-mensaje', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        conversacion_id: convId,
+        destinatario_id: destinatarioId,
+        contenido: msg,
+      }),
     })
+    const result = await response.json().catch(() => ({}))
 
-    if (error) {
-      console.error('Error enviando mensaje:', error.message)
-      setToastMsg('Error al enviar: ' + error.message)
+    if (!response.ok) {
+      console.error('Error enviando mensaje:', result.error)
+      setToastMsg('Error al enviar: ' + (result.error || 'inténtalo de nuevo'))
       setTimeout(() => setToastMsg(null), 4000)
       setEnviando(false)
       return
     }
 
-    // Success
     setTexto('')
     await loadMensajes(convId)
-
-    // Push notification al destinatario
-    try {
-      await fetch('/api/push/send', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          targetUserId: destinatarioId,
-          titulo: `💬 ${conv.otro_nombre || 'Alguien'} te escribió`,
-          cuerpo: msg.length > 100 ? msg.slice(0, 100) + '...' : msg,
-          click_url: `/chat?conversation=${convId}`,
-        }),
-      })
-    } catch (e) { console.error('Push send failed:', e) }
-
-    // Email notification
-      if (conv.otro_email && user && user.id !== destinatarioId) {
-        const producto = conv.producto_titulo || 'un producto'
-        const preview = msg.length > 100 ? msg.substring(0, 100) + '...' : msg
-        emailMensajeRecibido(conv.otro_email, conv.otro_nombre, user?.email?.split('@')[0] || 'Alguien', producto, preview).catch(e => console.error('Error email mensaje:', e))
-      }
     setEnviando(false)
   }
 
