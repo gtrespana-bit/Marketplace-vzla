@@ -77,8 +77,9 @@ pero olvidó convertir la función en `SECURITY DEFINER`.
 **Fix:** migración `202608010003_fix_reputacion_definer.sql` que convierte
 `fn_calcular_reputacion()` en `SECURITY DEFINER` con `search_path = public`.
 
-**Pendiente de probar en staging antes de producción:** editar un producto
-y confirmar que guarda sin error 403. Añadido a la sección C de pruebas manuales.
+**Estado: ✅ SQL aplicado (confirmado por el usuario 2026-08-01).**
+Pendiente: confirmar en la interfaz que editar y guardar un artículo ya no
+arroja el error 403. Ver sección C de pruebas manuales.
 
 ---
 
@@ -171,7 +172,7 @@ producción sin respaldo.
 
 ## C. Editar productos
 
-- [ ] **Editar y guardar un producto no arroja `permission denied for table perfiles` ni 403** (regresión por reputación; requiere migración `202608010003_fix_reputacion_definer.sql` aplicada).
+- [x] **Editar y guardar un producto no arroja `permission denied for table perfiles` ni 403** (SQL `202608010003_fix_reputacion_definer.sql` aplicado 2026-08-01; confirmar guardado real en la interfaz).
 - [ ] Editar título conserva las especificaciones.
 - [ ] Editar precio conserva las especificaciones.
 - [ ] Editar un producto con varias imágenes conserva todas las imágenes.
