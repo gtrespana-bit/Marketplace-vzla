@@ -5,12 +5,12 @@ import './globals.css'
 // Lazy load heavy providers to reduce initial JS & main-thread work
 import dynamic from 'next/dynamic'
 const AuthProvider = dynamic(() => import('@/components/AuthProvider').then(m => ({ default: m.AuthProvider })))
-// ServiceWorkerRegistration es 100% client-side (devuelve null y solo corre en
-// useEffect), así que no hace falta incluirlo en el render del servidor: con
-// ssr:false se quita su chunk del SSR y solo se hidrata en el cliente.
-const ServiceWorkerRegistration = dynamic(() => import('@/components/ServiceWorkerRegistration').then(m => ({ default: m.ServiceWorkerRegistration })), {
-  ssr: false,
-})
+// ServiceWorkerRegistration es 100% client-side (devuelve null y solo corre
+// en useEffect), así que lo cargamos a través de un wrapper client que usa
+// `next/dynamic` con `ssr: false` internamente. Esto es necesario porque
+// `dynamic({ ssr: false })` NO se puede invocar desde un Server Component
+// en el App Router de Next.js.
+import { ServiceWorkerRegistrationClient } from '@/components/ServiceWorkerRegistrationClient'
 
 import { Analytics } from '@vercel/analytics/react'
 import { SpeedInsights } from '@vercel/speed-insights/next'
@@ -211,7 +211,7 @@ export default async function RootLayout({
         {/* Re-enable Vercel Analytics and SpeedInsights with lazy initialization */}
         <Analytics />
         <SpeedInsights />
-        <ServiceWorkerRegistration />
+        <ServiceWorkerRegistrationClient />
       </body>
     </html>
   )
