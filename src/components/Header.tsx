@@ -203,7 +203,7 @@ export function Header() {
                   <span className="absolute -top-1 -right-1 bg-green-500 text-white text-[9px] font-black px-1 rounded-full">{t('header.freeBadge')}</span>
                 )}
                 {creditoChecked && creditoBalance !== null && creditoBalance > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-brand-accent text-brand-primary text-[9px] font-black px-1.5 py-0.5 rounded-full min-w-[16px] text-center">{creditoBalance}</span>
+                  <span className="absolute -top-1 -right-1 bg-brand-accent text-brand-dark text-[9px] font-black px-1.5 py-0.5 rounded-full min-w-[16px] text-center">{creditoBalance}</span>
                 )}
               </LocalLink>
               <LocalLink 
@@ -245,7 +245,7 @@ export function Header() {
                 </>
               ) : (
                 <>
-                  <LocalLink href="/publicar" className="hidden md:flex items-center gap-1 bg-brand-accent text-brand-primary px-3 py-2 rounded-lg text-sm font-bold hover:bg-accent/90 transition">
+                  <LocalLink href="/publicar" className="hidden md:flex items-center gap-1 bg-brand-accent text-white px-3 py-2 rounded-lg text-sm font-bold hover:brightness-110 transition">
                     <PlusCircle size={16} /> {t('header.publish')}
                   </LocalLink>
                   <LocalLink 
@@ -302,7 +302,7 @@ export function Header() {
                   </>
                 ) : (
                   <>
-                    <LocalLink href="/publicar" onClick={() => setMobileOpen(false)} className="px-3 py-2 rounded-lg bg-brand-accent text-brand-primary font-bold text-center transition">📢 {t('header.publishSomething')}</LocalLink>
+                    <LocalLink href="/publicar" onClick={() => setMobileOpen(false)} className="px-3 py-2 rounded-lg bg-brand-accent text-white font-bold text-center transition">📢 {t('header.publishSomething')}</LocalLink>
                     <LocalLink href="/chat" onClick={() => setMobileOpen(false)} className="px-3 py-2 rounded-lg hover:bg-white/10 transition">💬 {t('header.messages')}{unreadCount > 0 ? t('header.messagesWithCount').replace('{count}', String(unreadCount)) : ''}</LocalLink>
                     <LocalLink href="/dashboard" onClick={() => setMobileOpen(false)} className="px-3 py-2 rounded-lg hover:bg-white/10 transition">👤 {t('header.myPanel')}</LocalLink>
                     <LocalLink href="/creditos" onClick={() => setMobileOpen(false)} className="px-3 py-2 rounded-lg hover:bg-white/10 transition">⚡ {t('header.credits')}{creditoChecked && creditoBalance !== null && creditoBalance > 0 ? t('header.creditsAvailable').replace('{count}', String(creditoBalance)) : ''}</LocalLink>

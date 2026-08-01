@@ -112,7 +112,7 @@ export default async function ComoFuncionaPage() {
 
         <div className="bg-white border-t border-b border-gray-100 py-10 px-4">
           <div className="max-w-2xl mx-auto text-center flex flex-col sm:flex-row gap-4 justify-center">
-            <LocalLink href="/publicar" className="bg-brand-accent text-brand-primary px-8 py-3 rounded-lg font-bold hover:bg-accent/90 transition inline-block">
+            <LocalLink href="/publicar" className="bg-brand-accent text-white px-8 py-3 rounded-lg font-bold hover:bg-accent/90 transition inline-block">
               {t('ctaPublish')}
             </LocalLink>
             <LocalLink href="/catalogo" className="bg-white border-2 border-brand-primary text-brand-primary px-8 py-3 rounded-lg font-bold hover:bg-brand-primary hover:text-white transition inline-block">

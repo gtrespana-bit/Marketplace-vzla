@@ -49,7 +49,7 @@ function usePushNotification() {
     if (!supported || !user) return false
     try {
       setLoading(true)
-      console.log('[Push] Step 1: Checking config...')
+// debug
       setError(null)
 
       if (!VAPID_PUBLIC) {
@@ -59,7 +59,7 @@ function usePushNotification() {
 
       // 1. Request permission
       const permission = await Notification.requestPermission()
-      console.log('[Push] Step 2: Permission =', permission)
+// debug
 
       // Chrome requires explicit 'granted'. On iOS PWA, it can return
       // 'default' even when granted at system level, so we handle it there
@@ -78,18 +78,18 @@ function usePushNotification() {
         navigator.serviceWorker.ready,
         swReadyTimeout
       ]) as ServiceWorkerRegistration;
-      console.log('[Push] Step 3: SW ready, scope =', reg.scope)
+// debug
 
       // 3. Subscribe to push
       const subscription = await reg.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC) as BufferSource,
       })
-      console.log('[Push] Step 4: Subscribed, endpoint =', subscription.endpoint)
+// debug
 
       // 4. Check session
       const { data } = await supabase.auth.getSession()
-      console.log('[Push] Step 5: Session =', data.session ? 'OK' : 'NO SESSION')
+// debug
       if (!data.session) {
         setError('Sesión: inicia sesión de nuevo')
         return false
@@ -104,7 +104,7 @@ function usePushNotification() {
         },
         body: JSON.stringify({ subscription }),
       })
-      console.log('[Push] Step 6: Response =', res.status)
+// debug
 
       if (!res.ok) {
         const body = await res.json().catch(() => ({}))

@@ -38,6 +38,18 @@ next-env.d.ts
 .vercel
 .env*
 
-# Lighthouse reports
+# Lighthouse & performance reports (kept in docs/lighthouse/)
 lh-*.json
-.env.production
+lh-*.html
+vendet.online_*.report.json
+vendet.online_*.report.html
+
+# Batch & URL generation scripts (dev utilities)
+batch_*.txt
+vendet_urls_*.txt
+generate-*.sh
+generate-*.py
+copy-urls-to-gsc.py
+
+# Convert image script
+convert-to-webp.ps1

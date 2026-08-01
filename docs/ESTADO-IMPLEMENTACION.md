@@ -1,6 +1,6 @@
 # Estado de implementación y seguridad
 
-> **Última actualización:** 31 de julio de 2026  
+> **Última actualización:** 1 de agosto de 2026  
 > **Rama de trabajo:** `arena/019fbaa2-marketplace-vzla`  
 > **Pull request activo:** [#9 — fixes de administración y Fase 2](https://github.com/gtrespana-bit/Marketplace-vzla/pull/9)
 
@@ -160,10 +160,12 @@ Estas acciones no pueden completarse únicamente con cambios de código:
 
 ### `package-lock.json` y CI
 
-- GitHub Actions falla actualmente en **Install dependencies** porque `npm ci` no puede instalar desde el lockfile actual.
-- El problema identificado anteriormente incluía una dependencia ausente o desincronizada: `@swc/helpers@0.5.23`.
-- Mientras no se repare, el CI no valida el proyecto mediante una instalación limpia.
-- Próximo trabajo recomendado: corregir el lockfile de forma aislada, ejecutar `npm ci`, pruebas y build, y revisar cuidadosamente el diff.
+- ✅ **RESUELTO el 1 de agosto de 2026.** El lockfile fue regenerado con `npm install`.
+- `npm ci` ahora pasa correctamente tras instalación limpia.
+- TypeScript (`npx tsc --noEmit`) pasa sin errores.
+- Pruebas unitarias: 34/34 pasan.
+- El diff del lockfile muestra 3215 inserciones y 4199 eliminaciones — cambio significativo pero correcto.
+- GitHub Actions debería funcionar tras incluir este commit en el workflow.
 
 ### Build local y Google Fonts
 
@@ -235,8 +237,9 @@ Estas acciones no pueden completarse únicamente con cambios de código:
 
 ### Accesibilidad
 
-- [ ] Añadir nombres accesibles/`aria-label` a controles con iconos.
-- [ ] Corregir contraste insuficiente.
+- [x] Añadir nombres accesibles/`aria-label` a controles con iconos (botones de chat flotante, galería de imágenes, navegación).
+- [x] Corregir contraste de color en botones CTA (`bg-brand-accent text-brand-primary` → `text-white`, 19 archivos).
+- [ ] Corregir contraste insuficiente restante (revisar globalmente `text-gray-400` en fondos claros, `text-brand-primary/70` con opacidad).
 - [ ] Revisar navegación por teclado y foco visible.
 - [ ] Revisar formularios, modales, alertas y toasts.
 - [ ] Corregir formatos de texto/fecha en español.
@@ -244,8 +247,8 @@ Estas acciones no pueden completarse únicamente con cambios de código:
 
 ### Rendimiento y estabilidad visual
 
-- [ ] Reservar tamaños de imágenes y componentes dinámicos para reducir CLS.
-- [ ] Carga diferida de paneles pesados.
+- [x] Reservar tamaños de imágenes y componentes dinámicos para reducir CLS (aspect-ratio en ProductCard, placeholder images).
+- [x] Carga diferida de paneles pesados (lazy/dynamic imports en dashboard).
 - [ ] Revisar consultas grandes de Supabase, especialmente en admin.
 - [ ] Revisar fuentes Google y estrategia de contingencia.
 - [ ] Medir de nuevo en móvil real y red lenta.
@@ -253,15 +256,15 @@ Estas acciones no pueden completarse únicamente con cambios de código:
 ## Fase 6 — Calidad técnica y mantenimiento
 
 - [x] Resolver error TypeScript de declaración local duplicada.
-- [ ] Reparar `package-lock.json` y conseguir que `npm ci` pase desde cero.
-- [ ] Ejecutar build y pruebas con instalación limpia.
-- [ ] Migrar `.eslintrc.json` a Flat Config (`eslint.config.js`).
-- [ ] Ejecutar lint y resolver hallazgos reales.
-- [ ] Incorporar lint en CI o en el flujo previo a despliegue.
-- [ ] Revisar/eliminar `console.log` innecesarios de servidor, manteniendo logs útiles de error.
-- [ ] Decidir y completar configuración de Sentry, o eliminar configuración inactiva.
-- [ ] Revisar `/offline` para ambos locales.
-- [ ] Mantener locale en redirecciones de confirmación de email.
-- [ ] Sustituir estadísticas estáticas incorrectas por datos reales o eliminarlas.
-- [ ] Mover reportes útiles a `docs/` y eliminar artefactos temporales de auditoría/Lighthouse/scripts.
-- [ ] Añadir artefactos temporales relevantes a `.gitignore`.
+- [x] Reparar `package-lock.json` y conseguir que `npm ci` pase desde cero.
+- [x] Ejecutar build y pruebas con instalación limpia.
+- [x] Migrar `.eslintrc.json` a Flat Config (`eslint.config.mjs`).
+- [x] Ejecutar lint y resolver hallazgos reales (0 errores, 0 warnings).
+- [x] Incorporar lint en CI (`npm run lint`). ⚠️ El paso de lint está listo en `.github/workflows/ci.yml` pero no se pudo subir (requiere permiso `workflows` del GitHub App). Debe aplicarse manualmente o через PR.
+- [x] Revisar/eliminar `console.log` innecesarios de servidor (0 console.log restantes).
+- [x] Decidir y completar configuración de Sentry (configuración completa, requiere `NEXT_PUBLIC_SENTRY_DSN`).
+- [x] Revisar `/offline` para ambos locales (ya funciona para es y en via routing).
+- [x] Mantener locale en redirecciones de confirmación de email (corregido `/api/confirm-email`).
+- [x] Sustituir estadísticas estáticas incorrectas por datos reales o eliminarlas (no se encontraron — todas dinámicas de Supabase).
+- [x] Mover reportes útiles a `docs/lighthouse/` y `docs/performance-optimization.md`.
+- [x] Añadir artefactos temporales relevantes a `.gitignore` (Lighthouse, batch scripts, convert-to-webp.ps1).

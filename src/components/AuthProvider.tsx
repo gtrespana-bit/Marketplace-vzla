@@ -85,6 +85,7 @@ export function AuthProvider({ children, initialUser }: { children: React.ReactN
       cancelled = true
       unsub?.()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- session is intentionally omitted; we only want to check once on mount
   }, [initialUser])
 
   return (

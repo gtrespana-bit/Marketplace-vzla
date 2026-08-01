@@ -77,7 +77,7 @@ const ProductCard = memo(({ p, priority = false, t }: { p: Producto; priority?: 
     <LocalLink href={`/producto/${p.id}`} className={`bg-white rounded-xl overflow-hidden transition-all duration-200 group block border ${isPromoted ? 'border-2 border-brand-accent shadow-md hover:shadow-xl hover:-translate-y-1' : 'border-gray-100 shadow-sm hover:shadow-lg hover:-translate-y-1 hover:border-gray-200'}`}>
       <div className="aspect-square bg-gray-100 relative overflow-hidden">
         {isFeatured && (
-          <div className="absolute top-2 left-2 z-10 bg-brand-accent text-brand-primary text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 shadow-sm">
+          <div className="absolute top-2 left-2 z-10 bg-brand-accent text-white text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 shadow-sm">
             ⭐ {t('product.featured')}
           </div>
         )}
@@ -356,7 +356,7 @@ export default function CatalogoClient({ initialProducts = [], initialCount = 0 
               <Search size={48} className="text-gray-300 mx-auto mb-4" />
               <h3 className="text-xl font-bold text-gray-800 mb-2">{t('catalog.empty')}</h3>
               <p className="text-gray-500 mb-4">{t('catalog.emptyCta')}</p>
-              <LocalLink href="/publicar" className="inline-block bg-brand-accent text-brand-primary px-6 py-3 rounded-lg font-bold hover:bg-accent/90 transition">
+              <LocalLink href="/publicar" className="inline-block bg-brand-accent text-white px-6 py-3 rounded-lg font-bold hover:bg-accent/90 transition">
                 {t('catalog.publishFree')}
               </LocalLink>
             </div>

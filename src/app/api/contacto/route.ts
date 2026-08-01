@@ -95,18 +95,9 @@ export async function POST(req: NextRequest) {
       </div>
     `
 
-    console.log('📧 Enviando email de contacto:', { nombreClean, emailClean })
-    console.log('SMTP config:', {
-      host: process.env.ZOHO_SMTP_HOST,
-      port: process.env.ZOHO_SMTP_PORT,
-      user: process.env.ZOHO_SMTP_USER,
-      hasPass: !!process.env.ZOHO_SMTP_PASS,
-    })
-
     const transporter = getTransporter()
     // Verify connection before sending
     await transporter.verify()
-    console.log('✅ SMTP conexión verificada')
 
     await transporter.sendMail({
       from: '"VendeT-Venezuela" <noreply@vendet.online>',
@@ -115,8 +106,6 @@ export async function POST(req: NextRequest) {
       subject: `📩 Contacto: ${asuntoClean}`,
       html,
     })
-
-    console.log('✅ Email enviado correctamente')
 
     // Telegram notification
     await sendTelegramAlert(asuntoClean, nombreClean, emailClean, mensajeClean)

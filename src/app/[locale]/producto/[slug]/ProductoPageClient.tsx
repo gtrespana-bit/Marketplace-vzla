@@ -26,7 +26,7 @@ class ProductErrorBoundary extends Component<{children: React.ReactNode}, {hasEr
         <div className="max-w-7xl mx-auto px-4 py-20 text-center">
           <h1 className="text-2xl font-bold text-gray-800 mb-4">Algo salió mal</h1>
           <p className="text-gray-500 mb-6">Error al cargar el producto. Intenta recargar la página.</p>
-          <a href="/" className="inline-block bg-brand-primary text-white px-8 py-3 rounded-lg font-bold">Volver al inicio</a>
+          <LocalLink href="/" className="inline-block bg-brand-primary text-white px-8 py-3 rounded-lg font-bold">Volver al inicio</LocalLink>
         </div>
       )
     }
