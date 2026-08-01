@@ -77,7 +77,7 @@ export function useDashboard() {
           setCreadoEn(data.creado_en || null)
         }
       }),
-      supabase.from('productos').select('*', { count: 'exact' }).eq('user_id', user.id).eq('activo', true).then(({ count }) => setPubCount(count || 0)),
+      supabase.from('productos').select('id', { count: 'exact' }).eq('user_id', user.id).eq('activo', true).then(({ count }) => setPubCount(count || 0)),
       supabase.from('resenas').select('id, puntuacion, comentario, producto_id, creado_en, productos(titulo)').eq('vendedor_id', user.id).order('creado_en', { ascending: false }).then(({ data }) => {
         // Flatten the joined data for backwards compatibility
         const flattenedResenas = (data || []).map((r: any) => ({

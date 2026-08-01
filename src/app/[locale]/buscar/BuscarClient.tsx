@@ -158,7 +158,7 @@ export default function BuscarClient({ searchParams: searchParamsPromise }: { se
     async function buscar() {
       let sq = supabase
         .from('productos')
-        .select('*', { count: 'exact' })
+        .select('id, slug, titulo, precio_usd, estado, imagen_url, ubicacion_ciudad, ubicacion_estado, creado_en, subcategoria, boosteado_en, destacado, destacado_hasta, vendedor_verificado', { count: 'exact' })
         .eq('activo', true)
         .or('estado_moderacion.is.null,estado_moderacion.eq.aprobado')
 

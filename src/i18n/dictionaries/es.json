@@ -263,6 +263,8 @@
     "emptyCta": "Sé el primero en publicar aquí",
     "publishFree": "Publicar gratis",
     "breadcrumb": "Inicio",
+    "loadErrorTitle": "No se pudieron cargar los productos",
+    "retry": "Reintentar",
     "clearFilters": "Limpiar filtros",
     "search": "Buscar",
     "states": {

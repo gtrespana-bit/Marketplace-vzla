@@ -248,12 +248,29 @@ producción sin respaldo.
 
 ## Fase 3 — Catálogo y experiencia principal
 
-- [ ] Rehacer la paginación usando `totalCount`, no solo los productos cargados.
-- [ ] Cargar páginas posteriores realmente desde servidor.
-- [ ] Resetear la página al cambiar filtros.
-- [ ] Mostrar errores de carga del catálogo en vez de mostrar una lista vacía.
-- [ ] Corregir consultas que todavía usan `select('*')` innecesariamente.
-- [ ] Unificar los datos de contacto y la galería en todas las tarjetas/detalles.
+- [x] Rehacer la paginación usando `totalCount`, no solo los productos cargados.
+- [x] Cargar páginas posteriores realmente desde servidor (`.range()`).
+- [x] Resetear la página al cambiar filtros.
+- [x] Mostrar errores de carga del catálogo en vez de mostrar una lista vacía.
+- [x] Corregir consultas que todavía usan `select('*')` innecesariamente.
+- [x] Unificar los datos de contacto y la galería en todas las tarjetas/detalles. (Verificado: tarjetas usan `imagen_url` como miniatura; detalle/editor usan `imagenes` + `metodos_contacto`. Coherente.)
+
+Detalle de la implementación (2026-08-01):
+
+- `useProductPagination` reescrito: `currentPage` ahora se deriva del parámetro
+  `pagina` del URL de forma reactiva (antes se leía una sola vez al montar, por
+  lo que cambiar de página no actualizaba el grid).
+- `useProductLoader` reescrito como `loadPage({ page, pageSize, filters })` que
+  carga UNA página real desde el servidor con `.range()` y devuelve `totalCount`
+  exacto. Antes cargaba `limit(100)` y paginaba en el cliente.
+- `CatalogoPage`: `totalPages` se calcula con `totalCount`, se resetea a la
+  página 1 al cambiar filtros, y se muestra un banner de error con botón
+  "Reintentar" cuando la carga falla.
+- Consultas `select('*')` reducidas a las columnas necesarias en
+  `BuscarClient`, `useDashboard` y `publicar` (cuentas con `select('id')`).
+- `tsc`, `npm test` (87/87) y `npm run lint` (0 errores) pasan.
+- Build local bloqueado solo por descarga de Google Fonts (entorno), sin errores
+  de código.
 
 ## Fase 4 — SEO y localización
 

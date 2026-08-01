@@ -263,6 +263,8 @@
     "emptyCta": "Be the first to publish here",
     "publishFree": "Publish for free",
     "breadcrumb": "Home",
+    "loadErrorTitle": "Could not load products",
+    "retry": "Retry",
     "clearFilters": "Clear filters",
     "search": "Search",
     "states": {

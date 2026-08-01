@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import { clientCache } from '@/lib/clientCache';
 
@@ -16,38 +16,50 @@ interface ProductFilter {
   [key: string]: string | number | boolean | undefined;
 }
 
+interface LoadPageOptions {
+  page: number;
+  pageSize: number;
+  filters?: ProductFilter;
+}
+
 interface UseProductLoaderResult {
   productos: any[];
   loading: boolean;
   error: string | null;
   totalCount: number;
-  loadProducts: (filters: ProductFilter) => Promise<void>;
+  loadPage: (options: LoadPageOptions) => Promise<void>;
 }
 
+const PAGE_COLUMNS =
+  'id, slug, titulo, precio_usd, estado, imagen_url, ubicacion_ciudad, ubicacion_estado, creado_en, subcategoria, boosteado_en, destacado, destacado_hasta, vendedor_verificado';
+
+// Carga UNA página real desde el servidor usando range().
+// Devuelve `totalCount` (conteo exacto) para paginar con el total real,
+// no con la cantidad de filas cargadas.
 export const useProductLoader = (): UseProductLoaderResult => {
   const [productos, setProductos] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [totalCount, setTotalCount] = useState(0);
 
-  const loadProducts = useCallback(async (filters: ProductFilter) => {
-    // Check cache first
-    const cacheKey = clientCache.generateKey(filters);
+  const loadPage = useCallback(async ({ page, pageSize, filters = {} }: LoadPageOptions) => {
+    // Check cache first (la clave incluye página y tamaño)
+    const cacheKey = clientCache.generateKey({ ...filters, pagina: page, limite: pageSize });
     const cachedData = clientCache.get<any>(cacheKey);
-    
+
     if (cachedData) {
       setProductos(cachedData.productos);
       setTotalCount(cachedData.totalCount);
       return;
     }
-    
+
     setLoading(true);
     setError(null);
 
     try {
       let query = supabase
         .from('productos')
-        .select('id, slug, titulo, precio_usd, estado, imagen_url, ubicacion_ciudad, ubicacion_estado, creado_en, subcategoria, boosteado_en, destacado, destacado_hasta, vendedor_verificado', { count: 'exact' })
+        .select(PAGE_COLUMNS, { count: 'exact' })
         .eq('activo', true)
         .or('estado_moderacion.is.null,estado_moderacion.eq.aprobado,estado_moderacion.eq.pendiente');
 
@@ -89,7 +101,11 @@ export const useProductLoader = (): UseProductLoaderResult => {
         query = query.lte('precio_usd', parseFloat(filters.precioMax));
       }
 
-      query = query.order('creado_en', { ascending: false }).limit(100);
+      // Página real desde el servidor
+      const offset = (page - 1) * pageSize;
+      query = query
+        .order('creado_en', { ascending: false })
+        .range(offset, offset + pageSize - 1);
 
       const { data, count, error: fetchError } = await query;
 
@@ -97,7 +113,7 @@ export const useProductLoader = (): UseProductLoaderResult => {
         throw new Error(fetchError.message);
       }
 
-      // Ordenar productos según la lógica de prioridad
+      // Ordenar productos según la lógica de prioridad (boost > destacado > fecha)
       const now = new Date().toISOString();
       const sorted = (data || []).sort((a, b) => {
         const aBoost = a.boosteado_en || null;
@@ -115,7 +131,7 @@ export const useProductLoader = (): UseProductLoaderResult => {
 
       setProductos(sorted);
       setTotalCount(count ?? 0);
-      
+
       // Save to cache
       clientCache.set(cacheKey, {
         productos: sorted,
@@ -136,6 +152,6 @@ export const useProductLoader = (): UseProductLoaderResult => {
     loading,
     error,
     totalCount,
-    loadProducts
+    loadPage
   };
 };
