@@ -4,8 +4,18 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 
 // Patrón Singleton estricto para evitar múltiples instancias de GoTrueClient
+//
+// MODELO DE PROPIEDAD DEL REFRESH TOKEN (importante — fix refresh_token_already_used):
+// - ESTE cliente del navegador es el ÚNICO de toda la app que rota refresh
+//   tokens (autoRefreshToken: true, sesión en localStorage).
+// - El servidor NUNCA refresca: solo valida access tokens (ver
+//   src/lib/supabase-server.ts y src/lib/require-auth.ts).
+// - Tras cada rotación, AuthProvider sincroniza las cookies del servidor
+//   llamando a POST /api/auth/session.
+// - NO crear otros clientes con persistSession/autoRefreshToken activos con el
+//   mismo storageKey: dos GoTrueClient compitiendo por el mismo refresh token
+//   producen el error `Invalid Refresh Token: Already Used` y deslogueos.
 let globalSupabase: ReturnType<typeof createClient> | null = null
-let globalSupabaseAuth: ReturnType<typeof createClient> | null = null
 
 // Cliente estándar con persistencia de sesión (para consultas de datos y mantener estado de autenticación)
 export const getSupabaseClient = () => {
@@ -21,22 +31,6 @@ export const getSupabaseClient = () => {
     })
   }
   return globalSupabase
-}
-
-// Cliente de autenticación con refresh (solo para login/logout)
-export const getSupabaseAuthClient = () => {
-  if (!globalSupabaseAuth) {
-    globalSupabaseAuth = createClient(supabaseUrl, supabaseAnonKey, {
-      auth: {
-        persistSession: true,
-        autoRefreshToken: true,
-        detectSessionInUrl: true,
-        storageKey: 'sb-auth-token',
-        flowType: 'pkce'
-      }
-    })
-  }
-  return globalSupabaseAuth
 }
 
 // Exportación por defecto para compatibilidad con el código existente

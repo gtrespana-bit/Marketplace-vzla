@@ -1,5 +1,19 @@
-/* Service Worker - VendeT PWA - v5 (retry en fallos de red transitorios) */
-const CACHE_NAME = 'vendet-v5'
+/* Service Worker - VendeT PWA - v6
+ *
+ * Cambios v6 (fix "Failed to load resource: 503"):
+ * - El SW ya NO responde 503 sintéticos: un `503` inventado hacía creer (a la
+ *   consola y a quien depura) que el servidor estaba caído. Ahora los fallos
+ *   de red se propagan como un error de red real (`Response.error()`), que es
+ *   exactamente lo que vería el usuario si no hubiera Service Worker.
+ * - Bug corregido en fetchWithRetry: el AbortError del PROPIO timeout de 8s
+ *   se confundía con una cancelación de la página y no se reintentaba,
+ *   convirtiendo respuestas lentas-pero-sanas en falsos fallos.
+ * - Las peticiones RSC/prefetch de Next.js (?_rsc=, headers RSC) no se
+ *   interceptan: antes podían cachearse como si fueran documentos HTML.
+ * - Las navegaciones reintentan 1 vez antes de caer al fallback offline
+ *   (los "blips" de redes móviles son muy comunes en Venezuela).
+ */
+const CACHE_NAME = 'vendet-v6'
 const STATIC_ASSETS = [
   '/offline',
   '/manifest.json',
@@ -55,27 +69,39 @@ function isSensitiveStorage(url) {
 }
 
 // ── Retry ante fallos de red transitorios ──
-// Un solo blip de conectividad (muy común en redes móviles) hacía que el SW
-// respondiera 503 al instante y la consola mostrara "Failed to load resource:
-// the server responded with a status of 503 ()". Ahora se reintenta 2 veces
-// con backoff corto antes de rendirse. No se reintentan respuestas HTTP
-// (4xx/5xx) reales del servidor, solo fallos de red (fetch rechazado).
-function fetchWithRetry(request, retries = 2, timeoutMs = 8000) {
-  let lastError = null
+// Un solo blip de conectividad (muy común en redes móviles) provocaba falsos
+// fallos. Se reintenta con backoff corto. Solo se reintentan FALLOS DE RED
+// (fetch rechazado), nunca respuestas HTTP reales (4xx/5xx del servidor,
+// que deben llegar tal cual al caller).
+//
+// Importante: se distingue el abort propio del timeout (reintentar) de la
+// cancelación hecha por la página (NO reintentar: la página ya no quiere la
+// respuesta).
+function fetchWithRetry(request, retries = 2, timeoutMs = 10000) {
   const attempt = (n) => {
     const controller = new AbortController()
     const timer = setTimeout(() => controller.abort(), timeoutMs)
+    // Si la página cancela su petición original, propagar la cancelación.
+    const pageSignal = request.signal
+    const onPageAbort = () => controller.abort()
+    if (pageSignal) {
+      try { pageSignal.addEventListener('abort', onPageAbort, { once: true }) } catch { /* noop */ }
+    }
     return fetch(request.clone(), { signal: controller.signal })
-      .finally(() => clearTimeout(timer))
+      .finally(() => {
+        clearTimeout(timer)
+        if (pageSignal) {
+          try { pageSignal.removeEventListener('abort', onPageAbort) } catch { /* noop */ }
+        }
+      })
       .catch((err) => {
-        // Si la página abortó la petición, no tiene sentido reintentar
-        if (err && err.name === 'AbortError') throw err
-        lastError = err
+        // Cancelación iniciada por la página: no reintentar.
+        if (pageSignal && pageSignal.aborted) throw err
         if (n < retries) {
           return new Promise((resolve) => setTimeout(resolve, 600 * (n + 1)))
             .then(() => attempt(n + 1))
         }
-        throw lastError
+        throw err
       })
   }
   return attempt(0)
@@ -134,17 +160,25 @@ self.addEventListener('fetch', event => {
   // Skip non-HTTP(S)
   if (!url.protocol.startsWith('http')) return
 
+  // ── No interceptar peticiones internas de Next.js App Router ──
+  // (?_rsc= / header RSC son payloads React Server Component, NO documentos.
+  // Cachearlos/servirlos como HTML corrompe la navegación del cliente.)
+  if (url.searchParams.has('_rsc') ||
+      request.headers.get('RSC') === '1' ||
+      request.headers.get('Next-Router-Prefetch') === '1' ||
+      request.headers.get('Next-Router-State-Tree')) {
+    return
+  }
+
   const pathname = url.pathname
 
   // ── Never cache API routes — network only ──
   if (isApiRoute(pathname)) {
+    // Ante fallo de red: propagar un error de red real (como si no hubiera SW).
+    // Antes se devolvía un 503 sintético que ensuciaba la consola con
+    // "Failed to load resource: 503" y parecía un fallo del servidor.
     event.respondWith(
-      fetchWithRetry(request).catch(() => {
-        return new Response(JSON.stringify({ error: 'offline' }), {
-          status: 503,
-          headers: { 'Content-Type': 'application/json' }
-        })
-      })
+      fetchWithRetry(request).catch(() => Response.error())
     )
     return
   }
@@ -152,7 +186,7 @@ self.addEventListener('fetch', event => {
   // ── Never cache sensitive storage buckets ──
   if (url.hostname.includes('supabase.co') && url.pathname.includes('/storage/v1/object/') && isSensitiveStorage(url)) {
     event.respondWith(
-      fetchWithRetry(request).catch(() => new Response(null, { status: 404 }))
+      fetchWithRetry(request).catch(() => Response.error())
     )
     return
   }
@@ -162,12 +196,13 @@ self.addEventListener('fetch', event => {
     // HTML navigation to private page: network only, fallback offline if fails
     if (request.mode === 'navigate' || (request.headers.get('accept') || '').includes('text/html')) {
       event.respondWith(
-        fetch(request).catch(() => caches.match('/offline'))
+        fetchWithRetry(request, 1, 15000)
+          .catch(() => caches.match('/offline').then(r => r || Response.error()))
       )
     } else {
       // For other assets on private pages, network only (no cache put)
       event.respondWith(
-        fetchWithRetry(request).catch(() => new Response(null, { status: 404 }))
+        fetchWithRetry(request).catch(() => Response.error())
       )
     }
     return
@@ -177,7 +212,7 @@ self.addEventListener('fetch', event => {
   if (request.mode === 'navigate' ||
       (request.headers.get('accept') || '').includes('text/html')) {
     event.respondWith(
-      fetch(request)
+      fetchWithRetry(request, 1, 15000)
         .then(response => {
           // Do not cache if response is redirect or auth related
           if (response.ok && response.type !== 'opaqueredirect') {
@@ -192,6 +227,7 @@ self.addEventListener('fetch', event => {
         .catch(() => {
           return caches.match(request)
             .then(cached => cached || caches.match('/offline'))
+            .then(res => res || Response.error())
         })
     )
     return
@@ -245,7 +281,7 @@ self.addEventListener('fetch', event => {
             })
           }
           return response
-        }).catch(() => cached || new Response(null, { status: 404 }))
+        }).catch(() => cached || Response.error())
       })
     )
     return
@@ -264,7 +300,7 @@ self.addEventListener('fetch', event => {
               }
             }
             return response
-          }).catch(() => cached)
+          }).catch(() => cached || Response.error())
           return cached || fetchPromise
         })
       )
@@ -284,12 +320,9 @@ self.addEventListener('fetch', event => {
     }).catch(() => {
       // For images, try cache
       if (request.destination === 'image') {
-        return caches.match(request).then(c => c || new Response(null, { status: 404 }))
+        return caches.match(request).then(c => c || Response.error())
       }
-      return new Response(JSON.stringify({ error: 'offline' }), {
-        status: 503,
-        headers: { 'Content-Type': 'application/json' }
-      })
+      return Response.error()
     })
   )
 })

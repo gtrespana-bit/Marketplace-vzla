@@ -1,6 +1,20 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
+/**
+ * ⚠️ NO USAR — mantenido solo como referencia.
+ *
+ * Actualmente NADA importa `updateSession` (ver src/middleware.ts, donde se
+ * explica por qué se retiró del pipeline de Edge).
+ *
+ * Si se reactiva, ojo con el modelo de propiedad del refresh token:
+ * el NAVEGADOR (src/lib/supabase.ts) es el único de la app que rota refresh
+ * tokens y AuthProvider sincroniza las cookies vía POST /api/auth/session.
+ * Reactivar un refresher en el servidor/middleware sin desactivar el
+ * autoRefresh del navegador reintroduce el error
+ * `Invalid Refresh Token: Already Used` (los [warn] de AuthApiError en los
+ * logs de Vercel) y deslogueos aleatorios de usuarios.
+ */
 export async function updateSession(request: NextRequest, response?: NextResponse) {
   let supabaseResponse = response ?? NextResponse.next({
     request,
