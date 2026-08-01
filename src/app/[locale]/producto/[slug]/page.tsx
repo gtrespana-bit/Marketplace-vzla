@@ -40,13 +40,7 @@ async function getProduct(slug: string) {
       imagen_url, 
       destacado, 
       destacado_hasta, 
-      boosteado_en,
-      perfil:perfiles (
-        nombre_completo,
-        telefono,
-        ciudad,
-        estado
-      )
+      boosteado_en
     `)
     .eq('id', slug)
     .eq('activo', true)
@@ -55,10 +49,22 @@ async function getProduct(slug: string) {
     .single()
   
   if (error || !data) {
-    console.error('Error fetching product:', error, 'Slug:', slug);
-    return null;
+    // Avoid logging expected missing/inactive products during ISR generation.
+    if (error && error.code !== 'PGRST116') {
+      console.error('Error fetching product:', error.code, 'Slug:', slug)
+    }
+    return null
   }
-  return data;
+
+  // productos.user_id references auth.users, not perfiles. PostgREST can only embed
+  // tables connected by a real FK, so load the public seller profile separately.
+  const { data: perfil } = await supabase
+    .from('perfiles')
+    .select('nombre, telefono, ciudad, estado')
+    .eq('id', data.user_id)
+    .maybeSingle()
+
+  return { ...data, perfil: perfil ? { ...perfil, nombre_completo: perfil.nombre } : null }
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
