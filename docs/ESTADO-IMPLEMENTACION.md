@@ -261,10 +261,10 @@ Estas acciones no pueden completarse únicamente con cambios de código:
 - [x] Migrar `.eslintrc.json` a Flat Config (`eslint.config.mjs`).
 - [x] Ejecutar lint y resolver hallazgos reales (0 errores, 0 warnings).
 - [x] Incorporar lint en CI (`npm run lint`). ⚠️ El paso de lint está listo en `.github/workflows/ci.yml` pero no se pudo subir (requiere permiso `workflows` del GitHub App). Debe aplicarse manualmente o через PR.
-- [ ] Revisar/eliminar `console.log` innecesarios de servidor, manteniendo logs útiles de error.
-- [ ] Decidir y completar configuración de Sentry, o eliminar configuración inactiva.
-- [ ] Revisar `/offline` para ambos locales.
-- [ ] Mantener locale en redirecciones de confirmación de email.
-- [ ] Sustituir estadísticas estáticas incorrectas por datos reales o eliminarlas.
-- [ ] Mover reportes útiles a `docs/` y eliminar artefactos temporales de auditoría/Lighthouse/scripts.
-- [ ] Añadir artefactos temporales relevantes a `.gitignore`.
+- [x] Revisar/eliminar `console.log` innecesarios de servidor (0 console.log restantes).
+- [x] Decidir y completar configuración de Sentry (configuración completa, requiere `NEXT_PUBLIC_SENTRY_DSN`).
+- [x] Revisar `/offline` para ambos locales (ya funciona para es y en via routing).
+- [x] Mantener locale en redirecciones de confirmación de email (corregido `/api/confirm-email`).
+- [x] Sustituir estadísticas estáticas incorrectas por datos reales o eliminarlas (no se encontraron — todas dinámicas de Supabase).
+- [x] Mover reportes útiles a `docs/lighthouse/` y `docs/performance-optimization.md`.
+- [x] Añadir artefactos temporales relevantes a `.gitignore` (Lighthouse, batch scripts, convert-to-webp.ps1).
