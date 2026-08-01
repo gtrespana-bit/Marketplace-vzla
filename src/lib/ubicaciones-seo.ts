@@ -49,10 +49,10 @@ export function getCiudadesPorEstado(estado: string): CiudadSEO[] {
   return CIUDADES_SEO.filter(c => c.estado === estado)
 }
 
-// Helper para generar rutas estáticas
+// Helper para generar rutas estáticas (clave = nombre del segmento [ciudad])
 export function generateCityParams() {
   return CIUDADES_SEO.map(ciudad => ({
-    city: ciudad.slug
+    ciudad: ciudad.slug
   }))
 }
 
@@ -69,13 +69,13 @@ export const CATEGORIAS_POPULARES = [
 ]
 
 // Generar combinaciones ciudad-categoría para SEO programático
-export function generateCityCategoryParams(): Array<{ city: string; category: string }> {
-  const params: Array<{ city: string; category: string }> = []
+export function generateCityCategoryParams(): Array<{ ciudad: string; categoria: string }> {
+  const params: Array<{ ciudad: string; categoria: string }> = []
   for (const ciudad of CIUDADES_SEO) {
     for (const categoria of CATEGORIAS_POPULARES) {
       params.push({
-        city: ciudad.slug,
-        category: categoria
+        ciudad: ciudad.slug,
+        categoria: categoria
       })
     }
   }

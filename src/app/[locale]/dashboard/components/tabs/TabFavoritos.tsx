@@ -3,6 +3,7 @@
 import LocalLink from '@/components/LocalLink'
 import { Heart, X } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
+import { productUrl } from '@/lib/product-url'
 import Image from 'next/image'
 
 export default function TabFavoritos({ favoritos }: { favoritos: any[] }) {
@@ -24,7 +25,7 @@ export default function TabFavoritos({ favoritos }: { favoritos: any[] }) {
           const p = fav.productos
           return (
             <div key={fav.producto_id} className="flex items-center gap-4 p-3 rounded-lg hover:bg-gray-50 border border-gray-100 transition">
-              <LocalLink href={`/producto/${p.id}`} className="flex items-center gap-4 flex-1 min-w-0">
+              <LocalLink href={productUrl(p)} className="flex items-center gap-4 flex-1 min-w-0">
                 <div className="w-16 h-16 rounded-lg bg-gray-100 flex-shrink-0 overflow-hidden">
                   {p.imagen_url ? (
                     <Image src={p.imagen_url} alt={p.titulo} className="w-full h-full object-cover" fill sizes="100px" />

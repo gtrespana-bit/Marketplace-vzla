@@ -1,10 +1,8 @@
-/* eslint-disable react-hooks/rules-of-hooks -- next-intl useTranslations works in async server components */
 import LocalLink from '@/components/LocalLink'
 import Image from 'next/image'
 import { supabase } from '@/lib/supabase'
-import { MapPin, ChevronRight } from 'lucide-react'
-import { useTranslations } from 'next-intl'
-import { Suspense } from 'react'
+import { ChevronRight } from 'lucide-react'
+import { getTranslations } from 'next-intl/server'
 import { productUrl } from '@/lib/product-url'
 
 interface Props {
@@ -88,7 +86,10 @@ function ProductosGrid({ productos, categoriaNombre, ciudadNombre, t }: { produc
 }
 
 export default async function LandingCategoria({ ciudadSlug, ciudadNombre, categoriaSlug, categoriaNombre }: Props) {
-  const t = useTranslations('catLanding')
+  // getTranslations (API server de next-intl) en vez de useTranslations:
+  // useTranslations dentro de un Server Component async bajo <Suspense>
+  // lanzaba "Expected a suspended thenable" en Next 16 → 500.
+  const t = await getTranslations('catLanding')
   const productos = await getProductos(ciudadNombre, categoriaSlug)
 
   // Categorias relacionadas para la ciudad
@@ -122,9 +123,10 @@ export default async function LandingCategoria({ ciudadSlug, ciudadNombre, categ
         ))}
       </div>
 
-      <Suspense fallback={<div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">{Array(8).fill(0).map((_, i) => (<div key={i} className="bg-gray-100 rounded-xl aspect-square animate-pulse"></div>))}</div>}>
-        <ProductosGrid productos={productos} categoriaNombre={categoriaNombre} ciudadNombre={ciudadNombre} t={t} />
-      </Suspense>
+      {/* Sin <Suspense>: los productos ya están cargados (await arriba) y el
+          Suspense alrededor de un Server Component con thenables de next-intl
+          causaba "Expected a suspended thenable" en Next 16. */}
+      <ProductosGrid productos={productos} categoriaNombre={categoriaNombre} ciudadNombre={ciudadNombre} t={t} />
     </div>
   )
 }

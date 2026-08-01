@@ -1,6 +1,6 @@
 import { Metadata } from 'next'
 import LandingCiudad from './LandingCiudad'
-import { getCiudadBySlug, generateCityParams } from '@/lib/ubicaciones-seo'
+import { getCiudadBySlug } from '@/lib/ubicaciones-seo'
 import Breadcrumbs from '@/components/Breadcrumbs'
 
 type Props = {
@@ -47,11 +47,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 }
 
-// Generar rutas estáticas para TODAS las ciudades de Venezuela
-export async function generateStaticParams() {
-  return generateCityParams()
-}
-
+// IMPORTANTE — Esta ruta es DINÁMICA a propósito:
+// Antes tenía `generateStaticParams()` (SSG/ISR). En Next 16, renderizar
+// on-demand una ruta SSG (o prerenderizarla con el layout raíz, que usa
+// cookies()/headers()) lanza `DynamicServerError` (digest
+// DYNAMIC_SERVER_USAGE) → 500 en TODAS las páginas de ciudad (/caracas, etc.).
+// Además, generateStaticParams devolvía `{ city: slug }` en vez de
+// `{ ciudad: slug }`, así que Next ignoraba todos los params y la ruta
+// quedaba marcada SSG sin páginas prerenderizadas: cada visita intentaba una
+// "static generation on demand" que fallaba. Sin generateStaticParams la ruta
+// se sirve igual que la home (/catalogo, /buscar): SSR dinámico y sin 500.
 export default async function CiudadPage({ params }: Props) {
   const { ciudad } = await params
   const ciudadSEO = getCiudadBySlug(ciudad)
@@ -104,6 +109,3 @@ export default async function CiudadPage({ params }: Props) {
     </>
   )
 }
-
-// ISR: cache city landing pages for 5 minutes
-export const revalidate = 300

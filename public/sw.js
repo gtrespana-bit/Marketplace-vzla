@@ -1,4 +1,16 @@
-/* Service Worker - VendeT PWA - v7
+/* Service Worker - VendeT PWA - v8
+ *
+ * Cambios v8 (fix "The FetchEvent ... resulted in a network error response"):
+ * - Las NAVEGACIONES ya NUNCA se resuelven con Response.error(). Si la red
+ *   falla y no hay copia cacheada de la URL, se sirve la página offline del
+ *   idioma (/es/offline, /en/offline, /offline) y, como último recurso, un
+ *   HTML offline mínimo inline (200). Resolver con Response.error() hacía
+ *   que Chrome llenara la consola con "The FetchEvent ... resulted in a
+ *   network error response: the promise was resolved with an error response
+ *   object" ante cualquier blip de red, y el usuario veía un error del
+ *   navegador sin contexto ni botón de reintentar.
+ * - Las páginas offline se re-cachean en cada navegación exitosa (no solo en
+ *   la instalación), así el fallback siempre está disponible.
  *
  * Cambios v7 (fix "The FetchEvent ... resulted in a network error response"):
  * - El fallback offline ahora es por idioma y se cachea en instalación
@@ -22,7 +34,7 @@
  * - Las navegaciones reintentan 1 vez antes de caer al fallback offline
  *   (los "blips" de redes móviles son muy comunes en Venezuela).
  */
-const CACHE_NAME = 'vendet-v7'
+const CACHE_NAME = 'vendet-v8'
 const STATIC_ASSETS = [
   '/offline',
   '/es/offline',
@@ -135,6 +147,52 @@ async function getOfflineFallback(requestUrl) {
   return undefined
 }
 
+// ── Último recurso para navegaciones: HTML offline mínimo (200) ──
+// Resolver una navegación con Response.error() llena la consola con
+// "The FetchEvent ... resulted in a network error response" y muestra un
+// error crudo del navegador. En su lugar servimos una página offline
+// autocontenida con botón de reintentar (no depende de la red ni del caché).
+function createInlineOfflineResponse() {
+  const html = `<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sin conexión | VendeT.online</title>
+<style>
+  body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:#f8fafc;color:#0f172a;display:flex;min-height:100vh;align-items:center;justify-content:center;text-align:center}
+  .card{max-width:420px;padding:32px}
+  h1{font-size:22px;margin:0 0 8px}
+  p{color:#64748b;font-size:15px;line-height:1.5;margin:0 0 20px}
+  button{background:#008080;color:#fff;border:0;border-radius:10px;padding:12px 24px;font-size:15px;font-weight:600;cursor:pointer}
+</style>
+</head>
+<body>
+<div class="card">
+  <div style="font-size:44px;margin-bottom:12px">📡</div>
+  <h1>Estás sin conexión</h1>
+  <p>No pudimos cargar la página. Revisa tu conexión a internet e inténtalo de nuevo.</p>
+  <button onclick="location.reload()">Reintentar</button>
+</div>
+</body>
+</html>`
+  return new Response(html, {
+    status: 200,
+    headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' },
+  })
+}
+
+// Re-cachea las páginas offline (por si la instalación falló o expiraron).
+function refreshOfflinePages(cache) {
+  try {
+    ;['/offline', '/es/offline', '/en/offline'].forEach((u) => {
+      cache.add(u).catch(() => {})
+    })
+  } catch {
+    // noop
+  }
+}
+
 // Install: cache static assets
 self.addEventListener('install', event => {
   event.waitUntil(
@@ -225,7 +283,7 @@ self.addEventListener('fetch', event => {
     if (request.mode === 'navigate' || (request.headers.get('accept') || '').includes('text/html')) {
       event.respondWith(
         fetchWithRetry(request, 1, 15000)
-          .catch(() => getOfflineFallback(url).then(r => r || Response.error()))
+          .catch(() => getOfflineFallback(url).then(r => r || createInlineOfflineResponse()))
       )
     } else {
       // For other assets on private pages, network only (no cache put)
@@ -247,15 +305,21 @@ self.addEventListener('fetch', event => {
             const clone = response.clone()
             // Only cache if not private (double check)
             if (!isPrivatePathPrecise(new URL(clone.url).pathname)) {
-              caches.open(CACHE_NAME).then(cache => cache.put(request, clone)).catch(()=>{})
+              caches.open(CACHE_NAME).then(cache => {
+                cache.put(request, clone).catch(()=>{})
+                // Mantener el fallback offline siempre fresco
+                refreshOfflinePages(cache)
+              })
             }
           }
           return response
         })
         .catch(() => {
+          // NUNCA resolver con Response.error(): la cadena siempre termina en
+          // una respuesta (caché → offline → HTML offline inline).
           return caches.match(request, { ignoreVary: true })
             .then(cached => cached || getOfflineFallback(url))
-            .then(res => res || Response.error())
+            .then(res => res || createInlineOfflineResponse())
         })
     )
     return

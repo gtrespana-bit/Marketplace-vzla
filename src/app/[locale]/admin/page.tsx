@@ -3,6 +3,7 @@
 import { useEffect, useState, useMemo, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import LocalLink from '@/components/LocalLink'
+import { productUrl } from '@/lib/product-url'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/components/AuthProvider'
 import {
@@ -355,7 +356,7 @@ function PublicacionesTab({ notify }: Notifier) {
 
   useEffect(() => {
     async function load() {
-      const { data } = await supabase.from('productos').select('id, titulo, precio_usd, estado, categoria_id, subcategoria, marca, ubicacion_ciudad, activo, visitas, creado_en, user_id, imagen_url, destacado, destacado_hasta, boosteado_en, estado_moderacion').order('creado_en', { ascending: false }).limit(500)
+      const { data } = await supabase.from('productos').select('id, slug, titulo, precio_usd, estado, categoria_id, subcategoria, marca, ubicacion_ciudad, activo, visitas, creado_en, user_id, imagen_url, destacado, destacado_hasta, boosteado_en, estado_moderacion').order('creado_en', { ascending: false }).limit(500)
       if (data) setPublicaciones(data)
       setCargando(false)
     }
@@ -475,7 +476,7 @@ function PublicacionesTab({ notify }: Notifier) {
         </div>
         <button onClick={async () => {
           setCargando(true)
-          const { data } = await supabase.from('productos').select('id, titulo, precio_usd, estado, categoria_id, subcategoria, marca, ubicacion_ciudad, activo, visitas, creado_en, user_id, imagen_url, destacado, destacado_hasta, boosteado_en, estado_moderacion').order('creado_en', { ascending: false }).limit(500)
+          const { data } = await supabase.from('productos').select('id, slug, titulo, precio_usd, estado, categoria_id, subcategoria, marca, ubicacion_ciudad, activo, visitas, creado_en, user_id, imagen_url, destacado, destacado_hasta, boosteado_en, estado_moderacion').order('creado_en', { ascending: false }).limit(500)
           if (data) setPublicaciones(data); setCargando(false)
         }} className="p-2.5 rounded-xl border hover:bg-gray-50">
           <RefreshCw size={18} />
@@ -510,7 +511,7 @@ function PublicacionesTab({ notify }: Notifier) {
           <div key={p.id} className={`bg-white rounded-xl border p-4 transition ${!p.activo ? 'opacity-60' : ''}`}>
             <div className="flex gap-4">
               {/* Miniatura */}
-              <LocalLink href={`/producto/${p.id}`} className="w-20 h-20 rounded-lg bg-gray-100 flex-shrink-0 overflow-hidden relative block">
+              <LocalLink href={productUrl(p)} className="w-20 h-20 rounded-lg bg-gray-100 flex-shrink-0 overflow-hidden relative block">
                 {p.imagen_url ? (
                   <Image src={p.imagen_url} alt="" className="object-cover" fill sizes="80px" />
                 ) : <div className="w-full h-full flex items-center justify-center text-gray-500 text-2xl">📦</div>}
@@ -519,7 +520,7 @@ function PublicacionesTab({ notify }: Notifier) {
               {/* Info */}
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <LocalLink href={`/producto/${p.id}`} className="font-semibold text-gray-800 hover:text-brand-primary truncate max-w-[300px]">{p.titulo}</LocalLink>
+                  <LocalLink href={productUrl(p)} className="font-semibold text-gray-800 hover:text-brand-primary truncate max-w-[300px]">{p.titulo}</LocalLink>
                   {p.destacado && <span className="text-[10px] bg-brand-accent/20 text-brand-primary px-2 py-0.5 rounded-full">⭐</span>}
                   {p.boosteado_en && <span className="text-[10px] bg-green-100 text-green-700 px-2 py-0.5 rounded-full">⚡</span>}
                   {!p.activo && <span className="text-[10px] bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">Pausado</span>}
@@ -544,7 +545,7 @@ function PublicacionesTab({ notify }: Notifier) {
                   className="p-2 rounded-lg hover:bg-green-50 text-green-600" title="Boostear">
                   <Zap size={14} />
                 </button>
-                <button onClick={() => window.open(`/producto/${p.id}`, '_blank')}
+                <button onClick={() => window.open(productUrl(p), '_blank')}
                   className="p-2 rounded-lg hover:bg-blue-50 text-blue-600" title="Ver">
                   <Eye size={14} />
                 </button>
@@ -847,7 +848,7 @@ function TabExportar() {
 
   async function exportarProductos() {
     setExportando(true)
-    const { data } = await supabase.from('productos').select('id, titulo, precio_usd, estado, categoria_id, subcategoria, marca, ubicacion_ciudad, activo, visitas, creado_en, user_id, imagen_url, destacado, destacado_hasta, boosteado_en, estado_moderacion')
+    const { data } = await supabase.from('productos').select('id, slug, titulo, precio_usd, estado, categoria_id, subcategoria, marca, ubicacion_ciudad, activo, visitas, creado_en, user_id, imagen_url, destacado, destacado_hasta, boosteado_en, estado_moderacion')
     if (!data) { setExportando(false); return }
 
     const headers = ['id', 'titulo', 'precio_usd', 'estado', 'categoria_id', 'subcategoria', 'marca', 'ubicacion_ciudad', 'activo', 'visitas', 'creado_en']
@@ -1063,7 +1064,7 @@ function ModeracionTab({ notify, adminEmail }: { notify: (msg: string) => void; 
                       </div>
                     </div>
                     <div className="flex gap-1.5">
-                      <button onClick={() => { window.open(`/producto/${p.id}`, '_blank') }} className="text-xs px-2 py-1 border rounded hover:bg-gray-100">Ver</button>
+                      <button onClick={() => { window.open(productUrl(p), '_blank') }} className="text-xs px-2 py-1 border rounded hover:bg-gray-100">Ver</button>
                       <button onClick={() => aprobarProducto(p.id)} className="text-xs px-2 py-1 bg-green-500 text-white rounded hover:bg-green-600">Aprobar</button>
                       <button onClick={() => rechazarProducto(p.id)} className="text-xs px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600">Rechazar</button>
                     </div>

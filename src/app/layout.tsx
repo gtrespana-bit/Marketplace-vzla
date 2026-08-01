@@ -123,19 +123,45 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode
 }) {
-  const initialUser = await getServerUser()
+  // IMPORTANTE — Renders estáticos (build/ISR) vs dinámicos (SSR):
+  // `cookies()` y `headers()` solo existen en renders dinámicos. Cuando una
+  // página con generateStaticParams/revalidate (ISR) se renderiza on-demand
+  // (o en el build), Next.js lanza `DynamicServerError` (digest
+  // DYNAMIC_SERVER_USAGE) al llamar estas APIs, lo que producía un 500 en
+  // TODAS las páginas SSG/ISR (p. ej. /caracas, /caracas/vehiculos y
+  // /producto/[slug] cuando no estaba pre-renderizada). Aquí degradamos con
+  // try/catch: en el contexto estático se usan valores por defecto (sin
+  // usuario, locale 'es') y en el dinámico se leen igual que antes.
+  let initialUser: any = null
+  try {
+    initialUser = await getServerUser()
+  } catch {
+    // Contexto de render estático: la página cacheada no puede tener
+    // usuario por request (el HTML es compartido). El cliente hidrata su
+    // propia sesión vía AuthProvider.
+    initialUser = null
+  }
 
-  const headersList = await headers()
-  const detectedLocale = headersList.get('x-detected-locale')
-  
+  let detectedLocale: string | null = null
+  try {
+    const headersList = await headers()
+    detectedLocale = headersList.get('x-detected-locale')
+  } catch {
+    detectedLocale = null
+  }
+
   let lang = 'es'
   if (detectedLocale && routing.locales.includes(detectedLocale as any)) {
     lang = detectedLocale
   } else {
-    const cookieStore = await cookies()
-    const localeCookie = cookieStore.get('NEXT_LOCALE')
-    if (localeCookie?.value && routing.locales.includes(localeCookie.value as any)) {
-      lang = localeCookie.value
+    try {
+      const cookieStore = await cookies()
+      const localeCookie = cookieStore.get('NEXT_LOCALE')
+      if (localeCookie?.value && routing.locales.includes(localeCookie.value as any)) {
+        lang = localeCookie.value
+      }
+    } catch {
+      // Render estático: sin cookies, se usa el locale por defecto.
     }
   }
 
