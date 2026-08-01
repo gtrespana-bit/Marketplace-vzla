@@ -5,7 +5,6 @@ import './globals.css'
 // Lazy load heavy providers to reduce initial JS & main-thread work
 import dynamic from 'next/dynamic'
 const AuthProvider = dynamic(() => import('@/components/AuthProvider').then(m => ({ default: m.AuthProvider })))
-const GoogleAnalytics = dynamic(() => import('@/components/GoogleAnalytics'))
 const ServiceWorkerRegistration = dynamic(() => import('@/components/ServiceWorkerRegistration').then(m => ({ default: m.ServiceWorkerRegistration })))
 
 import { Analytics } from '@vercel/analytics/react'
@@ -207,8 +206,6 @@ export default async function RootLayout({
         {/* Re-enable Vercel Analytics and SpeedInsights with lazy initialization */}
         <Analytics />
         <SpeedInsights />
-        {/* GA4: solo se carga si NEXT_PUBLIC_GA_ID está configurada */}
-        <GoogleAnalytics />
         <ServiceWorkerRegistration />
       </body>
     </html>
