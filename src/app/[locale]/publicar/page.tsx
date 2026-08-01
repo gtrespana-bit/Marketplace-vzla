@@ -11,6 +11,7 @@ import { ESTADOS, getMunicipiosNombres } from '@/lib/ubicaciones'
 import { Camera, X, UploadCloud, AlertCircle, Phone, Mail, MapPin, MessageSquare } from 'lucide-react'
 import { verificarContenido, formatearAlertaModeracion } from '@/lib/moderacion'
 import { emailProductoPublicado } from '@/lib/server-email'
+import { compressImages } from '@/lib/compress-image'
 import { useTranslations } from 'next-intl'
 
 const currentYear = new Date().getFullYear()
@@ -76,6 +77,7 @@ export default function PublicarPage() {
   const [ubicacionEstado, setUbicacionEstado] = useState('')
   const [ubicacionCiudad, setUbicacionCiudad] = useState('')
   const [imagenes, setImagenes] = useState<ImageFile[]>([])
+  const [procesando, setProcesando] = useState(false)
   const [loading, setLoading] = useState(false)
   const [uploadProgress, setUploadProgress] = useState(0)
   const [error, setError] = useState('')
@@ -134,21 +136,40 @@ export default function PublicarPage() {
     setSpecs(prev => ({ ...prev, [label]: value }))
   }
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files
     if (!files) return
     const maxFiles = 10 - imagenes.length
     if (maxFiles <= 0) return
 
-    const newImages: ImageFile[] = []
+    const selected: File[] = []
     for (let i = 0; i < Math.min(files.length, maxFiles); i++) {
       const file = files[i]
       if (!file.type.startsWith('image/')) continue
-      newImages.push({
-        file,
-        preview: URL.createObjectURL(file),
-      })
+      selected.push(file)
     }
+    if (selected.length === 0) return
+
+    // Reset input so the same file can be re-selected
+    e.target.value = ''
+
+    // Optimizar en el navegador (canvas → WebP, máx 1600px) antes de subir:
+    // reduce drásticamente el tamaño de cada foto → menos carga para el
+    // optimizador de imágenes de Vercel y sitio más rápido.
+    setProcesando(true)
+    let processed = selected
+    try {
+      processed = await compressImages(selected)
+    } catch {
+      // si algo falla, subir los originales
+    } finally {
+      setProcesando(false)
+    }
+
+    const newImages: ImageFile[] = processed.map(file => ({
+      file,
+      preview: URL.createObjectURL(file),
+    }))
     setImagenes(prev => [...prev, ...newImages])
   }
 
@@ -661,9 +682,18 @@ export default function PublicarPage() {
                 </div>
               ))}
               {imagenes.length < 10 && (
-                <label className="aspect-square rounded-lg border-2 border-dashed border-gray-300 flex flex-col items-center justify-center cursor-pointer hover:border-brand-accent hover:bg-yellow-50 transition">
-                  <Camera size={24} className="text-gray-500" /><span className="text-xs text-gray-500 mt-1">{t('add')}</span>
-                  <input type="file" accept="image/*" multiple onChange={handleImageUpload} className="hidden" />
+                <label className={`aspect-square rounded-lg border-2 border-dashed border-gray-300 flex flex-col items-center justify-center cursor-pointer hover:border-brand-accent hover:bg-yellow-50 transition ${procesando ? 'pointer-events-none opacity-70' : ''}`}>
+                  {procesando ? (
+                    <>
+                      <div className="w-6 h-6 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
+                      <span className="text-xs text-gray-500 mt-2 px-2 text-center">{t('optimizing')}</span>
+                    </>
+                  ) : (
+                    <>
+                      <Camera size={24} className="text-gray-500" /><span className="text-xs text-gray-500 mt-1">{t('add')}</span>
+                    </>
+                  )}
+                  <input type="file" accept="image/*" multiple onChange={handleImageUpload} className="hidden" disabled={procesando} />
                 </label>
               )}
             </div>

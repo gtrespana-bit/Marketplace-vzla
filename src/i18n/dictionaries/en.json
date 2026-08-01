@@ -592,7 +592,8 @@
     "conditionNew": "New",
     "conditionLikeNew": "Like new",
     "conditionGood": "Good",
-    "conditionUsed": "Used"
+    "conditionUsed": "Used",
+    "optimizing": "Optimizing images…"
   },
   "dashboard": {
     "passwordTitle": "Change password",
@@ -931,6 +932,7 @@
     "call": "Call",
     "sendMessage": "Send message",
     "reviews": "Reviews",
+    "noComment": "No comment",
     "listingsBy": "Listings by {name}",
     "noListings": "No active listings",
     "noPhoto": "No photo"
