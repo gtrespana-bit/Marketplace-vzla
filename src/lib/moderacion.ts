@@ -8,7 +8,7 @@
 export const palabrasProhibidas: string[] = [
   // Armas y munición
   'ametralladora', 'bala', 'c4', 'cartucho', 'dinamita', 'escopeta', 'fusil',
-  'granada', 'lanzacohetes', 'mina antipersona', 'mortero', 'pistola',
+  'granada', 'lanzacohetes', 'mina antipersona', 'mortero',
   'polvera', 'pulsora', 'rifl', 'revolver', 'revólver', 'rifle', 'semiautomática',
   'sniper', 'subfusil', 'trabuco', 'armas de fuego', 'armas blancas',
   'fabricación de armas', 'modificación de armas',
@@ -33,7 +33,7 @@ export const palabrasProhibidas: string[] = [
   // Pornografía y contenido sexual explícito
   'pornografía', 'porno', 'sex server', 'cam show', 'chat erotico',
   'chat erótico', 'striptease', 'servicio sexual', 'prostitución', 'prostitucion',
-  'put', 'whore', 'escort servicios', 'escorts', 'servicios acompañante',
+  'whore', 'escort servicios', 'escorts', 'servicios acompañante',
 
   // Órganos humanos
   'riñon en venta', 'riñón en venta', 'organos humanos', 'órganos humanos',
@@ -53,6 +53,8 @@ export const palabrasSospechosas: string[] = [
 
   // Eufemismos comunes de drogas
   'sustancia natural', 'medicamento sin receta',
+  // Términos ambiguos: revisión humana, no rechazo automático.
+  'pistola', 'bala',
 
   // Contacto fuera de plataforma (potencial estafa)
   'escribe a mi email', 'contacta por telegram', 'whatsapp antes',
@@ -66,43 +68,29 @@ export const palabrasSospechosas: string[] = [
  *   - { nivel: 'sospechoso', palabras: string[] }
  *   - { nivel: 'limpio', palabras: [] }
  */
+export function normalizarTextoModeracion(texto: string): string {
+  return texto.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+}
+
+/** Matches complete words/phrases only. Punctuation and whitespace are boundaries. */
+export function contieneTerminoCompleto(texto: string, termino: string): boolean {
+  const normalizedText = normalizarTextoModeracion(texto)
+  const words = normalizarTextoModeracion(termino).trim().split(/\s+/)
+  const escapedTerm = words.map(word => word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('\\s+')
+  return new RegExp(`(^|[^\\p{L}\\p{N}])${escapedTerm}(?=$|[^\\p{L}\\p{N}])`, 'u').test(normalizedText)
+}
+
 export function verificarContenido(texto: string): {
   nivel: 'prohibido' | 'sospechoso' | 'limpio'
   palabras: string[]
 } {
   if (!texto?.trim()) return { nivel: 'limpio', palabras: [] }
-
-  const textoNormalizado = texto.toLowerCase().normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '') // quita acentos para matching más amplio
-
-  const encontradasProhibidas: string[] = []
-  const encontradasSospechosas: string[] = []
-
-  // Revisa prohibidas
-  for (const palabra of palabrasProhibidas) {
-    const normalizada = palabra.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-    if (textoNormalizado.includes(normalizada)) {
-      encontradasProhibidas.push(palabra)
-    }
-  }
-
-  if (encontradasProhibidas.length > 0) {
-    return { nivel: 'prohibido', palabras: encontradasProhibidas }
-  }
-
-  // Revisa sospechosas
-  for (const palabra of palabrasSospechosas) {
-    const normalizada = palabra.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-    if (textoNormalizado.includes(normalizada)) {
-      encontradasSospechosas.push(palabra)
-    }
-  }
-
-  if (encontradasSospechosas.length > 0) {
-    return { nivel: 'sospechoso', palabras: encontradasSospechosas }
-  }
-
-  return { nivel: 'limpio', palabras: [] }
+  const encontradasProhibidas = palabrasProhibidas.filter(palabra => contieneTerminoCompleto(texto, palabra))
+  if (encontradasProhibidas.length) return { nivel: 'prohibido', palabras: encontradasProhibidas }
+  const encontradasSospechosas = palabrasSospechosas.filter(palabra => contieneTerminoCompleto(texto, palabra))
+  return encontradasSospechosas.length
+    ? { nivel: 'sospechoso', palabras: encontradasSospechosas }
+    : { nivel: 'limpio', palabras: [] }
 }
 
 /**

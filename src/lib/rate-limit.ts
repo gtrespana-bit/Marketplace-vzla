@@ -16,7 +16,7 @@ const LIMITS: Record<string, { max: number; windowMs: number }> = {
   // Login: 5 por 15 min por IP (anti brute force)
   'auth:login': { max: 5, windowMs: 15 * 60 * 1000 },
   // Comprar créditos: SIN límite práctico (no bloquear ventas)
-  'creditos:comprar': { max: 999, windowMs: 60 * 60 * 1000 },
+  'creditos:comprar': { max: 12, windowMs: 60 * 60 * 1000 },
   // Registro de usuarios: 3 por hora por IP
   'auth:register': { max: 3, windowMs: 60 * 60 * 1000 },
   // Reset password: 5 por hora por IP
@@ -35,6 +35,8 @@ const LIMITS: Record<string, { max: number; windowMs: number }> = {
   'tasa-bcv': { max: 60, windowMs: 60 * 60 * 1000 },
   // Webhook Telegram: 120 por hora
   'telegram:webhook': { max: 120, windowMs: 60 * 60 * 1000 },
+  // Notificaciones que activan proveedores externos.
+  'notificacion:send': { max: 20, windowMs: 60 * 60 * 1000 },
 }
 
 function getSupabaseClient() {
@@ -42,6 +44,17 @@ function getSupabaseClient() {
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   )
+}
+
+
+export function getClientIp(request: Request): string {
+  return request.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
+    || request.headers.get('x-real-ip')
+    || 'unknown'
+}
+
+export function rateLimitResponse(resetIn: number): Response {
+  return Response.json({ error: `Demasiadas solicitudes. Intenta de nuevo en ${Math.max(1, Math.ceil(resetIn / 60000))} min` }, { status: 429 })
 }
 
 export async function checkRateLimit(

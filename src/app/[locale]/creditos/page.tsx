@@ -8,6 +8,7 @@ import {
 import { supabase } from '@/lib/supabase'
 import { useTranslations } from 'next-intl'
 import Image from 'next/image'
+import { FALLBACK_BCV_RATE } from '@/lib/tasaBCV'
 
 const paquetesCredito = [
   { creditos: 2, precio: 1, descripcion: 'Para empezar', popular: false },
@@ -24,7 +25,7 @@ const metodosPago = [
   { id: 'binance', nombre: 'Binance Pay', emoji: '🟡', instrucciones: { id: '204147542' } },
 ]
 
-const FALLBACK_TASA = 487.12
+const FALLBACK_TASA = FALLBACK_BCV_RATE
 
 function ModalPago({ paquete, tasa, onClose }: { paquete: any; tasa: number; onClose: () => void }) {
   const t = useTranslations('creditos')
@@ -223,9 +224,10 @@ export default function CreditosPage() {
   const [paqueteSeleccionado, setPaqueteSeleccionado] = useState<any>(null)
   const [tasa, setTasa] = useState<number>(FALLBACK_TASA)
   const [tasaCargando, setTasaCargando] = useState(true)
+  const [tasaFuente, setTasaFuente] = useState<'api' | 'fallback'>('fallback')
 
   useEffect(() => {
-    fetch('/api/tasa-bcv').then(r => r.json()).then(d => { if (d.tasa) setTasa(d.tasa) }).catch(() => {}).finally(() => setTasaCargando(false))
+    fetch('/api/tasa-bcv').then(r => r.json()).then(d => { if (d.tasa) { setTasa(d.tasa); setTasaFuente(d.fuente === 'api' ? 'api' : 'fallback') } }).catch(() => {}).finally(() => setTasaCargando(false))
   }, [])
 
   return (
@@ -272,7 +274,7 @@ export default function CreditosPage() {
         {tasaCargando ? (
           <p className="text-center text-sm text-gray-400 mb-4 animate-pulse">{t('loadingRate')}</p>
         ) : (
-          <p className="text-center text-sm text-gray-500 mb-4">{t('rateLabel')} <span className="font-bold text-brand-primary">Bs. {tasa.toFixed(2)} por $</span></p>
+          <p className="text-center text-sm text-gray-500 mb-4">{t('rateLabel')} <span className="font-bold text-brand-primary">Bs. {tasa.toFixed(2)} por $</span>{tasaFuente === 'fallback' && <span className="ml-2 text-amber-700">(tasa de contingencia)</span>}</p>
         )}
 
         <div className="creditos-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">

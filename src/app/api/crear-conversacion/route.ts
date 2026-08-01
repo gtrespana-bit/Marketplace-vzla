@@ -1,28 +1,17 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { cookies } from 'next/headers'
+import { requireUser } from '@/lib/require-auth'
+import { checkRateLimit, getClientIp, rateLimitResponse } from '@/lib/rate-limit'
 import { validateConversationData } from '@/lib/validation'
 
 export async function POST(req: Request) {
   try {
-    // Verify user is authenticated via cookie
-    const cookieStore = await cookies()
-    const authCookie = cookieStore.getAll().find(c => c.name.includes('auth-token'))
-    if (!authCookie?.value) {
-      return NextResponse.json({ error: 'No autenticado' }, { status: 401 })
-    }
-
-    let parsed: any
-    try {
-      parsed = JSON.parse(authCookie.value)
-    } catch {
-      return NextResponse.json({ error: 'Token inválido' }, { status: 401 })
-    }
-
-    const uid = parsed.user?.id
-    if (!uid) {
-      return NextResponse.json({ error: 'Usuario no encontrado' }, { status: 401 })
-    }
+    const auth = await requireUser(req as any)
+    if ('response' in auth) return auth.response
+    const uid = auth.user.id
+    const ip = getClientIp(req)
+    const limit = await checkRateLimit('conversacion:create', uid, { ip })
+    if (!limit.ok) return rateLimitResponse(limit.resetIn)
 
     const body = await req.json()
     const { vendedorId, productoId } = body
