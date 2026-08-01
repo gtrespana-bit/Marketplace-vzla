@@ -132,13 +132,22 @@ export default function VendedorClient({
           <div className="space-y-4">
             {resenas.map(r => (
               <div key={r.id} className="border rounded-xl p-4">
-                <div className="flex items-center gap-2 mb-2">
+                <div className="flex items-center gap-2 mb-1">
                   {estrellasRender(r.puntuacion, 14)}
                   <span className="text-xs text-gray-500 ml-auto">
                     {new Date(r.creado_en).toLocaleDateString('es-VE', { day: '2-digit', month: 'short', year: 'numeric' })}
                   </span>
                 </div>
-                {r.comentario && <p className="text-sm text-gray-600">{r.comentario}</p>}
+                {r.producto?.titulo && (
+                  <p className="text-[11px] uppercase tracking-wide text-gray-400 mb-1">
+                    📦 {r.producto.titulo}
+                  </p>
+                )}
+                {r.comentario ? (
+                  <p className="text-sm text-gray-600">{r.comentario}</p>
+                ) : (
+                  <p className="text-sm italic text-gray-400">{t('noComment')}</p>
+                )}
               </div>
             ))}
           </div>

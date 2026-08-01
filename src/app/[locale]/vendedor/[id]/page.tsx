@@ -27,11 +27,17 @@ async function getVendedor(id: string) {
   if (error || !perfil) return null
 
   // Reseñas reales (base de la reputación y del AggregateRating)
-  const { data: res } = await supabase
+  // Nota: `producto_titulo` NO es columna de `resenas` — se une con `productos`
+  // para obtener el título real y evitar que la query falle en silencio (0 reseñas).
+  const { data: res, error: errRes } = await supabase
     .from('resenas')
-    .select('id, puntuacion, comentario, producto_id, producto_titulo, creado_en')
+    .select('id, puntuacion, comentario, producto_id, creado_en, producto:productos(titulo)')
     .eq('vendedor_id', id)
     .order('creado_en', { ascending: false })
+
+  if (errRes) {
+    console.error('[vendedor] Error al cargar reseñas:', errRes)
+  }
 
   const resenas = res || []
   const promedio =

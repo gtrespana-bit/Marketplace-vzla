@@ -931,6 +931,7 @@
     "call": "Call",
     "sendMessage": "Send message",
     "reviews": "Reviews",
+    "noComment": "No comment",
     "listingsBy": "Listings by {name}",
     "noListings": "No active listings",
     "noPhoto": "No photo"

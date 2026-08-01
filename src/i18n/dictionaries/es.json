@@ -931,6 +931,7 @@
     "call": "Llamar",
     "sendMessage": "Enviar mensaje",
     "reviews": "Reseñas",
+    "noComment": "Sin comentario",
     "listingsBy": "Publicaciones de {name}",
     "noListings": "No tiene publicaciones activas",
     "noPhoto": "Sin foto"
