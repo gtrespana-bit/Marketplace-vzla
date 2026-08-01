@@ -1,14 +1,13 @@
 "use client"
 
 import { useTranslations } from 'next-intl'
-
-import * as Sentry from "@sentry/nextjs"
 import { useEffect } from "react"
 
 export default function GlobalError({ error }: { error: Error & { digest?: string } }) {
   const t = useTranslations('errorPage')
   useEffect(() => {
-    Sentry.captureException(error)
+    // Sentry removed for performance - just log to console
+    console.error('Global error:', error)
   }, [error])
 
   return (
