@@ -146,7 +146,7 @@ export default function CatalogoClient({ initialProducts = [], initialCount = 0 
   const router = useRouter()
 
   // Usar hook de paginación
-  const { currentPage, itemsPerPage } = useProductPagination({ itemsPerPage: 24 })
+  const { currentPage, itemsPerPage, goToPage } = useProductPagination({ itemsPerPage: 24 })
 
   const categoria = searchParams.get('categoria') || ''
   const subcategoria = searchParams.get('subcategoria') || ''
@@ -159,21 +159,27 @@ export default function CatalogoClient({ initialProducts = [], initialCount = 0 
 
   const hasActiveFilters = !!(categoria || subcategoria || marca || q || precioMin || precioMax || ubicacionEstado || ubicacionCiudad)
 
-  // Usar los hooks de carga y precarga de productos
-  const { productos: loadedProductos, loading, error, totalCount: loaderTotalCount, loadProducts } = useProductLoader();
+  // Carga real por página desde el servidor (range()).
+  const { productos: loadedProductos, loading, error, totalCount: loaderTotalCount, loadPage } = useProductLoader();
   const { prefetchPage } = usePrefetch();
 
-  // Determinar qué productos usar
-  const productosToUse = hasActiveFilters ? loadedProductos : initialProducts;
-  const totalCountToUse = hasActiveFilters ? loaderTotalCount : initialCount;
+  // Durante la primera renderización SSR (página 1 sin filtros) usamos los
+  // productos servidos por el servidor. En cuanto se navega o se filtran, se
+  // pasa a los productos cargados desde el cliente (server-driven por página).
+  const [useServerData, setUseServerData] = useState(false)
 
-  // Calcular productos para la página actual
-  const startIndex = (currentPage - 1) * itemsPerPage
-  const endIndex = startIndex + itemsPerPage
-  const productosPagina = productosToUse.slice(startIndex, endIndex)
-  const totalPages = Math.ceil(productosToUse.length / itemsPerPage)
+  // ¿Mostramos los iniciales del SSR o los cargados por página?
+  const showInitialSSR = !useServerData && !hasActiveFilters && currentPage === 1
+  const productosToShow = showInitialSSR ? initialProducts : loadedProductos
+  const totalCountToUse = showInitialSSR ? initialCount : loaderTotalCount
 
-  const isFirstRender = useRef(true)
+  // totalPages se calcula con el total REAL (totalCount), no con las filas
+  // cargadas. Así la paginación es correcta aunque solo se cargue una página.
+  const totalPages = Math.max(1, Math.ceil(totalCountToUse / itemsPerPage))
+
+  // Firma de filtros para detectar cambios y resetear la página.
+  const filterSig = [categoria, subcategoria, marca, q, precioMin, precioMax, ubicacionEstado, ubicacionCiudad].join('|')
+  const prevFilterSig = useRef(filterSig)
 
   const cat = categoriasData[categoria]
   const subs = cat ? cat.subs : []
@@ -187,17 +193,25 @@ export default function CatalogoClient({ initialProducts = [], initialCount = 0 
   }
 
   useEffect(() => {
-    if (isFirstRender.current) {
-      isFirstRender.current = false
-      if (!hasActiveFilters) {
-        // Si no hay filtros activos, usar los productos iniciales
-        return
-      }
+    // Si cambian los filtros y no estamos en la página 1, resetear a la página 1.
+    if (prevFilterSig.current !== '' && prevFilterSig.current !== filterSig && currentPage !== 1) {
+      prevFilterSig.current = filterSig
+      goToPage(1)
+      return
+    }
+    prevFilterSig.current = filterSig
+
+    // Durante la primera renderización SSR (página 1 sin filtros) usamos los
+    // productos del servidor; no hace falta recargar.
+    if (!hasActiveFilters && currentPage === 1 && !useServerData) {
+      return
     }
 
-    if (hasActiveFilters) {
-      // Cargar productos con los filtros actuales solo si hay filtros activos
-      loadProducts({
+    setUseServerData(true)
+    loadPage({
+      page: currentPage,
+      pageSize: itemsPerPage,
+      filters: {
         categoria,
         subcategoria,
         marca,
@@ -206,13 +220,13 @@ export default function CatalogoClient({ initialProducts = [], initialCount = 0 
         precioMax,
         ubicacionEstado,
         ubicacionCiudad
-      });
-    }
-  }, [categoria, subcategoria, marca, q, precioMin, precioMax, ubicacionEstado, ubicacionCiudad, hasActiveFilters, loadProducts]);
+      }
+    });
+  }, [filterSig, currentPage, itemsPerPage, hasActiveFilters, useServerData, goToPage, loadPage, categoria, subcategoria, marca, q, precioMin, precioMax, ubicacionEstado, ubicacionCiudad]);
 
   // Precargar la siguiente página cuando sea apropiado
   useEffect(() => {
-    if (!loading && productosToUse.length > 0 && totalPages > currentPage) {
+    if (!loading && productosToShow.length > 0 && totalPages > currentPage) {
       // Precargar la siguiente página después de un breve retraso
       const prefetchTimer = setTimeout(() => {
         prefetchPage(
@@ -233,7 +247,7 @@ export default function CatalogoClient({ initialProducts = [], initialCount = 0 
 
       return () => clearTimeout(prefetchTimer);
     }
-  }, [currentPage, totalPages, loading, productosToUse.length, categoria, subcategoria, marca, q, precioMin, precioMax, ubicacionEstado, ubicacionCiudad, itemsPerPage, prefetchPage]);
+  }, [currentPage, totalPages, loading, productosToShow.length, categoria, subcategoria, marca, q, precioMin, precioMax, ubicacionEstado, ubicacionCiudad, itemsPerPage, prefetchPage]);
 
   const tituloMostrar = q
     ? t('catalog.resultsFor', { q })
@@ -351,9 +365,25 @@ export default function CatalogoClient({ initialProducts = [], initialCount = 0 
             />
           </div>
 
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-700 rounded-xl p-6 mb-4 flex items-start gap-3" role="alert">
+              <XCircle size={20} className="flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="font-semibold">{t('catalog.loadErrorTitle')}</p>
+                <p className="text-sm mt-1">{error}</p>
+                <button
+                  onClick={() => loadPage({ page: currentPage, pageSize: itemsPerPage, filters: { categoria, subcategoria, marca, q, precioMin, precioMax, ubicacionEstado, ubicacionCiudad } })}
+                  className="mt-3 text-sm font-semibold text-red-700 underline hover:text-red-900"
+                >
+                  {t('catalog.retry')}
+                </button>
+              </div>
+            </div>
+          )}
+
           {loading ? (
             <LoadingIndicator count={6} />
-          ) : productosToUse.length === 0 ? (
+          ) : !error && productosToShow.length === 0 ? (
             <div className="bg-white rounded-xl p-16 text-center shadow-sm border">
               <Search size={48} className="text-gray-500 mx-auto mb-4" />
               <h3 className="text-xl font-bold text-gray-800 mb-2">{t('catalog.empty')}</h3>
@@ -364,7 +394,7 @@ export default function CatalogoClient({ initialProducts = [], initialCount = 0 
             </div>
           ) : (
             <OptimizedProductGrid
-              productos={productosToUse}
+              productos={productosToShow}
               t={t}
               currentPage={currentPage}
               itemsPerPage={itemsPerPage}
@@ -378,7 +408,7 @@ export default function CatalogoClient({ initialProducts = [], initialCount = 0 
         currentPage={currentPage} 
         totalPages={totalPages}
         itemsPerPage={itemsPerPage}
-        totalItems={productosToUse.length} 
+        totalItems={totalCountToUse} 
       />
     </div>
     </>

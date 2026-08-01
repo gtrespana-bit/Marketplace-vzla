@@ -98,7 +98,7 @@ export default function PublicarPage() {
       // Contar publicaciones para el progreso emprendedor
       supabase
         .from('productos')
-        .select('*', { count: 'exact' })
+        .select('id', { count: 'exact' })
         .eq('user_id', user.id)
         .eq('activo', true)
         .then(({ count }) => setPubCount(count || 0))
@@ -361,7 +361,7 @@ export default function PublicarPage() {
       // Check Pack Emprendedor (10+ publicaciones = 5 creditos gratis)
       const { count: pubCount } = await supabase
         .from('productos')
-        .select('*', { count: 'exact' })
+        .select('id', { count: 'exact' })
         .eq('user_id', user?.id)
         .eq('activo', true)
       

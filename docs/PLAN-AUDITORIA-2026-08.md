@@ -59,6 +59,28 @@ Incluye:
 - Reseñas escritas mediante API después de validar la venta.
 - Protección de la cola de notificaciones push.
 
+### 🐞 Bug detectado: `permission denied for table perfiles` al editar un artículo
+
+**Síntoma:** Al guardar un producto desde `/producto/editar/<id>` aparece
+`Error al guardar: permission denied for table perfiles` y un 403 en el PATCH
+hacia `/rest/v1/productos?id=eq.<id>`.
+
+**Causa raíz:** `202608010001_hardening_integridad.sql` revocó a `authenticated`
+el UPDATE de las columnas de negocio de `perfiles` (`nivel_confianza`,
+`badges_automaticos`, `ultima_actividad`), pero `fn_calcular_reputacion()`
+(migración `012_reputacion.sql`) **no es `SECURITY DEFINER`**. Se dispara desde
+el trigger `trg_calc_reputacion_prod` sobre `productos` al editar (el update
+incluye `activo`), e intenta escribir esas columnas → 403. La migración de
+endurecimiento corrigió el trigger de `perfiles` para que no se reactive solo,
+pero olvidó convertir la función en `SECURITY DEFINER`.
+
+**Fix:** migración `202608010003_fix_reputacion_definer.sql` que convierte
+`fn_calcular_reputacion()` en `SECURITY DEFINER` con `search_path = public`.
+
+**Estado: ✅ SQL aplicado (confirmado por el usuario 2026-08-01).**
+Pendiente: confirmar en la interfaz que editar y guardar un artículo ya no
+arroja el error 403. Ver sección C de pruebas manuales.
+
 ---
 
 ## Cambios ya realizados en código
@@ -150,6 +172,7 @@ producción sin respaldo.
 
 ## C. Editar productos
 
+- [x] **Editar y guardar un producto no arroja `permission denied for table perfiles` ni 403** (SQL `202608010003_fix_reputacion_definer.sql` aplicado 2026-08-01; confirmar guardado real en la interfaz).
 - [ ] Editar título conserva las especificaciones.
 - [ ] Editar precio conserva las especificaciones.
 - [ ] Editar un producto con varias imágenes conserva todas las imágenes.
@@ -225,12 +248,29 @@ producción sin respaldo.
 
 ## Fase 3 — Catálogo y experiencia principal
 
-- [ ] Rehacer la paginación usando `totalCount`, no solo los productos cargados.
-- [ ] Cargar páginas posteriores realmente desde servidor.
-- [ ] Resetear la página al cambiar filtros.
-- [ ] Mostrar errores de carga del catálogo en vez de mostrar una lista vacía.
-- [ ] Corregir consultas que todavía usan `select('*')` innecesariamente.
-- [ ] Unificar los datos de contacto y la galería en todas las tarjetas/detalles.
+- [x] Rehacer la paginación usando `totalCount`, no solo los productos cargados.
+- [x] Cargar páginas posteriores realmente desde servidor (`.range()`).
+- [x] Resetear la página al cambiar filtros.
+- [x] Mostrar errores de carga del catálogo en vez de mostrar una lista vacía.
+- [x] Corregir consultas que todavía usan `select('*')` innecesariamente.
+- [x] Unificar los datos de contacto y la galería en todas las tarjetas/detalles. (Verificado: tarjetas usan `imagen_url` como miniatura; detalle/editor usan `imagenes` + `metodos_contacto`. Coherente.)
+
+Detalle de la implementación (2026-08-01):
+
+- `useProductPagination` reescrito: `currentPage` ahora se deriva del parámetro
+  `pagina` del URL de forma reactiva (antes se leía una sola vez al montar, por
+  lo que cambiar de página no actualizaba el grid).
+- `useProductLoader` reescrito como `loadPage({ page, pageSize, filters })` que
+  carga UNA página real desde el servidor con `.range()` y devuelve `totalCount`
+  exacto. Antes cargaba `limit(100)` y paginaba en el cliente.
+- `CatalogoPage`: `totalPages` se calcula con `totalCount`, se resetea a la
+  página 1 al cambiar filtros, y se muestra un banner de error con botón
+  "Reintentar" cuando la carga falla.
+- Consultas `select('*')` reducidas a las columnas necesarias en
+  `BuscarClient`, `useDashboard` y `publicar` (cuentas con `select('id')`).
+- `tsc`, `npm test` (87/87) y `npm run lint` (0 errores) pasan.
+- Build local bloqueado solo por descarga de Google Fonts (entorno), sin errores
+  de código.
 
 ## Fase 4 — SEO y localización
 
@@ -266,7 +306,7 @@ producción sin respaldo.
 - [ ] Corregir migración `019_fulltext_search.sql` y la columna `seller_nombre`.
 - [ ] Añadir pruebas automatizadas de APIs y RLS.
 - [ ] Añadir pruebas E2E de autenticación, publicación, edición, compra y chat.
-- [ ] Hacer que `npm run build` no dependa de descargar Google Fonts durante el build.
+- [x] Hacer que `npm run build` no dependa de descargar Google Fonts durante el build. → Inter autohospedada con `next/font/local` desde `src/app/fonts/*.woff2` (pesos 400/500/600/700/900 normal+itálica). Se mantuvo la variable `--font-inter` (sin tocar Tailwind) y se limpió el CSP y los preconnect/dns-prefetch de `fonts.googleapis.com`/`fonts.gstatic.com`. `tsc`, lint y tests pasan; el build compila y ya no consulta Google Fonts.
 - [ ] Resolver las vulnerabilidades reportadas por `npm audit` sin usar `--force` a ciegas.
 - [ ] Eliminar warnings de lint restantes.
 - [ ] Añadir un job CI que ejecute también `npm run lint`.
