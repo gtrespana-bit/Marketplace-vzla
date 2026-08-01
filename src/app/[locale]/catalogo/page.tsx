@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { supabase } from '@/lib/supabase'
+import { supabase } from '@/lib/supabase-server-client'
 import { CATALOG_PAGE_SIZE } from '@/lib/catalog-pagination'
 import CatalogoClient from './CatalogoPage'
 import { Suspense } from 'react'

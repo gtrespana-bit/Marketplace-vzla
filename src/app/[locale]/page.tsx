@@ -1,7 +1,7 @@
 import LocalLink from '@/components/LocalLink'
 import Image from 'next/image'
 import { ArrowRight, Star, Zap, Eye, TrendingUp } from 'lucide-react'
-import { supabase } from '@/lib/supabase'
+import { supabase } from '@/lib/supabase-server-client'
 import { BotonDescargarApp } from '@/components/BotonDescargarApp'
 import { getTranslations } from 'next-intl/server'
 import type { Metadata } from 'next'

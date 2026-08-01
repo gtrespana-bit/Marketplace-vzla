@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { supabase } from '@/lib/supabase'
+import { supabase } from '@/lib/supabase-server-client'
 import { routing } from '@/i18n/routing'
 import { Suspense } from 'react'
 import { permanentRedirect } from 'next/navigation'

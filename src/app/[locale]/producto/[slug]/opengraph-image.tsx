@@ -1,5 +1,5 @@
 import { ImageResponse } from 'next/og'
-import { supabase } from '@/lib/supabase'
+import { supabase } from '@/lib/supabase-server-client'
 import { isUuid } from '@/lib/product-url'
 
 export const runtime = 'edge'

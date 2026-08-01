@@ -92,16 +92,12 @@ const nextConfig = withNextIntl({
         key: 'Content-Security-Policy',
         value: [
           "default-src 'self'",
-          "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://vercel.live https://*.vercel-analytics.com https://*.vercel-scripts.com https://*.googletagmanager.com https://*.google-analytics.com https://va.vercel-scripts.com",
+          "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://vercel.live https://*.vercel-analytics.com https://*.vercel-scripts.com https://va.vercel-scripts.com",
           "style-src 'self' 'unsafe-inline'",
           "font-src 'self' data:",
           "img-src 'self' data: blob: https: ",
           "media-src 'self' blob: https://*.supabase.co https://*.r2.dev https://*.r2.cloudflarestorage.com",
-          // GA4 (gtag.js) envía los beacons de medición a dos endpoints:
-          // https://analytics.google.com/g/collect y https://www.google.com/g/collect
-          // (este último con el parámetro gaf=1). Ambos deben estar en connect-src
-          // o el navegador bloquea el envío de datos a Analytics.
-          "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.r2.dev https://pub-d212837165c545e3956251da001fa37a.r2.dev https://*.r2.cloudflarestorage.com https://vercel.live https://*.vercel-analytics.com https://*.vercel-scripts.com https://va.vercel-scripts.com https://*.sentry.io https://*.ingest.sentry.io https://api.telegram.org https://*.google-analytics.com https://*.analytics.google.com https://analytics.google.com https://*.googletagmanager.com https://www.google.com https://google.com",
+          "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.r2.dev https://pub-d212837165c545e3956251da001fa37a.r2.dev https://*.r2.cloudflarestorage.com https://vercel.live https://*.vercel-analytics.com https://*.vercel-scripts.com https://va.vercel-scripts.com https://*.sentry.io https://*.ingest.sentry.io https://api.telegram.org",
           "frame-src 'self'",
           "frame-ancestors 'none'",
           "base-uri 'self'",
