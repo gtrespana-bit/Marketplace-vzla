@@ -1,4 +1,14 @@
-/* Service Worker - VendeT PWA - v10
+/* Service Worker - VendeT PWA - v11
+ *
+ * Cambios v11 (fix rendimiento global — las navegaciones no deben colgarse):
+ * - Las NAVEGACIONES (HTML) ya NO reintentan y usan un timeout corto de 5s
+ *   (antes: 1 reintento + timeout de 15s). En redes móviles inestables un
+ *   blip de red podía dejar la página "colgada" varios segundos antes de que
+ *   el fallback (caché → offline → HTML inline) respondiera, penalizando el
+ *   TTFB/TTI de TODAS las páginas.
+ * - El caché de HTML sigue siendo en segundo plano (background): devolvemos
+ *   la respuesta de red al momento y cacheamos el clon sin bloquear.
+ * - El caché sube a vendet-v11 para forzar instalación limpia.
  *
  * Cambios v10 (fix "Failed to load resource: status of 503"):
  * - Se eliminan los 4 `new Response(..., { status: 503 })` sintéticos que el
@@ -14,7 +24,7 @@
  *   (caché → offline → HTML inline): ahí un error de red daría pantalla rota.
  * - El caché sube a vendet-v10 para forzar instalación limpia.
  */
-const CACHE_NAME = 'vendet-v10'
+const CACHE_NAME = 'vendet-v11'
 const STATIC_ASSETS = [
   '/offline',
   '/es/offline',
@@ -70,6 +80,14 @@ function isSensitiveStorage(url) {
   const path = url.pathname.toLowerCase()
   return SENSITIVE_STORAGE_KEYWORDS.some(k => path.includes(k))
 }
+
+// ── Timeout corto para NAVEGACIONES (HTML) ──
+// Las navegaciones son el hot path de la experiencia: el usuario está viendo
+// una pantalla en blanco mientras esto resuelve. Un timeout largo + reintento
+// podía "colgar" la página 15s+ en redes inestables. Usamos un único intento
+// con 5s; si falla, el fallback (caché → offline → HTML inline) responde
+// inmediatamente.
+const NAV_TIMEOUT_MS = 5000
 
 // ── Retry ante fallos de red transitorios ──
 // Un solo blip de conectividad (muy común en redes móviles) provocaba falsos
@@ -262,7 +280,7 @@ self.addEventListener('fetch', event => {
     // HTML navigation to private page: network only, fallback offline if fails
     if (request.mode === 'navigate' || (request.headers.get('accept') || '').includes('text/html')) {
       event.respondWith(
-        fetchWithRetry(request, 1, 15000)
+        fetchWithRetry(request, 0, NAV_TIMEOUT_MS)
           .catch(() => getOfflineFallback(url).then(r => r || createInlineOfflineResponse()))
       )
     } else {
@@ -274,10 +292,13 @@ self.addEventListener('fetch', event => {
   }
 
   // ── HTML pages (navigation) — network first, cache fallback, exclude private (already handled) ──
+  // Un único intento con timeout corto: si la red falla, servimos al instante
+  // la respuesta cacheada/offline. El caching del HTML se hace en segundo
+  // plano (no bloquea el retorno de la respuesta).
   if (request.mode === 'navigate' ||
       (request.headers.get('accept') || '').includes('text/html')) {
     event.respondWith(
-      fetchWithRetry(request, 1, 15000)
+      fetchWithRetry(request, 0, NAV_TIMEOUT_MS)
         .then(response => {
           // Do not cache if response is redirect or auth related
           if (response.ok && response.type !== 'opaqueredirect') {
