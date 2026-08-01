@@ -259,7 +259,7 @@ Estas acciones no pueden completarse únicamente con cambios de código:
 - [x] Ejecutar build y pruebas con instalación limpia.
 - [x] Migrar `.eslintrc.json` a Flat Config (`eslint.config.mjs`).
 - [x] Ejecutar lint y resolver hallazgos reales (0 errores, 0 warnings).
-- [x] Incorporar lint en CI (`npm run lint`).
+- [x] Incorporar lint en CI (`npm run lint`). ⚠️ El paso de lint está listo en `.github/workflows/ci.yml` pero no se pudo subir (requiere permiso `workflows` del GitHub App). Debe aplicarse manualmente o через PR.
 - [ ] Revisar/eliminar `console.log` innecesarios de servidor, manteniendo logs útiles de error.
 - [ ] Decidir y completar configuración de Sentry, o eliminar configuración inactiva.
 - [ ] Revisar `/offline` para ambos locales.
