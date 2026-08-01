@@ -10,8 +10,9 @@
 -- modifica y elimina la API después de comprobar la relación con el producto.
 revoke insert, update, delete on table public.conversaciones from anon, authenticated;
 
- drop policy if exists "Crear conversaciones" on public.conversaciones;
- drop policy if exists "conv_insert" on public.conversaciones;
+drop policy if exists "Ver conversaciones propias" on public.conversaciones;
+drop policy if exists "Crear conversaciones" on public.conversaciones;
+drop policy if exists "conv_insert" on public.conversaciones;
  drop policy if exists "Actualizar conversaciones" on public.conversaciones;
  drop policy if exists "conv_update" on public.conversaciones;
  drop policy if exists "Eliminar conversaciones propias" on public.conversaciones;
@@ -35,6 +36,8 @@ create unique index if not exists uq_conversaciones_par_sin_producto_202608
 -- conserva una defensa secundaria para clientes antiguos.
 revoke insert, update, delete on table public.mensajes from anon, authenticated;
 
+drop policy if exists "Enviar mensajes dentro de conversación propia" on public.mensajes;
+drop policy if exists "Ver mensajes de conversaciones propias" on public.mensajes;
 drop policy if exists "Enviar mensajes" on public.mensajes;
 drop policy if exists "msg_insert" on public.mensajes;
 drop policy if exists "Ver mensajes" on public.mensajes;
