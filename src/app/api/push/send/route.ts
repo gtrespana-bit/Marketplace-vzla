@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import webpush from 'web-push'
 import { createClient } from '@supabase/supabase-js'
+import { checkRateLimit, getClientIp, rateLimitResponse } from '@/lib/rate-limit'
 
 // VAPID setup
 if (process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) {
@@ -13,6 +14,9 @@ if (process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) {
 
 export async function POST(req: NextRequest) {
   try {
+    const ip = getClientIp(req)
+    const limit = await checkRateLimit('notificacion:send', ip, { ip })
+    if (!limit.ok) return rateLimitResponse(limit.resetIn)
     const { targetUserId, titulo, cuerpo, click_url } = await req.json()
 
     if (!targetUserId || !titulo) {

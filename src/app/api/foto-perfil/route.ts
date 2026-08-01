@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { requireUser } from '@/lib/require-auth'
+import { checkRateLimit, getClientIp, rateLimitResponse } from '@/lib/rate-limit'
 
 export async function POST(req: NextRequest) {
   try {
@@ -8,6 +9,9 @@ export async function POST(req: NextRequest) {
     const auth = await requireUser(req)
     if ('response' in auth) return auth.response
     const userId = auth.user.id
+    const ip = getClientIp(req)
+    const limit = await checkRateLimit('foto-perfil:update', userId, { ip })
+    if (!limit.ok) return rateLimitResponse(limit.resetIn)
 
     const formData = await req.formData()
     const file = formData.get('file') as File | null

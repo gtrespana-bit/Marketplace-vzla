@@ -1,10 +1,8 @@
-// Tasa USD -> Bs. Híbrida: API automática + fallback manual
-// Fuente principal: ve.dolarapi.com (BCV oficial Venezuela)
-// Fallback: valor manual configurable en FALLBACK_RATE
+// Tasa USD -> Bs. Fuente remota BCV con una contingencia única y explícita.
+export const FALLBACK_BCV_RATE = 746
+const CACHE_DURATION = 15 * 60 * 1000
 
-const FALLBACK_RATE = 487
-
-interface TasaData {
+export interface TasaData {
   tasa: number
   fuente: 'api' | 'fallback'
   ultimaActualizacion: string
@@ -12,94 +10,57 @@ interface TasaData {
 
 let cache: TasaData | null = null
 let cacheTime = 0
-const CACHE_DURATION = 3600 * 1000 // 1 hora
+
+export function usdToBs(usd: number, rate: number): number {
+  return Math.round(usd * rate * 100) / 100
+}
 
 async function fetchFromAPI(): Promise<number | null> {
   try {
-    // Fuente principal: ve.dolarapi.com (tasa BCV oficial)
-    const resp = await fetch('https://ve.dolarapi.com/v1/dolares', {
-      next: { revalidate: 3600 },
+    const response = await fetch('https://ve.dolarapi.com/v1/dolares', {
+      next: { revalidate: CACHE_DURATION / 1000 },
+      signal: AbortSignal.timeout(8_000),
     })
-    if (!resp.ok) return null
-
-    const data = await resp.json()
-    // Buscar la tasa oficial (BCV) en el array
-    const oficial = data.find((d: any) => d.fuente === 'oficial')
-    if (oficial && oficial.promedio) {
-      return parseFloat(oficial.promedio)
-    }
-
-    // Si no encuentra "oficial", usar el primer elemento del array
-    if (Array.isArray(data) && data.length > 0 && data[0].promedio) {
-      return parseFloat(data[0].promedio)
-    }
-
-    return null
+    if (!response.ok) return null
+    const data = await response.json()
+    const oficial = Array.isArray(data) && data.find((item: any) => item.fuente === 'oficial')
+    const rate = Number(oficial?.promedio)
+    return Number.isFinite(rate) && rate > 10 ? rate : null
   } catch {
     return null
   }
 }
 
 export async function getTasaBCV(): Promise<TasaData> {
-  if (cache && Date.now() - cacheTime < CACHE_DURATION) {
-    return cache
-  }
+  if (cache && Date.now() - cacheTime < CACHE_DURATION) return cache
 
   const apiRate = await fetchFromAPI()
-
-  if (apiRate && apiRate > 10) {
-    cache = {
-      tasa: Math.round(apiRate * 2) / 2, // Redondear a .5 más cercano
-      fuente: 'api',
-      ultimaActualizacion: new Date().toLocaleString('es-VE'),
-    }
-  } else {
-    cache = {
-      tasa: FALLBACK_RATE,
-      fuente: 'fallback',
-      ultimaActualizacion: 'Tasa manual',
-    }
-  }
-
+  cache = apiRate
+    ? { tasa: Math.round(apiRate * 100) / 100, fuente: 'api', ultimaActualizacion: new Date().toLocaleString('es-VE') }
+    : { tasa: FALLBACK_BCV_RATE, fuente: 'fallback', ultimaActualizacion: 'Tasa de contingencia' }
   cacheTime = Date.now()
   return cache
 }
 
-// Versión para cliente (usa localStorage cache)
 export function getTasaBCVClient(): TasaData {
-  if (typeof window === 'undefined') {
-    return { tasa: FALLBACK_RATE, fuente: 'fallback', ultimaActualizacion: '' }
-  }
-
+  if (typeof window === 'undefined') return { tasa: FALLBACK_BCV_RATE, fuente: 'fallback', ultimaActualizacion: 'Tasa de contingencia' }
   try {
     const cached = localStorage.getItem('tasa_bcv')
     if (cached) {
       const parsed = JSON.parse(cached)
-      if (Date.now() - parsed.timestamp < CACHE_DURATION) {
-        return parsed.data
-      }
+      if (Date.now() - parsed.timestamp < CACHE_DURATION && parsed.data?.tasa) return parsed.data
     }
-  } catch {
-    // Cache corrupted, ignora
-  }
-
-  return { tasa: FALLBACK_RATE, fuente: 'fallback', ultimaActualizacion: 'Actualizando...' }
+  } catch { /* ignore corrupt client cache */ }
+  return { tasa: FALLBACK_BCV_RATE, fuente: 'fallback', ultimaActualizacion: 'Actualizando tasa…' }
 }
 
 export async function actualizarTasaClient(): Promise<TasaData> {
-  if (typeof window === 'undefined') {
-    return getTasaBCVClient()
-  }
-
+  if (typeof window === 'undefined') return getTasaBCVClient()
   try {
-    const resp = await fetch('/api/tasa-bcv')
-    const data = await resp.json()
-
-    localStorage.setItem('tasa_bcv', JSON.stringify({
-      data,
-      timestamp: Date.now(),
-    }))
-
+    const response = await fetch('/api/tasa-bcv')
+    if (!response.ok) throw new Error('Tasa no disponible')
+    const data: TasaData = await response.json()
+    localStorage.setItem('tasa_bcv', JSON.stringify({ data, timestamp: Date.now() }))
     return data
   } catch {
     return getTasaBCVClient()

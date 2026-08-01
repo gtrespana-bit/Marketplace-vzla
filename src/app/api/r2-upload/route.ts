@@ -9,6 +9,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getUploadPresignedUrl, getR2PublicUrl } from '@/lib/r2-client'
 import { requireUser } from '@/lib/require-auth'
+import { checkRateLimit, getClientIp, rateLimitResponse } from '@/lib/rate-limit'
 
 const CONTENT_TYPES_PERMITIDOS = ['image/jpeg', 'image/png', 'image/webp']
 
@@ -18,6 +19,9 @@ export async function POST(req: NextRequest) {
     const auth = await requireUser(req)
     if ('response' in auth) return auth.response
     const userId = auth.user.id
+    const ip = getClientIp(req)
+    const limit = await checkRateLimit('r2-upload', userId, { ip })
+    if (!limit.ok) return rateLimitResponse(limit.resetIn)
 
     const body = await req.json()
     const { key, contentType } = body

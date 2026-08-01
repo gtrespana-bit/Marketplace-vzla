@@ -2,11 +2,12 @@
 
 import { useState } from 'react'
 import LocalLink from '@/components/LocalLink'
-import { useRouter, usePathname } from 'next/navigation'
+import { useRouter, usePathname, useSearchParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { AlertCircle } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { routing } from '@/i18n/routing'
+import { getSafeRedirectPath } from '@/lib/safe-redirect'
 
 function getLocaleFromPathname(pathname: string): string {
   for (const locale of routing.locales) {
@@ -22,6 +23,7 @@ export default function LoginPage() {
   const t = useTranslations('auth')
   const router = useRouter()
   const pathname = usePathname()
+  const searchParams = useSearchParams()
   const locale = getLocaleFromPathname(pathname)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -37,7 +39,7 @@ export default function LoginPage() {
 
   // Build locale-aware redirect path
   const redirectPath = (path: string) => {
-    if (locale === routing.defaultLocale) return path
+    if (locale === routing.defaultLocale || path === `/${locale}` || path.startsWith(`/${locale}/`)) return path
     return `/${locale}${path === '/' ? '' : path}`
   }
 
@@ -77,8 +79,9 @@ export default function LoginPage() {
         await new Promise(resolve => setTimeout(resolve, 100))
       }
 
-      // Redirect with locale prefix
-      router.push(redirectPath('/dashboard'))
+      // Only accept local, relative destinations to prevent open redirects.
+      const destination = getSafeRedirectPath(searchParams.get('redirect')) || '/dashboard'
+      router.push(redirectPath(destination))
     } catch (err) {
       setError('Error de conexión. Intenta de nuevo.')
     }

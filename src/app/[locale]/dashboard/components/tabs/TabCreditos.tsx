@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { CreditCard, Zap, Star, X, CheckCircle, Upload, Loader2 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import Image from 'next/image'
+import { FALLBACK_BCV_RATE } from '@/lib/tasaBCV'
 
 const metodosPagoCreditos = [
   { id: 'pagomovil', nombre: 'Pago Móvil', emoji: '📱', instrucciones: { telefono: '04126443099', cedula: 'V20794917', banco: 'Banco Provincial BBVA' } },
@@ -12,10 +13,11 @@ const metodosPagoCreditos = [
 
 export default function TabCreditos({ creditos, tasaBs, refreshCreditos }: { creditos: number; tasaBs: number; refreshCreditos: () => void }) {
   const [paqueteSeleccionado, setPaqueteSeleccionado] = useState<any>(null)
-  const [tasa, setTasa] = useState<number>(tasaBs || 487.12)
+  const [tasa, setTasa] = useState<number>(tasaBs || FALLBACK_BCV_RATE)
+  const [tasaFuente, setTasaFuente] = useState<'api' | 'fallback'>('fallback')
 
   useEffect(() => {
-    fetch('/api/tasa-bcv').then(r => r.json()).then(d => { if (d.tasa) setTasa(d.tasa) }).catch(() => {})
+    fetch('/api/tasa-bcv').then(r => r.json()).then(d => { if (d.tasa) { setTasa(d.tasa); setTasaFuente(d.fuente === 'api' ? 'api' : 'fallback') } }).catch(() => {})
   }, [])
 
   return (
@@ -46,7 +48,7 @@ export default function TabCreditos({ creditos, tasaBs, refreshCreditos }: { cre
 
       {/* Paquetes */}
       <h3 className="text-xl font-bold text-gray-800 text-center">Elige tu paquete</h3>
-      <p className="text-center text-sm text-gray-500">Tasa BCV: <span className="font-bold text-brand-primary">Bs. {tasa.toFixed(2)} por $</span></p>
+      <p className="text-center text-sm text-gray-500">Tasa BCV: <span className="font-bold text-brand-primary">Bs. {tasa.toFixed(2)} por $</span>{tasaFuente === 'fallback' && <span className="ml-2 text-amber-700">(tasa de contingencia)</span>}</p>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {[
           { creditos: 2, precio: 1, descripcion: 'Para empezar', popular: false },

@@ -1,10 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { requireAdmin } from '@/lib/require-auth'
+import { checkRateLimit, getClientIp, rateLimitResponse } from '@/lib/rate-limit'
 import { emailCreditosAgregados } from '@/lib/server-email'
 import { createClient } from '@supabase/supabase-js'
 import { notifyUser } from '@/lib/push-notify'
 
 // POST /api/email-creditos — send credit added notification
 export async function POST(req: NextRequest) {
+  const auth = await requireAdmin(req)
+  if ('response' in auth) return auth.response
+  const ip = getClientIp(req)
+  const limit = await checkRateLimit('notificacion:send', auth.user.id, { ip })
+  if (!limit.ok) return rateLimitResponse(limit.resetIn)
   try {
     const { userId, cantidad, balanceTotal } = await req.json()
     if (!userId || !cantidad) return NextResponse.json({ ok: false, error: 'Missing fields' }, { status: 400 })

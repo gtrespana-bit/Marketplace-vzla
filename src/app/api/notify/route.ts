@@ -1,6 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { requireAdmin } from '@/lib/require-auth'
+import { checkRateLimit, getClientIp, rateLimitResponse } from '@/lib/rate-limit'
 
 export async function POST(req: NextRequest) {
+  const auth = await requireAdmin(req)
+  if ('response' in auth) return auth.response
+  const ip = getClientIp(req)
+  const limit = await checkRateLimit('notificacion:send', auth.user.id, { ip })
+  if (!limit.ok) return rateLimitResponse(limit.resetIn)
   const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN
   const CHAT_ID = process.env.TELEGRAM_CHAT_ID
 

@@ -1,7 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { requireAdmin } from '@/lib/require-auth'
+import { checkRateLimit, getClientIp, rateLimitResponse } from '@/lib/rate-limit'
 import { emailVerificacionAprobada, emailSubidaNivel } from '@/lib/server-email'
 
 export async function POST(req: NextRequest) {
+  const auth = await requireAdmin(req)
+  if ('response' in auth) return auth.response
+  const ip = getClientIp(req)
+  const limit = await checkRateLimit('notificacion:send', auth.user.id, { ip })
+  if (!limit.ok) return rateLimitResponse(limit.resetIn)
   try {
     const { userId, nuevoNivel, nivelAnterior } = await req.json()
     if (!userId) return NextResponse.json({ ok: false, error: 'Missing userId' }, { status: 400 })

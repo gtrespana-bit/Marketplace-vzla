@@ -1,8 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { checkRateLimit, getClientIp, rateLimitResponse } from '@/lib/rate-limit'
 
 // Webhook: recibe clicks de botones inline en Telegram (APROBAR/RECHAZAR)
 export async function POST(req: NextRequest) {
+  const ip = getClientIp(req)
+  const limit = await checkRateLimit('telegram:webhook', ip, { ip })
+  if (!limit.ok) return rateLimitResponse(limit.resetIn)
+
   const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
   const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY
