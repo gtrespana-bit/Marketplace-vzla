@@ -1,11 +1,15 @@
 import type { Metadata, Viewport } from 'next'
 import localFont from 'next/font/local'
 import './globals.css'
-import { AuthProvider } from '@/components/AuthProvider'
+
+// Lazy load heavy providers to reduce initial JS & main-thread work
+import dynamic from 'next/dynamic'
+const AuthProvider = dynamic(() => import('@/components/AuthProvider').then(m => ({ default: m.AuthProvider })))
+const GoogleAnalytics = dynamic(() => import('@/components/GoogleAnalytics'))
+const ServiceWorkerRegistration = dynamic(() => import('@/components/ServiceWorkerRegistration').then(m => ({ default: m.ServiceWorkerRegistration })))
+
 import { Analytics } from '@vercel/analytics/react'
 import { SpeedInsights } from '@vercel/speed-insights/next'
-import { ServiceWorkerRegistration } from '@/components/ServiceWorkerRegistration'
-import GoogleAnalytics from '@/components/GoogleAnalytics'
 
 // Fuente Inter autohospedada (woff2 locales) en lugar de next/font/google.
 // Elimina la dependencia de Google Fonts durante el build (que fallaba sin
@@ -27,7 +31,7 @@ const inter = localFont({
   ],
   variable: '--font-inter',
   display: 'swap',
-  preload: false,
+  preload: true,
 })
 
 export const viewport: Viewport = {
