@@ -150,7 +150,7 @@ export default function ChatPageClient() {
 
     const { data: convs, error } = await supabase
       .from('conversaciones')
-      .select('id, user1_id, user2_id, ultimo_mensaje_en, ultimo_mensaje_contenido')
+      .select('id, user1_id, user2_id, ultimo_mensaje_en, ultimo_mensaje')
       .or(`user1_id.eq.${uid},user2_id.eq.${uid}`)
       .order('ultimo_mensaje_en', { ascending: false })
 
