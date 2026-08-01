@@ -9,7 +9,7 @@ import {
   CreditCard, Shield, Users, BarChart3, ShieldCheck,
   Package, Star, Pause, Play, Trash2, Search, RefreshCw,
   SortAsc, SortDesc, ExternalLink, Zap, ChevronDown,
-  Megaphone, Download, Eye, Loader2, Check, X, Tag
+  Megaphone, Download, Eye, Loader2, Check, X, Tag, LogIn
 } from 'lucide-react'
 import VerificacionTab from './VerificacionTab'
 import Image from 'next/image'
@@ -1075,7 +1075,7 @@ function ModeracionTab({ notify, adminEmail }: { notify: (msg: string) => void; 
 }
 
 export default function AdminPage() {
-  const { user, session } = useAuth()
+  const { user, session, loading } = useAuth()
   const router = useRouter()
   const searchParams = useSearchParams()
   const [tab, setTab] = useState<string>('dashboard')
@@ -1113,7 +1113,37 @@ export default function AdminPage() {
     setTimeout(() => setToast(null), 4000)
   }
 
-  if (!session) return null
+  if (loading) {
+    return (
+      <div className="min-h-[60vh] flex items-center justify-center" role="status" aria-live="polite">
+        <div className="text-center text-gray-600">
+          <Loader2 className="mx-auto mb-3 h-8 w-8 animate-spin text-brand-primary" aria-hidden="true" />
+          <p>Comprobando tu sesión…</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (!session || !user) {
+    return (
+      <div className="min-h-[60vh] flex items-center justify-center px-4">
+        <div className="max-w-md rounded-2xl border border-gray-200 bg-white p-8 text-center shadow-sm">
+          <Shield className="mx-auto mb-4 h-10 w-10 text-brand-primary" aria-hidden="true" />
+          <h1 className="text-2xl font-bold text-gray-800">Inicia sesión para continuar</h1>
+          <p className="mt-3 text-gray-600">El panel administrativo está disponible únicamente para usuarios autorizados.</p>
+          <button
+            type="button"
+            onClick={() => router.push('/login?redirect=/admin')}
+            className="mt-6 inline-flex items-center gap-2 rounded-lg bg-brand-primary px-5 py-3 font-semibold text-white transition hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-brand-primary focus:ring-offset-2"
+          >
+            <LogIn size={18} aria-hidden="true" />
+            Iniciar sesión
+          </button>
+        </div>
+      </div>
+    )
+  }
+
   if (!isAdmin) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center">
