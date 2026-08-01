@@ -1,8 +1,14 @@
 import { NextResponse } from 'next/server'
+import { requireUser } from '@/lib/require-auth'
 
 // Devuelve perfiles por user_id usando el client de supabase server-side con anon key
 // (Supabase client-side con session del usuario autenticado respeta RLS)
 export async function GET(req: Request) {
+  // Exige sesión: antes cualquiera podía scrapear perfiles (nombre + foto)
+  // en lotes sin límite.
+  const auth = await requireUser(req as any)
+  if ('response' in auth) return auth.response
+
   const { searchParams } = new URL(req.url)
   const ids = searchParams.get('ids')?.split(',') || []
   if (ids.length === 0) return NextResponse.json({ profiles: [] })

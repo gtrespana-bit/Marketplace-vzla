@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import webpush from 'web-push'
 import { createClient } from '@supabase/supabase-js'
 import { checkRateLimit, getClientIp, rateLimitResponse } from '@/lib/rate-limit'
+import { requireAdmin } from '@/lib/require-auth'
 
 // VAPID setup
 if (process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) {
@@ -14,8 +15,13 @@ if (process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) {
 
 export async function POST(req: NextRequest) {
   try {
+    // Solo admin: antes cualquiera podía enviar push a cualquier usuario
+    // (spam / phishing disfrazado de VendeT).
+    const auth = await requireAdmin(req)
+    if ('response' in auth) return auth.response
+
     const ip = getClientIp(req)
-    const limit = await checkRateLimit('notificacion:send', ip, { ip })
+    const limit = await checkRateLimit('notificacion:send', auth.user.id, { ip })
     if (!limit.ok) return rateLimitResponse(limit.resetIn)
     const { targetUserId, titulo, cuerpo, click_url } = await req.json()
 

@@ -1,9 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { requireUser } from '@/lib/require-auth'
 
 export async function POST(req: NextRequest) {
-  const { conversacion_id, destinatario_id } = await req.json()
-  if (!conversacion_id || !destinatario_id) {
+  // Solo el propio destinatario puede marcar sus mensajes como leídos.
+  // Antes cualquiera podía marcar (o consultar el count de) mensajes ajenos.
+  const auth = await requireUser(req)
+  if ('response' in auth) return auth.response
+  const destinatario_id = auth.user.id
+
+  const { conversacion_id } = await req.json()
+  if (!conversacion_id) {
     return NextResponse.json({ error: 'missing params' }, { status: 400 })
   }
 

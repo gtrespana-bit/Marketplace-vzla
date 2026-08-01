@@ -34,10 +34,20 @@ export function getPrecioByCreditos(creditos: number): number | null {
   return paquete ? paquete.precio : null
 }
 
+/** Normaliza un método de pago: minúsculas, sin espacios ni acentos. */
+export function normalizarMetodoPago(metodo: string): string {
+  return metodo
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[\s_-]+/g, '')
+    .trim()
+}
+
 export function isValidMetodoPago(metodo: string): boolean {
   if (!metodo) return false
-  const lower = metodo.toLowerCase().trim()
-  return METODOS_PAGO_PERMITIDOS.some(m => m.toLowerCase() === lower || lower.includes(m.toLowerCase()))
+  const normalized = normalizarMetodoPago(metodo)
+  return METODOS_PAGO_PERMITIDOS.some(m => normalizarMetodoPago(m) === normalized)
 }
 
 /**

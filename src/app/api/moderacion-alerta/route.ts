@@ -2,10 +2,13 @@ import { NextRequest, NextResponse } from 'next/server'
 import { verificarContenido, formatearAlertaModeracion } from '@/lib/moderacion'
 import { createClient } from '@supabase/supabase-js'
 import { notifyUser } from '@/lib/push-notify'
+import { requireUser } from '@/lib/require-auth'
+import { checkRateLimit, getClientIp, rateLimitResponse } from '@/lib/rate-limit'
 
 /**
  * POST /api/moderacion-alerta
- * Envía notificación a Telegram cuando se detecta contenido sospechoso/prohibido
+ * Envía notificación a Telegram cuando se detecta contenido sospechoso/prohibido.
+ * Exige sesión y rate limit: antes cualquiera podía spamear el Telegram del admin.
  */
 export async function POST(req: NextRequest) {
   const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN
@@ -14,6 +17,13 @@ export async function POST(req: NextRequest) {
   if (!BOT_TOKEN || !CHAT_ID) {
     return NextResponse.json({ ok: false, error: 'Config missing' }, { status: 500 })
   }
+
+  const auth = await requireUser(req)
+  if ('response' in auth) return auth.response
+
+  const ip = getClientIp(req)
+  const limit = await checkRateLimit('notificacion:send', auth.user.id, { ip })
+  if (!limit.ok) return rateLimitResponse(limit.resetIn)
 
   let body
   try {

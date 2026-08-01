@@ -3,12 +3,19 @@ import { revalidatePath } from 'next/cache'
 import { checkRateLimit } from '@/lib/rate-limit'
 import { createClient } from '@supabase/supabase-js'
 import { validateProductData, sanitizeObject } from '@/lib/validation'
+import { requireUser } from '@/lib/require-auth'
 
 export async function POST(req: NextRequest) {
   try {
+    // El user_id SIEMPRE sale de la sesión verificada (getUser valida el JWT).
+    // Antes venía del body: cualquiera podía publicar como otro usuario y
+    // evadir el rate limit cambiando el userId.
+    const auth = await requireUser(req)
+    if ('response' in auth) return auth.response
+    const userId = auth.user.id
+
     const body = await req.json()
-    const { userId, moderacionAlerta, ...productoData } = body
-    if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const { moderacionAlerta, ...productoData } = body
 
     // Validar datos del producto
     const validation = validateProductData({ userId, ...productoData })
