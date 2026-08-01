@@ -26,7 +26,7 @@ async function enviar(to: string, subject: string, html: string): Promise<boolea
   }
   try {
     await getTransporter().sendMail({ from: FROM, to, subject, html })
-    console.log(`✅ Email a ${to}: ${subject}`)
+//
     return true
   } catch (e) {
     console.error('❌ Error email:', e)

@@ -28,7 +28,7 @@ async function enviar(fromName: string, email: string, subject: string, html: st
       subject,
       html,
     })
-    console.log(`✅ Email a ${email}: ${subject}`)
+//
     return true
   } catch (e) {
     console.error('❌ Error email:', e)

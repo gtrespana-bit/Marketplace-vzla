@@ -94,11 +94,7 @@ export const PerformanceMonitor = () => {
   // Mostrar métricas en la consola para monitoreo
   useEffect(() => {
     if (Object.keys(metrics).length > 0) {
-      console.log('Performance Metrics:', {
-        ...metrics,
-        navigationType,
-        timestamp: new Date().toISOString()
-      });
+      // Performance metrics collected for monitoring
     }
   }, [metrics, navigationType]);
 

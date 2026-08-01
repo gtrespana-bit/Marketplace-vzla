@@ -32,7 +32,7 @@ export async function enviarEmail(params: EmailParams) {
       subject: params.subject,
       html: params.html,
     })
-    console.log(`✅ Email enviado a ${params.to}`)
+//
     return { success: true }
   } catch (error) {
     console.error('❌ Error enviando email:', error)
