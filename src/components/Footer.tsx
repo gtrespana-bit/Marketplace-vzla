@@ -2,7 +2,7 @@
 
 import LocalLink from '@/components/LocalLink'
 import Image from 'next/image'
-import { useLocalizedMessages } from '@/hooks/useLocalizedMessages'
+import { useTranslations } from 'next-intl'
 
 // Categorías del footer → filtros del catálogo (antes todas apuntaban a
 // /catalogo genérico: anchor text sin destino semántico = señal SEO nula)
@@ -25,7 +25,7 @@ const CIUDADES_FOOTER = [
 ]
 
 export function Footer() {
-  const { t } = useLocalizedMessages()
+  const t = useTranslations()
 
   return (
     <footer className="bg-brand-dark text-gray-300 mt-auto">

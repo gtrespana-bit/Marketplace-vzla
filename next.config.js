@@ -156,64 +156,28 @@ const nextConfig = withNextIntl({
       };
     }
 
-    // Minificación adicional en producción
+    // Minificación adicional en producción.
+    // ⚠️ IMPORTANTE: la config anterior creaba 7 cache groups forzados
+    // (react-dom, react, nextjs, supabase, intl, lucide, vendors) con
+    // `maxInitialRequests: 30`, lo que generaba ~15+ archivos JS iniciales por
+    // página. En móvil (y en Lighthouse, que penaliza fuertemente el nº de
+    // peticiones y el tamaño del bundle), tantos requests bloqueantes disparaban
+    // el TTI. Lo reducimos a DOS grupos: `framework` (react/next, el más usado
+    // y cacheable) + `vendors` (resto de node_modules).
     if (!dev && !isServer) {
       config.optimization = {
         ...config.optimization,
         splitChunks: {
           chunks: 'all',
-          maxInitialRequests: 30,
-          minSize: 20000,
+          maxInitialRequests: 15,
           cacheGroups: {
-            // React DOM only (needed for rendering)
-            reactDom: {
-              test: /[\\/]node_modules[\\/](react-dom)[\\/]/,
-              name: 'react-dom',
-              priority: 50,
-              chunks: 'all',
-              enforce: true,
-            },
-            // React core (needed for hooks, JSX)
-            react: {
-              test: /[\\/]node_modules[\\/](react|scheduler)[\\/]/,
-              name: 'react',
-              priority: 45,
-              chunks: 'all',
-              enforce: true,
-            },
-            // Next.js internals (routing, hydration)
-            nextjs: {
-              test: /[\\/]node_modules[\\/]next[\\/]dist[\\/]/,
-              name: 'nextjs',
+            framework: {
+              test: /[\\/]node_modules[\\/](react|react-dom|scheduler|next)[\\/]/,
+              name: 'framework',
               priority: 40,
               chunks: 'all',
               enforce: true,
             },
-            // Supabase - defer load (only needed for auth)
-            supabase: {
-              test: /[\\/]node_modules[\\/]@supabase[\\/]/,
-              name: 'supabase',
-              priority: 30,
-              chunks: 'all',
-              enforce: true,
-            },
-            // Internationalization
-            intl: {
-              test: /[\\/]node_modules[\\/](next-intl|intl-messageformat|@formatjs)[\\/]/,
-              name: 'intl',
-              priority: 25,
-              chunks: 'all',
-              enforce: true,
-            },
-            // Lucide icons (can be loaded later)
-            lucide: {
-              test: /[\\/]node_modules[\\/]lucide-react[\\/]/,
-              name: 'lucide',
-              priority: 20,
-              chunks: 'all',
-              enforce: true,
-            },
-            // Remaining vendors
             vendor: {
               test: /[\\/]node_modules[\\/]/,
               name: 'vendors',

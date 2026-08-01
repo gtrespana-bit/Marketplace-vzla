@@ -1,22 +1,11 @@
 import type { Metadata, Viewport } from 'next'
 import localFont from 'next/font/local'
 import './globals.css'
-import { Header } from '@/components/Header'
-import { Footer } from '@/components/Footer'
 import { AuthProvider } from '@/components/AuthProvider'
 import { Analytics } from '@vercel/analytics/react'
 import { SpeedInsights } from '@vercel/speed-insights/next'
 import { ServiceWorkerRegistration } from '@/components/ServiceWorkerRegistration'
 import GoogleAnalytics from '@/components/GoogleAnalytics'
-import { headers, cookies } from 'next/headers'
-import { routing } from '@/i18n/routing'
-import { getServerUser } from '@/lib/supabase-server'
-
-// Importar directamente SIN next/dynamic para evitar BAILOUT_TO_CLIENT_SIDE_RENDERING
-// Estos componentes son pequeños y no justifican el overhead de dynamic imports
-import PWAInstallBanner from '@/components/PWAInstallBanner'
-import PushNotificationBanner from '@/components/PushNotificationBanner'
-import BottomTabNav from '@/components/BottomTabNav'
 
 // Fuente Inter autohospedada (woff2 locales) en lugar de next/font/google.
 // Elimina la dependencia de Google Fonts durante el build (que fallaba sin
@@ -134,55 +123,28 @@ export const metadata: Metadata = {
   category: 'marketplace',
 }
 
+// IMPORTANTE — LAYOUT RAÍZ 100% ESTÁTICO.
+//
+// Este layout NO debe llamar a cookies(), headers(), searchParams() ni a
+// ninguna API que dependa de la request. Hacerlo desactiva el render estático
+// (SSG/ISR) de TODAS las rutas de la app: Next.js marca la ruta como dinámica
+// y cada petición re-ejecuta el render en el servidor (cold start de la
+// serverless function + llamadas de red a Supabase), lo que disparaba el TTFB
+// a varios segundos y hacía que Lighthouse abortara ("The page loaded too
+// slowly to finish within the time limit") incluso en la home con
+// `revalidate = 120`.
+//
+// El usuario y el locale se resuelven en el CLIENTE (AuthProvider se hidrata
+// solo) o en el layout de [locale], que sí conoce el locale por su segmento
+// de URL sin APIs dinámicas. Así las páginas públicas vuelven a cachearse
+// (ISR) y el TTFB baja a niveles sanos.
 export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
-  // IMPORTANTE — Renders estáticos (build/ISR) vs dinámicos (SSR):
-  // `cookies()` y `headers()` solo existen en renders dinámicos. Cuando una
-  // página con generateStaticParams/revalidate (ISR) se renderiza on-demand
-  // (o en el build), Next.js lanza `DynamicServerError` (digest
-  // DYNAMIC_SERVER_USAGE) al llamar estas APIs, lo que producía un 500 en
-  // TODAS las páginas SSG/ISR (p. ej. /caracas, /caracas/vehiculos y
-  // /producto/[slug] cuando no estaba pre-renderizada). Aquí degradamos con
-  // try/catch: en el contexto estático se usan valores por defecto (sin
-  // usuario, locale 'es') y en el dinámico se leen igual que antes.
-  let initialUser: any = null
-  try {
-    initialUser = await getServerUser()
-  } catch {
-    // Contexto de render estático: la página cacheada no puede tener
-    // usuario por request (el HTML es compartido). El cliente hidrata su
-    // propia sesión vía AuthProvider.
-    initialUser = null
-  }
-
-  let detectedLocale: string | null = null
-  try {
-    const headersList = await headers()
-    detectedLocale = headersList.get('x-detected-locale')
-  } catch {
-    detectedLocale = null
-  }
-
-  let lang = 'es'
-  if (detectedLocale && routing.locales.includes(detectedLocale as any)) {
-    lang = detectedLocale
-  } else {
-    try {
-      const cookieStore = await cookies()
-      const localeCookie = cookieStore.get('NEXT_LOCALE')
-      if (localeCookie?.value && routing.locales.includes(localeCookie.value as any)) {
-        lang = localeCookie.value
-      }
-    } catch {
-      // Render estático: sin cookies, se usa el locale por defecto.
-    }
-  }
-
   return (
-    <html lang={lang} className={inter.variable} suppressHydrationWarning>
+    <html lang="es" className={inter.variable} suppressHydrationWarning>
       <head>
         <link rel="preconnect" href="https://jmbkqelkusxjebsdnjoc.supabase.co" />
         <link rel="dns-prefetch" href="https://jmbkqelkusxjebsdnjoc.supabase.co" />
@@ -235,13 +197,8 @@ export default async function RootLayout({
         <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-brand-primary focus:text-white focus:rounded-lg focus:shadow-lg">
           Skip to main content
         </a>
-        <AuthProvider initialUser={initialUser}>
-          <Header />
-          <main id="main-content" className="min-h-screen bg-white" suppressHydrationWarning>{children}</main>
-          <Footer />
-          <PWAInstallBanner />
-          <PushNotificationBanner />
-          <BottomTabNav />
+        <AuthProvider>
+          {children}
         </AuthProvider>
         {/* Re-enable Vercel Analytics and SpeedInsights with lazy initialization */}
         <Analytics />

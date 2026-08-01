@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { Download, X, Share, Smartphone } from 'lucide-react'
-import { useLocalizedMessages } from '@/hooks/useLocalizedMessages'
+import { useTranslations } from 'next-intl'
 
 // Cooldown de 6 horas antes de volver a mostrar el banner tras un "No, gracias"
 const COOLDOWN_MS = 6 * 60 * 60 * 1000
@@ -12,7 +12,7 @@ const INSTALL_KEY = 'pwa_install_dismissed'
 const IOS_KEY = 'pwa_ios_dismissed'
 
 export default function PWAInstallBanner() {
-  const { t } = useLocalizedMessages()
+  const t = useTranslations()
   const [mounted, setMounted] = useState(false)
   const [showBanner, setShowBanner] = useState(false)
   const [showIOS, setShowIOS] = useState(false)

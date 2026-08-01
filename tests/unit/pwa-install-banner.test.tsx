@@ -13,10 +13,8 @@
 import { render, act, fireEvent, screen } from '@testing-library/react'
 import PWAInstallBanner from '@/components/PWAInstallBanner'
 
-jest.mock('@/hooks/useLocalizedMessages', () => ({
-  useLocalizedMessages: () => ({
-    t: (key: string) => key,
-  }),
+jest.mock('next-intl', () => ({
+  useTranslations: () => (key: string) => key,
 }))
 
 function mockMatchMedia(matches: boolean) {
