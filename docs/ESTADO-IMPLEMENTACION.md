@@ -237,8 +237,9 @@ Estas acciones no pueden completarse únicamente con cambios de código:
 
 ### Accesibilidad
 
-- [ ] Añadir nombres accesibles/`aria-label` a controles con iconos.
-- [ ] Corregir contraste insuficiente.
+- [x] Añadir nombres accesibles/`aria-label` a controles con iconos (botones de chat flotante, galería de imágenes, navegación).
+- [x] Corregir contraste de color en botones CTA (`bg-brand-accent text-brand-primary` → `text-white`, 19 archivos).
+- [ ] Corregir contraste insuficiente restante (revisar globalmente `text-gray-400` en fondos claros, `text-brand-primary/70` con opacidad).
 - [ ] Revisar navegación por teclado y foco visible.
 - [ ] Revisar formularios, modales, alertas y toasts.
 - [ ] Corregir formatos de texto/fecha en español.
@@ -246,8 +247,8 @@ Estas acciones no pueden completarse únicamente con cambios de código:
 
 ### Rendimiento y estabilidad visual
 
-- [ ] Reservar tamaños de imágenes y componentes dinámicos para reducir CLS.
-- [ ] Carga diferida de paneles pesados.
+- [x] Reservar tamaños de imágenes y componentes dinámicos para reducir CLS (aspect-ratio en ProductCard, placeholder images).
+- [x] Carga diferida de paneles pesados (lazy/dynamic imports en dashboard).
 - [ ] Revisar consultas grandes de Supabase, especialmente en admin.
 - [ ] Revisar fuentes Google y estrategia de contingencia.
 - [ ] Medir de nuevo en móvil real y red lenta.
