@@ -36,9 +36,19 @@ describe('creditos - paquetes servidor (Fase 3 D)', () => {
     expect(isValidMetodoPago('pagomovil')).toBe(true)
     expect(isValidMetodoPago('Pago Móvil')).toBe(true)
     expect(isValidMetodoPago('binance')).toBe(true)
+    expect(isValidMetodoPago('Binance Pay')).toBe(true)
     expect(isValidMetodoPago('transferencia')).toBe(true)
+    expect(isValidMetodoPago('Transferencia')).toBe(true)
     expect(isValidMetodoPago('paypal')).toBe(false)
     expect(isValidMetodoPago('')).toBe(false)
+  })
+
+  test('metodos de pago: rechaza subcadenas fraudulentas', () => {
+    // Antes `includes` aceptaba cualquier string que contuviera el método.
+    expect(isValidMetodoPago('transferenciafalsa')).toBe(false)
+    expect(isValidMetodoPago('pagomovil-12345678')).toBe(false)
+    expect(isValidMetodoPago('binancepay-scam')).toBe(false)
+    expect(isValidMetodoPago('no-pago-movil')).toBe(false)
   })
 
   test('comprobanteUrl validacion', () => {

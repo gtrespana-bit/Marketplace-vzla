@@ -1,8 +1,15 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { Download, X, Share, Smartphone } from 'lucide-react'
 import { useLocalizedMessages } from '@/hooks/useLocalizedMessages'
+
+// Cooldown de 6 horas antes de volver a mostrar el banner tras un "No, gracias"
+const COOLDOWN_MS = 6 * 60 * 60 * 1000
+// Marca de instalación aceptada (no volver a preguntar nunca)
+const INSTALLED_FLAG = 'installed'
+const INSTALL_KEY = 'pwa_install_dismissed'
+const IOS_KEY = 'pwa_ios_dismissed'
 
 export default function PWAInstallBanner() {
   const { t } = useLocalizedMessages()
@@ -10,18 +17,17 @@ export default function PWAInstallBanner() {
   const [showBanner, setShowBanner] = useState(false)
   const [showIOS, setShowIOS] = useState(false)
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null)
-  const dismissTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   useEffect(() => {
     if (typeof window === 'undefined') return
 
-    // Ya instalada
+    // Ya instalada: la app se está viendo en modo standalone
     if (window.matchMedia('(display-mode: standalone)').matches) return
 
-    // iOS
+    // iOS: instrucciones manuales para agregar a pantalla de inicio
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent)
     if (isIOS) {
-      const dismissed = localStorage.getItem('pwa_ios_dismissed')
+      const dismissed = localStorage.getItem(IOS_KEY)
       if (!dismissed) {
         const timer = setTimeout(() => setShowIOS(true), 3000)
         return () => clearTimeout(timer)
@@ -29,14 +35,29 @@ export default function PWAInstallBanner() {
       return
     }
 
-    // Android/Desktop: capturar evento beforeinstallprompt
+    // Migrar valor legacy: antes la instalación aceptada se guardaba como '1'
+    if (localStorage.getItem(INSTALL_KEY) === '1') {
+      localStorage.setItem(INSTALL_KEY, INSTALLED_FLAG)
+    }
+
+    const isInstalled = () => localStorage.getItem(INSTALL_KEY) === INSTALLED_FLAG
+
+    const isInCooldown = () => {
+      const flag = localStorage.getItem(INSTALL_KEY)
+      if (!flag || flag === INSTALLED_FLAG) return false
+      const ts = parseInt(flag, 10)
+      return !isNaN(ts) && Date.now() - ts < COOLDOWN_MS
+    }
+
+    // Android/Desktop: capturar beforeinstallprompt SOLO cuando vamos a mostrar
+    // nuestro propio banner. Si el usuario ya instaló o está en cooldown, no
+    // interceptamos el evento → Chrome no registra el aviso
+    // "Banner not shown: beforeinstallpromptevent.preventDefault() called".
     const handler = (e: Event) => {
+      if (isInstalled() || isInCooldown()) return
       e.preventDefault()
       setDeferredPrompt(e)
-      const dismissed = localStorage.getItem('pwa_install_dismissed')
-      if (!dismissed) {
-        setShowBanner(true)
-      }
+      setShowBanner(true)
     }
 
     window.addEventListener('beforeinstallprompt', handler)
@@ -44,67 +65,56 @@ export default function PWAInstallBanner() {
 
     return () => {
       window.removeEventListener('beforeinstallprompt', handler)
-      // Clean up dismiss timeout on unmount
-      if (dismissTimeoutRef.current) {
-        clearTimeout(dismissTimeoutRef.current)
-        dismissTimeoutRef.current = null
-      }
     }
   }, [])
 
-  // PERF FIX: Replaced setInterval(60s) with a single setTimeout.
-  // The old interval ran forever, keeping Chrome from reaching "idle" state
-  // and causing Lighthouse timeout warnings. Now we schedule ONE check
-  // at the right time instead of polling every 60 seconds.
+  // Limpiar cooldowns expirados (instalación e iOS) con un único timer por clave.
+  // Cuando expira, el banner vuelve a mostrarse en el próximo beforeinstallprompt
+  // (siguiente visita), sin necesidad de re-mostrar con un evento obsoleto.
   useEffect(() => {
-    const checkDeferred = localStorage.getItem('pwa_install_dismissed')
-    if (!checkDeferred || !deferredPrompt) return
+    const timers: NodeJS.Timeout[] = []
 
-    const elapsed = Date.now() - parseInt(checkDeferred)
-    const remaining = 6 * 60 * 60 * 1000 - elapsed
-
-    if (remaining <= 0) {
-      // Already past 6 hours, show now
-      localStorage.removeItem('pwa_install_dismissed')
-      setShowBanner(true)
-    } else {
-      // Schedule ONE check at the exact time it should reappear
-      const timer = setTimeout(() => {
-        localStorage.removeItem('pwa_install_dismissed')
-        setShowBanner(true)
-      }, remaining)
-      return () => clearTimeout(timer)
+    const clearWhenExpired = (key: string) => {
+      const flag = localStorage.getItem(key)
+      if (!flag || flag === INSTALLED_FLAG || flag === '1') return
+      const ts = parseInt(flag, 10)
+      if (isNaN(ts) || Date.now() - ts >= COOLDOWN_MS) {
+        localStorage.removeItem(key)
+        return
+      }
+      timers.push(
+        setTimeout(() => localStorage.removeItem(key), COOLDOWN_MS - (Date.now() - ts))
+      )
     }
-  }, [deferredPrompt])
+
+    clearWhenExpired(INSTALL_KEY)
+    clearWhenExpired(IOS_KEY)
+
+    return () => timers.forEach(clearTimeout)
+  }, [])
 
   const handleInstall = async () => {
     if (!deferredPrompt) return
     deferredPrompt.prompt()
     const { outcome } = await deferredPrompt.userChoice
     if (outcome === 'accepted') {
+      localStorage.setItem(INSTALL_KEY, INSTALLED_FLAG)
+      setShowBanner(false)
+      setDeferredPrompt(null)
+    } else {
+      // Cerró el diálogo de Chrome sin instalar: respetar cooldown
+      localStorage.setItem(INSTALL_KEY, Date.now().toString())
       setShowBanner(false)
       setDeferredPrompt(null)
     }
-    localStorage.setItem('pwa_install_dismissed', '1')
   }
 
   const handleDismiss = () => {
     setShowBanner(false)
     setShowIOS(false)
-    localStorage.setItem('pwa_install_dismissed', Date.now().toString())
-    localStorage.setItem('pwa_ios_dismissed', Date.now().toString())
-    
-    // Clear any existing timeout first
-    if (dismissTimeoutRef.current) {
-      clearTimeout(dismissTimeoutRef.current)
-    }
-    
-    // Set new timeout and store reference
-    dismissTimeoutRef.current = setTimeout(() => {
-      localStorage.removeItem('pwa_install_dismissed')
-      localStorage.removeItem('pwa_ios_dismissed')
-      dismissTimeoutRef.current = null
-    }, 6 * 60 * 60 * 1000)
+    const now = Date.now().toString()
+    localStorage.setItem(INSTALL_KEY, now)
+    localStorage.setItem(IOS_KEY, now)
   }
 
   return (

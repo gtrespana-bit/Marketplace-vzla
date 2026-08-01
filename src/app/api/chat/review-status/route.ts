@@ -1,18 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { requireUser } from '@/lib/require-auth'
 
 /**
  * POST /api/chat/review-status
  *
  * Devuelve toda la info para el botón de reseña del comprador.
- * Usa service_role → sin problemas de RLS.
- *
- * Solo muestra botón si el producto NO está activo (=vendido/pausado).
+ * Exige sesión: el userId SIEMPRE sale de la sesión (antes venía del body
+ * y permitía consultar conversaciones/productos ajenos).
  */
 export async function POST(req: NextRequest) {
   try {
-    const { convId, userId } = await req.json()
-    if (!convId || !userId) {
+    const auth = await requireUser(req)
+    if ('response' in auth) return auth.response
+    const userId = auth.user.id
+
+    const { convId } = await req.json()
+    if (!convId) {
       return NextResponse.json({ error: 'Datos incompletos' }, { status: 400 })
     }
 
