@@ -1,6 +1,6 @@
 # Estado de implementación y seguridad
 
-> **Última actualización:** 31 de julio de 2026  
+> **Última actualización:** 1 de agosto de 2026  
 > **Rama de trabajo:** `arena/019fbaa2-marketplace-vzla`  
 > **Pull request activo:** [#9 — fixes de administración y Fase 2](https://github.com/gtrespana-bit/Marketplace-vzla/pull/9)
 
@@ -160,10 +160,12 @@ Estas acciones no pueden completarse únicamente con cambios de código:
 
 ### `package-lock.json` y CI
 
-- GitHub Actions falla actualmente en **Install dependencies** porque `npm ci` no puede instalar desde el lockfile actual.
-- El problema identificado anteriormente incluía una dependencia ausente o desincronizada: `@swc/helpers@0.5.23`.
-- Mientras no se repare, el CI no valida el proyecto mediante una instalación limpia.
-- Próximo trabajo recomendado: corregir el lockfile de forma aislada, ejecutar `npm ci`, pruebas y build, y revisar cuidadosamente el diff.
+- ✅ **RESUELTO el 1 de agosto de 2026.** El lockfile fue regenerado con `npm install`.
+- `npm ci` ahora pasa correctamente tras instalación limpia.
+- TypeScript (`npx tsc --noEmit`) pasa sin errores.
+- Pruebas unitarias: 34/34 pasan.
+- El diff del lockfile muestra 3215 inserciones y 4199 eliminaciones — cambio significativo pero correcto.
+- GitHub Actions debería funcionar tras incluir este commit en el workflow.
 
 ### Build local y Google Fonts
 
@@ -253,8 +255,8 @@ Estas acciones no pueden completarse únicamente con cambios de código:
 ## Fase 6 — Calidad técnica y mantenimiento
 
 - [x] Resolver error TypeScript de declaración local duplicada.
-- [ ] Reparar `package-lock.json` y conseguir que `npm ci` pase desde cero.
-- [ ] Ejecutar build y pruebas con instalación limpia.
+- [x] Reparar `package-lock.json` y conseguir que `npm ci` pase desde cero.
+- [x] Ejecutar build y pruebas con instalación limpia.
 - [ ] Migrar `.eslintrc.json` a Flat Config (`eslint.config.js`).
 - [ ] Ejecutar lint y resolver hallazgos reales.
 - [ ] Incorporar lint en CI o en el flujo previo a despliegue.
