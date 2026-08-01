@@ -284,9 +284,6 @@ function ProductoPageClientInner({ initialProduct }: ProductoPageClientProps) {
                     <SellerReputation nivel={vendedor.nivel_confianza || 0} numResenas={vendedorStats.resenasCount} promedioResenas={vendedorStats.resenasAvg} numPubsActivas={vendedorStats.activas} numPubsVendidas={vendedorStats.vendidas} verificado={vendedor.verificado} badges={vendedor.badges_automaticos || []} antiguedadDias={vendedorStats.antiguedad || 0} ultimaActividad={vendedor.ultima_actividad || null} size="sm" />
                   </div>
                 )}
-                {totalResenas > 0 && (
-                  <p className="text-xs text-gray-500 mt-2">⭐ {vendedorStats.resenasAvg.toFixed(1)} · {totalResenas} reseña{totalResenas !== 1 ? 's' : ''}</p>
-                )}
               </div>
             )}
 

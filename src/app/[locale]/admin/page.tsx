@@ -114,14 +114,19 @@ function UsuariosTab({ notify }: Notifier) {
 
   useEffect(() => {
     async function load() {
-      // Fase 5: solo columnas necesarias en admin (no *)
-      const { data } = await supabase
-        .from('perfiles')
-        .select('id, nombre, telefono, estado, ciudad, credito_balance, verificado, nivel_confianza, creado_en, email_publico')
-        .order('creado_en', { ascending: false })
-        .limit(500)
-      if (data) setUsuarios(data)
-      setCargando(false)
+      try {
+        const { data, error } = await supabase
+          .from('perfiles')
+          .select('id, nombre, telefono, estado, ciudad, credito_balance, verificado, nivel_confianza, creado_en, email_publico')
+          .order('creado_en', { ascending: false })
+          .limit(500)
+        if (error) console.error('Error cargando usuarios:', error)
+        if (data) setUsuarios(data)
+      } catch (e) {
+        console.error('Excepción cargando usuarios:', e)
+      } finally {
+        setCargando(false)
+      }
     }
     load()
   }, [])
