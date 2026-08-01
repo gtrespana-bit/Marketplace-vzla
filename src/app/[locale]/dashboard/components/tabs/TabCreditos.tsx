@@ -74,7 +74,7 @@ export default function TabCreditos({ creditos, tasaBs, refreshCreditos }: { cre
                   <li className="flex items-center gap-2"><CheckCircle size={14} className="text-green-500 flex-shrink-0" />o {Math.floor(pkg.creditos / 4)}× destacado 12h</li>
                   <li className="flex items-center gap-2"><CheckCircle size={14} className="text-green-500 flex-shrink-0" />Sin expiración</li>
                 </ul>
-                <button onClick={() => setPaqueteSeleccionado(pkg)} className="w-full bg-brand-primary text-white py-3 rounded-lg font-bold hover:bg-brand-dark transition cursor-pointer">Comprar</button>
+                <button onClick={() => setPaqueteSeleccionado(pkg)} aria-haspopup="dialog" className="w-full bg-brand-primary text-white py-3 rounded-lg font-bold hover:bg-brand-dark transition cursor-pointer">Comprar</button>
               </div>
             </div>
           )
@@ -183,12 +183,19 @@ function ModalCompraCreditos({ paquete, tasa, onClose, onCompraExitosa }: { paqu
 
   if (enviado) {
     return (
-      <div className="fixed inset-0 z-50 bg-black/60 flex items-end md:items-center justify-center">
+      <div
+        className="fixed inset-0 z-50 bg-black/60 flex items-end md:items-center justify-center"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modal-compra-titulo"
+        tabIndex={-1}
+        onKeyDown={(e) => { if (e.key === 'Escape') onClose() }}
+      >
         <div className="bg-white w-full md:max-w-lg md:rounded-2xl rounded-t-2xl p-6 text-center">
           <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <CheckCircle size={32} className="text-brand-primary" />
           </div>
-          <h3 className="text-xl font-bold text-brand-primary mb-2">¡Comprobante enviado!</h3>
+          <h3 id="modal-compra-exito" className="text-xl font-bold text-brand-primary mb-2">¡Comprobante enviado!</h3>
           <p className="text-sm text-gray-600 mb-4">
             Tu pago será revisado en breve. Recibirás <strong>{paquete.creditos} créditos</strong> cuando se confirme.
           </p>
@@ -198,15 +205,22 @@ function ModalCompraCreditos({ paquete, tasa, onClose, onCompraExitosa }: { paqu
     )
   }
 
-  return (
-    <div className="fixed inset-0 z-50 bg-black/60 flex items-end md:items-center justify-center">
+    return (
+      <div
+        className="fixed inset-0 z-50 bg-black/60 flex items-end md:items-center justify-center"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modal-compra-exito"
+        tabIndex={-1}
+        onKeyDown={(e) => { if (e.key === 'Escape') onClose() }}
+      >
       <div className="bg-white w-full md:max-w-lg md:rounded-2xl rounded-t-2xl max-h-[90vh] overflow-y-auto">
         <div className="sticky top-0 bg-white border-b px-6 py-4 flex items-center justify-between rounded-t-2xl z-10">
           <div>
-            <h3 className="text-lg font-bold text-gray-900">{paquete.creditos} créditos — ${paquete.precio} USD</h3>
+            <h3 id="modal-compra-titulo" className="text-lg font-bold text-gray-900">{paquete.creditos} créditos — ${paquete.precio} USD</h3>
             <p className="text-sm text-gray-500">≈ Bs. {precioBs}</p>
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full"><X size={20} /></button>
+          <button onClick={onClose} aria-label="Cerrar modal de compra" className="p-2 hover:bg-gray-100 rounded-full"><X size={20} /></button>
         </div>
 
         <div className="p-6 space-y-6">
