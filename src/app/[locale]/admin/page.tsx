@@ -148,6 +148,11 @@ function UsuariosTab({ notify }: Notifier) {
     else { setSortBy(field); setSortDir('asc') }
   }
 
+  const SortIcon = ({ field }: { field: SortField }) => {
+    if (sortBy !== field) return <SortAsc size={14} className="text-gray-300" />
+    return sortDir === 'asc' ? <SortAsc size={14} className="text-brand-primary" /> : <SortDesc size={14} className="text-brand-primary" />
+  }
+
   async function añadirCreditos(userId: string) {
     if (!creditCantidad || parseInt(creditCantidad) < 1) return
     setCreditProcesando(true)
@@ -204,11 +209,6 @@ function UsuariosTab({ notify }: Notifier) {
     }
     notify(estado ? '✅ Usuario verificado' : '⏸️ Verificación removida')
     setUsuarios(prev => prev.map(u => u.id === userId ? { ...u, verificado: estado } : u))
-  }
-
-  const SortIcon = ({ field }: { field: SortField }) => {
-    if (sortBy !== field) return <SortAsc size={14} className="text-gray-300" />
-    return sortDir === 'asc' ? <SortAsc size={14} className="text-brand-primary" /> : <SortDesc size={14} className="text-brand-primary" />
   }
 
   if (cargando) return <div className="text-center py-12 text-gray-400">Cargando usuarios...</div>
@@ -1084,6 +1084,15 @@ export default function AdminPage() {
 
   const isAdmin = ADMIN_EMAILS.includes(user?.email || '')
 
+  async function cargarPerfiles() {
+    const { data } = await supabase.from('perfiles').select('id, nombre, telefono')
+    if (data) {
+      const m: Record<string, any> = {}
+      data.forEach((p: any) => { m[p.id] = p })
+      setPerfiles(m)
+    }
+  }
+
   useEffect(() => {
     if (!session || !user) return
     if (!isAdmin) {
@@ -1098,15 +1107,6 @@ export default function AdminPage() {
       setTab(urlTab)
     }
   }, [user, session, isAdmin, searchParams, router])
-
-  async function cargarPerfiles() {
-    const { data } = await supabase.from('perfiles').select('id, nombre, telefono')
-    if (data) {
-      const m: Record<string, any> = {}
-      data.forEach((p: any) => { m[p.id] = p })
-      setPerfiles(m)
-    }
-  }
 
   function notify(msg: string) {
     setToast(msg)

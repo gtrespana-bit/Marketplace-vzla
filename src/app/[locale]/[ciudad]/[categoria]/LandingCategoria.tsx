@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/rules-of-hooks -- next-intl useTranslations works in async server components */
 import LocalLink from '@/components/LocalLink'
 import Image from 'next/image'
 import { supabase } from '@/lib/supabase'

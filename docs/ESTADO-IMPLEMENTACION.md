@@ -257,9 +257,9 @@ Estas acciones no pueden completarse únicamente con cambios de código:
 - [x] Resolver error TypeScript de declaración local duplicada.
 - [x] Reparar `package-lock.json` y conseguir que `npm ci` pase desde cero.
 - [x] Ejecutar build y pruebas con instalación limpia.
-- [ ] Migrar `.eslintrc.json` a Flat Config (`eslint.config.js`).
-- [ ] Ejecutar lint y resolver hallazgos reales.
-- [ ] Incorporar lint en CI o en el flujo previo a despliegue.
+- [x] Migrar `.eslintrc.json` a Flat Config (`eslint.config.mjs`).
+- [x] Ejecutar lint y resolver hallazgos reales (0 errores, 0 warnings).
+- [x] Incorporar lint en CI (`npm run lint`).
 - [ ] Revisar/eliminar `console.log` innecesarios de servidor, manteniendo logs útiles de error.
 - [ ] Decidir y completar configuración de Sentry, o eliminar configuración inactiva.
 - [ ] Revisar `/offline` para ambos locales.

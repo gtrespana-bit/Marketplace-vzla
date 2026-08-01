@@ -5,6 +5,7 @@ import { Suspense } from 'react'
 import ProductoPageClient from './ProductoPageClient'
 import { getTranslations } from 'next-intl/server'
 import Breadcrumbs from '@/components/Breadcrumbs'
+import LocalLink from '@/components/LocalLink'
 
 // ISR: cache product pages for 5 minutes
 export const revalidate = 300
@@ -148,7 +149,7 @@ export default async function ProductoPage({ params }: Props) {
       <div className="max-w-7xl mx-auto px-4 py-20 text-center">
         <h1 className="text-3xl font-bold text-gray-800 mb-4">{t('notFound')}</h1>
         <p className="text-gray-500 mb-8">{t('notFoundDesc')}</p>
-        <a href="/" className="inline-block bg-brand-primary text-white px-8 py-3 rounded-lg font-bold">{t('backHome')}</a>
+        <LocalLink href="/" className="inline-block bg-brand-primary text-white px-8 py-3 rounded-lg font-bold">{t('backHome')}</LocalLink>
       </div>
     )
   }
