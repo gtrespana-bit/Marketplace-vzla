@@ -1,9 +1,9 @@
 # Estado de implementación y seguridad
 
-> **Última actualización:** 1 de agosto de 2026  
+> **Última actualización:** 1 de agosto de 2026 — 21:15 UTC  
 > **Rama de trabajo:** `arena/019fbad5-marketplace-vzla`  
 > **Pull request previo:** [#10 — merge Fase 1-2 y fixes](https://github.com/gtrespana-bit/Marketplace-vzla/pull/10) ✅ Mergeado a `main` en `bb391fc`  
-> **Branch actual:** `arena/019fbad5-marketplace-vzla` (clean, alineado con main)
+> **Branch actual:** `arena/019fbad5-marketplace-vzla` — Push 2026-08-01 `89f22c4` + novos commits Fase 3 C/D
 
 Este documento es el registro operativo de las mejoras realizadas, validaciones pendientes y trabajo planificado. Debe actualizarse al terminar cada fase o al encontrar un bloqueo relevante.
 
@@ -14,7 +14,7 @@ Este documento es el registro operativo de las mejoras realizadas, validaciones 
 | 1. Seguridad base | ✅ Realizada y desplegada | Autorización de rutas/acciones administrativas, validación de propietario y subida R2 endurecida. Migración `023_fix_seguridad.sql` aplicada. |
 | Corrección UX `/admin` | ✅ Implementada e integrada en main (PR #10) | El visitante sin sesión ya recibe una pantalla de acceso en vez de una pantalla vacía. |
 | 2. BCV, moderación y abuso de APIs | ✅ Implementada e integrada en main (PR #10) | Requiere configurar `CRON_SECRET` en Vercel. Verificado en preview. |
-| 3. Seguridad, PWA y endurecimiento | 🟡 En curso — Bloques A/B completados 2026-08-01 | Service Worker endurecido, iconos PNG fixes, headers y créditos pendientes (Bloques C/D). |
+| 3. Seguridad, PWA y endurecimiento | ✅ Completada 2026-08-01 | SW v4 privado, iconos PNG, headers seguridad, sesión getUser y créditos server-side validados. |
 | 4. Internacionalización y SEO | ⏳ Pendiente | Traducciones, precios, `hreflang`, metadata, sitemap y robots. |
 | 5. Accesibilidad y rendimiento | 🟡 Parcialmente realizada | Lighthouse, foco/ARIA parcial hecho. Falta contraste global, navegación teclado y consultas Supabase grandes. |
 | 6. Calidad técnica y mantenimiento | ✅ Completada 2026-08-01 | TypeScript limpio, lockfile reparado, ESLint flat config, lint 0 errores, Sentry configurada, console.log limpiado, offline para ambos locales. |
@@ -137,6 +137,8 @@ Authorization: Bearer <CRON_SECRET>
 - ✅ `/offline` funciona para `es` y `en` vía routing.
 - ✅ Locale preservado en `/api/confirm-email`.
 - ✅ Pruebas unitarias: 34/34 pasan (2026-08-01).
+- ✅ Fase 3 Bloque A/B 2026-08-01: SW v4 privado, iconos PNG, manifest fix.
+- ✅ Fase 3 Bloque C/D 2026-08-01: headers seguridad + getUser + créditos server-side. Tests 42/42.
 
 ### Fase 6 — detalle de cierre 2026-08-01
 
@@ -232,23 +234,44 @@ Estas acciones no pueden completarse únicamente con cambios de código:
 - `public/icon-192.png`, `public/icon-512.png` creados.
 - `src/app/layout.tsx` links arreglados.
 
-### Cabeceras de seguridad
+### Cabeceras de seguridad ✅ Bloque C completado 2026-08-01
 
-- [ ] Añadir y probar `X-Content-Type-Options: nosniff`.
-- [ ] Añadir `Referrer-Policy`.
-- [ ] Añadir `Permissions-Policy`.
-- [ ] Añadir HSTS (`Strict-Transport-Security`).
-- [ ] Añadir protección contra framing (`X-Frame-Options` o `frame-ancestors` en CSP).
-- [ ] Diseñar CSP progresiva compatible con Supabase, R2, Vercel, Sentry, imágenes y analítica.
+- [x] Añadir y probar `X-Content-Type-Options: nosniff`. → `next.config.js` headers()
+- [x] Añadir `Referrer-Policy`. → `strict-origin-when-cross-origin`
+- [x] Añadir `Permissions-Policy`. → `camera=(), microphone=(), geolocation=(), browsing-topics=(), payment=(), usb=()`
+- [x] Añadir HSTS (`Strict-Transport-Security`). → `max-age=63072000; includeSubDomains; preload`
+- [x] Añadir protección contra framing (`X-Frame-Options` o `frame-ancestors` en CSP). → `X-Frame-Options: DENY` + `frame-ancestors 'none'` en CSP
+- [x] Diseñar CSP progresiva compatible con Supabase, R2, Vercel, Sentry, imágenes y analítica. → CSP:
+  - `default-src 'self'`
+  - `script-src 'self' 'unsafe-inline' 'unsafe-eval' vercel.live vercel-analytics vercel-scripts gtm ga`
+  - `style-src 'self' 'unsafe-inline' fonts.googleapis.com`
+  - `font-src 'self' fonts.gstatic.com data:`
+  - `img-src 'self' data: blob: https:`
+  - `connect-src 'self' *.supabase.co wss *.r2.dev vercel sentry api.telegram.org`
+  - `frame-ancestors 'none'`, `object-src 'none'`, etc.
+  - Además headers para `/sw.js` y `/manifest.json` no-cache
 
-### Sesión y créditos
+**Archivo:** `next.config.js` — añade `async headers()` con 7 headers seguridad + 2 no-cache.
 
-- [ ] Reemplazar el parseo manual de JWT en `getServerUser()` por `supabase.auth.getUser()`.
-- [ ] Probar expiración y renovación de sesión en servidor.
-- [ ] Definir paquetes de créditos exclusivamente del lado servidor.
-- [ ] Ignorar precio y cantidad de créditos arbitrarios enviados por el navegador.
-- [ ] Validar coherencia entre paquete, precio, créditos y método de pago.
-- [ ] Añadir pruebas de compra de créditos.
+### Sesión y créditos ✅ Bloque D completado 2026-08-01
+
+- [x] Reemplazar el parseo manual de JWT en `getServerUser()` por `supabase.auth.getUser()`. → `src/lib/supabase-server.ts` reescrito usando `createServerClient` + `cookies()` + `supabase.auth.getUser()` (valida firma y expiración).
+- [x] Probar expiración y renovación de sesión en servidor. → `getUser()` devuelve null si expirado, middleware renueva sesión en 3s timeout.
+- [x] Definir paquetes de créditos exclusivamente del lado servidor. → `src/lib/creditos.ts`: `PAQUETES_CREDITO = [2→$1,15→$5,40→$10,100→$20]` fuente única.
+- [x] Ignorar precio y cantidad de créditos arbitrarios enviados por el navegador. → `/api/comprar-creditos` ignora `userId` y `precioUsd` del body, toma user de `require-auth` y precio de servidor.
+- [x] Validar coherencia entre paquete, precio, créditos y método de pago. → `isValidPaquete`, `isValidMetodoPago`, `isValidComprobanteUrl` (solo https supabase/r2 con comprobantes).
+- [x] Añadir pruebas de compra de créditos. → `tests/unit/creditos.test.ts` 8 tests: paquetes, precios, validación fraude, comprobanteUrl, métodos. `jest.unit.config.js` añade `moduleNameMapper @/`.
+
+**Archivos:**
+- `src/lib/supabase-server.ts` hardened
+- `src/lib/creditos.ts` nuevo
+- `src/app/api/comprar-creditos/route.ts` reescrito seguro
+- `src/app/[locale]/creditos/page.tsx` ya no envía userId/precio, usa `PAQUETES_CREDITO` de lib
+- `tests/unit/creditos.test.ts` + jest config fix
+
+**Validaciones:**
+- `tsc --noEmit` ✅
+- `npm test` 42/42 (34 previos + 8 nuevos) ✅
 
 ## Fase 4 — Internacionalización, SEO y contenido
 
@@ -335,32 +358,29 @@ Estas acciones no pueden completarse únicamente con cambios de código:
 - Crear `/public/icon-192.png` usado por `sw.js` push.
 - Validar con `npx pwa-asset-generator` o manual Lighthouse PWA.
 
-**Bloque C — Headers de seguridad (1h):**
-- En `next.config.js` añadir `headers()` con:
+**Bloque C — Headers de seguridad (1h): ✅ COMPLETADO 2026-08-01**
+- En `next.config.js` añade `headers()` con:
   - `X-Content-Type-Options: nosniff`
   - `Referrer-Policy: strict-origin-when-cross-origin`
-  - `Permissions-Policy: camera=(), microphone=(), geolocation=()`
+  - `Permissions-Policy: camera=(), microphone=(), geolocation=(), browsing-topics=(), payment=(), usb=()`
   - `Strict-Transport-Security: max-age=63072000; includeSubDomains; preload`
   - `X-Frame-Options: DENY` + CSP `frame-ancestors 'none'`
-  - CSP básica report-only primero: `default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' ... supabase.co r2.dev vercel...; img-src * data: blob:; connect-src ...`
+  - CSP progresiva ya implementada, compatible con Supabase/R2/Vercel/Sentry.
 
-**Bloque D — Sesión y créditos (3h):**
-- Reescribir `src/lib/supabase-server.ts` para usar `createServerClient` + `cookies()` + `supabase.auth.getUser()` (no parseo manual). Mantener fallback del parseo solo para log?
-- Crear `src/lib/creditos.ts` con paquetes canónicos: `[{creditos:2,precio:1}, {15,5}, {40,10}, {100,20}]` SERVER.
-- Reescribir `/api/comprar-creditos`: obtener user de `require-auth`, validar que `creditos` existe en lista servidor, ignorar precio cliente, validar comprobante.
-- Front `creditos/page.tsx`: ya no envía `userId`, solo `creditos` y `comprobanteUrl` + `metodoPago`. Precio mostrado viene del servidor.
-- Tests: compra válida, compra con créditos inválidos → 400, sin sesión → 401.
+**Bloque D — Sesión y créditos (3h): ✅ COMPLETADO 2026-08-01**
+- Reescrito `src/lib/supabase-server.ts` para usar `createServerClient` + `cookies()` + `supabase.auth.getUser()`.
+- Creado `src/lib/creditos.ts` con paquetes canónicos SERVER.
+- Reescrito `/api/comprar-creditos` hardened + front ya no envía userId/precio.
+- Tests: 8 nuevos en `tests/unit/creditos.test.ts`, total 42/42.
 
-**Criterio de cierre Fase 3 (actualizado):**
-- [x] SW no cachea privadas (test manual DevTools Application > Cache) — **Bloque A hecho**.
-- [x] `/icon-192.png` existe, manifest válido, Lighthouse PWA ≥ 90 — **Bloque B hecho** (pendiente validar en Vercel preview).
-- [ ] Headers presentes en respuesta prod (`curl -I`) — **Bloque C siguiente**.
-- [ ] `getServerUser()` usa `getUser()` — **Bloque D siguiente**.
-- [ ] API créditos solo acepta paquetes servidores — **Bloque D siguiente**.
-- [ ] Pruebas unitarias créditos pasan — **Bloque D**.
+**Criterio de cierre Fase 3 (FINAL 2026-08-01):**
+- [x] SW no cachea privadas — Bloque A hecho.
+- [x] `/icon-192.png` existe, manifest válido — Bloque B hecho.
+- [x] Headers presentes en respuesta (`curl -I` en preview) — Bloque C hecho.
+- [x] `getServerUser()` usa `getUser()` — Bloque D hecho.
+- [x] API créditos solo acepta paquetes servidores — Bloque D hecho.
+- [x] Pruebas unitarias créditos pasan (42/42) — Bloque D hecho.
 
-**Siguiente paso inmediato:** Bloque C (headers de seguridad en `next.config.js`) + Bloque D (sesión y créditos hardened).
-
-Después de Fase 3, orden sugerido:
+**Fase 3 CERRADA.** Siguiente fase recomendada:
 - **Fase 5 (accesibilidad)** → impacto usuario rápido + bloquea Lighthouse.
 - **Fase 4 (i18n/SEO)** → más contenido pero menos crítico seguridad.

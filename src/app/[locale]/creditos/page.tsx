@@ -9,13 +9,10 @@ import { supabase } from '@/lib/supabase'
 import { useTranslations } from 'next-intl'
 import Image from 'next/image'
 import { FALLBACK_BCV_RATE } from '@/lib/tasaBCV'
+import { PAQUETES_CREDITO } from '@/lib/creditos'
 
-const paquetesCredito = [
-  { creditos: 2, precio: 1, descripcion: 'Para empezar', popular: false },
-  { creditos: 15, precio: 5, descripcion: '¡El más elegido!', popular: true },
-  { creditos: 40, precio: 10, descripcion: 'Para vendedores activos', popular: false },
-  { creditos: 100, precio: 20, descripcion: 'Máximo ahorro', popular: false },
-]
+const paquetesCredito = PAQUETES_CREDITO
+
 
 const metodosPago = [
   {
@@ -79,9 +76,8 @@ function ModalPago({ paquete, tasa, onClose }: { paquete: any; tasa: number; onC
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          userId: user.id,
+          // Fase 3 D: solo creditos, metodo y comprobante. userId y precio vienen de servidor.
           creditos: paquete.creditos,
-          precioUsd: paquete.precio,
           metodoPago: selectedMetodo?.nombre || metodo,
           comprobanteUrl: publicUrl,
         }),

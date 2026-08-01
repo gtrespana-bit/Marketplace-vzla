@@ -4,6 +4,9 @@ module.exports = {
   roots: ['<rootDir>/tests/unit'],
   testMatch: ['**/*.test.[jt]s?(x)'],
   setupFilesAfterEnv: ['<rootDir>/tests/setupTests.ts'],
+  moduleNameMapper: {
+    '^@/(.*)$': '<rootDir>/src/$1',
+  },
   collectCoverageFrom: [
     'src/**/*.{js,jsx,ts,tsx}',
     '!src/**/*.d.ts',

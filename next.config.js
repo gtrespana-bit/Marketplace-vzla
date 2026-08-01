@@ -51,6 +51,84 @@ const nextConfig = withNextIntl({
 
   reactStrictMode: true,
 
+  // ═══════════════════════════════════════════════════════
+  // Fase 3 Bloque C — Cabeceras de seguridad
+  // ═══════════════════════════════════════════════════════
+  async headers() {
+    const securityHeaders = [
+      {
+        key: 'X-DNS-Prefetch-Control',
+        value: 'on',
+      },
+      {
+        key: 'X-Content-Type-Options',
+        value: 'nosniff',
+      },
+      {
+        key: 'X-Frame-Options',
+        value: 'DENY',
+      },
+      {
+        key: 'X-XSS-Protection',
+        value: '0', // Desactivar auditor XSS legacy (CSP es la protección moderna)
+      },
+      {
+        key: 'Referrer-Policy',
+        value: 'strict-origin-when-cross-origin',
+      },
+      {
+        key: 'Permissions-Policy',
+        value: 'camera=(), microphone=(), geolocation=(), browsing-topics=(), payment=(), usb=()',
+      },
+      {
+        key: 'Strict-Transport-Security',
+        value: 'max-age=63072000; includeSubDomains; preload',
+      },
+      {
+        // CSP progresiva compatible con Supabase, R2, Vercel, Sentry, fonts, imágenes
+        key: 'Content-Security-Policy',
+        value: [
+          "default-src 'self'",
+          "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://vercel.live https://*.vercel-analytics.com https://*.vercel-scripts.com https://*.googletagmanager.com https://*.google-analytics.com https://va.vercel-scripts.com",
+          "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+          "font-src 'self' https://fonts.gstatic.com data:",
+          "img-src 'self' data: blob: https: ",
+          "media-src 'self' blob: https://*.supabase.co https://*.r2.dev",
+          "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.r2.dev https://pub-d212837165c545e3956251da001fa37a.r2.dev https://vercel.live https://*.vercel-analytics.com https://*.vercel-scripts.com https://va.vercel-scripts.com https://*.sentry.io https://*.ingest.sentry.io https://api.telegram.org",
+          "frame-src 'self'",
+          "frame-ancestors 'none'",
+          "base-uri 'self'",
+          "form-action 'self'",
+          "object-src 'none'",
+          "worker-src 'self' blob:",
+          "manifest-src 'self'",
+        ].join('; '),
+      },
+    ]
+
+    return [
+      {
+        source: '/(.*)',
+        headers: securityHeaders,
+      },
+      // No cache para SW y manifest (siempre frescos)
+      {
+        source: '/sw.js',
+        headers: [
+          { key: 'Cache-Control', value: 'no-cache, no-store, must-revalidate' },
+          { key: 'Content-Type', value: 'application/javascript; charset=utf-8' },
+        ],
+      },
+      {
+        source: '/manifest.json',
+        headers: [
+          { key: 'Cache-Control', value: 'no-cache, no-store, must-revalidate' },
+          { key: 'Content-Type', value: 'application/manifest+json' },
+        ],
+      },
+    ]
+  },
+
   // Configuración de salida optimizada
   output: 'standalone',
 
