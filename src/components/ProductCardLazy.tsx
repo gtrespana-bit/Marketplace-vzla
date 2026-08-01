@@ -52,7 +52,7 @@ export const ProductCardLazy = ({ p, t, priority = false }: ProductCardLazyProps
     >
       <div className="aspect-square bg-gray-100 relative overflow-hidden">
         {isFeatured && (
-          <div className="absolute top-2 left-2 z-10 bg-brand-accent text-brand-primary text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 shadow-sm">
+          <div className="absolute top-2 left-2 z-10 bg-brand-accent text-white text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 shadow-sm">
             ⭐ {t('product.featured')}
           </div>
         )}

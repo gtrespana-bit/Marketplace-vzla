@@ -82,12 +82,14 @@ export default function ImageGallery({ images, alt }: ImageGalleryProps) {
           <>
             <button
               onClick={e => { e.stopPropagation(); goPrev() }}
+              aria-label="Imagen anterior"
               className="absolute left-2 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/80 backdrop-blur rounded-full flex items-center justify-center shadow-lg opacity-0 group-hover:opacity-100 hover:bg-white transition"
             >
               <ChevronLeft size={20} className="text-gray-800" />
             </button>
             <button
               onClick={e => { e.stopPropagation(); goNext() }}
+              aria-label="Siguiente imagen"
               className="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/80 backdrop-blur rounded-full flex items-center justify-center shadow-lg opacity-0 group-hover:opacity-100 hover:bg-white transition"
             >
               <ChevronRight size={20} className="text-gray-800" />
@@ -95,13 +97,14 @@ export default function ImageGallery({ images, alt }: ImageGalleryProps) {
 
             <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
               {images.map((_, i) => (
-                <button
-                  key={i}
-                  onClick={e => { e.stopPropagation(); setActiveIndex(i) }}
-                  className={`w-2 h-2 rounded-full transition ${
+              <button
+                key={i}
+                onClick={e => { e.stopPropagation(); setActiveIndex(i) }}
+                aria-label={`Imagen ${i + 1} de ${images.length}`}
+                className={`w-2 h-2 rounded-full transition ${
                     i === activeIndex ? 'bg-white scale-110' : 'bg-white/40'
                   }`}
-                />
+              />
               ))}
             </div>
           </>
@@ -146,6 +149,7 @@ export default function ImageGallery({ images, alt }: ImageGalleryProps) {
         >
           <button
             onClick={() => setLightboxOpen(false)}
+            aria-label="Cerrar visor de imágenes"
             className="absolute top-4 right-4 z-10 w-10 h-10 bg-white/10 backdrop-blur rounded-full flex items-center justify-center hover:bg-white/20 transition"
           >
             <X size={20} className="text-white" />
@@ -159,12 +163,14 @@ export default function ImageGallery({ images, alt }: ImageGalleryProps) {
             <>
               <button
                 onClick={e => { e.stopPropagation(); goPrev() }}
+                aria-label="Imagen anterior"
                 className="absolute left-4 z-10 w-12 h-12 bg-white/10 backdrop-blur rounded-full flex items-center justify-center hover:bg-white/20 transition"
               >
                 <ChevronLeft size={24} className="text-white" />
               </button>
               <button
                 onClick={e => { e.stopPropagation(); goNext() }}
+                aria-label="Siguiente imagen"
                 className="absolute right-4 z-10 w-12 h-12 bg-white/10 backdrop-blur rounded-full flex items-center justify-center hover:bg-white/20 transition"
               >
                 <ChevronRight size={24} className="text-white" />
@@ -192,10 +198,11 @@ export default function ImageGallery({ images, alt }: ImageGalleryProps) {
           {images.length > 1 && (
             <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 overflow-x-auto max-w-[90vw] py-2">
               {images.map((img, i) => (
-                <button
-                  key={i}
-                  onClick={e => { e.stopPropagation(); setActiveIndex(i) }}
-                  className={`w-16 h-16 rounded-lg overflow-hidden flex-shrink-0 border-2 transition ${
+              <button
+                key={i}
+                onClick={e => { e.stopPropagation(); setActiveIndex(i) }}
+                aria-label={`Ver imagen ${i + 1}`}
+                className={`w-16 h-16 rounded-lg overflow-hidden flex-shrink-0 border-2 transition ${
                     i === activeIndex ? 'border-brand-accent' : 'border-transparent opacity-50 hover:opacity-100'
                   }`}
                 >

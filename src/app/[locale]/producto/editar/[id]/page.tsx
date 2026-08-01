@@ -433,7 +433,7 @@ export default function EditarPage() {
 
         {/* Actions */}
         <div className="flex items-center gap-3 pt-4 border-t">
-          <button onClick={handleSubmit} disabled={guardando} className="flex items-center gap-2 bg-brand-accent text-brand-primary px-6 py-3 rounded-lg font-bold hover:bg-accent/90 transition disabled:opacity-50">
+          <button onClick={handleSubmit} disabled={guardando} className="flex items-center gap-2 bg-brand-accent text-white px-6 py-3 rounded-lg font-bold hover:bg-accent/90 transition disabled:opacity-50">
             <Save size={16} /> {guardando ? t('saving') : t('save')}
           </button>
           <button onClick={() => router.push(`/producto/${productoId}`)} className="px-4 py-3 border rounded-lg hover:bg-gray-50">Cancelar</button>
