@@ -1,6 +1,6 @@
 import { Metadata } from 'next'
 import LandingCategoria from './LandingCategoria'
-import { getCiudadBySlug, generateCityCategoryParams, CATEGORIAS_POPULARES } from '@/lib/ubicaciones-seo'
+import { getCiudadBySlug } from '@/lib/ubicaciones-seo'
 import Breadcrumbs from '@/components/Breadcrumbs'
 
 const CATEGORIAS_SEO: Record<string, { nombre: string; descripcion: string }> = {
@@ -89,11 +89,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 }
 
-// Generar rutas estáticas para TODAS las combinaciones ciudad-categoría
-export async function generateStaticParams() {
-  return generateCityCategoryParams()
-}
-
+// IMPORTANTE — Ruta DINÁMICA a propósito: ver el comentario en
+// src/app/[locale]/[ciudad]/page.tsx. generateStaticParams aquí hacía que
+// Next 16 intentara "static generation on demand" al recibir cualquier
+// request de /ciudad/categoria, lanzando DYNAMIC_SERVER_USAGE → 500.
 type Props = {
   params: Promise<{ ciudad: string; categoria: string }>
 }
@@ -132,6 +131,3 @@ export default async function CategoriaPage({ params }: Props) {
     </>
   )
 }
-
-// ISR: cache category landing pages for 5 minutes
-export const revalidate = 300

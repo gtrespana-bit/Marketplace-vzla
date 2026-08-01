@@ -4,6 +4,7 @@ import { useState } from 'react'
 import LocalLink from '@/components/LocalLink'
 import { Package, X, Pause, Play, Edit, Zap, Star, CheckCircle2, ChevronDown, ArrowLeft, Send } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
+import { productUrl } from '@/lib/product-url'
 import Image from 'next/image'
 
 export default function TabProductos({
@@ -251,7 +252,7 @@ export default function TabProductos({
           const promoAbierto = menuPromocionar === p.id
           return (
             <div key={p.id} className={`group flex items-start gap-4 p-3 rounded-lg border border-gray-100 transition ${isVendido ? 'bg-green-50/50 border-green-200' : 'hover:bg-gray-50'}`}>
-              <LocalLink href={`/producto/${p.id}`} className="flex items-center gap-4 flex-1 min-w-0">
+              <LocalLink href={productUrl(p)} className="flex items-center gap-4 flex-1 min-w-0">
                 <div className="w-16 h-16 rounded-lg bg-gray-100 flex-shrink-0 overflow-hidden relative">
                   {p.imagen_url ? (
                     <Image src={p.imagen_url} alt={p.titulo} className="w-full h-full object-cover" fill sizes="100px" />

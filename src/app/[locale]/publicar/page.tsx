@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import LocalLink from '@/components/LocalLink'
 import { useRouter } from 'next/navigation'
 import { supabase, isSupabaseConfigured } from '@/lib/supabase'
+import { productUrl } from '@/lib/product-url'
 import { useAuth } from '@/components/AuthProvider'
 import { categoriasData } from '@/lib/categorias'
 import { ESTADOS, getMunicipiosNombres } from '@/lib/ubicaciones'
@@ -358,7 +359,9 @@ export default function PublicarPage() {
         console.error('Error email publicación:', e)
       }
       
-      router.push(`/producto/${producto.id}?nuevo=1`)
+      // Ir directo a la URL canónica con slug (el detalle redirige 301 si se
+      // entra por UUID, y la redirección perdería el ?nuevo=1 del banner).
+      router.push(`${productUrl(producto)}?nuevo=1`)
     } catch (err) {
       console.error('Unexpected error:', err)
       setError('Error inesperado, intentalo de nuevo.')

@@ -9,8 +9,13 @@ import Breadcrumbs from '@/components/Breadcrumbs'
 import LocalLink from '@/components/LocalLink'
 import { isUuid } from '@/lib/product-url'
 
-// ISR: cache product pages for 5 minutes
-export const revalidate = 300
+// IMPORTANTE — Ruta DINÁMICA a propósito: ver el comentario en
+// src/app/[locale]/[ciudad]/page.tsx. Con generateStaticParams + revalidate
+// (ISR), cualquier producto fuera del top-100 prerenderizado (productos
+// viejos o publicados después del deploy) se renderizaba "on-demand" en modo
+// static-generation y lanzaba DYNAMIC_SERVER_USAGE → 500 en /producto/[slug].
+// Sin generateStaticParams la página se sirve por SSR dinámico (como la home
+// y /catalogo) y funciona para TODOS los productos.
 
 type Props = {
   params: Promise<{ locale: string; slug: string }>
@@ -149,42 +154,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       },
     },
   }
-}
-
-// Enable dynamic parameters to handle products not included in static generation
-export const dynamicParams = true;
-
-export async function generateStaticParams() {
-  // Pre-render the 100 most recent products for SSG in both locales.
-  // Usa slug cuando exista; si la migración no corrió aún, cae al UUID.
-  const moderacion = 'estado_moderacion.is.null,estado_moderacion.eq.aprobado,estado_moderacion.eq.pendiente'
-  let data: any[] | null = null
-
-  const withSlug = await supabase
-    .from('productos')
-    .select('id, slug')
-    .eq('activo', true)
-    .or(moderacion)
-    .order('creado_en', { ascending: false })
-    .limit(100)
-
-  if (withSlug.error) {
-    const legacy = await supabase
-      .from('productos')
-      .select('id')
-      .eq('activo', true)
-      .or(moderacion)
-      .order('creado_en', { ascending: false })
-      .limit(100)
-    data = legacy.data
-  } else {
-    data = withSlug.data
-  }
-
-  const locales = routing.locales
-  return (data || []).flatMap((p: any) =>
-    locales.map((locale) => ({ locale, slug: p.slug || p.id }))
-  )
 }
 
 export default async function ProductoPage({ params }: Props) {
