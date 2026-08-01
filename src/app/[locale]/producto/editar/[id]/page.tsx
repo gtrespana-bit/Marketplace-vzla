@@ -9,6 +9,7 @@ import { ESTADOS, getMunicipiosNombres } from '@/lib/ubicaciones'
 import { Camera, X, ArrowLeft, Save, AlertCircle, Trash2 } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import Image from 'next/image'
+import { compressImages } from '@/lib/compress-image'
 
 const currentYear = new Date().getFullYear()
 const years = Array.from({ length: 30 }, (_, i) => String(currentYear - i))
@@ -53,6 +54,7 @@ export default function EditarPage() {
   // Images
   const [currentImages, setCurrentImages] = useState<string[]>([])
   const [newImages, setNewImages] = useState<{ file: File; preview: string }[]>([])
+  const [procesando, setProcesando] = useState(false)
 
   useEffect(() => {
     if (authLoading) return
@@ -207,15 +209,35 @@ export default function EditarPage() {
   const sub = cat?.subs.find(s => s.label === subcategoria)
   const camposEspeciales = sub?.campos?.map((c: any) => ({ ...c, options: c.label === 'Ano' ? years : (c.options || []) })) || []
 
-  const handleNewImages = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleNewImages = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files
     if (!files) return
+
+    const selected: File[] = []
     for (let i = 0; i < files.length; i++) {
       const file = files[i]
       if (file.type.startsWith('image/')) {
-        setNewImages(prev => [...prev, { file, preview: URL.createObjectURL(file) }])
+        selected.push(file)
       }
     }
+    if (selected.length === 0) return
+    e.target.value = ''
+
+    // Optimizar en el navegador (canvas → WebP) antes de subir a R2
+    setProcesando(true)
+    let processed = selected
+    try {
+      processed = await compressImages(selected)
+    } catch {
+      // si algo falla, subir los originales
+    } finally {
+      setProcesando(false)
+    }
+
+    setNewImages(prev => [
+      ...prev,
+      ...processed.map(file => ({ file, preview: URL.createObjectURL(file) })),
+    ])
   }
 
   const removeNewImage = (i: number) => setNewImages(prev => prev.filter((_, idx) => idx !== i))
@@ -406,10 +428,19 @@ export default function EditarPage() {
         {/* Agregar nuevas imágenes */}
         <div>
           <label className="block text-sm font-semibold text-gray-900 mb-2">Agregar imágenes</label>
-          <label className="flex items-center gap-2 p-4 border-2 border-dashed rounded-lg cursor-pointer hover:border-brand-accent transition">
-            <Camera size={20} className="text-gray-500" />
-            <span className="text-sm text-gray-500">Seleccionar fotos...</span>
-            <input type="file" accept="image/*" multiple onChange={handleNewImages} className="hidden" />
+          <label className={`flex items-center gap-2 p-4 border-2 border-dashed rounded-lg cursor-pointer hover:border-brand-accent transition ${procesando ? 'pointer-events-none opacity-70' : ''}`}>
+            {procesando ? (
+              <>
+                <div className="w-5 h-5 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
+                <span className="text-sm text-gray-500">Optimizando imágenes…</span>
+              </>
+            ) : (
+              <>
+                <Camera size={20} className="text-gray-500" />
+                <span className="text-sm text-gray-500">Seleccionar fotos...</span>
+              </>
+            )}
+            <input type="file" accept="image/*" multiple onChange={handleNewImages} className="hidden" disabled={procesando} />
           </label>
           {newImages.length > 0 && (
             <div className="grid grid-cols-4 gap-2 mt-3">

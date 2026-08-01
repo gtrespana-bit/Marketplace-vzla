@@ -592,7 +592,8 @@
     "conditionNew": "Nuevo",
     "conditionLikeNew": "Como nuevo",
     "conditionGood": "Bueno",
-    "conditionUsed": "Usado"
+    "conditionUsed": "Usado",
+    "optimizing": "Optimizando imágenes…"
   },
   "dashboard": {
     "passwordTitle": "Cambiar contraseña",
