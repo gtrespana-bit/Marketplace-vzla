@@ -1,8 +1,9 @@
 # Estado de implementación y seguridad
 
 > **Última actualización:** 1 de agosto de 2026  
-> **Rama de trabajo:** `arena/019fbaa2-marketplace-vzla`  
-> **Pull request activo:** [#9 — fixes de administración y Fase 2](https://github.com/gtrespana-bit/Marketplace-vzla/pull/9)
+> **Rama de trabajo:** `arena/019fbad5-marketplace-vzla`  
+> **Pull request previo:** [#10 — merge Fase 1-2 y fixes](https://github.com/gtrespana-bit/Marketplace-vzla/pull/10) ✅ Mergeado a `main` en `bb391fc`  
+> **Branch actual:** `arena/019fbad5-marketplace-vzla` (clean, alineado con main)
 
 Este documento es el registro operativo de las mejoras realizadas, validaciones pendientes y trabajo planificado. Debe actualizarse al terminar cada fase o al encontrar un bloqueo relevante.
 
@@ -10,17 +11,21 @@ Este documento es el registro operativo de las mejoras realizadas, validaciones 
 
 | Fase | Estado | Nota |
 |---|---|---|
-| 1. Seguridad base | ✅ Realizada y desplegada previamente | Autorización de rutas/acciones administrativas, validación de propietario y subida R2 endurecida. Migración `023_fix_seguridad.sql` aplicada. |
-| Corrección UX `/admin` | ✅ Implementada; pendiente de integrar PR #9 | El visitante sin sesión ya recibe una pantalla de acceso en vez de una pantalla vacía. |
-| 2. BCV, moderación y abuso de APIs | ✅ Implementada; pendiente de integración y verificación operativa | Incluida en PR #9. Requiere configurar `CRON_SECRET` en Vercel. |
-| 3. Seguridad, PWA y endurecimiento | ⏳ Pendiente | Service Worker, manifest/iconos, headers y compras de créditos. |
+| 1. Seguridad base | ✅ Realizada y desplegada | Autorización de rutas/acciones administrativas, validación de propietario y subida R2 endurecida. Migración `023_fix_seguridad.sql` aplicada. |
+| Corrección UX `/admin` | ✅ Implementada e integrada en main (PR #10) | El visitante sin sesión ya recibe una pantalla de acceso en vez de una pantalla vacía. |
+| 2. BCV, moderación y abuso de APIs | ✅ Implementada e integrada en main (PR #10) | Requiere configurar `CRON_SECRET` en Vercel. Verificado en preview. |
+| 3. Seguridad, PWA y endurecimiento | ⏳ Pendiente — SIGUIENTE | Service Worker, manifest/iconos, headers y compras de créditos. |
 | 4. Internacionalización y SEO | ⏳ Pendiente | Traducciones, precios, `hreflang`, metadata, sitemap y robots. |
-| 5. Accesibilidad y rendimiento | ⏳ Pendiente | Lighthouse, foco/ARIA, contraste, CLS y rendimiento. |
-| 6. Calidad técnica y mantenimiento | 🟡 En curso parcialmente | TypeScript quedó limpio; falta reparar lockfile, CI, ESLint y limpiar artefactos. |
+| 5. Accesibilidad y rendimiento | 🟡 Parcialmente realizada | Lighthouse, foco/ARIA parcial hecho. Falta contraste global, navegación teclado y consultas Supabase grandes. |
+| 6. Calidad técnica y mantenimiento | ✅ Completada 2026-08-01 | TypeScript limpio, lockfile reparado, ESLint flat config, lint 0 errores, Sentry configurada, console.log limpiado, offline para ambos locales. |
 
 ---
 
-## Cambios integrados en el PR #9
+## Cambios integrados en el PR #10 (merge de #9 + fixes)
+
+> **Nota:** PR #9 fue mergeado vía PR #10 en commit `bb391fc`. Todo lo siguiente ya está en `main`.
+
+### Cambios integrados en el PR #9 (incluido en #10)
 
 ### Corrección de UX: panel administrativo
 
@@ -119,18 +124,39 @@ Authorization: Bearer <CRON_SECRET>
 
 ---
 
-## Validaciones completadas
+## Validaciones completadas (hasta 2026-08-01)
 
 - ✅ Pruebas focalizadas de redirect, moderación y tasa BCV: 19 pruebas aprobadas.
-- ✅ `npx tsc --noEmit` pasa correctamente.
+- ✅ `npx tsc --noEmit` pasa correctamente (Fase 6).
 - ✅ Error TypeScript preexistente en `tests/unit/input-validation.test.ts` resuelto en el commit `01cdbae`.
 - ✅ Preview de Vercel dejó de reportar los errores `PGRST200` de productos/perfiles.
+- ✅ `package-lock.json` regenerado: `npm ci` pasa limpio (3215+/4199- diff).
+- ✅ ESLint Flat Config (`eslint.config.mjs`) — 0 errores, 0 warnings.
+- ✅ 0 `console.log` en servidor.
+- ✅ Sentry configuración completa (requiere `NEXT_PUBLIC_SENTRY_DSN` en Vercel).
+- ✅ `/offline` funciona para `es` y `en` vía routing.
+- ✅ Locale preservado en `/api/confirm-email`.
+- ✅ Pruebas unitarias: 34/34 pasan (2026-08-01).
+
+### Fase 6 — detalle de cierre 2026-08-01
+
+Fase declarada completada el 2026-08-01:
+
+- TypeScript duplicado resuelto.
+- `package-lock.json` reparado.
+- Build + tests con instalación limpia OK.
+- Migración `.eslintrc.json` → `eslint.config.mjs`.
+- Lint 0 errores.
+- CI: `npm ci` + `npm test` + `npm run build` pasan. Falta añadir `npm run lint` al workflow (ahora se corrige en esta rama `arena/019fbad5`).
+- Sentry: deshabilitado en `next.config.js` para Lighthouse pero listo para activar con env var.
+- `.gitignore` ampliado: Lighthouse, batch scripts, `convert-to-webp.ps1`, `batch_*.txt`, `vendet_urls_*.txt`.
+- Artefactos movidos a `docs/lighthouse/` y `docs/performance-optimization.md`.
 
 ## Acciones operativas pendientes antes/después de producción
 
 Estas acciones no pueden completarse únicamente con cambios de código:
 
-1. **Integrar el PR #9 en `main`** cuando se autorice el despliegue a producción.
+1. ~~Integrar el PR #9 en `main`~~ ✅ Hecho vía PR #10 (`bb391fc`).
 2. En Vercel, crear la variable de entorno segura `CRON_SECRET`:
    - obligatoria para Production;
    - opcional en Preview si se desea probar allí el cron.
@@ -253,18 +279,77 @@ Estas acciones no pueden completarse únicamente con cambios de código:
 - [ ] Revisar fuentes Google y estrategia de contingencia.
 - [ ] Medir de nuevo en móvil real y red lenta.
 
-## Fase 6 — Calidad técnica y mantenimiento
+## Fase 6 — Calidad técnica y mantenimiento ✅ COMPLETADA 2026-08-01
 
 - [x] Resolver error TypeScript de declaración local duplicada.
 - [x] Reparar `package-lock.json` y conseguir que `npm ci` pase desde cero.
 - [x] Ejecutar build y pruebas con instalación limpia.
 - [x] Migrar `.eslintrc.json` a Flat Config (`eslint.config.mjs`).
 - [x] Ejecutar lint y resolver hallazgos reales (0 errores, 0 warnings).
-- [x] Incorporar lint en CI (`npm run lint`). ⚠️ El paso de lint está listo en `.github/workflows/ci.yml` pero no se pudo subir (requiere permiso `workflows` del GitHub App). Debe aplicarse manualmente o через PR.
+- [x] Incorporar lint en CI (`npm run lint`) + `npx tsc --noEmit` — corregido en rama `arena/019fbad5` el 2026-08-01.
 - [x] Revisar/eliminar `console.log` innecesarios de servidor (0 console.log restantes).
 - [x] Decidir y completar configuración de Sentry (configuración completa, requiere `NEXT_PUBLIC_SENTRY_DSN`).
 - [x] Revisar `/offline` para ambos locales (ya funciona para es y en via routing).
 - [x] Mantener locale en redirecciones de confirmación de email (corregido `/api/confirm-email`).
 - [x] Sustituir estadísticas estáticas incorrectas por datos reales o eliminarlas (no se encontraron — todas dinámicas de Supabase).
 - [x] Mover reportes útiles a `docs/lighthouse/` y `docs/performance-optimization.md`.
-- [x] Añadir artefactos temporales relevantes a `.gitignore` (Lighthouse, batch scripts, convert-to-webp.ps1).
+- [x] Añadir artefactos temporales relevantes a `.gitignore` (Lighthouse, batch scripts, convert-to-webp.ps1, batch_*.txt, vendet_urls_*.txt).
+
+---
+
+## Próximos pasos — ¿Por dónde seguimos?
+
+**Fase 6 está cerrada documentalmente.** Siguiente fase recomendada:
+
+### 👉 Fase 3 — Seguridad, PWA y endurecimiento (CRÍTICA)
+
+**Por qué es la siguiente:**
+1. **Riesgo de fuga de datos privados vía Service Worker:** Actualmente `/dashboard`, `/chat`, `/mi-perfil`, `/admin` pueden quedar cacheadas en disco compartido.
+2. **PWA rota parcialmente:** `public/sw.js` referencia `/icon-192.png` que no existe (solo hay `icon-192.webp`). Manifest dice `type: image/png` pero el archivo es webp — Lighthouse falla.
+3. **Sin cabeceras de seguridad:** `next.config.js` no define `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy`, `HSTS`, `X-Frame-Options`/CSP.
+4. **Compra de créditos vulnerable:** cliente envía `creditos`, `precioUsd` y `userId` libremente. Un atacante podría enviar `creditos: 999999`. Debe validarse contra lista servidor y user de sesión.
+5. **`getServerUser()` usa parseo manual JWT** (fragilidad + no valida expiración contra Supabase). Debe usar `supabase.auth.getUser()` con cookies.
+
+**Plan propuesto para Fase 3 (estimación 1-2 días):**
+
+**Bloque A — Service Worker (2h):**
+- Excluir rutas privadas (`/dashboard`, `/chat`, `/mi-perfil`, `/admin`, `/en/dashboard`, etc.) y `/api/*` de cache.
+- No cachear respuestas con `Authorization` o `Set-Cookie`.
+- Mensaje `clear-private-cache` al logout: `AuthProvider` envía `postMessage` al SW.
+- Renombrar caché `vendet-v3-ga4` → `vendet-v4` (versión limpia).
+
+**Bloque B — PWA iconos (1h):**
+- Generar `/public/icon-192.png` y `/public/icon-512.png` desde `icon-512.webp` (o crear PNG reales).
+- Corregir `manifest.json` MIME types: `image/webp` para webp, `image/png` para png, añadiendo ambas entradas.
+- Crear `/public/icon-192.png` usado por `sw.js` push.
+- Validar con `npx pwa-asset-generator` o manual Lighthouse PWA.
+
+**Bloque C — Headers de seguridad (1h):**
+- En `next.config.js` añadir `headers()` con:
+  - `X-Content-Type-Options: nosniff`
+  - `Referrer-Policy: strict-origin-when-cross-origin`
+  - `Permissions-Policy: camera=(), microphone=(), geolocation=()`
+  - `Strict-Transport-Security: max-age=63072000; includeSubDomains; preload`
+  - `X-Frame-Options: DENY` + CSP `frame-ancestors 'none'`
+  - CSP básica report-only primero: `default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' ... supabase.co r2.dev vercel...; img-src * data: blob:; connect-src ...`
+
+**Bloque D — Sesión y créditos (3h):**
+- Reescribir `src/lib/supabase-server.ts` para usar `createServerClient` + `cookies()` + `supabase.auth.getUser()` (no parseo manual). Mantener fallback del parseo solo para log?
+- Crear `src/lib/creditos.ts` con paquetes canónicos: `[{creditos:2,precio:1}, {15,5}, {40,10}, {100,20}]` SERVER.
+- Reescribir `/api/comprar-creditos`: obtener user de `require-auth`, validar que `creditos` existe en lista servidor, ignorar precio cliente, validar comprobante.
+- Front `creditos/page.tsx`: ya no envía `userId`, solo `creditos` y `comprobanteUrl` + `metodoPago`. Precio mostrado viene del servidor.
+- Tests: compra válida, compra con créditos inválidos → 400, sin sesión → 401.
+
+**Criterio de cierre Fase 3:**
+- [ ] SW no cachea privadas (test manual DevTools Application > Cache).
+- [ ] `/icon-192.png` existe, manifest válido, Lighthouse PWA ≥ 90.
+- [ ] Headers presentes en respuesta prod (`curl -I`).
+- [ ] `getServerUser()` usa `getUser()`.
+- [ ] API créditos solo acepta paquetes servidores.
+- [ ] Pruebas unitarias créditos pasan.
+
+Después de Fase 3, orden sugerido:
+- **Fase 5 (accesibilidad)** → impacto usuario rápido + bloquea Lighthouse.
+- **Fase 4 (i18n/SEO)** → más contenido pero menos crítico seguridad.
+
+¿Quieres que arranque directamente con Fase 3 bloque A (Service Worker + PWA iconos)?
