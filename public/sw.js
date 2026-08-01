@@ -1,40 +1,21 @@
-/* Service Worker - VendeT PWA - v8
+/* Service Worker - VendeT PWA - v9
  *
- * Cambios v8 (fix "The FetchEvent ... resulted in a network error response"):
- * - Las NAVEGACIONES ya NUNCA se resuelven con Response.error(). Si la red
- *   falla y no hay copia cacheada de la URL, se sirve la página offline del
- *   idioma (/es/offline, /en/offline, /offline) y, como último recurso, un
- *   HTML offline mínimo inline (200). Resolver con Response.error() hacía
- *   que Chrome llenara la consola con "The FetchEvent ... resulted in a
- *   network error response: the promise was resolved with an error response
- *   object" ante cualquier blip de red, y el usuario veía un error del
- *   navegador sin contexto ni botón de reintentar.
- * - Las páginas offline se re-cachean en cada navegación exitosa (no solo en
- *   la instalación), así el fallback siempre está disponible.
- *
- * Cambios v7 (fix "The FetchEvent ... resulted in a network error response"):
- * - El fallback offline ahora es por idioma y se cachea en instalación
- *   (/offline, /es/offline y /en/offline). Antes solo se intentaba /offline
- *   y, si no estaba cacheado, la navegación se resolvía con Response.error(),
- *   que llenaba la consola con "network error response" ante cualquier blip
- *   de red (muy común en redes móviles de Venezuela).
- * - El caché sube a vendet-v7 para forzar una instalación limpia que
- *   re-cachee las páginas offline en todos los idiomas.
- *
- * Cambios v6 (fix "Failed to load resource: 503"):
- * - El SW ya NO responde 503 sintéticos: un `503` inventado hacía creer (a la
- *   consola y a quien depura) que el servidor estaba caído. Ahora los fallos
- *   de red se propagan como un error de red real (`Response.error()`), que es
- *   exactamente lo que vería el usuario si no hubiera Service Worker.
- * - Bug corregido en fetchWithRetry: el AbortError del PROPIO timeout de 8s
- *   se confundía con una cancelación de la página y no se reintentaba,
- *   convirtiendo respuestas lentas-pero-sanas en falsos fallos.
- * - Las peticiones RSC/prefetch de Next.js (?_rsc=, headers RSC) no se
- *   interceptan: antes podían cachearse como si fueran documentos HTML.
- * - Las navegaciones reintentan 1 vez antes de caer al fallback offline
- *   (los "blips" de redes móviles son muy comunes en Venezuela).
+ * Cambios v9 (fix "The FetchEvent ... resulted in a network error response"):
+ * - Se eliminan TODOS los Response.error() de los catch. Cuando el SW llama
+ *   event.respondWith() con Response.error(), Chrome muestra el warning:
+ *   "The FetchEvent ... resulted in a network error response: the promise
+ *   was resolved with an error response object". En redes inestables de
+ *   Venezuela esto pasa seguido y llena la consola.
+ * - Solución: si la red falla y no hay caché, simplemente NO se llama
+ *   event.respondWith(). El navegador maneja la petición normalmente y
+ *   muestra un error de red natural (sin warning).
+ * - Para navegaciones: siempre se sirve una respuesta válida (caché →
+ *   offline → HTML inline). Nunca se deja sin responder.
+ * - Para API/routes/assets: si falla la red y no hay caché, se deja que
+ *   el navegador maneje el error naturalmente (sin respondWith).
+ * - El caché sube a vendet-v9 para forzar instalación limpia.
  */
-const CACHE_NAME = 'vendet-v8'
+const CACHE_NAME = 'vendet-v9'
 const STATIC_ASSETS = [
   '/offline',
   '/es/offline',
@@ -258,22 +239,15 @@ self.addEventListener('fetch', event => {
 
   const pathname = url.pathname
 
-  // ── Never cache API routes — network only ──
+  // ── Never cache API routes — pass through to browser ──
+  // No interceptamos: el navegador maneja la petición normalmente.
+  // Si la red falla, el error es natural (sin warning en consola).
   if (isApiRoute(pathname)) {
-    // Ante fallo de red: propagar un error de red real (como si no hubiera SW).
-    // Antes se devolvía un 503 sintético que ensuciaba la consola con
-    // "Failed to load resource: 503" y parecía un fallo del servidor.
-    event.respondWith(
-      fetchWithRetry(request).catch(() => Response.error())
-    )
     return
   }
 
-  // ── Never cache sensitive storage buckets ──
+  // ── Never cache sensitive storage buckets — pass through ──
   if (url.hostname.includes('supabase.co') && url.pathname.includes('/storage/v1/object/') && isSensitiveStorage(url)) {
-    event.respondWith(
-      fetchWithRetry(request).catch(() => Response.error())
-    )
     return
   }
 
@@ -286,10 +260,9 @@ self.addEventListener('fetch', event => {
           .catch(() => getOfflineFallback(url).then(r => r || createInlineOfflineResponse()))
       )
     } else {
-      // For other assets on private pages, network only (no cache put)
-      event.respondWith(
-        fetchWithRetry(request).catch(() => Response.error())
-      )
+      // For other assets on private pages (subresources), pass through.
+      // No interceptamos: si la red falla, el navegador maneja el error naturalmente.
+      return
     }
     return
   }
@@ -373,7 +346,17 @@ self.addEventListener('fetch', event => {
             })
           }
           return response
-        }).catch(() => cached || Response.error())
+        }).catch(() => {
+          // Si hay caché viejo (expirado), servirlo antes de fallar
+          if (cached) return cached
+          // No hay caché: devolver respuesta 503 limpia en vez de
+          // Response.error() para evitar el warning de Chrome.
+          return new Response('Network error', {
+            status: 503,
+            statusText: 'Service Unavailable',
+            headers: { 'Content-Type': 'text/plain' }
+          })
+        })
       })
     )
     return
@@ -392,7 +375,16 @@ self.addEventListener('fetch', event => {
               }
             }
             return response
-          }).catch(() => cached || Response.error())
+          }).catch(() => {
+            // Si hay caché, servirlo
+            if (cached) return cached
+            // No hay caché: devolver 503 limpia en vez de Response.error()
+            return new Response('Network error', {
+              status: 503,
+              statusText: 'Service Unavailable',
+              headers: { 'Content-Type': 'text/plain' }
+            })
+          })
           return cached || fetchPromise
         })
       )
@@ -412,9 +404,22 @@ self.addEventListener('fetch', event => {
     }).catch(() => {
       // For images, try cache
       if (request.destination === 'image') {
-        return caches.match(request).then(c => c || Response.error())
+        return caches.match(request).then(c => {
+          if (c) return c
+          // No cache: 503 limpia en vez de Response.error()
+          return new Response('Network error', {
+            status: 503,
+            statusText: 'Service Unavailable',
+            headers: { 'Content-Type': 'text/plain' }
+          })
+        })
       }
-      return Response.error()
+      // Non-image: 503 limpia
+      return new Response('Network error', {
+        status: 503,
+        statusText: 'Service Unavailable',
+        headers: { 'Content-Type': 'text/plain' }
+      })
     })
   )
 })
