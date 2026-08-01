@@ -59,6 +59,27 @@ Incluye:
 - Reseñas escritas mediante API después de validar la venta.
 - Protección de la cola de notificaciones push.
 
+### 🐞 Bug detectado: `permission denied for table perfiles` al editar un artículo
+
+**Síntoma:** Al guardar un producto desde `/producto/editar/<id>` aparece
+`Error al guardar: permission denied for table perfiles` y un 403 en el PATCH
+hacia `/rest/v1/productos?id=eq.<id>`.
+
+**Causa raíz:** `202608010001_hardening_integridad.sql` revocó a `authenticated`
+el UPDATE de las columnas de negocio de `perfiles` (`nivel_confianza`,
+`badges_automaticos`, `ultima_actividad`), pero `fn_calcular_reputacion()`
+(migración `012_reputacion.sql`) **no es `SECURITY DEFINER`**. Se dispara desde
+el trigger `trg_calc_reputacion_prod` sobre `productos` al editar (el update
+incluye `activo`), e intenta escribir esas columnas → 403. La migración de
+endurecimiento corrigió el trigger de `perfiles` para que no se reactive solo,
+pero olvidó convertir la función en `SECURITY DEFINER`.
+
+**Fix:** migración `202608010003_fix_reputacion_definer.sql` que convierte
+`fn_calcular_reputacion()` en `SECURITY DEFINER` con `search_path = public`.
+
+**Pendiente de probar en staging antes de producción:** editar un producto
+y confirmar que guarda sin error 403. Añadido a la sección C de pruebas manuales.
+
 ---
 
 ## Cambios ya realizados en código
@@ -150,6 +171,7 @@ producción sin respaldo.
 
 ## C. Editar productos
 
+- [ ] **Editar y guardar un producto no arroja `permission denied for table perfiles` ni 403** (regresión por reputación; requiere migración `202608010003_fix_reputacion_definer.sql` aplicada).
 - [ ] Editar título conserva las especificaciones.
 - [ ] Editar precio conserva las especificaciones.
 - [ ] Editar un producto con varias imágenes conserva todas las imágenes.
