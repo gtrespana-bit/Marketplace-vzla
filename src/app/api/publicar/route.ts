@@ -15,7 +15,11 @@ export async function POST(req: NextRequest) {
     const userId = auth.user.id
 
     const body = await req.json()
-    const { moderacionAlerta, ...productoData } = body
+    // Descartamos userId/user_id del body: el user_id SIEMPRE sale de la
+    // sesión verificada arriba. Si los dejáramos pasar, 'userId' (columna que
+    // no existe en 'productos') se colaría en el INSERT y PostgREST fallaría con
+    // "Could not find the 'userId' column of 'productos' in the schema cache".
+    const { moderacionAlerta, userId: _bodyUserId, user_id: _bodyUserIdSnake, ...productoData } = body
 
     // Validar datos del producto
     const validation = validateProductData({ userId, ...productoData })
