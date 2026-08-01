@@ -52,11 +52,13 @@ export const useProductLoader = (): UseProductLoaderResult => {
         .or('estado_moderacion.is.null,estado_moderacion.eq.aprobado,estado_moderacion.eq.pendiente');
 
       if (filters.categoria) {
+        // maybeSingle(): si la categoría no existe en la tabla, single()
+        // devolvería HTTP 406. Con maybeSingle() son 0 filas y ya está.
         const { data: catRow } = await supabase
           .from('categorias')
           .select('id')
           .eq('nombre', filters.categoria)
-          .single();
+          .maybeSingle();
         if (catRow) {
           query = query.eq('categoria_id', catRow.id);
         }

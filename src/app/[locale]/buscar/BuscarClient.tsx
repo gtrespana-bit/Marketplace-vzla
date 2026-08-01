@@ -167,7 +167,8 @@ export default function BuscarClient({ searchParams: searchParamsPromise }: { se
       }
 
       if (categoria) {
-        const { data: catRow } = await supabase.from('categorias').select('id').eq('nombre', categoria).single()
+        // maybeSingle(): evita el 406 de single() con cero filas.
+        const { data: catRow } = await supabase.from('categorias').select('id').eq('nombre', categoria).maybeSingle()
         if (catRow) sq = sq.eq('categoria_id', catRow.id)
       }
 

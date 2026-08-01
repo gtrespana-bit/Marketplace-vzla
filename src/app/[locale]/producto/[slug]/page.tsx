@@ -32,6 +32,7 @@ const PRODUCT_COLUMNS = `
   subcategoria,
   marca,
   modelo,
+  especificaciones,
   ubicacion_estado,
   ubicacion_ciudad,
   activo,
@@ -45,6 +46,15 @@ const PRODUCT_COLUMNS = `
 `
 
 const PRODUCT_COLUMNS_LEGACY = PRODUCT_COLUMNS.replace(/\n\s*slug,/, '')
+
+// Sin `especificaciones`: para bases donde la migración 025 aún no se aplicó.
+// PostgREST responde 42703 y rechaza el SELECT entero si se pide una columna
+// inexistente, así que hay que poder reintentar sin ella.
+const PRODUCT_COLUMNS_SIN_SPECS = PRODUCT_COLUMNS.replace(/\n\s*especificaciones,/, '')
+const PRODUCT_COLUMNS_LEGACY_SIN_SPECS = PRODUCT_COLUMNS_LEGACY.replace(/\n\s*especificaciones,/, '')
+
+const faltaColumna = (error: any, columna: string) =>
+  !!error && new RegExp(columna, 'i').test(error.message || '')
 
 function queryProducto(column: 'id' | 'slug', value: string, columns: string) {
   return supabase
@@ -69,15 +79,27 @@ async function getProduct(slugOrId: string) {
   if (isUuid(slugOrId)) {
     // URL legacy con UUID
     ;({ data, error } = await queryProducto('id', slugOrId, PRODUCT_COLUMNS))
-    if (error && /slug/i.test(error.message || '')) {
+    if (faltaColumna(error, 'especificaciones')) {
+      ;({ data, error } = await queryProducto('id', slugOrId, PRODUCT_COLUMNS_SIN_SPECS))
+    }
+    if (faltaColumna(error, 'slug')) {
       ;({ data, error } = await queryProducto('id', slugOrId, PRODUCT_COLUMNS_LEGACY))
+      if (faltaColumna(error, 'especificaciones')) {
+        ;({ data, error } = await queryProducto('id', slugOrId, PRODUCT_COLUMNS_LEGACY_SIN_SPECS))
+      }
     }
   } else {
     // URL canónica con slug SEO
     ;({ data, error } = await queryProducto('slug', slugOrId, PRODUCT_COLUMNS))
-    if (error && /slug/i.test(error.message || '')) {
+    if (faltaColumna(error, 'especificaciones')) {
+      ;({ data, error } = await queryProducto('slug', slugOrId, PRODUCT_COLUMNS_SIN_SPECS))
+    }
+    if (faltaColumna(error, 'slug')) {
       // Migración de slugs aún no aplicada en la DB: intenta por id
       ;({ data, error } = await queryProducto('id', slugOrId, PRODUCT_COLUMNS_LEGACY))
+      if (faltaColumna(error, 'especificaciones')) {
+        ;({ data, error } = await queryProducto('id', slugOrId, PRODUCT_COLUMNS_LEGACY_SIN_SPECS))
+      }
     }
   }
 

@@ -142,3 +142,40 @@ export function getMarcaOptions(catKey: string, subLabel: string): string[] {
   const sub = getSubConfig(catKey, subLabel)
   return sub ? sub.marcas : []
 }
+
+/** ¿Es este campo el selector de marca de la subcategoría? */
+export function esCampoMarca(campo: { label: string; type: string }): boolean {
+  return campo.type === 'select' && campo.label.toLowerCase().includes('marca')
+}
+
+/**
+ * Resuelve los campos de una subcategoría dejándolos listos para renderizar.
+ *
+ * Existen dos campos que NO declaran sus `options` en `categoriasData` porque
+ * dependen del contexto y repetirlas en cada subcategoría sería inmantenible:
+ *
+ *  - `Año`: se genera dinámicamente (últimos 30 años).
+ *  - `Marca`: hereda la lista `marcas` de la propia subcategoría.
+ *
+ * El caso de `Marca` era un bug real: las subcategorías de `repuestos`
+ * (Carros y Motos) declaran `{ label: 'Marca', type: 'select' }` SIN options,
+ * así que el <select> del paso 2 se renderizaba vacío y el usuario solo veía
+ * las dos opciones de "otra marca" — imposible elegir la marca del vehículo.
+ */
+export function resolverCampos(sub: CatSub | undefined): CatField[] {
+  if (!sub) return []
+  return sub.campos.map(campo => {
+    const label = campo.label.toLowerCase()
+
+    if (label === 'año' || label === 'ano') {
+      return { ...campo, options: aniosSelect() }
+    }
+
+    // Marca sin options declaradas → hereda las marcas de la subcategoría.
+    if (esCampoMarca(campo) && !campo.options?.length) {
+      return { ...campo, options: [...sub.marcas] }
+    }
+
+    return { ...campo, options: campo.options || [] }
+  })
+}

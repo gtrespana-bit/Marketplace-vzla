@@ -196,19 +196,38 @@ export function validateConversationData(data: any): { valid: boolean; error?: s
   return { valid: true }
 }
 
-// Sanitizar objeto: aplica sanitizeString a todos los strings
-export function sanitizeObject<T extends Record<string, any>>(obj: T): T {
+// Sanitizar objeto: aplica sanitizeString a todos los strings.
+//
+// Recorre también objetos ANIDADOS (p. ej. `especificaciones`, un JSONB con
+// las specs del paso 2, y `metodos_contacto`). Antes los valores anidados se
+// copiaban tal cual, saltándose la sanitización XSS.
+//
+// `depth` acota la recursión por si llega un objeto muy profundo o cíclico.
+export function sanitizeObject<T extends Record<string, any>>(obj: T, depth: number = 4): T {
   const sanitized: any = {}
   for (const [key, value] of Object.entries(obj)) {
-    if (typeof value === 'string') {
-      sanitized[key] = sanitizeString(value)
-    } else if (Array.isArray(value)) {
-      sanitized[key] = value.map(item => 
-        typeof item === 'string' ? sanitizeString(item) : item
-      )
-    } else {
-      sanitized[key] = value
-    }
+    sanitized[key] = sanitizeValue(value, depth)
   }
   return sanitized
+}
+
+function sanitizeValue(value: any, depth: number): any {
+  if (typeof value === 'string') return sanitizeString(value)
+
+  if (Array.isArray(value)) {
+    return depth <= 0 ? [] : value.map(item => sanitizeValue(item, depth - 1))
+  }
+
+  // Objeto plano: sanitizar claves y valores. Se excluyen Date/null y demás
+  // no-planos, que deben pasar intactos.
+  if (value !== null && typeof value === 'object' && value.constructor === Object) {
+    if (depth <= 0) return {}
+    const nested: any = {}
+    for (const [k, v] of Object.entries(value)) {
+      nested[sanitizeString(k, 100)] = sanitizeValue(v, depth - 1)
+    }
+    return nested
+  }
+
+  return value
 }

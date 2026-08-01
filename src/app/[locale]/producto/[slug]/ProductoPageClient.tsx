@@ -221,6 +221,22 @@ function ProductoPageClientInner({ initialProduct }: ProductoPageClientProps) {
               {producto.subcategoria && <span className="bg-gray-100 text-gray-600 px-3 py-1 rounded-full text-sm capitalize">{producto.subcategoria}</span>}
             </div>
             {producto.descripcion && <p className="text-gray-600 whitespace-pre-line leading-relaxed">{producto.descripcion}</p>}
+
+            {/* Especificaciones del paso 2 (Marca, Modelo, Kilometraje, Tipo
+                de repuesto...). Hasta ahora se pedían al publicar pero no se
+                mostraban en ningún sitio. */}
+            {producto.especificaciones && typeof producto.especificaciones === 'object' && Object.keys(producto.especificaciones).length > 0 && (
+              <dl className="mt-5 pt-5 border-t border-gray-100 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2">
+                {Object.entries(producto.especificaciones as Record<string, string>)
+                  .filter(([, v]) => v)
+                  .map(([k, v]) => (
+                    <div key={k} className="flex justify-between gap-3 text-sm py-1">
+                      <dt className="text-gray-500 shrink-0">{k}</dt>
+                      <dd className="font-medium text-gray-900 text-right break-words">{String(v)}</dd>
+                    </div>
+                  ))}
+              </dl>
+            )}
           </div>
           <div className="bg-blue-50 border border-blue-100 rounded-2xl p-6">
             <h3 className="font-bold text-brand-primary mb-3 flex items-center gap-2"><Shield size={18} /> {t('buySafe')}</h3>

@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 import { supabase, isSupabaseConfigured } from '@/lib/supabase'
 import { productUrl } from '@/lib/product-url'
 import { useAuth } from '@/components/AuthProvider'
-import { categoriasData } from '@/lib/categorias'
+import { categoriasData, resolverCampos, esCampoMarca } from '@/lib/categorias'
 import { ESTADOS, getMunicipiosNombres } from '@/lib/ubicaciones'
 import { Camera, X, UploadCloud, AlertCircle, Phone, Mail, MapPin, MessageSquare } from 'lucide-react'
 import { verificarContenido, formatearAlertaModeracion } from '@/lib/moderacion'
@@ -14,8 +14,6 @@ import { emailProductoPublicado } from '@/lib/server-email'
 import { compressImages } from '@/lib/compress-image'
 import { useTranslations } from 'next-intl'
 
-const currentYear = new Date().getFullYear()
-const years = Array.from({ length: 30 }, (_, i) => String(currentYear - i))
 // Condition keys for translation (DB values are Spanish)
 const conditionKeys = [
   { value: 'Nuevo', key: 'conditionNew' },
@@ -121,10 +119,10 @@ export default function PublicarPage() {
   const cat = categoriasData[categoria]
   const sub = cat?.subs.find(s => s.label === subcategoria)
 
-  const camposEspeciales = sub?.campos.map(c => ({
-    ...c,
-    options: (c.label === 'Año' || c.label === 'Ano') ? years : (c.label.toLowerCase().includes('marca') ? [...(c.options || []), 'Otra marca'] : c.options || []),
-  })) || []
+  // Los campos de "Año" y "Marca" resuelven sus opciones dinámicamente
+  // (ver resolverCampos). Antes, un campo Marca sin `options` — como el de
+  // repuestos — quedaba con la lista vacía y solo mostraba "Otra marca".
+  const camposEspeciales = resolverCampos(sub)
 
   const handleCatChange = (val: string) => {
     setCategoria(val); setSubcategoria(''); setMarca(''); setSpecs({})
@@ -270,12 +268,39 @@ export default function PublicarPage() {
         }
       }
 
-      // Get categoria_id
-      const { data: catData } = await supabase
-        .from('categorias')
-        .select('id')
-        .eq('nombre', categoria)
-        .single()
+      // NOTA: el categoria_id ya NO se resuelve aquí.
+      //
+      // Antes este cliente hacía `.eq('nombre', categoria).single()`. Cuando la
+      // categoría no existía en la tabla `categorias` (p. ej. 'repuestos' y
+      // 'materiales', que están en categoriasData pero nunca se insertaron en
+      // la DB), `.single()` con 0 filas hace que PostgREST responda **406** —
+      // el error que aparecía en consola — y el producto se guardaba con
+      // `categoria_id = NULL`, quedando fuera de los filtros por categoría.
+      //
+      // Ahora se envía la CLAVE de la categoría y el servidor la resuelve (y la
+      // crea si falta) con el service role. Ver src/app/api/publicar/route.ts.
+
+      // ── Especificaciones del paso 2 ──
+      // `specs` se recogía y se mostraba en la revisión, pero NUNCA se enviaba:
+      // Marca/Modelo/Tipo de repuesto se perdían al publicar. Ahora se guardan.
+      const limpiarValor = (v: string) => v.replace(/^otra:/, '').trim()
+
+      const especificacionesFinal = Object.fromEntries(
+        Object.entries(specs)
+          .map(([k, v]) => [k, limpiarValor(v)])
+          .filter(([, v]) => v)
+      ) as Record<string, string>
+
+      // La marca específica del paso 2 (p. ej. la marca del vehículo del
+      // repuesto) tiene prioridad sobre la marca genérica del paso 1.
+      const campoMarca = camposEspeciales.find(esCampoMarca)
+      const marcaSpec = campoMarca ? limpiarValor(specs[campoMarca.label] || '') : ''
+      const marcaFinal = marcaSpec || limpiarValor(marca) || null
+
+      // `modelo` es una columna propia de `productos`: si la subcategoría
+      // define un campo Modelo, lo promovemos a esa columna.
+      const campoModelo = camposEspeciales.find(c => c.label.toLowerCase() === 'modelo')
+      const modeloFinal = campoModelo ? limpiarValor(specs[campoModelo.label] || '') || null : null
 
       // Build metodos_contacto JSON
       const metodosContacto: Record<string, any> = {}
@@ -319,9 +344,11 @@ export default function PublicarPage() {
           estado_moderacion: estadoModeracion,
           motivo_moderacion: motivoModeracion,
           descripcion,
-          categoria_id: catData?.id || null,
+          categoria: categoria || null,
           subcategoria,
-          marca: marca.replace('otra:', '').trim() || null,
+          marca: marcaFinal,
+          modelo: modeloFinal,
+          especificaciones: especificacionesFinal,
           estado: estadoProd,
           precio_usd: parseFloat(precioUsd) || null,
           ubicacion_estado: ubicacionEstado,
@@ -535,7 +562,7 @@ export default function PublicarPage() {
                         <select value={esOtra ? 'otra:' : val} onChange={e => handleSpecChange(campo.label, e.target.value === 'otra:' ? '' : e.target.value)} className="w-full border border-gray-300 rounded-lg px-4 py-3 bg-white text-gray-800">
                           <option value="">{campo.placeholder}</option>
                           {campo.options?.map(o => <option key={o} value={o}>{o}</option>)}
-                          {campo.label.toLowerCase().includes('marca') && <option value="otra:">{t('otherBrand')}</option>}
+                          {esCampoMarca(campo) && <option value="otra:">{t('otherBrand')}</option>}
                         </select>
                         {esOtra && (
                           <input

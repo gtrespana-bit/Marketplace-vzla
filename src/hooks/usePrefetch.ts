@@ -40,11 +40,12 @@ export const usePrefetch = () => {
         .or('estado_moderacion.is.null,estado_moderacion.eq.aprobado');
 
       if (filters.categoria) {
+        // maybeSingle(): evita el 406 de single() con cero filas.
         const { data: catRow } = await supabase
           .from('categorias')
           .select('id')
           .eq('nombre', filters.categoria)
-          .single();
+          .maybeSingle();
         if (catRow) {
           query = query.eq('categoria_id', catRow.id);
         }
