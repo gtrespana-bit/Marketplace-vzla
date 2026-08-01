@@ -4,15 +4,13 @@ import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { supabase, isSupabaseConfigured } from '@/lib/supabase'
 import { useAuth } from '@/components/AuthProvider'
-import { categoriasData } from '@/lib/categorias'
+import { categoriasData, resolverCampos } from '@/lib/categorias'
 import { ESTADOS, getMunicipiosNombres } from '@/lib/ubicaciones'
 import { Camera, X, ArrowLeft, Save, AlertCircle, Trash2 } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import Image from 'next/image'
 import { compressImages } from '@/lib/compress-image'
 
-const currentYear = new Date().getFullYear()
-const years = Array.from({ length: 30 }, (_, i) => String(currentYear - i))
 const estadosProducto = ['Nuevo', 'Como nuevo', 'Bueno', 'Usado']
 
 export default function EditarPage() {
@@ -72,7 +70,9 @@ export default function EditarPage() {
       if (user && prod.user_id !== user.id) { setError('No tienes permiso'); setLoading(false); return }
 
       // Find category name
-      const { data: cat } = await supabase.from('categorias').select('nombre').eq('id', prod.categoria_id).single()
+      // maybeSingle(): los productos con categoria_id NULL (publicados con el
+      // bug de la categoría inexistente) devolvían 406 al abrir el editor.
+      const { data: cat } = await supabase.from('categorias').select('nombre').eq('id', prod.categoria_id).maybeSingle()
 
       setTitulo(prod.titulo)
       setDescripcion(prod.descripcion || '')
@@ -100,7 +100,7 @@ export default function EditarPage() {
       // Load specs from categoria
       const catData = categoriasData[cat?.nombre]
       const sub = catData?.subs.find(s => s.label === prod.subcategoria)
-      const campos = sub?.campos?.map((c: any) => ({ ...c, options: c.label === 'Ano' ? years : (c.options || []) })) || []
+      const campos = resolverCampos(sub)
 
       const existingSpecs: Record<string, string> = {}
       campos.forEach((campo: any) => {
@@ -165,7 +165,8 @@ export default function EditarPage() {
       if (showMessenger && contactMessenger) metodosContacto.messenger = contactMessenger
 
       // Get category id
-      const { data: catData } = await supabase.from('categorias').select('id').eq('nombre', categoria).single()
+      // maybeSingle(): evita el 406 de single() con cero filas.
+      const { data: catData } = await supabase.from('categorias').select('id').eq('nombre', categoria).maybeSingle()
 
       // Build updates
       const updates: Record<string, any> = {
@@ -174,6 +175,11 @@ export default function EditarPage() {
         categoria_id: catData?.id || null,
         subcategoria,
         marca: marca || null,
+        // Las specs se cargaban en el formulario pero no se guardaban:
+        // cualquier edición de Marca/Modelo/etc. del bloque de abajo se perdía.
+        especificaciones: Object.fromEntries(
+          Object.entries(specs).map(([k, v]) => [k, (v || '').trim()]).filter(([, v]) => v)
+        ),
         estado: estadoProd,
         precio_usd: parseFloat(precioUsd) || null,
         ubicacion_estado: ubicacionEstado,
@@ -184,7 +190,16 @@ export default function EditarPage() {
         metodos_contacto: Object.keys(metodosContacto).length > 0 ? metodosContacto : null,
       }
 
-      const { error: dbError } = await supabase.from('productos').update(updates).eq('id', productoId)
+      let { error: dbError } = await supabase.from('productos').update(updates).eq('id', productoId)
+
+      // Si la migración 025 aún no se aplicó, la columna `especificaciones` no
+      // existe y PostgREST rechaza el UPDATE entero. Reintentamos sin ella para
+      // no bloquear la edición del resto de campos.
+      if (dbError && /especificaciones/i.test(dbError.message || '')) {
+        console.warn('Columna `especificaciones` ausente — aplica la migración 025.')
+        const { especificaciones: _omitida, ...sinSpecs } = updates
+        ;({ error: dbError } = await supabase.from('productos').update(sinSpecs).eq('id', productoId))
+      }
 
       if (dbError) {
         setError('Error al guardar: ' + dbError.message)
@@ -207,7 +222,9 @@ export default function EditarPage() {
 
   const cat = categoriasData[categoria]
   const sub = cat?.subs.find(s => s.label === subcategoria)
-  const camposEspeciales = sub?.campos?.map((c: any) => ({ ...c, options: c.label === 'Ano' ? years : (c.options || []) })) || []
+  // resolverCampos: Marca hereda las marcas de la subcategoría y Año se genera
+  // solo. (Antes se comparaba con 'Ano', que nunca casa con el label real 'Año'.)
+  const camposEspeciales = resolverCampos(sub)
 
   const handleNewImages = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files

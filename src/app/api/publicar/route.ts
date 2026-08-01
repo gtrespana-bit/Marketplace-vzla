@@ -5,6 +5,49 @@ import { createClient } from '@supabase/supabase-js'
 import { validateProductData, sanitizeObject } from '@/lib/validation'
 import { requireUser } from '@/lib/require-auth'
 
+/**
+ * Devuelve el id de una categoría por nombre, creándola si no existe.
+ *
+ * Nunca lanza: si algo falla, devuelve null y el producto se guarda sin
+ * categoria_id (mejor eso que perder la publicación entera del usuario).
+ */
+async function resolverCategoriaId(
+  // `any`: el proyecto no genera tipos de la DB, así que el cliente es
+  // SupabaseClient<any> y los genéricos por defecto infieren `never`.
+  sb: any,
+  nombre: string
+): Promise<number | null> {
+  try {
+    const { data: existente } = await sb
+      .from('categorias')
+      .select('id')
+      .eq('nombre', nombre)
+      .maybeSingle()
+
+    if (existente?.id != null) return existente.id as number
+
+    // No existe: crearla. `nombre` es UNIQUE, así que ante una carrera entre
+    // dos publicaciones simultáneas el insert falla y releemos la fila ganadora.
+    const { data: creada } = await sb
+      .from('categorias')
+      .insert({ nombre })
+      .select('id')
+      .maybeSingle()
+
+    if (creada?.id != null) return creada.id as number
+
+    const { data: trasCarrera } = await sb
+      .from('categorias')
+      .select('id')
+      .eq('nombre', nombre)
+      .maybeSingle()
+
+    return (trasCarrera?.id as number) ?? null
+  } catch {
+    return null
+  }
+}
+
 export async function POST(req: NextRequest) {
   try {
     // El user_id SIEMPRE sale de la sesión verificada (getUser valida el JWT).
@@ -19,7 +62,17 @@ export async function POST(req: NextRequest) {
     // sesión verificada arriba. Si los dejáramos pasar, 'userId' (columna que
     // no existe en 'productos') se colaría en el INSERT y PostgREST fallaría con
     // "Could not find the 'userId' column of 'productos' in the schema cache".
-    const { moderacionAlerta, userId: _bodyUserId, user_id: _bodyUserIdSnake, ...productoData } = body
+    // `categoria` es la CLAVE de categoriasData ('repuestos', 'vehiculos'...),
+    // no una columna de `productos`: se extrae aquí y se traduce a categoria_id
+    // más abajo. Si se colara en el INSERT, PostgREST fallaría con
+    // "Could not find the 'categoria' column of 'productos'".
+    const {
+      moderacionAlerta,
+      userId: _bodyUserId,
+      user_id: _bodyUserIdSnake,
+      categoria: categoriaKey,
+      ...productoData
+    } = body
 
     // Validar datos del producto
     const validation = validateProductData({ userId, ...productoData })
@@ -40,7 +93,30 @@ export async function POST(req: NextRequest) {
     }
 
     const sb = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
-    const { data, error } = await sb.from('productos').insert({ ...sanitizedData, user_id: userId }).select().single()
+
+    // Resolver categoria_id en el servidor (ver nota en publicar/page.tsx).
+    // Se usa maybeSingle() en vez de single(): 0 filas es un caso esperado y
+    // NO debe devolver 406. Si la categoría no existe todavía en la tabla, se
+    // crea sobre la marcha con el service role — así 'repuestos' y
+    // 'materiales' dejan de guardarse con categoria_id NULL.
+    if (typeof categoriaKey === 'string' && categoriaKey.trim()) {
+      const nombre = categoriaKey.trim().toLowerCase()
+      const categoriaId = await resolverCategoriaId(sb, nombre)
+      if (categoriaId !== null) sanitizedData.categoria_id = categoriaId
+    }
+
+    let { data, error } = await sb.from('productos').insert({ ...sanitizedData, user_id: userId }).select().single()
+
+    // Fallback: si la migración 025 (columna `especificaciones`) todavía no se
+    // ha aplicado en esta base de datos, PostgREST rechaza el INSERT entero con
+    // PGRST204 / "Could not find the 'especificaciones' column". Antes de
+    // perder la publicación del usuario, reintentamos sin ese campo.
+    if (error && /especificaciones/i.test(error.message || '')) {
+      console.warn('Columna `especificaciones` ausente — aplica la migración 025. Reintentando sin ella.')
+      const { especificaciones: _omitida, ...sinSpecs } = sanitizedData
+      ;({ data, error } = await sb.from('productos').insert({ ...sinSpecs, user_id: userId }).select().single())
+    }
+
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
     // Revalidate ISR cache — product appears immediately on home/catalogo
