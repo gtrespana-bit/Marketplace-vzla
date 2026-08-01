@@ -12,7 +12,6 @@ import { Camera, X, UploadCloud, AlertCircle, Phone, Mail, MapPin, MessageSquare
 import { verificarContenido, formatearAlertaModeracion } from '@/lib/moderacion'
 import { emailProductoPublicado } from '@/lib/server-email'
 import { useTranslations } from 'next-intl'
-import Image from 'next/image'
 
 const currentYear = new Date().getFullYear()
 const years = Array.from({ length: 30 }, (_, i) => String(currentYear - i))
@@ -112,7 +111,7 @@ export default function PublicarPage() {
         if (img.preview.startsWith('blob:')) URL.revokeObjectURL(img.preview)
       })
     }
-  }, [imagenes])
+  }, [])
 
   if (authLoading) return <div className="min-h-[60vh] flex items-center justify-center"><p>{t('loading')}</p></div>
   if (!session) return null
@@ -153,10 +152,10 @@ export default function PublicarPage() {
     setImagenes(prev => [...prev, ...newImages])
   }
 
-  const removeImage = (i: number) => {
-    const img = imagenes[i]
-    if (img.preview.startsWith('blob:')) URL.revokeObjectURL(img.preview)
-    setImagenes(prev => prev.filter((_, idx) => idx !== i))
+  const removeImage = (preview: string) => {
+    const img = imagenes.find(i => i.preview === preview)
+    if (img && img.preview.startsWith('blob:')) URL.revokeObjectURL(img.preview)
+    setImagenes(prev => prev.filter(i => i.preview !== preview))
   }
 
   const uploadImages = async (): Promise<string[]> => {
@@ -641,8 +640,8 @@ export default function PublicarPage() {
             <p className="text-sm text-gray-500">{t('photosDesc')}</p>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
               {imagenes.map((img, i) => (
-                <div key={i} className="aspect-square relative rounded-lg overflow-hidden group border border-gray-200">
-                  <Image src={img.preview} alt="" className="w-full h-full object-cover" fill sizes="100px" unoptimized />
+                <div key={img.preview} className="aspect-square relative rounded-lg overflow-hidden group border border-gray-200">
+                  <img src={img.preview} alt="" className="w-full h-full object-cover" />
                   {i === 0 && img.uploadedUrl && <span className="absolute top-1 left-1 bg-brand-accent text-white text-[10px] font-bold px-1.5 py-0.5 rounded">{t('cover')}</span>}
                   {img.uploading && (
                     <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
@@ -655,7 +654,7 @@ export default function PublicarPage() {
                     </div>
                   )}
                   {!img.uploading && (
-                    <button onClick={() => removeImage(i)} className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition">
+                    <button onClick={() => removeImage(img.preview)} className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition">
                       <X size={14} />
                     </button>
                   )}
@@ -703,7 +702,7 @@ export default function PublicarPage() {
           <div className="space-y-5 animate-fadeIn">
             <h2 className="text-xl font-bold text-gray-900">{t('reviewTitle')}</h2>
             <div className="border rounded-lg p-5 space-y-3">
-              {imagenes.length > 0 && <div className="aspect-video bg-gray-100 rounded-lg overflow-hidden"><Image src={imagenes[0].preview} alt="" className="w-full h-full object-cover" fill sizes="300px" unoptimized /></div>}
+              {imagenes.length > 0 && <div className="aspect-square max-h-56 bg-gray-100 rounded-lg overflow-hidden"><img src={imagenes[0].preview} alt="" className="w-full h-full object-cover" /></div>}
               <h3 className="text-lg font-bold text-gray-900">{titulo}</h3>
               <div className="space-y-1 text-sm">
                 <p><span className="text-gray-500">{t('category')}:</span> {categoria} → {subcategoria}</p>
