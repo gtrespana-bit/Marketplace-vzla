@@ -21,6 +21,41 @@ export function AuthProvider({ children, initialUser }: { children: React.ReactN
   const [loading, setLoading] = useState(true)
   const initialized = useRef(false)
   const initPromiseRef = useRef<Promise<void> | null>(null)
+  // Último access token ya sincronizado con las cookies del servidor.
+  // El navegador es el único que rota refresh tokens; tras cada rotación hay
+  // que refrescar las cookies que lee el servidor (SSR / API routes) o se
+  // produce el error `refresh_token_already_used` en los logs de Vercel.
+  const lastSyncedTokenRef = useRef<string | null>(null)
+
+  const syncServerSession = (s: Session | null) => {
+    if (!s?.access_token || !s?.refresh_token) return
+    if (lastSyncedTokenRef.current === s.access_token) return
+    lastSyncedTokenRef.current = s.access_token
+    fetch('/api/auth/session', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ access_token: s.access_token, refresh_token: s.refresh_token }),
+      keepalive: true,
+    })
+      .then((res) => {
+        // 409 = el servidor lo rechazó por estar a punto de expirar; el próximo
+        // TOKEN_REFRESHED traerá uno fresco, así que permitimos reintentar.
+        if (!res.ok && lastSyncedTokenRef.current === s.access_token) {
+          lastSyncedTokenRef.current = null
+        }
+      })
+      .catch(() => {
+        if (lastSyncedTokenRef.current === s.access_token) {
+          lastSyncedTokenRef.current = null
+        }
+      })
+  }
+
+  const clearServerSession = () => {
+    if (!lastSyncedTokenRef.current) return
+    lastSyncedTokenRef.current = null
+    fetch('/api/auth/logout', { method: 'POST', keepalive: true }).catch(() => {})
+  }
 
   useEffect(() => {
     if (initialized.current) return
@@ -50,6 +85,8 @@ export function AuthProvider({ children, initialUser }: { children: React.ReactN
           if (!error && sessionData.session) {
             setSession(sessionData.session)
             setUser(sessionData.session.user)
+            // Alinear las cookies del servidor con la sesión local existente
+            syncServerSession(sessionData.session)
           }
         } catch {
           // Ignore errors
@@ -58,8 +95,16 @@ export function AuthProvider({ children, initialUser }: { children: React.ReactN
         // Listen for auth changes AFTER getting initial session
         const { data } = supabase.auth.onAuthStateChange((event, s) => {
           if (cancelled) return
+          // Mantener las cookies del servidor alineadas con la sesión del
+          // navegador (único dueño del refresh token). Sin esto, el servidor
+          // lee refresh tokens viejos → `refresh_token_already_used`.
+          if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION') {
+            syncServerSession(s)
+          }
           // Fase 3: al cerrar sesión, limpiar caches privadas para evitar fuga en dispositivo compartido
           if (event === 'SIGNED_OUT') {
+            // Borrar también las cookies de sesión del servidor
+            clearServerSession()
             try {
               // Limpiar Cache Storage del SW
               if (typeof window !== 'undefined' && 'caches' in window) {

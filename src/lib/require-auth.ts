@@ -9,8 +9,8 @@
  *
  * Solo usar en server (API routes). No importar desde componentes cliente.
  */
-import { createServerClient } from '@supabase/ssr'
 import { NextRequest, NextResponse } from 'next/server'
+import { getUserFromRequestCookies } from '@/lib/supabase-server'
 
 const DEFAULT_ADMIN_EMAILS = 'gtrespana@gmail.com'
 
@@ -23,40 +23,19 @@ export function getAdminEmails(): string[] {
     .filter(Boolean)
 }
 
-function createSupabaseClient(request: NextRequest) {
-  return createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll()
-        },
-        setAll() {
-          // En Route Handlers las cookies son de solo lectura.
-          // El refresh del token ocurre en el cliente; aquí solo leemos la sesión.
-        },
-      },
-    }
-  )
-}
-
 /**
- * Devuelve el usuario autenticado y verificado (getUser valida el JWT con Supabase)
+ * Devuelve el usuario autenticado y verificado (valida el JWT con Supabase)
  * o null si no hay sesión válida.
+ *
+ * IMPORTANTE: aquí NO se usa `supabase.auth.getUser()` sin jwt porque en
+ * supabase-js, cuando la sesión de la cookie está expirada, dispara un
+ * refresh implícito (`__loadSession` → `_callRefreshToken`) que rota el
+ * refresh token que el navegador ya está usando → error
+ * `refresh_token_already_used` (los [warn] repetidos en los logs de Vercel).
+ * El navegador es el único que refresca; el servidor solo valida.
  */
 export async function getSessionUser(request: NextRequest): Promise<any | null> {
-  try {
-    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-      return null
-    }
-    const supabase = createSupabaseClient(request)
-    const { data, error } = await supabase.auth.getUser()
-    if (error || !data.user) return null
-    return data.user
-  } catch {
-    return null
-  }
+  return getUserFromRequestCookies(request.cookies.getAll())
 }
 
 /** Exige sesión activa. Devuelve { user } o una respuesta 401 lista para retornar. */
