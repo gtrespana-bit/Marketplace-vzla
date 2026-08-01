@@ -29,7 +29,7 @@ export default async function NotFound() {
         </div>
 
         <div className="mt-10 pt-8 border-t border-gray-100">
-          <p className="text-gray-400 text-sm mb-4">{t('publishPrompt')}</p>
+          <p className="text-gray-500 text-sm mb-4">{t('publishPrompt')}</p>
           <LocalLink
             href="/publicar"
             className="inline-flex items-center gap-2 bg-brand-accent text-white px-6 py-3 rounded-lg font-bold hover:bg-accent/90 transition"

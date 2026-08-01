@@ -144,7 +144,7 @@ export default function VerificacionTab({ notify }: { notify: (msg: string) => v
 
       {/* Lista */}
       {solicitudes.length === 0 ? (
-        <div className="text-center py-12 text-gray-400">
+        <div className="text-center py-12 text-gray-500">
           <p className="text-4xl mb-2">{filtro === 'pendiente' ? '✅' : '📋'}</p>
           <p className="font-medium">Sin solicitudes {filtro !== 'todas' ? filtro : ''}</p>
         </div>
@@ -204,8 +204,8 @@ export default function VerificacionTab({ notify }: { notify: (msg: string) => v
                       </div>
                     )}
 
-                    <p className="text-xs text-gray-400 mt-2">
-                      Solicitada: {new Intl.DateTimeFormat('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date(sol.creada_en))}
+                    <p className="text-xs text-gray-500 mt-2">
+                      Solicitada: {new Intl.DateTimeFormat('es-VE', { year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date(sol.creada_en))}
                     </p>
                   </div>
 

@@ -110,7 +110,7 @@ export default async function BlogPage() {
                 </div>
                 <h3 className="text-xl font-bold text-gray-800 group-hover:text-brand-primary transition mb-2">{post.title}</h3>
                 <p className="text-sm text-gray-600 mb-4">{post.excerpt}</p>
-                <div className="flex items-center gap-4 text-xs text-gray-400">
+                <div className="flex items-center gap-4 text-xs text-gray-500">
                   <span className="flex items-center gap-1"><Calendar size={12} /> {post.date}</span>
                   <span className="flex items-center gap-1"><Clock size={12} /> {post.readTime}</span>
                 </div>
@@ -127,7 +127,7 @@ export default async function BlogPage() {
         )}
         {regular.length === 0 && featured.length === 0 && (
           <div className="text-center py-12">
-            <p className="text-gray-400">{t('comingSoon')}</p>
+            <p className="text-gray-500">{t('comingSoon')}</p>
           </div>
         )}
         <div className="grid md:grid-cols-3 gap-6">
@@ -139,7 +139,7 @@ export default async function BlogPage() {
               </div>
               <h3 className="text-lg font-bold text-gray-800 group-hover:text-brand-primary transition mb-2">{post.title}</h3>
               <p className="text-sm text-gray-600 mb-4 line-clamp-3">{post.excerpt}</p>
-              <div className="flex items-center justify-between text-xs text-gray-400">
+              <div className="flex items-center justify-between text-xs text-gray-500">
                 <span className="flex items-center gap-1"><Calendar size={12} /> {post.date}</span>
                 <span className="flex items-center gap-1"><Clock size={12} /> {post.readTime}</span>
               </div>
@@ -155,7 +155,7 @@ export default async function BlogPage() {
       <section className="bg-brand-dark py-12">
         <div className="max-w-4xl mx-auto px-4 text-center">
           <h2 className="text-2xl font-black text-white mb-3">{t('ctaTitle')}</h2>
-          <p className="text-gray-400 mb-6">{t('ctaDesc')}</p>
+          <p className="text-gray-500 mb-6">{t('ctaDesc')}</p>
           <LocalLink href="/publicar" className="inline-flex items-center gap-2 bg-brand-accent text-white px-8 py-3 rounded-xl font-bold text-lg hover:bg-accent/90 transition shadow-lg">
             {t('ctaButton')} <ArrowRight size={20} />
           </LocalLink>

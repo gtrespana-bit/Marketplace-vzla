@@ -407,7 +407,7 @@ export default function EditarPage() {
         <div>
           <label className="block text-sm font-semibold text-gray-900 mb-2">Agregar imágenes</label>
           <label className="flex items-center gap-2 p-4 border-2 border-dashed rounded-lg cursor-pointer hover:border-brand-accent transition">
-            <Camera size={20} className="text-gray-400" />
+            <Camera size={20} className="text-gray-500" />
             <span className="text-sm text-gray-500">Seleccionar fotos...</span>
             <input type="file" accept="image/*" multiple onChange={handleNewImages} className="hidden" />
           </label>

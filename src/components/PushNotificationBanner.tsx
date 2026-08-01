@@ -172,7 +172,7 @@ export default function PushNotificationBanner() {
       <div className="bg-white rounded-2xl shadow-2xl border border-gray-200 p-5 relative">
         <button
           onClick={handleDismiss}
-          className="absolute top-3 right-3 p-1 rounded-full hover:bg-gray-100 text-gray-400 transition"
+          className="absolute top-3 right-3 p-1 rounded-full hover:bg-gray-100 text-gray-500 transition"
         >
           <X size={16} />
         </button>
@@ -201,7 +201,7 @@ export default function PushNotificationBanner() {
               <p className="text-xs text-red-500 mt-2 text-center">{error}</p>
             )}
 
-            <p className="text-[10px] text-gray-400 text-center mt-2">
+            <p className="text-[10px] text-gray-500 text-center mt-2">
               Puedes desactivarlas cuando quieras
             </p>
           </div>

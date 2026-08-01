@@ -117,7 +117,7 @@ export default function VendedorPage() {
       <Star
         key={i}
         size={size}
-        className={i < Math.round(rating) ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}
+        className={i < Math.round(rating) ? 'fill-yellow-400 text-yellow-400' : 'text-gray-500'}
       />
     ))
   }
@@ -214,7 +214,7 @@ export default function VendedorPage() {
               <div key={r.id} className="border rounded-xl p-4">
                 <div className="flex items-center gap-2 mb-2">
                   {estrellasRender(r.puntuacion, 14)}
-                  <span className="text-xs text-gray-400 ml-auto">
+                  <span className="text-xs text-gray-500 ml-auto">
                     {new Date(r.creado_en).toLocaleDateString('es-VE', { day: '2-digit', month: 'short', year: 'numeric' })}
                   </span>
                 </div>
@@ -233,7 +233,7 @@ export default function VendedorPage() {
         </h2>
 
         {productos.length === 0 ? (
-          <div className="bg-white rounded-2xl shadow-sm border p-8 text-center text-gray-400">
+          <div className="bg-white rounded-2xl shadow-sm border p-8 text-center text-gray-500">
             <ShoppingBag size={40} className="mx-auto mb-2" />
             <p>{t('noListings')}</p>
           </div>
@@ -245,7 +245,7 @@ export default function VendedorPage() {
                   {p.imagen_url ? (
                     <Image src={p.imagen_url} alt={p.titulo} width={400} height={400} sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw" className="w-full h-full object-cover group-hover:scale-105 transition duration-300" loading="lazy" decoding="async" />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center text-gray-400 text-sm">{t('noPhoto')}</div>
+                    <div className="w-full h-full flex items-center justify-center text-gray-500 text-sm">{t('noPhoto')}</div>
                   )}
                 </div>
                 <div className="p-3">

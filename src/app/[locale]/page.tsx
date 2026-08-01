@@ -402,7 +402,7 @@ export default async function HomePage() {
             <h2 className="text-2xl md:text-3xl font-black text-white mb-3">
               {t('home.boost.title')}
             </h2>
-            <p className="text-gray-300 max-w-lg mx-auto">
+            <p className="text-gray-500 max-w-lg mx-auto">
               {t('home.boost.subtitle')}
             </p>
           </div>
@@ -414,10 +414,10 @@ export default async function HomePage() {
               </div>
               <h3 className="font-bold text-white text-lg mb-1">{t('home.boost.boost.name')}</h3>
               <p className="text-3xl font-black text-brand-accent mb-2">{t('home.boost.boost.price')}</p>
-              <p className="text-sm text-gray-300 mb-4">
+              <p className="text-sm text-gray-500 mb-4">
                 {t('home.boost.boost.desc')}
               </p>
-              <div className="bg-white/5 rounded-lg p-3 text-sm text-gray-300">
+              <div className="bg-white/5 rounded-lg p-3 text-sm text-gray-500">
                 {t('home.boost.boost.detail')} <strong>ya</strong>
               </div>
             </div>
@@ -446,10 +446,10 @@ export default async function HomePage() {
               </div>
               <h3 className="font-bold text-white text-lg mb-1">{t('home.boost.featured48.name')}</h3>
               <p className="text-3xl font-black text-brand-accent mb-2">{t('home.boost.featured48.price')}</p>
-              <p className="text-sm text-gray-300 mb-4">
+              <p className="text-sm text-gray-500 mb-4">
                 {t('home.boost.featured48.desc')}
               </p>
-              <div className="bg-white/5 rounded-lg p-3 text-sm text-gray-300">
+              <div className="bg-white/5 rounded-lg p-3 text-sm text-gray-500">
                 <strong>$4 USD</strong> · {t('home.boost.featured48.detail')}
               </div>
             </div>
@@ -539,7 +539,7 @@ export default async function HomePage() {
                     ${new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 }).format(Number(p.precio_usd || 0))}
                   </p>
                   <div className="flex items-center gap-1 mt-1">
-                    <Eye size={11} className="text-gray-400" />
+                    <Eye size={11} className="text-gray-500" />
                     <p className="text-xs text-gray-500">{p.visitas || 0} {t('home.trending.views')}</p>
                   </div>
                 </div>

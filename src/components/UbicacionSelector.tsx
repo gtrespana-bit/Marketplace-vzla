@@ -51,7 +51,7 @@ export default function UbicacionSelector({ estado, ciudad, onChange, showCapita
             value={ciudad}
             onChange={(e) => { onChange(estado, e.target.value) }}
             disabled={!estado}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-800 bg-white focus:outline-none focus:ring-2 focus:ring-brand-accent disabled:bg-gray-100 disabled:text-gray-400"
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-800 bg-white focus:outline-none focus:ring-2 focus:ring-brand-accent disabled:bg-gray-100 disabled:text-gray-500"
           >
             <option value="">Todos los municipios</option>
             {municipios.map((m) => (
@@ -62,7 +62,7 @@ export default function UbicacionSelector({ estado, ciudad, onChange, showCapita
             ))}
           </select>
           {capitalSeleccionada && (
-            <p className="text-xs text-gray-400 mt-1">Capital: {capitalSeleccionada}</p>
+            <p className="text-xs text-gray-500 mt-1">Capital: {capitalSeleccionada}</p>
           )}
         </div>
 

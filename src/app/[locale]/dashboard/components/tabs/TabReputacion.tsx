@@ -36,7 +36,7 @@ export default function TabReputacion({
       <Star
         key={i}
         size={size}
-        className={i < Math.round(rating) ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}
+        className={i < Math.round(rating) ? 'fill-yellow-400 text-yellow-400' : 'text-gray-500'}
       />
     ))
   }
@@ -80,7 +80,7 @@ export default function TabReputacion({
                     {estrellasRender(r.puntuacion, 14)}
                     <span className="text-sm font-medium ml-2">{r.puntuacion}/5</span>
                   </div>
-                  <span className="text-xs text-gray-400">
+                  <span className="text-xs text-gray-500">
                     {new Date(r.creado_en).toLocaleDateString('es-VE', { day: '2-digit', month: 'short', year: 'numeric' })}
                   </span>
                 </div>

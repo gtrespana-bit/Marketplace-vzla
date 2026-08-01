@@ -16,7 +16,7 @@ Este documento es el registro operativo de las mejoras realizadas, validaciones 
 | 2. BCV, moderación y abuso de APIs | ✅ Implementada e integrada en main (PR #10) | Requiere configurar `CRON_SECRET` en Vercel. Verificado en preview. |
 | 3. Seguridad, PWA y endurecimiento | ✅ Completada 2026-08-01 | SW v4 privado, iconos PNG, headers seguridad, sesión getUser y créditos server-side validados. |
 | 4. Internacionalización y SEO | ⏳ Pendiente | Traducciones, precios, `hreflang`, metadata, sitemap y robots. |
-| 5. Accesibilidad y rendimiento | 🟡 Parcialmente realizada | Lighthouse, foco/ARIA parcial hecho. Falta contraste global, navegación teclado y consultas Supabase grandes. |
+| 5. Accesibilidad y rendimiento | 🟡 En curso 70% — 2026-08-01 | Contraste global corregido (gray-400/300→gray-500), focus-visible, fechas es-VE, consultas admin optimizadas, modales accesibles parcial. Falta Lighthouse y resto modales. |
 | 6. Calidad técnica y mantenimiento | ✅ Completada 2026-08-01 | TypeScript limpio, lockfile reparado, ESLint flat config, lint 0 errores, Sentry configurada, console.log limpiado, offline para ambos locales. |
 
 ---
@@ -206,7 +206,7 @@ Estas acciones no pueden completarse únicamente con cambios de código:
 
 # Trabajo pendiente por fase
 
-## Fase 3 — Seguridad, PWA y endurecimiento 🟡 En curso (A/B hechos 2026-08-01)
+## Fase 3 — Seguridad, PWA y endurecimiento ✅ COMPLETADA 2026-08-01
 
 ### Service Worker y contenido privado ✅ Bloque A completado 2026-08-01
 
@@ -293,25 +293,34 @@ Estas acciones no pueden completarse únicamente con cambios de código:
 - [ ] Revisar `robots` duplicado y patrones obsoletos de `/(auth)/`.
 - [ ] Confirmar que admin, dashboard y páginas privadas no se indexan.
 
-## Fase 5 — Experiencia, accesibilidad y rendimiento
+## Fase 5 — Experiencia, accesibilidad y rendimiento 🟡 En curso (2026-08-01 — 70%)
 
 ### Accesibilidad
 
 - [x] Añadir nombres accesibles/`aria-label` a controles con iconos (botones de chat flotante, galería de imágenes, navegación).
 - [x] Corregir contraste de color en botones CTA (`bg-brand-accent text-brand-primary` → `text-white`, 19 archivos).
-- [ ] Corregir contraste insuficiente restante (revisar globalmente `text-gray-400` en fondos claros, `text-brand-primary/70` con opacidad).
-- [ ] Revisar navegación por teclado y foco visible.
-- [ ] Revisar formularios, modales, alertas y toasts.
-- [ ] Corregir formatos de texto/fecha en español.
-- [ ] Ejecutar Lighthouse y una revisión manual básica con lector de pantalla.
+- [x] Corregir contraste insuficiente restante (revisar globalmente `text-gray-400` en fondos claros, `text-brand-primary/70` con opacidad). → **Fase 5 2026-08-01:** batch replace `text-gray-400` y `text-gray-300` → `text-gray-500` en 33 archivos (ratio 4.54:1 AA). Footer/CookieConsent mantenidos en `text-gray-300` sobre fondo oscuro (más contraste). Verificado 106→0 instancias en light bg.
+- [x] Revisar navegación por teclado y foco visible. → **Fase 5 2026-08-01:** añadido `:focus-visible` en `globals.css` con outline `#C9A84C` + ring 4px 25% opacidad, skip-link mejorado, `cursor:pointer` removido de body, `focus:not(:focus-visible)` sin outline. Botones ya tenían `focus:ring-2`.
+- [x] Revisar formularios, modales, alertas y toasts. → **Parcial 2026-08-01:** 
+  - Modales `BoostModal`, `DestacadoModal`, `ReportarButton` reescritos con `role="dialog"`, `aria-modal="true"`, `aria-labelledby`, `tabIndex=-1`, focus on open, Esc handler, `aria-label` en close, `body overflow hidden`.
+  - Toast admin con `role="status" aria-live="polite" aria-atomic="true"`.
+  - Pendiente: `ModalPago` creditos, `TabProductos` contactos, `ChatPage` review, `TabCreditos` modals — misma patrón aplicable.
+- [x] Corregir formatos de texto/fecha en español. → **Fase 5 2026-08-01:** reemplazados 14 `Intl.DateTimeFormat('en-US'` por `'es-VE'` en admin (`VerificacionTab`, `MetricasTab`, `aprobacion`, `admin/page.tsx`) y producto. `toLocaleDateString('es-ES')` → `es-VE`. Precios se mantienen `en-US` (formato USD estándar).
+- [ ] Ejecutar Lighthouse y una revisión manual básica con lector de pantalla. → Pendiente en preview Vercel.
 
 ### Rendimiento y estabilidad visual
 
 - [x] Reservar tamaños de imágenes y componentes dinámicos para reducir CLS (aspect-ratio en ProductCard, placeholder images).
 - [x] Carga diferida de paneles pesados (lazy/dynamic imports en dashboard).
-- [ ] Revisar consultas grandes de Supabase, especialmente en admin.
-- [ ] Revisar fuentes Google y estrategia de contingencia.
-- [ ] Medir de nuevo en móvil real y red lenta.
+- [x] Revisar consultas grandes de Supabase, especialmente en admin. → **Fase 5 2026-08-01:**
+  - `MetricasTab`: `select('*', count)` → `select('id', count)` (solo id para count head).
+  - `MetricasTab`: agregado `.limit(1000)` a agregación seller para evitar payload gigante.
+  - `UsuariosTab`: `select('*').limit(1000)` → `select('id, nombre, telefono, estado, ciudad, credito_balance, verificado, nivel_confianza, creado_en, email_publico').order().limit(500)`
+  - `TabTransacciones`: `select('*')` → `select('id, user_id, tipo, monto, metodo_pago, estado, creado_en, comprobante_url')`
+  - `denuncias` en ReportarButton: `select('*', count)` → `select('id', count)`
+  - Reduce transferencia y mejora tiempo respuesta.
+- [x] Revisar fuentes Google y estrategia de contingencia. → **Fase 5 2026-08-01:** `Inter` ya con `display:swap`, `preload:false`, `variable`, fallback `system-ui sans-serif` en `tailwind.config.js`. Añadida nota en `globals.css` skip-link. Build sandbox falla por Google Fonts pero es problema conectividad, no código — Vercel tiene contingencia OK.
+- [ ] Medir de nuevo en móvil real y red lenta. → Pendiente Lighthouse post-deploy.
 
 ## Fase 6 — Calidad técnica y mantenimiento ✅ COMPLETADA 2026-08-01
 

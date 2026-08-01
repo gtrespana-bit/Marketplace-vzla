@@ -22,7 +22,48 @@ body {
   background: var(--background);
   -webkit-tap-highlight-color: transparent;
   -webkit-touch-callout: none;
-  cursor: pointer;
+  cursor: auto;
+}
+
+/* ===== FOCUS VISIBLE - Accesibilidad Fase 5 ===== */
+:focus-visible {
+  outline: 2px solid #C9A84C;
+  outline-offset: 2px;
+}
+
+button:focus-visible,
+a:focus-visible,
+[role="button"]:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid #C9A84C;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(201, 168, 76, 0.25);
+}
+
+/* Focus visible para tarjetas clicables */
+.card-hover:focus-visible,
+button:focus-visible,
+a:focus-visible {
+  border-radius: 8px;
+}
+
+/* Evitar outline en mouse click, solo teclado */
+:focus:not(:focus-visible) {
+  outline: none;
+  box-shadow: none;
+}
+
+/* Skip link accesible */
+.sr-only:focus {
+  position: absolute;
+  width: auto;
+  height: auto;
+  padding: 0.5rem 1rem;
+  overflow: visible;
+  clip: auto;
+  white-space: normal;
 }
 
 /* ===== MOBILE APP-LIKE BEHAVIOR ===== */

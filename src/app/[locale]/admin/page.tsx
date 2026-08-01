@@ -42,10 +42,11 @@ function MetricasTab() {
 
   useEffect(() => {
     async function load() {
+      // Fase 5: consultas optimizadas - solo id para count, no *
       const [{ count: totalUsuarios }, { count: totalProductos }, { count: activos }] = await Promise.all([
-        supabase.from('perfiles').select('*', { count: 'exact', head: true }),
-        supabase.from('productos').select('*', { count: 'exact', head: true }),
-        supabase.from('productos').select('*', { count: 'exact', head: true }).eq('activo', true),
+        supabase.from('perfiles').select('id', { count: 'exact', head: true }),
+        supabase.from('productos').select('id', { count: 'exact', head: true }),
+        supabase.from('productos').select('id', { count: 'exact', head: true }).eq('activo', true),
       ])
 
       const { data: trans } = await supabase
@@ -69,7 +70,7 @@ function MetricasTab() {
     load()
   }, [])
 
-  if (cargando) return <div className="text-center py-12 text-gray-400">Cargando métricas...</div>
+  if (cargando) return <div className="text-center py-12 text-gray-500">Cargando métricas...</div>
 
   const cards = [
     { label: 'Usuarios', value: stats.totalUsuarios, icon: Users, color: 'bg-blue-50 text-blue-600' },
@@ -112,10 +113,12 @@ function UsuariosTab({ notify }: Notifier) {
 
   useEffect(() => {
     async function load() {
+      // Fase 5: solo columnas necesarias en admin (no *)
       const { data } = await supabase
         .from('perfiles')
-        .select('*')
-        .limit(1000)
+        .select('id, nombre, telefono, estado, ciudad, credito_balance, verificado, nivel_confianza, creado_en, email_publico')
+        .order('creado_en', { ascending: false })
+        .limit(500)
       if (data) setUsuarios(data)
       setCargando(false)
     }
@@ -149,7 +152,7 @@ function UsuariosTab({ notify }: Notifier) {
   }
 
   const SortIcon = ({ field }: { field: SortField }) => {
-    if (sortBy !== field) return <SortAsc size={14} className="text-gray-300" />
+    if (sortBy !== field) return <SortAsc size={14} className="text-gray-500" />
     return sortDir === 'asc' ? <SortAsc size={14} className="text-brand-primary" /> : <SortDesc size={14} className="text-brand-primary" />
   }
 
@@ -211,14 +214,14 @@ function UsuariosTab({ notify }: Notifier) {
     setUsuarios(prev => prev.map(u => u.id === userId ? { ...u, verificado: estado } : u))
   }
 
-  if (cargando) return <div className="text-center py-12 text-gray-400">Cargando usuarios...</div>
+  if (cargando) return <div className="text-center py-12 text-gray-500">Cargando usuarios...</div>
 
   return (
     <div className="space-y-4">
       {/* Buscador + filtros */}
       <div className="flex gap-2">
         <div className="relative flex-1">
-          <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+          <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
           <input value={busqueda} onChange={e => setBusqueda(e.target.value)}
             placeholder="Nombre, email, teléfono, ciudad..."
             className="w-full border rounded-xl pl-10 pr-4 py-2.5 text-sm" />
@@ -284,7 +287,7 @@ function UsuariosTab({ notify }: Notifier) {
                       {u.verificado ? 'Sí' : 'No'}
                     </button>
                   </td>
-                  <td className="py-3 px-4 text-center text-gray-400 text-xs hidden lg:table-cell">{u.creado_en ? new Intl.DateTimeFormat('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date(u.creado_en)) : '—'}</td>
+                  <td className="py-3 px-4 text-center text-gray-500 text-xs hidden lg:table-cell">{u.creado_en ? new Intl.DateTimeFormat('es-VE', { year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date(u.creado_en)) : '—'}</td>
                   <td className="py-3 px-4 text-center">
                     <div className="flex items-center justify-center gap-1">
                       <button onClick={() => { setCreditModal(u.id); setCreditCantidad(''); setCreditMotivo('') }}
@@ -458,14 +461,14 @@ function PublicacionesTab({ notify }: Notifier) {
     { id: 'pendientes' as const, label: `Pendientes (${publicaciones.filter(p => p.estado_moderacion === 'pendiente').length})` },
   ]
 
-  if (cargando) return <div className="text-center py-12 text-gray-400">Cargando...</div>
+  if (cargando) return <div className="text-center py-12 text-gray-500">Cargando...</div>
 
   return (
     <div className="space-y-4">
       {/* Buscador + filtros */}
       <div className="flex gap-2 flex-wrap">
         <div className="relative flex-1 min-w-[200px]">
-          <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+          <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
           <input value={busqueda} onChange={e => setBusqueda(e.target.value)}
             placeholder="Buscar por título, ciudad..."
             className="w-full border rounded-xl pl-10 pr-4 py-2.5 text-sm" />
@@ -510,7 +513,7 @@ function PublicacionesTab({ notify }: Notifier) {
               <LocalLink href={`/producto/${p.id}`} className="w-20 h-20 rounded-lg bg-gray-100 flex-shrink-0 overflow-hidden relative block">
                 {p.imagen_url ? (
                   <Image src={p.imagen_url} alt="" className="object-cover" fill sizes="80px" />
-                ) : <div className="w-full h-full flex items-center justify-center text-gray-300 text-2xl">📦</div>}
+                ) : <div className="w-full h-full flex items-center justify-center text-gray-500 text-2xl">📦</div>}
               </LocalLink>
 
               {/* Info */}
@@ -523,7 +526,7 @@ function PublicacionesTab({ notify }: Notifier) {
                   {p.estado_moderacion === 'pendiente' && <span className="text-[10px] bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full">Pendiente</span>}
                 </div>
                 <p className="text-sm text-brand-primary font-bold mt-0.5">${new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 }).format(Number(p.precio_usd || 0))}</p>
-                <p className="text-xs text-gray-400">👀 {p.visitas || 0} · 📍 {p.ubicacion_ciudad || 'VE'} · {new Intl.DateTimeFormat('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date(p.creado_en))}</p>
+                <p className="text-xs text-gray-500">👀 {p.visitas || 0} · 📍 {p.ubicacion_ciudad || 'VE'} · {new Intl.DateTimeFormat('es-VE', { year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date(p.creado_en))}</p>
               </div>
 
               {/* Acciones */}
@@ -553,7 +556,7 @@ function PublicacionesTab({ notify }: Notifier) {
             </div>
           </div>
         ))}
-        {filtradas.length === 0 && <div className="text-center py-12 text-gray-400">No hay publicaciones</div>}
+        {filtradas.length === 0 && <div className="text-center py-12 text-gray-500">No hay publicaciones</div>}
       </div>
     </div>
   )
@@ -566,9 +569,10 @@ function TabTransacciones({ perfiles, notify }: { perfiles: Record<string, any>;
   const [procesando, setProcesando] = useState<string | null>(null)
 
   async function cargar() {
+    // Fase 5: optimizar query transacciones (solo columnas necesarias)
     const { data: trans }: any = await supabase
       .from('transacciones_creditos')
-      .select('*')
+      .select('id, user_id, tipo, monto, metodo_pago, estado, creado_en, comprobante_url')
       .eq('tipo', 'compra')
       .order('creado_en', { ascending: false })
       .limit(50)
@@ -661,7 +665,7 @@ Transacción procesada correctamente.`
                         <p>👤 <strong>{perfil.nombre || 'Sin nombre'}</strong></p>
                         {perfil.telefono && <p>📱 {perfil.telefono}</p>}
                         <p>💳 Método: <strong>{t.metodo_pago}</strong></p>
-                        <p>📅 {new Intl.DateTimeFormat('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date(t.creado_en))}</p>
+                        <p>📅 {new Intl.DateTimeFormat('es-VE', { year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date(t.creado_en))}</p>
                       </div>
                       {t.comprobante_url && (
                         <a href={t.comprobante_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-sm text-brand-primary hover:underline">
@@ -718,7 +722,7 @@ Transacción procesada correctamente.`
                           {t.estado}
                         </span>
                       </td>
-                      <td className="py-3 px-4 text-center text-gray-500">{new Intl.DateTimeFormat('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date(t.creado_en))}</td>
+                      <td className="py-3 px-4 text-center text-gray-500">{new Intl.DateTimeFormat('es-VE', { year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date(t.creado_en))}</td>
                     </tr>
                   )
                 })}
@@ -769,7 +773,7 @@ function TabAnuncios({ notify }: { notify: (m: string) => void }) {
         {anunciosGuardados.map((a, i) => (
           <div key={i} className="bg-gray-50 rounded-xl p-4 mb-3">
             <p className="text-sm text-gray-800">{a.texto}</p>
-            <p className="text-xs text-gray-400 mt-1">{a.fecha}</p>
+            <p className="text-xs text-gray-500 mt-1">{a.fecha}</p>
           </div>
         ))}
       </div>
@@ -803,7 +807,7 @@ function TabCategorias({ notify }: { notify: (m: string) => void }) {
     if (data) setCategorias(data)
   }
 
-  if (cargando) return <div className="text-center py-12 text-gray-400">Cargando...</div>
+  if (cargando) return <div className="text-center py-12 text-gray-500">Cargando...</div>
 
   return (
     <div className="space-y-6">
@@ -813,7 +817,7 @@ function TabCategorias({ notify }: { notify: (m: string) => void }) {
           {categorias.map((c) => (
             <div key={c.id} className="bg-gray-50 rounded-xl p-4 text-center">
               <p className="font-bold text-gray-800 capitalize">{c.nombre}</p>
-              <p className="text-xs text-gray-400">ID: {c.id}</p>
+              <p className="text-xs text-gray-500">ID: {c.id}</p>
             </div>
           ))}
         </div>
@@ -902,19 +906,19 @@ function TabExportar() {
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <button onClick={exportarProductos} disabled={exportando} className="bg-white border-2 border-gray-200 rounded-xl p-5 text-center hover:border-brand-primary transition disabled:opacity-50">
-            <Package size={24} className="mx-auto mb-2 text-gray-400" />
+            <Package size={24} className="mx-auto mb-2 text-gray-500" />
             <p className="font-bold text-gray-800">Productos</p>
-            <p className="text-xs text-gray-400">Todas las publicaciones</p>
+            <p className="text-xs text-gray-500">Todas las publicaciones</p>
           </button>
           <button onClick={exportarUsuarios} disabled={exportando} className="bg-white border-2 border-gray-200 rounded-xl p-5 text-center hover:border-brand-primary transition disabled:opacity-50">
-            <Users size={24} className="mx-auto mb-2 text-gray-400" />
+            <Users size={24} className="mx-auto mb-2 text-gray-500" />
             <p className="font-bold text-gray-800">Usuarios</p>
-            <p className="text-xs text-gray-400">Perfiles registrados</p>
+            <p className="text-xs text-gray-500">Perfiles registrados</p>
           </button>
           <button onClick={exportarTransacciones} disabled={exportando} className="bg-white border-2 border-gray-200 rounded-xl p-5 text-center hover:border-brand-primary transition disabled:opacity-50">
-            <CreditCard size={24} className="mx-auto mb-2 text-gray-400" />
+            <CreditCard size={24} className="mx-auto mb-2 text-gray-500" />
             <p className="font-bold text-gray-800">Transacciones</p>
-            <p className="text-xs text-gray-400">Pagos y créditos</p>
+            <p className="text-xs text-gray-500">Pagos y créditos</p>
           </button>
         </div>
       </div>
@@ -1007,7 +1011,7 @@ function ModeracionTab({ notify, adminEmail }: { notify: (msg: string) => void; 
       {tabM === 'denuncias' && (
         <div className="bg-white rounded-xl border border-gray-100">
           {denuncias.length === 0 ? (
-            <div className="text-center py-12 text-gray-400">
+            <div className="text-center py-12 text-gray-500">
               <p className="text-4xl mb-2">✅</p>
               <p className="font-medium">Sin denuncias activas</p>
             </div>
@@ -1020,7 +1024,7 @@ function ModeracionTab({ notify, adminEmail }: { notify: (msg: string) => void; 
                       <p className="font-semibold text-sm">{d.producto?.titulo || 'N/A'}</p>
                       <div className="flex gap-2 mt-1">
                         <span className="text-xs bg-gray-100 px-2 py-0.5 rounded">{d.motivo}</span>
-                        <span className="text-xs text-gray-400">{new Intl.DateTimeFormat('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date(d.creada_en))} — {d.reportante?.nombre || 'Desconocido'}</span>
+                        <span className="text-xs text-gray-500">{new Intl.DateTimeFormat('es-VE', { year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date(d.creada_en))} — {d.reportante?.nombre || 'Desconocido'}</span>
                       </div>
                       {d.descripcion && <p className="text-xs text-gray-500 mt-1">{d.descripcion}</p>}
                     </div>
@@ -1040,7 +1044,7 @@ function ModeracionTab({ notify, adminEmail }: { notify: (msg: string) => void; 
       {tabM === 'pendientes' && (
         <div className="bg-white rounded-xl border border-gray-100">
           {productosPendientes.length === 0 ? (
-            <div className="text-center py-12 text-gray-400">
+            <div className="text-center py-12 text-gray-500">
               <p className="text-4xl mb-2">✅</p>
               <p className="font-medium">Sin productos pendientes</p>
             </div>
@@ -1055,7 +1059,7 @@ function ModeracionTab({ notify, adminEmail }: { notify: (msg: string) => void; 
                         <p className="font-semibold">{p.titulo}</p>
                         {p.precio_usd && <p className="text-brand-primary font-bold">${new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 }).format(Number(p.precio_usd))}</p>}
                         {p.motivo_moderacion && <p className="text-xs text-orange-600 mt-1">⚠️ {p.motivo_moderacion}</p>}
-                        <span className="text-xs text-gray-400">{new Intl.DateTimeFormat('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date(p.creado_en))}</span>
+                        <span className="text-xs text-gray-500">{new Intl.DateTimeFormat('es-VE', { year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date(p.creado_en))}</span>
                       </div>
                     </div>
                     <div className="flex gap-1.5">
@@ -1159,7 +1163,12 @@ export default function AdminPage() {
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
       {toast && (
-        <div className="fixed top-4 right-4 z-50 bg-gray-900 text-white px-6 py-3 rounded-xl shadow-2xl text-sm font-medium">
+        <div
+          role="status"
+          aria-live="polite"
+          aria-atomic="true"
+          className="fixed top-4 right-4 z-50 bg-gray-900 text-white px-6 py-3 rounded-xl shadow-2xl text-sm font-medium"
+        >
           {toast}
         </div>
       )}

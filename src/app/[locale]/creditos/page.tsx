@@ -150,7 +150,7 @@ function ModalPago({ paquete, tasa, onClose }: { paquete: any; tasa: number; onC
                   {copiado === 'precioBs' ? '✓' : t('copy')}
                 </button>
               </div>
-              <p className="text-xs text-gray-400 mt-1 text-center">{t('rateLabel')} Bs. {tasa.toFixed(2)} / ${paquete.precio}</p>
+              <p className="text-xs text-gray-500 mt-1 text-center">{t('rateLabel')} Bs. {tasa.toFixed(2)} / ${paquete.precio}</p>
             </div>
           )}
 
@@ -191,9 +191,9 @@ function ModalPago({ paquete, tasa, onClose }: { paquete: any; tasa: number; onC
                   </div>
                 ) : (
                   <>
-                    <Upload size={32} className="mx-auto text-gray-400 mb-2" />
+                    <Upload size={32} className="mx-auto text-gray-500 mb-2" />
                     <p className="text-sm text-gray-500">{t('tapUpload')}</p>
-                    <p className="text-xs text-gray-400 mt-1">{t('maxFile')}</p>
+                    <p className="text-xs text-gray-500 mt-1">{t('maxFile')}</p>
                   </>
                 )}
               </div>
@@ -205,7 +205,7 @@ function ModalPago({ paquete, tasa, onClose }: { paquete: any; tasa: number; onC
           )}
 
           {!metodo && (
-            <div className="text-center py-4 text-sm text-gray-400">
+            <div className="text-center py-4 text-sm text-gray-500">
               {t('selectPayment')}
             </div>
           )}
@@ -268,7 +268,7 @@ export default function CreditosPage() {
       <div className="mb-8">
         <h2 className="text-2xl font-bold text-gray-800 mb-2 text-center">{t('choosePackage')}</h2>
         {tasaCargando ? (
-          <p className="text-center text-sm text-gray-400 mb-4 animate-pulse">{t('loadingRate')}</p>
+          <p className="text-center text-sm text-gray-500 mb-4 animate-pulse">{t('loadingRate')}</p>
         ) : (
           <p className="text-center text-sm text-gray-500 mb-4">{t('rateLabel')} <span className="font-bold text-brand-primary">Bs. {tasa.toFixed(2)} por $</span>{tasaFuente === 'fallback' && <span className="ml-2 text-amber-700">(tasa de contingencia)</span>}</p>
         )}
@@ -286,7 +286,7 @@ export default function CreditosPage() {
                 </div>
                 <div className="p-6 text-center">
                   <p className="text-3xl font-black text-gray-800 mb-1">${pkg.precio} <span className="text-sm font-normal text-gray-500">USD</span></p>
-                  <p className="text-sm text-gray-400 mb-4">≈ Bs. {precioBs}</p>
+                  <p className="text-sm text-gray-500 mb-4">≈ Bs. {precioBs}</p>
                   <p className="text-xs text-gray-500 mb-5 bg-gray-50 rounded-lg py-1 px-2 inline-block">${porCredito} {t('perCredit')}</p>
                   <ul className="text-sm text-gray-600 space-y-2 mb-6 text-left">
                     <li className="flex items-center gap-2"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /><strong>{pkg.creditos}</strong> {t('boosts')}</li>
@@ -313,7 +313,7 @@ export default function CreditosPage() {
             <div key={m.nombre} className={`rounded-xl p-4 text-center ${m.ok ? 'bg-gray-50' : 'bg-gray-50 opacity-50'}`}>
               <span className="text-3xl block mb-2">{m.emoji}</span>
               <p className="text-sm font-medium text-gray-800">{m.nombre}</p>
-              {!m.ok && <p className="text-[10px] text-gray-400 mt-1">{t('notOperational')}</p>}
+              {!m.ok && <p className="text-[10px] text-gray-500 mt-1">{t('notOperational')}</p>}
             </div>
           ))}
         </div>

@@ -53,11 +53,11 @@ export default function BottomTabNav() {
                 <div className="flex flex-col items-center">
                   <Icon
                     size={22}
-                    className={isActive ? 'text-brand-primary' : 'text-gray-400'}
+                    className={isActive ? 'text-brand-primary' : 'text-gray-500'}
                   />
                   <span
                     className={`text-[10px] mt-0.5 font-medium ${
-                      isActive ? 'text-brand-primary' : 'text-gray-400'
+                      isActive ? 'text-brand-primary' : 'text-gray-500'
                     }`}
                   >
                     {item.label}

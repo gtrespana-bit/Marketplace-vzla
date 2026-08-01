@@ -53,7 +53,7 @@ const CATEGORIA_NAMES: Record<string, string> = {
 function ProductosGrid({ productos, categoriaNombre, ciudadNombre, t }: { productos: any[], categoriaNombre: string, ciudadNombre: string, t: any }) {
   if (productos.length === 0) {
     return (
-      <div className="text-center py-16 text-gray-400">
+      <div className="text-center py-16 text-gray-500">
         <p className="text-xl mb-2">{t('noAds', { category: categoriaNombre.toLowerCase(), city: ciudadNombre })}</p>
         <p className="mb-4">{t('beFirst')}</p>
         <LocalLink href="/publicar" className="inline-block bg-brand-primary text-white px-6 py-3 rounded-lg font-bold">{t('postFree')}</LocalLink>
@@ -72,7 +72,7 @@ function ProductosGrid({ productos, categoriaNombre, ciudadNombre, t }: { produc
             {p.imagen_url ? (
               <Image src={p.imagen_url} alt={p.titulo} width={300} height={300} className="w-full h-full object-cover group-hover:scale-105 transition-transform" loading="lazy" />
             ) : (
-              <div className="w-full h-full flex items-center justify-center text-gray-300 text-4xl"></div>
+              <div className="w-full h-full flex items-center justify-center text-gray-500 text-4xl"></div>
             )}
           </div>
           <div className="p-3">

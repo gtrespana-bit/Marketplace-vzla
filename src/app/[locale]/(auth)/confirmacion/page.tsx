@@ -137,7 +137,7 @@ function ConfirmacionContent() {
             </button>
           </div>
 
-          <p className="text-xs text-gray-400 mt-4 text-center">{t('confirmacion.footer')}</p>
+          <p className="text-xs text-gray-500 mt-4 text-center">{t('confirmacion.footer')}</p>
         </div>
       </div>
     </div>

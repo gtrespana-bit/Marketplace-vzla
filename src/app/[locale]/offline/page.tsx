@@ -12,7 +12,7 @@ export default function OfflinePage() {
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 flex items-center justify-center px-4">
       <div className="text-center max-w-md w-full">
         <div className="w-24 h-24 mx-auto mb-6 bg-white rounded-full shadow-xl flex items-center justify-center border-4 border-brand-primary/10">
-          <WifiOff size={48} className="text-gray-400" />
+          <WifiOff size={48} className="text-gray-500" />
         </div>
 
         <h1 className="text-3xl font-black text-gray-800 mb-3">{t('title')}</h1>
@@ -38,7 +38,7 @@ export default function OfflinePage() {
           </LocalLink>
         </div>
 
-        <p className="mt-8 text-xs text-gray-400">VendeT-Venezuela</p>
+        <p className="mt-8 text-xs text-gray-500">VendeT-Venezuela</p>
       </div>
     </div>
   )

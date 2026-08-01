@@ -58,7 +58,7 @@ export default async function LandingCiudad({ slug, nombre, estado, descripcion 
                 {p.imagen_url ? (
                   <Image src={p.imagen_url} alt={p.titulo} width={300} height={300} className="w-full h-full object-cover group-hover:scale-105 transition-transform" loading="lazy" />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-gray-300 text-4xl"></div>
+                  <div className="w-full h-full flex items-center justify-center text-gray-500 text-4xl"></div>
                 )}
               </div>
               <div className="p-3">
@@ -66,14 +66,14 @@ export default async function LandingCiudad({ slug, nombre, estado, descripcion 
                 <p className="text-lg font-black text-brand-primary mt-1">${new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 }).format(Number(p.precio_usd || 0))}</p>
                 <p className="text-xs text-gray-500">{p.estado}</p>
                 {p.ubicacion_ciudad && (
-                  <p className="text-xs text-gray-400 flex items-center gap-1"><MapPin size={10} />{p.ubicacion_ciudad}</p>
+                  <p className="text-xs text-gray-500 flex items-center gap-1"><MapPin size={10} />{p.ubicacion_ciudad}</p>
                 )}
               </div>
             </LocalLink>
           ))}
         </div>
       ) : (
-        <div className="text-center py-16 text-gray-400">
+        <div className="text-center py-16 text-gray-500">
           <p className="text-xl mb-2">Aún no hay anuncios en {nombre}</p>
           <p className="mb-4">¡Sé el primero en publicar!</p>
           <LocalLink href="/publicar" className="inline-block bg-brand-primary text-white px-6 py-3 rounded-lg font-bold">Publicar Gratis</LocalLink>

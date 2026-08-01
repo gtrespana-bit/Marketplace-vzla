@@ -453,7 +453,7 @@ export default function ChatPageClient() {
       <div className="max-w-6xl mx-auto px-4 py-8">
         <h1 className="text-3xl font-bold text-gray-800 mb-6">💬 Mensajes</h1>
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 h-[600px] md:h-auto flex items-center justify-center">
-          <div className="text-center text-gray-400">
+          <div className="text-center text-gray-500">
             <div className="w-12 h-12 border-4 border-brand-accent border-t-brand-primary rounded-full animate-spin mx-auto mb-3" />
             <p>Cargando mensajes...</p>
           </div>
@@ -478,7 +478,7 @@ export default function ChatPageClient() {
           <div className={`${showMobileChat ? 'hidden md:flex' : 'flex'} flex-col w-full md:w-80 border-r border-gray-100`}>
             <div className="p-3 border-b">
               <div className="relative">
-                <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
                 <input
                   type="text"
                   value={busqueda}
@@ -504,9 +504,9 @@ export default function ChatPageClient() {
                 </div>
               ) : filtradas.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full px-6 text-center">
-                  <User size={48} className="text-gray-300 mb-3" />
+                  <User size={48} className="text-gray-500 mb-3" />
                   <p className="text-gray-500 font-medium">{conversaciones.length === 0 ? 'No hay conversaciones' : 'Sin resultados'}</p>
-                  <p className="text-sm text-gray-400 mt-1">Envia un mensaje a un vendedor desde cualquier producto</p>
+                  <p className="text-sm text-gray-500 mt-1">Envia un mensaje a un vendedor desde cualquier producto</p>
                 </div>
               ) : (
                 filtradas.map(c => (
@@ -517,7 +517,7 @@ export default function ChatPageClient() {
                     {/* Eliminar */}
                     <button
                       onClick={(e) => eliminarConv(c.id, e)}
-                      className="absolute top-1 right-1 p-1 rounded text-gray-400 opacity-0 group-hover:opacity-100 hover:bg-red-50 hover:text-red-500 transition"
+                      className="absolute top-1 right-1 p-1 rounded text-gray-500 opacity-0 group-hover:opacity-100 hover:bg-red-50 hover:text-red-500 transition"
                       title="Eliminar"
                     >
                       <Trash2 size={14} />
@@ -532,7 +532,7 @@ export default function ChatPageClient() {
                         <div className="flex justify-between items-center">
                           <p className="font-semibold text-gray-800 text-sm truncate">{c.otro_nombre}</p>
                           {c.ultimo_mensaje_en && (
-                            <span className="text-xs text-gray-400 ml-2 flex-shrink-0">{formatTime(c.ultimo_mensaje_en)}</span>
+                            <span className="text-xs text-gray-500 ml-2 flex-shrink-0">{formatTime(c.ultimo_mensaje_en)}</span>
                           )}
                         </div>
                         <p className="text-sm text-gray-500 truncate mt-0.5">{c.ultimo_mensaje || 'Sin mensajes'}</p>
@@ -562,7 +562,7 @@ export default function ChatPageClient() {
           {/* ─── Chat ─── */}
           <div className={`${showMobileChat ? 'flex' : 'hidden md:flex'} flex-col flex-1`}>
             {!convId ? (
-              <div className="flex-1 flex flex-col items-center justify-center text-gray-400">
+              <div className="flex-1 flex flex-col items-center justify-center text-gray-500">
                 <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mb-4">
                   <svg width={40} height={40} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
                     <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z" strokeLinecap="round" strokeLinejoin="round"/>
@@ -608,7 +608,7 @@ export default function ChatPageClient() {
                           esMio ? 'bg-brand-primary text-white rounded-br-sm' : 'bg-white text-gray-800 border border-gray-100 rounded-bl-sm'
                         }`}>
                           <p className="text-sm break-words">{m.contenido}</p>
-                          <p className={`text-[10px] mt-1 ${esMio ? 'text-blue-200' : 'text-gray-400'}`}>
+                          <p className={`text-[10px] mt-1 ${esMio ? 'text-blue-200' : 'text-gray-500'}`}>
                             {formatHora(m.creado_en)}
                           </p>
                         </div>
@@ -670,7 +670,7 @@ export default function ChatPageClient() {
                       <div className="flex justify-center gap-1 mb-4">
                         {[1,2,3,4,5].map(i => (
                           <button key={i} type="button" onClick={() => setRatingResena(i)} className="transition hover:scale-110">
-                            <Star size={32} className={i <= ratingResena ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'} />
+                            <Star size={32} className={i <= ratingResena ? 'fill-yellow-400 text-yellow-400' : 'text-gray-500'} />
                           </button>
                         ))}
                       </div>
@@ -683,7 +683,7 @@ export default function ChatPageClient() {
                         placeholder={t('reviewPlaceholder')}
                         className="w-full border rounded-xl p-3 text-sm resize-none h-24 outline-none focus:border-brand-accent mb-4"
                       />
-                      <p className="text-xs text-gray-400 text-right -mt-3 mb-4">{comentarioResena.length}/500</p>
+                      <p className="text-xs text-gray-500 text-right -mt-3 mb-4">{comentarioResena.length}/500</p>
 
                       <div className="flex gap-2">
                         <button

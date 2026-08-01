@@ -9,7 +9,7 @@ export default function TabFavoritos({ favoritos }: { favoritos: any[] }) {
   if (favoritos.length === 0) {
     return (
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8 text-center">
-        <Heart size={48} className="text-gray-300 mx-auto mb-4" />
+        <Heart size={48} className="text-gray-500 mx-auto mb-4" />
         <h3 className="text-xl font-bold text-gray-800 mb-2">Tus favoritos</h3>
         <p className="text-gray-500">Guarda publicaciones que te interesen para verlas después.</p>
       </div>
@@ -29,7 +29,7 @@ export default function TabFavoritos({ favoritos }: { favoritos: any[] }) {
                   {p.imagen_url ? (
                     <Image src={p.imagen_url} alt={p.titulo} className="w-full h-full object-cover" fill sizes="100px" />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">Sin foto</div>
+                    <div className="w-full h-full flex items-center justify-center text-gray-500 text-xs">Sin foto</div>
                   )}
                 </div>
                 <div className="flex-1 min-w-0">

@@ -227,7 +227,7 @@ export default function TabProductos({
   if (productos.length === 0) {
     return (
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-12 text-center">
-        <Package size={48} className="text-gray-300 mx-auto mb-4" />
+        <Package size={48} className="text-gray-500 mx-auto mb-4" />
         <h3 className="text-xl font-bold text-gray-800 mb-2">Aún no tienes publicaciones</h3>
         <p className="text-gray-500 mb-6">Publica tu primer producto en segundos. ¡Es gratis!</p>
         <LocalLink href="/publicar" className="inline-block bg-brand-accent text-white px-8 py-3 rounded-lg font-bold hover:bg-accent/90 transition">Publicar ahora</LocalLink>
@@ -256,7 +256,7 @@ export default function TabProductos({
                   {p.imagen_url ? (
                     <Image src={p.imagen_url} alt={p.titulo} className="w-full h-full object-cover" fill sizes="100px" />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">Sin foto</div>
+                    <div className="w-full h-full flex items-center justify-center text-gray-500 text-xs">Sin foto</div>
                   )}
                   {isVendido && (
                     <div className="absolute inset-0 bg-green-600/70 flex items-center justify-center">
@@ -441,9 +441,9 @@ export default function TabProductos({
                 <p className="text-sm text-gray-500 mb-4">Selecciona a la persona que te contactó por este producto.</p>
                 <div className="space-y-2 max-h-64 overflow-y-auto">
                   {cargandoVendidos ? (
-                    <p className="text-center text-gray-400 py-8">Cargando...</p>
+                    <p className="text-center text-gray-500 py-8">Cargando...</p>
                   ) : interesados.length === 0 ? (
-                    <p className="text-center text-gray-400 py-4">Nadie te contactó por este producto</p>
+                    <p className="text-center text-gray-500 py-4">Nadie te contactó por este producto</p>
                   ) : (
                     <>
                       {interesados.map((inter) => (
@@ -454,7 +454,7 @@ export default function TabProductos({
                         >
                           <p className="font-semibold text-gray-900">{inter.nombre}</p>
                           {inter.ultimoMensaje && (
-                            <p className="text-xs text-gray-400 mt-0.5 truncate">"{inter.ultimoMensaje}"</p>
+                            <p className="text-xs text-gray-500 mt-0.5 truncate">"{inter.ultimoMensaje}"</p>
                           )}
                         </button>
                       ))}
@@ -494,12 +494,12 @@ export default function TabProductos({
                     <div className="flex gap-1">
                       {[1, 2, 3, 4, 5].map(i => (
                         <button key={i} onClick={() => setRating(i)} className="hover:scale-110 transition">
-                          <Star size={28} className={i <= rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'} />
+                          <Star size={28} className={i <= rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-500'} />
                         </button>
                       ))}
                     </div>
                   </div>
-                  <p className="text-center text-xs text-gray-400">{['Muy mala', 'Mala', 'Regular', 'Buena', 'Excelente'][rating - 1]}</p>
+                  <p className="text-center text-xs text-gray-500">{['Muy mala', 'Mala', 'Regular', 'Buena', 'Excelente'][rating - 1]}</p>
                 </div>
                 <textarea
                   value={comentarioResena}
@@ -509,7 +509,7 @@ export default function TabProductos({
                   maxLength={300}
                   placeholder="¿Algo que quieras comentar? (opcional)"
                 />
-                <p className="text-xs text-gray-400 mt-1 text-right">{comentarioResena.length}/300</p>
+                <p className="text-xs text-gray-500 mt-1 text-right">{comentarioResena.length}/300</p>
                 <div className="flex gap-2 mt-3">
                   <button
                     onClick={venderSinResena}

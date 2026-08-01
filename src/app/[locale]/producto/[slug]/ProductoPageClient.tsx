@@ -209,7 +209,7 @@ function ProductoPageClientInner({ initialProduct }: ProductoPageClientProps) {
             <div className="bg-white rounded-2xl shadow-sm border overflow-hidden"><ImageGallery images={imagenes} alt={producto.titulo} /></div>
           ) : (
             <div className="bg-white rounded-2xl shadow-sm border overflow-hidden">
-              <div className="aspect-square md:aspect-[16/10] bg-gray-100 flex items-center justify-center"><Tag size={48} className="text-gray-300" /></div>
+              <div className="aspect-square md:aspect-[16/10] bg-gray-100 flex items-center justify-center"><Tag size={48} className="text-gray-500" /></div>
             </div>
           )}
           <div className="bg-white rounded-2xl shadow-sm border p-6">
@@ -235,7 +235,7 @@ function ProductoPageClientInner({ initialProduct }: ProductoPageClientProps) {
         <div>
           <div className="bg-white rounded-2xl shadow-sm border p-6 sticky top-20">
             <p className="text-4xl font-black text-brand-primary">${new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 }).format(Number(producto.precio_usd || 0))}</p>
-            {precioBs && <p className="text-sm text-gray-500 mt-1">Bs. {precioBs} <span className="text-[10px] text-gray-400">· tasa BCV {tasaBs > 0 ? tasaBs : 'ref.'}</span></p>}
+            {precioBs && <p className="text-sm text-gray-500 mt-1">Bs. {precioBs} <span className="text-[10px] text-gray-500">· tasa BCV {tasaBs > 0 ? tasaBs : 'ref.'}</span></p>}
             <div className="flex items-center gap-4 text-xs text-gray-500 my-4 pb-4 border-b">
               <span className="flex items-center gap-1"><Clock size={14} /> {t('published')}</span>
               <span className="flex items-center gap-1">
@@ -253,9 +253,9 @@ function ProductoPageClientInner({ initialProduct }: ProductoPageClientProps) {
                     const subio = Number(pct) > 0
                     return (
                       <div key={h.id} className="flex items-center justify-between text-xs">
-                        <span className="text-gray-400">{new Intl.DateTimeFormat('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date(h.creado_en))}</span>
+                        <span className="text-gray-500">{new Intl.DateTimeFormat('es-VE', { year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date(h.creado_en))}</span>
                         <div className="flex items-center gap-1.5">
-                          <span className="text-gray-400 line-through">${new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 }).format(Number(h.precio_anterior))}</span>
+                          <span className="text-gray-500 line-through">${new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 }).format(Number(h.precio_anterior))}</span>
                           <span className="font-bold text-brand-primary">${new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 }).format(Number(h.precio_nuevo))}</span>
                           <span className={`px-1 rounded font-bold ${subio ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'}`}>↓${Math.abs(Number(pct))}%</span>
                         </div>
@@ -284,7 +284,7 @@ function ProductoPageClientInner({ initialProduct }: ProductoPageClientProps) {
                   </div>
                 )}
                 {totalResenas > 0 && (
-                  <p className="text-xs text-gray-400 mt-2">⭐ {vendedorStats.resenasAvg.toFixed(1)} · {totalResenas} reseña{totalResenas !== 1 ? 's' : ''}</p>
+                  <p className="text-xs text-gray-500 mt-2">⭐ {vendedorStats.resenasAvg.toFixed(1)} · {totalResenas} reseña{totalResenas !== 1 ? 's' : ''}</p>
                 )}
               </div>
             )}
