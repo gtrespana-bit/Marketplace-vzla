@@ -8,20 +8,28 @@ import { productUrl } from '@/lib/product-url'
 interface Props {
   slug: string
   nombre: string
+  municipio?: string
   estado: string
   descripcion: string
 }
 
-async function getProductos(ciudad: string) {
+async function getProductos(ciudad: string, municipio?: string) {
   try {
-    const { data, count } = await supabase
+    let query = supabase
       .from('productos')
       .select('id, slug, titulo, precio_usd, estado, imagen_url, ubicacion_ciudad, destacado, destacado_hasta', { count: 'exact' })
       .eq('activo', true)
-      .eq('ubicacion_ciudad', ciudad)
       .or('estado_moderacion.is.null,estado_moderacion.eq.aprobado')
       .order('creado_en', { ascending: false })
       .limit(24)
+
+    if (municipio && municipio !== ciudad) {
+      query = query.or(`ubicacion_ciudad.eq."${ciudad}",ubicacion_ciudad.eq."${municipio}"`)
+    } else {
+      query = query.eq('ubicacion_ciudad', ciudad)
+    }
+
+    const { data, count } = await query
     
     return { productos: data || [], total: count || 0 }
   } catch (error) {
@@ -30,8 +38,8 @@ async function getProductos(ciudad: string) {
   }
 }
 
-export default async function LandingCiudad({ slug, nombre, estado, descripcion }: Props) {
-  const { productos, total } = await getProductos(nombre)
+export default async function LandingCiudad({ slug, nombre, municipio, estado, descripcion }: Props) {
+  const { productos, total } = await getProductos(nombre, municipio)
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">

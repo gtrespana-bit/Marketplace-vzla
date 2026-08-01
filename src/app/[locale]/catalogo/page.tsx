@@ -3,15 +3,32 @@ import { supabase } from '@/lib/supabase'
 import CatalogoClient from './CatalogoPage'
 import { Suspense } from 'react'
 
+type PageProps = {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
+}
+
 // Filtros vía query string (?categoria=, ?ciudad=, ?q=...). Como el
 // canonical siempre apunta a /catalogo limpio, cada combinación de filtros
 // consolida su señal en UNA sola URL en vez de competir como duplicado.
 // (Las landing pages indexables para ciudad/categoría ya existen como
 // rutas estáticas /caracas/vehiculos etc. — esas sí posicionan.)
-export async function generateMetadata(): Promise<Metadata> {
+export async function generateMetadata({ searchParams }: PageProps): Promise<Metadata> {
+  const resolvedParams = await searchParams
+  const categoria = (resolvedParams?.categoria as string) || ''
+  
+  const ogImageUrl = categoria 
+    ? `https://vendet.online/api/og/catalog?categoria=${categoria}`
+    : 'https://vendet.online/api/og/catalog'
+
   return {
     title: 'Catálogo — Compra y Venta en Venezuela | VendeT-Venezuela',
     description: 'Explora el catálogo de productos en VendeT-Venezuela. Carros, tecnología, moda, hogar, herramientas y más.',
+    openGraph: {
+      title: 'Catálogo — Compra y Venta en Venezuela | VendeT-Venezuela',
+      description: 'Explora el catálogo de productos en VendeT-Venezuela. Carros, tecnología, moda, hogar, herramientas y más.',
+      images: [{ url: ogImageUrl, width: 1200, height: 630, alt: 'Catálogo - VendeT' }],
+      locale: 'es_VE',
+    },
     alternates: {
       canonical: 'https://vendet.online/catalogo',
       languages: {

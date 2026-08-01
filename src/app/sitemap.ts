@@ -5,6 +5,7 @@ import path from 'path'
 import { CIUDADES_SEO, CATEGORIAS_POPULARES } from '@/lib/ubicaciones-seo'
 
 const BASE_URL = 'https://vendet.online'
+const LAST_MODIFIED_DATE = new Date('2026-08-01')
 
 // ÚNICO sitemap del sitio. No crear otro en [locale]/.
 // El blog vive en src/content/blog/*.md (fs), NO en una tabla de Supabase:
@@ -18,7 +19,7 @@ function getBlogSlugs(): { slug: string; lastModified: Date }[] {
     .filter((f) => f.endsWith('.md'))
     .map((f) => {
       const slug = f.replace(/\.md$/, '')
-      let lastModified = new Date()
+      let lastModified = LAST_MODIFIED_DATE
       try {
         const raw = fs.readFileSync(path.join(dir, f), 'utf-8')
         const m = raw.match(/^date:\s*(.+)$/m)
@@ -27,7 +28,7 @@ function getBlogSlugs(): { slug: string; lastModified: Date }[] {
           if (!isNaN(d.getTime())) lastModified = d
         }
       } catch {
-        // usar fecha actual
+        // usar fecha de contingencia
       }
       return { slug, lastModified }
     })
@@ -42,7 +43,7 @@ async function getProductos(supabase: any) {
     .select('id, slug, user_id, actualizado_en')
     .eq('activo', true)
     .or(moderacion)
-    .limit(9000)
+    .limit(4000) // Reducir ligeramente para evitar límites de tamaño de sitemap
 
   if (!withSlug.error) return withSlug.data || []
 
@@ -51,7 +52,7 @@ async function getProductos(supabase: any) {
     .select('id, user_id, actualizado_en')
     .eq('activo', true)
     .or(moderacion)
-    .limit(9000)
+    .limit(4000)
 
   return fallback.data || []
 }
@@ -65,7 +66,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // ── URLs estáticas (páginas indexables y públicas) ──────────────────
   const staticPaths: { path: string; changeFrequency: MetadataRoute.Sitemap[number]['changeFrequency']; priority: number }[] = [
     { path: '', changeFrequency: 'daily', priority: 1 },
-    { path: '/en', changeFrequency: 'daily', priority: 0.8 },
     { path: '/catalogo', changeFrequency: 'daily', priority: 0.9 },
     { path: '/blog', changeFrequency: 'weekly', priority: 0.8 },
     { path: '/publicar', changeFrequency: 'weekly', priority: 0.8 },
@@ -78,64 +78,132 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { path: '/terminos-y-condiciones', changeFrequency: 'yearly', priority: 0.3 },
     { path: '/politica-de-privacidad', changeFrequency: 'yearly', priority: 0.3 },
   ]
-  const staticUrls: MetadataRoute.Sitemap = staticPaths.map((p) => ({
-    url: `${BASE_URL}${p.path}`,
-    lastModified: new Date(),
-    changeFrequency: p.changeFrequency,
-    priority: p.priority,
-  }))
+
+  const staticUrls: MetadataRoute.Sitemap = []
+  staticPaths.forEach((p) => {
+    // Español (default)
+    staticUrls.push({
+      url: `${BASE_URL}${p.path}`,
+      lastModified: LAST_MODIFIED_DATE,
+      changeFrequency: p.changeFrequency,
+      priority: p.priority,
+    })
+    // Inglés (en)
+    staticUrls.push({
+      url: `${BASE_URL}/en${p.path === '' ? '' : p.path}`,
+      lastModified: LAST_MODIFIED_DATE,
+      changeFrequency: p.changeFrequency,
+      priority: Math.max(0.1, p.priority - 0.1),
+    })
+  })
 
   // ── Landing pages de ciudad (SEO local) ──────────────────────────────
-  const cityUrls: MetadataRoute.Sitemap = CIUDADES_SEO.map((ciudad) => ({
-    url: `${BASE_URL}/${ciudad.slug}`,
-    lastModified: new Date(),
-    changeFrequency: 'weekly' as const,
-    priority: 0.7,
-  }))
+  const cityUrls: MetadataRoute.Sitemap = []
+  CIUDADES_SEO.forEach((ciudad) => {
+    // Español
+    cityUrls.push({
+      url: `${BASE_URL}/${ciudad.slug}`,
+      lastModified: LAST_MODIFIED_DATE,
+      changeFrequency: 'weekly' as const,
+      priority: 0.7,
+    })
+    // Inglés
+    cityUrls.push({
+      url: `${BASE_URL}/en/${ciudad.slug}`,
+      lastModified: LAST_MODIFIED_DATE,
+      changeFrequency: 'weekly' as const,
+      priority: 0.6,
+    })
+  })
 
   // ── Landing pages ciudad + categoría (SEO programático) ──────────────
   const cityCategoryUrls: MetadataRoute.Sitemap = []
   for (const ciudad of CIUDADES_SEO) {
     for (const categoria of CATEGORIAS_POPULARES) {
+      // Español
       cityCategoryUrls.push({
         url: `${BASE_URL}/${ciudad.slug}/${categoria}`,
-        lastModified: new Date(),
+        lastModified: LAST_MODIFIED_DATE,
         changeFrequency: 'weekly' as const,
         priority: 0.6,
+      })
+      // Inglés
+      cityCategoryUrls.push({
+        url: `${BASE_URL}/en/${ciudad.slug}/${categoria}`,
+        lastModified: LAST_MODIFIED_DATE,
+        changeFrequency: 'weekly' as const,
+        priority: 0.5,
       })
     }
   }
 
   // ── Blog (desde src/content/blog) ────────────────────────────────────
-  const blogUrls: MetadataRoute.Sitemap = getBlogSlugs().map((post) => ({
-    url: `${BASE_URL}/blog/${post.slug}`,
-    lastModified: post.lastModified,
-    changeFrequency: 'monthly' as const,
-    priority: 0.6,
-  }))
+  const blogUrls: MetadataRoute.Sitemap = []
+  getBlogSlugs().forEach((post) => {
+    // Español
+    blogUrls.push({
+      url: `${BASE_URL}/blog/${post.slug}`,
+      lastModified: post.lastModified,
+      changeFrequency: 'monthly' as const,
+      priority: 0.6,
+    })
+    // Inglés
+    blogUrls.push({
+      url: `${BASE_URL}/en/blog/${post.slug}`,
+      lastModified: post.lastModified,
+      changeFrequency: 'monthly' as const,
+      priority: 0.5,
+    })
+  })
 
   // ── Productos y vendedores (dinámico) ────────────────────────────────
   let dynamicUrls: MetadataRoute.Sitemap = []
   try {
     const productos = await getProductos(supabase)
 
-    const productUrls: MetadataRoute.Sitemap = productos.map((p: any) => ({
-      url: `${BASE_URL}/producto/${p.slug || p.id}`,
-      lastModified: new Date(p.actualizado_en || Date.now()),
-      changeFrequency: 'weekly' as const,
-      priority: 0.8,
-    }))
+    const productUrls: MetadataRoute.Sitemap = []
+    productos.forEach((p: any) => {
+      const rawDate = p.actualizado_en ? new Date(p.actualizado_en) : LAST_MODIFIED_DATE
+      const validDate = isNaN(rawDate.getTime()) ? LAST_MODIFIED_DATE : rawDate
+
+      // Español
+      productUrls.push({
+        url: `${BASE_URL}/producto/${p.slug || p.id}`,
+        lastModified: validDate,
+        changeFrequency: 'weekly' as const,
+        priority: 0.8,
+      })
+      // Inglés
+      productUrls.push({
+        url: `${BASE_URL}/en/producto/${p.slug || p.id}`,
+        lastModified: validDate,
+        changeFrequency: 'weekly' as const,
+        priority: 0.7,
+      })
+    })
 
     // Vendedores con al menos un producto activo (perfiles indexables)
     const vendorIds = [
       ...new Set((productos as any[]).map((p) => p.user_id).filter(Boolean)),
-    ].slice(0, 2000)
-    const vendorUrls: MetadataRoute.Sitemap = vendorIds.map((id) => ({
-      url: `${BASE_URL}/vendedor/${id}`,
-      lastModified: new Date(),
-      changeFrequency: 'weekly' as const,
-      priority: 0.5,
-    }))
+    ].slice(0, 1000)
+    
+    const vendorUrls: MetadataRoute.Sitemap = []
+    vendorIds.forEach((id) => {
+      // Español
+      vendorUrls.push({
+        url: `${BASE_URL}/vendedor/${id}`,
+        lastModified: LAST_MODIFIED_DATE,
+        changeFrequency: 'weekly' as const,
+        priority: 0.5,
+      })
+      // Inglés
+      vendorUrls.push({
+        url: `${BASE_URL}/en/vendedor/${id}`,
+        lastModified: LAST_MODIFIED_DATE,
+        changeFrequency: 'weekly' as const,
+        priority: 0.4,
+      })
+    })
 
     dynamicUrls = [...productUrls, ...vendorUrls]
   } catch {
