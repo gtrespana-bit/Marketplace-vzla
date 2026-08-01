@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/supabase'
+import { supabase } from '@/lib/supabase-server-client'
 import LocalLink from '@/components/LocalLink'
 import Image from 'next/image'
 import { MapPin, ChevronRight } from 'lucide-react'

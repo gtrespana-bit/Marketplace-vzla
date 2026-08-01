@@ -1,6 +1,6 @@
 import LocalLink from '@/components/LocalLink'
 import Image from 'next/image'
-import { supabase } from '@/lib/supabase'
+import { supabase } from '@/lib/supabase-server-client'
 import { ChevronRight } from 'lucide-react'
 import { getTranslations } from 'next-intl/server'
 import { productUrl } from '@/lib/product-url'

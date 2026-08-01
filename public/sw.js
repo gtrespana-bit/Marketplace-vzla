@@ -1,4 +1,11 @@
-/* Service Worker - VendeT PWA - v11
+/* Service Worker - VendeT PWA - v12
+ *
+ * Cambios v12 (timeouts más cortos en subrecursos/APIs):
+ * - Timeout por defecto de fetchWithRetry: 10s → 6s (SUB_TIMEOUT_MS).
+ * - Las APIs reintentan SOLO las "no críticas" e idempotentes (RETRYABLE_API_PATHS,
+ *   hoy /api/tasa-bcv); el resto de /api/* usa un único intento con timeout
+ *   corto, porque ya traen su propio manejo de error en el cliente.
+ * - El caché sube a vendet-v12 para forzar instalación limpia.
  *
  * Cambios v11 (fix rendimiento global — las navegaciones no deben colgarse):
  * - Las NAVEGACIONES (HTML) ya NO reintentan y usan un timeout corto de 5s
@@ -24,7 +31,7 @@
  *   (caché → offline → HTML inline): ahí un error de red daría pantalla rota.
  * - El caché sube a vendet-v10 para forzar instalación limpia.
  */
-const CACHE_NAME = 'vendet-v11'
+const CACHE_NAME = 'vendet-v12'
 const STATIC_ASSETS = [
   '/offline',
   '/es/offline',
@@ -89,6 +96,19 @@ function isSensitiveStorage(url) {
 // inmediatamente.
 const NAV_TIMEOUT_MS = 5000
 
+// ── Timeout por defecto para el resto de peticiones (subrecursos, APIs) ──
+// Antes era 10s. En redes lentas/Inestables eso añadía latencia a imágenes,
+// CSS/JS y APIs sin caché. Bajamos a 6s: suficiente para un blip de red sin
+// mantener la petición colgada demasiado.
+const SUB_TIMEOUT_MS = 6000
+
+// ── APIs "no críticas" que SÍ conviene reintentar ──
+// Tienen una red de seguridad (ej. la tasa BCV usa un valor de contingencia)
+// y son idempotentes (GET), así que recuperar un blip de red las beneficia.
+// El resto de /api/* ya traen su propio timeout/manejo de error en el cliente
+// o son críticas y no deben retrasarse por reintentos.
+const RETRYABLE_API_PATHS = ['/api/tasa-bcv']
+
 // ── Retry ante fallos de red transitorios ──
 // Un solo blip de conectividad (muy común en redes móviles) provocaba falsos
 // fallos. Se reintenta con backoff corto. Solo se reintentan FALLOS DE RED
@@ -98,7 +118,7 @@ const NAV_TIMEOUT_MS = 5000
 // Importante: se distingue el abort propio del timeout (reintentar) de la
 // cancelación hecha por la página (NO reintentar: la página ya no quiere la
 // respuesta).
-function fetchWithRetry(request, retries = 2, timeoutMs = 10000) {
+function fetchWithRetry(request, retries = 2, timeoutMs = SUB_TIMEOUT_MS) {
   const attempt = (n) => {
     const controller = new AbortController()
     const timer = setTimeout(() => controller.abort(), timeoutMs)
@@ -256,16 +276,20 @@ self.addEventListener('fetch', event => {
 
   const pathname = url.pathname
 
-  // ── API routes: NUNCA se cachean, pero sí se reintentan ──
-  // Solo llegamos aquí con peticiones GET (las demás salieron arriba), así que
-  // reintentar es idempotente y seguro: no puede duplicar una publicación ni
-  // un mensaje. Un blip de red en /api/tasa-bcv se recupera solo.
+  // ── API routes: NUNCA se cachean ──
+  // Solo llegamos aquí con peticiones GET (las demás salieron arriba). La gran
+  // mayoría de /api/* ya manejan su propio timeout/error en el cliente y no
+  // deben retrasarse por reintentos → un único intento con timeout corto.
+  // Excepciones: endpoints "no críticos" e idempotentes (p. ej. /api/tasa-bcv,
+  // que cae a un valor de contingencia) sí se reintentan para recuperar un
+  // blip de red.
   //
   // fetchWithRetry únicamente reintenta FALLOS DE RED; las respuestas HTTP
   // reales (429, 500...) se devuelven intactas al caller.
   if (isApiRoute(pathname)) {
+    const retryable = RETRYABLE_API_PATHS.includes(pathname)
     event.respondWith(
-      fetchWithRetry(request).catch(() => Response.error())
+      fetchWithRetry(request, retryable ? 2 : 0).catch(() => Response.error())
     )
     return
   }

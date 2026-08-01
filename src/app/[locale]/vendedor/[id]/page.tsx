@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import { supabase } from '@/lib/supabase'
+import { supabase } from '@/lib/supabase-server-client'
 import VendedorClient from './VendedorClient'
 
 // ISR: perfiles de vendedor cacheados 5 minutos

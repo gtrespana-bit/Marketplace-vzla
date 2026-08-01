@@ -106,6 +106,15 @@ máxima limpieza podrías marcar SpeedInsights solo en `production` o cargarlo c
 1. **Eliminé GA4 del código** (componente + uso en layout + endpoints del CSP), manteniendo Vercel
    Analytics y SpeedInsights. → commit `648e159`.
 2. Actualicé `docs/seo-fixes-2026-08-01.md` para reflejar el cambio.
+3. **Ajusté el Service Worker (v11 → v12):** las navegaciones ya no se cuelgan (0 reintentos,
+   timeout 5 s); timeout por defecto de subrecursos 10 s → 6 s; las APIs reintentan solo las no
+   críticas (`/api/tasa-bcv`). → commit `4fb9948` (v11) y el commit de v12 de este turno.
+4. **Cliente Supabase ligero de servidor** (`src/lib/supabase-server-client.ts`): los Server
+   Components de home, catálogo, landings, producto, vendedor, sitemap y opengraph ya no importan
+   el cliente de navegador (con `persistSession`/`autoRefreshToken`), sino uno de solo lectura sin
+   gestión de sesión — menos overhead de GoTrueClient en build/ISR.
+5. **Layout raíz:** `ServiceWorkerRegistration` ahora carga con `ssr: false` (solo cliente, se
+   quita su chunk del SSR).
 
 ## 5. Acciones recomendadas (por prioridad)
 
