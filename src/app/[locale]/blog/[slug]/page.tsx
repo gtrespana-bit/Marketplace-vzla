@@ -69,7 +69,14 @@ async function generateMetadata(props: { params: Promise<{ slug: string }> }): P
   return {
     title: `${post.title} — Blog VendeT Venezuela`,
     description: post.excerpt,
-    alternates: { canonical: `https://vendet.online/blog/${post.slug}` },
+    alternates: {
+      canonical: `https://vendet.online/blog/${post.slug}`,
+      languages: {
+        'es-VE': `https://vendet.online/blog/${post.slug}`,
+        en: `https://vendet.online/en/blog/${post.slug}`,
+        'x-default': `https://vendet.online/blog/${post.slug}`,
+      },
+    },
     openGraph: {
       title: post.title,
       description: post.excerpt,

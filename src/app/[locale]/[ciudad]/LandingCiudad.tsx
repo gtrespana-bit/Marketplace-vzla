@@ -3,6 +3,7 @@ import LocalLink from '@/components/LocalLink'
 import Image from 'next/image'
 import { MapPin, ChevronRight } from 'lucide-react'
 import { getCiudadBySlug } from '@/lib/ubicaciones-seo'
+import { productUrl } from '@/lib/product-url'
 
 interface Props {
   slug: string
@@ -15,7 +16,7 @@ async function getProductos(ciudad: string) {
   try {
     const { data, count } = await supabase
       .from('productos')
-      .select('id, titulo, precio_usd, estado, imagen_url, ubicacion_ciudad, destacado, destacado_hasta', { count: 'exact' })
+      .select('id, slug, titulo, precio_usd, estado, imagen_url, ubicacion_ciudad, destacado, destacado_hasta', { count: 'exact' })
       .eq('activo', true)
       .eq('ubicacion_ciudad', ciudad)
       .or('estado_moderacion.is.null,estado_moderacion.eq.aprobado')
@@ -50,7 +51,7 @@ export default async function LandingCiudad({ slug, nombre, estado, descripcion 
       {productos.length > 0 ? (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {productos.map((p: any) => (
-            <LocalLink key={p.id} href={`/producto/${p.id}`} className="bg-white rounded-xl overflow-hidden shadow-sm border hover:shadow-lg transition group block">
+            <LocalLink key={p.id} href={productUrl(p)} className="bg-white rounded-xl overflow-hidden shadow-sm border hover:shadow-lg transition group block">
               <div className="aspect-square bg-gray-100 relative overflow-hidden">
                 {p.destacado && new Date(p.destacado_hasta) > new Date() && (
                   <div className="absolute top-2 left-2 z-10 bg-brand-accent text-white text-[10px] font-bold px-2 py-0.5 rounded-full">⭐ Destacado</div>

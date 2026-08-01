@@ -17,9 +17,11 @@ import { useProductPagination } from '@/hooks/useProductPagination'
 import { useProductLoader } from '@/hooks/useProductLoader'
 import { LoadingIndicator } from '@/components/LoadingIndicator'
 import { usePrefetch } from '@/hooks/usePrefetch'
+import { productUrl } from '@/lib/product-url'
 
 type Producto = {
   id: string
+  slug?: string | null
   titulo: string
   precio_usd: number
   estado: string
@@ -74,7 +76,7 @@ const ProductCard = memo(({ p, priority = false, t }: { p: Producto; priority?: 
   const imgUrl = p.imagen_url || getPlaceholderImage(p.titulo)
 
   return (
-    <LocalLink href={`/producto/${p.id}`} className={`bg-white rounded-xl overflow-hidden transition-all duration-200 group block border ${isPromoted ? 'border-2 border-brand-accent shadow-md hover:shadow-xl hover:-translate-y-1' : 'border-gray-100 shadow-sm hover:shadow-lg hover:-translate-y-1 hover:border-gray-200'}`}>
+    <LocalLink href={productUrl(p)} className={`bg-white rounded-xl overflow-hidden transition-all duration-200 group block border ${isPromoted ? 'border-2 border-brand-accent shadow-md hover:shadow-xl hover:-translate-y-1' : 'border-gray-100 shadow-sm hover:shadow-lg hover:-translate-y-1 hover:border-gray-200'}`}>
       <div className="aspect-square bg-gray-100 relative overflow-hidden">
         {isFeatured && (
           <div className="absolute top-2 left-2 z-10 bg-brand-accent text-white text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 shadow-sm">

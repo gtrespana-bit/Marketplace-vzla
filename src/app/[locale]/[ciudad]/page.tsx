@@ -34,6 +34,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     },
     alternates: {
       canonical: `https://vendet.online/${ciudad}`,
+      languages: {
+        'es-VE': `https://vendet.online/${ciudad}`,
+        en: `https://vendet.online/en/${ciudad}`,
+        'x-default': `https://vendet.online/${ciudad}`,
+      },
     },
     robots: {
       index: true,

@@ -4,6 +4,26 @@ import LocalLink from '@/components/LocalLink'
 import Image from 'next/image'
 import { useLocalizedMessages } from '@/hooks/useLocalizedMessages'
 
+// Categorías del footer → filtros del catálogo (antes todas apuntaban a
+// /catalogo genérico: anchor text sin destino semántico = señal SEO nula)
+const CATEGORIAS_FOOTER = [
+  { key: 'header.categories.vehiculos', slug: 'vehiculos' },
+  { key: 'header.categories.tecnologia', slug: 'tecnologia' },
+  { key: 'header.categories.moda', slug: 'moda' },
+  { key: 'header.categories.hogar', slug: 'hogar' },
+  { key: 'header.categories.herramientas', slug: 'herramientas' },
+]
+
+// Ciudades principales → landing pages SEO locales (/[ciudad])
+const CIUDADES_FOOTER = [
+  { nombre: 'Caracas', slug: 'caracas' },
+  { nombre: 'Maracaibo', slug: 'maracaibo' },
+  { nombre: 'Valencia', slug: 'valencia' },
+  { nombre: 'Barquisimeto', slug: 'barquisimeto' },
+  { nombre: 'Maracay', slug: 'maracay' },
+  { nombre: 'Ciudad Guayana', slug: 'ciudad-guayana' },
+]
+
 export function Footer() {
   const { t } = useLocalizedMessages()
 
@@ -11,7 +31,7 @@ export function Footer() {
     <footer className="bg-brand-dark text-gray-300 mt-auto">
       <div className="hidden md:block">
         <div className="max-w-7xl mx-auto px-4 py-12">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-8">
             <div>
               <LocalLink href="/" className="inline-flex items-center gap-2 mb-3">
                 <Image src="/logo-vendet.webp" alt="VendeT" width={28} height={28} className="h-7 w-7 object-contain rounded-lg drop-shadow-[0_0_4px_rgba(255,255,255,0.4)] bg-white/80 p-0.5" />
@@ -19,21 +39,31 @@ export function Footer() {
               </LocalLink>
               <p className="text-sm leading-relaxed">{t('footer.description')}</p>
             </div>
-            <div>
+            <nav aria-label={t('footer.categories')}>
               <h3 className="text-white font-bold mb-3">{t('footer.categories')}</h3>
               <ul className="space-y-2 text-sm">
-                {[
-                  t('header.categories.vehiculos'),
-                  t('header.categories.tecnologia'),
-                  t('header.categories.moda'),
-                  t('header.categories.hogar'),
-                  t('header.categories.herramientas'),
-                ].map(c => (
-                  <li key={c}><LocalLink href="/catalogo" className="hover:text-brand-accent transition">{c}</LocalLink></li>
+                {CATEGORIAS_FOOTER.map(c => (
+                  <li key={c.slug}>
+                    <LocalLink href={`/catalogo?categoria=${c.slug}`} className="hover:text-brand-accent transition">
+                      {t(c.key)}
+                    </LocalLink>
+                  </li>
                 ))}
               </ul>
-            </div>
-            <div>
+            </nav>
+            <nav aria-label={t('footer.cities')}>
+              <h3 className="text-white font-bold mb-3">{t('footer.cities')}</h3>
+              <ul className="space-y-2 text-sm">
+                {CIUDADES_FOOTER.map(c => (
+                  <li key={c.slug}>
+                    <LocalLink href={`/${c.slug}`} className="hover:text-brand-accent transition">
+                      {t('footer.classifiedsIn').replace('{city}', c.nombre)}
+                    </LocalLink>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+            <nav aria-label={t('footer.information')}>
               <h3 className="text-white font-bold mb-3">{t('footer.information')}</h3>
               <ul className="space-y-2 text-sm">
                 {[
@@ -47,7 +77,7 @@ export function Footer() {
                   <li key={p}><LocalLink href={p} className="hover:text-brand-accent transition">{l}</LocalLink></li>
                 ))}
               </ul>
-            </div>
+            </nav>
             <div>
               <h3 className="text-white font-bold mb-3">{t('footer.legal')}</h3>
               <ul className="space-y-2 text-sm">

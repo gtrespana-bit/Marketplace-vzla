@@ -9,6 +9,7 @@ import { supabase } from '@/lib/supabase'
 import { categoriasData } from '@/lib/categorias'
 import UbicacionSelector from '@/components/UbicacionSelector'
 import { useTranslations } from 'next-intl'
+import { productUrl } from '@/lib/product-url'
 
 type Producto = {
   id: string
@@ -44,7 +45,7 @@ function ProductCard({ p }: { p: Producto }) {
 
   return (
     <LocalLink
-      href={`/producto/${p.id}`}
+      href={productUrl(p)}
       className={`bg-white rounded-xl overflow-hidden transition-all duration-200 group block border
         ${isPromoted
           ? 'border-2 border-brand-accent shadow-md hover:shadow-xl hover:-translate-y-1'

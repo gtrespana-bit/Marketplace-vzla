@@ -55,6 +55,11 @@ export const metadata: Metadata = {
   description: 'Guías, precios del mercado venezolano y consejos para comprar y vender sin estafas. Todo sobre emprendimiento y comercio electrónico en Venezuela.',
   alternates: {
     canonical: 'https://vendet.online/blog',
+    languages: {
+      'es-VE': 'https://vendet.online/blog',
+      en: 'https://vendet.online/en/blog',
+      'x-default': 'https://vendet.online/blog',
+    },
   },
   openGraph: {
     title: 'Blog VendeT Venezuela — Compra, Venta y Emprendimiento',

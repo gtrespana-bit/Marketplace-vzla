@@ -3,16 +3,24 @@ import { supabase } from '@/lib/supabase'
 import CatalogoClient from './CatalogoPage'
 import { Suspense } from 'react'
 
-export const metadata: Metadata = {
-  title: 'Catálogo — Compra y Venta en Venezuela | VendeT-Venezuela',
-  description: 'Explora el catálogo de productos en VendeT-Venezuela. Carros, tecnología, moda, hogar, herramientas y más.',
-  alternates: {
-    canonical: 'https://vendet.online/catalogo',
-    languages: {
-      es: 'https://vendet.online/catalogo',
-      en: 'https://vendet.online/en/catalogo',
+// Filtros vía query string (?categoria=, ?ciudad=, ?q=...). Como el
+// canonical siempre apunta a /catalogo limpio, cada combinación de filtros
+// consolida su señal en UNA sola URL en vez de competir como duplicado.
+// (Las landing pages indexables para ciudad/categoría ya existen como
+// rutas estáticas /caracas/vehiculos etc. — esas sí posicionan.)
+export async function generateMetadata(): Promise<Metadata> {
+  return {
+    title: 'Catálogo — Compra y Venta en Venezuela | VendeT-Venezuela',
+    description: 'Explora el catálogo de productos en VendeT-Venezuela. Carros, tecnología, moda, hogar, herramientas y más.',
+    alternates: {
+      canonical: 'https://vendet.online/catalogo',
+      languages: {
+        'es-VE': 'https://vendet.online/catalogo',
+        en: 'https://vendet.online/en/catalogo',
+        'x-default': 'https://vendet.online/catalogo',
+      },
     },
-  },
+  }
 }
 
 // ✅ Fetch server-side de productos iniciales
@@ -22,7 +30,7 @@ async function getInitialProducts() {
     // Optimización: Seleccionar solo columnas necesarias para la vista de catálogo
     const { data, count, error } = await supabase
       .from('productos')
-      .select('id, titulo, precio_usd, estado, imagen_url, ubicacion_ciudad, ubicacion_estado, creado_en, subcategoria, boosteado_en, destacado, destacado_hasta, vendedor_verificado', { count: 'exact' })
+      .select('id, slug, titulo, precio_usd, estado, imagen_url, ubicacion_ciudad, ubicacion_estado, creado_en, subcategoria, boosteado_en, destacado, destacado_hasta, vendedor_verificado', { count: 'exact' })
       .eq('activo', true)
       .or('estado_moderacion.is.null,estado_moderacion.eq.aprobado,estado_moderacion.eq.pendiente')
       .order('creado_en', { ascending: false })

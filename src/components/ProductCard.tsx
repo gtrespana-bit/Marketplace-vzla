@@ -3,9 +3,11 @@
 import LocalLink from '@/components/LocalLink'
 import Image from 'next/image'
 import { useLocalizedMessages } from '@/hooks/useLocalizedMessages'
+import { productUrl } from '@/lib/product-url'
 
 export interface ProductCardData {
   id: string
+  slug?: string | null
   titulo: string
   precio_usd: number | null
   imagen_url: string | null
@@ -31,7 +33,7 @@ export default function ProductCard({ p, isPromoted, isFeatured, priority }: { p
 
   return (
     <LocalLink
-      href={`/producto/${p.id}`}
+      href={productUrl(p)}
       className={`bg-white rounded-xl overflow-hidden transition-all duration-200 group block border
         ${isPromoted
           ? 'border-2 border-brand-accent shadow-md hover:shadow-xl hover:-translate-y-1'
