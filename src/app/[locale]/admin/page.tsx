@@ -112,23 +112,34 @@ function UsuariosTab({ notify }: Notifier) {
   const [creditMotivo, setCreditMotivo] = useState('')
   const [creditProcesando, setCreditProcesando] = useState(false)
 
-  useEffect(() => {
-    async function load() {
-      try {
+  async function cargarUsuarios() {
+    setCargando(true)
+    try {
+      // perfiles no tiene email_publico; el email viene de auth.users vía API admin
+      const res = await fetch('/api/admin/usuarios')
+      const json = await res.json()
+      if (!res.ok) {
+        console.error('Error cargando usuarios:', json.error || res.statusText)
+        // Fallback: perfiles sin email si la API falla
         const { data, error } = await supabase
           .from('perfiles')
-          .select('id, nombre, telefono, estado, ciudad, credito_balance, verificado, nivel_confianza, creado_en, email_publico')
+          .select('id, nombre, telefono, estado, ciudad, credito_balance, verificado, nivel_confianza, creado_en')
           .order('creado_en', { ascending: false })
           .limit(500)
-        if (error) console.error('Error cargando usuarios:', error)
+        if (error) console.error('Error cargando usuarios (fallback):', error)
         if (data) setUsuarios(data)
-      } catch (e) {
-        console.error('Excepción cargando usuarios:', e)
-      } finally {
-        setCargando(false)
+      } else if (json.usuarios) {
+        setUsuarios(json.usuarios)
       }
+    } catch (e) {
+      console.error('Excepción cargando usuarios:', e)
+    } finally {
+      setCargando(false)
     }
-    load()
+  }
+
+  useEffect(() => {
+    cargarUsuarios()
   }, [])
 
   const filtrados = useMemo(() => {
@@ -137,7 +148,7 @@ function UsuariosTab({ notify }: Notifier) {
       const q = busqueda.toLowerCase()
       list = list.filter(u =>
         (u.nombre || '').toLowerCase().includes(q) ||
-        (u.email_publico || '').toLowerCase().includes(q) ||
+        (u.email || '').toLowerCase().includes(q) ||
         (u.telefono || '').toLowerCase().includes(q) ||
         (u.ciudad || '').toLowerCase().includes(q) ||
         (u.estado || '').toLowerCase().includes(q)
@@ -195,10 +206,7 @@ function UsuariosTab({ notify }: Notifier) {
       setCreditModal(null)
       setCreditCantidad('')
       setCreditMotivo('')
-      // reload user list
-      await supabase.from('perfiles').select('id, nombre, telefono, estado, ciudad, credito_balance, verificado, nivel_confianza, creado_en').limit(1000).then(({data}: any) => {
-        if (data) setUsuarios(data)
-      })
+      await cargarUsuarios()
     } catch (err: any) {
       notify('❌ Error: ' + (err.message || 'desconocido'))
     }
@@ -232,11 +240,7 @@ function UsuariosTab({ notify }: Notifier) {
             placeholder="Nombre, email, teléfono, ciudad..."
             className="w-full border rounded-xl pl-10 pr-4 py-2.5 text-sm" />
         </div>
-        <button onClick={async () => {
-          setCargando(true)
-          const { data } = await supabase.from('perfiles').select('id, nombre, telefono, estado, ciudad, credito_balance, verificado, nivel_confianza, creado_en').limit(1000)
-          if (data) setUsuarios(data); setCargando(false)
-        }} className="p-2.5 rounded-xl border hover:bg-gray-50" title="Refrescar">
+        <button onClick={() => cargarUsuarios()} className="p-2.5 rounded-xl border hover:bg-gray-50" title="Refrescar">
           <RefreshCw size={18} />
         </button>
       </div>
@@ -283,7 +287,7 @@ function UsuariosTab({ notify }: Notifier) {
                       {u.verificado && <span className="text-blue-500">✓</span>}
                     </div>
                   </td>
-                  <td className="py-3 px-4 hidden md:table-cell text-gray-500 text-xs">{u.email_publico || '—'}</td>
+                  <td className="py-3 px-4 hidden md:table-cell text-gray-500 text-xs">{u.email || '—'}</td>
                   <td className="py-3 px-4 hidden sm:table-cell">{u.telefono || '—'}</td>
                   <td className="py-3 px-4 hidden lg:table-cell text-gray-500 text-xs">{u.ciudad && u.estado ? `${u.ciudad}, ${u.estado}` : '—'}</td>
                   <td className="py-3 px-4 text-center font-bold text-brand-primary">{u.credito_balance || 0}</td>
