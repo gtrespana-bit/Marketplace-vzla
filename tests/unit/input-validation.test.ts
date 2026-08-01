@@ -1,4 +1,3 @@
-import { validateProductData } from '../../src/lib/validation'; // Archivo hipotético que contendría funciones de validación
 
 /**
  * Suite de pruebas unitarias para validación de datos de entrada
