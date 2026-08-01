@@ -1,52 +1,289 @@
-# Plan de corrección y endurecimiento — VendeT
+# Plan de corrección y verificación — VendeT
 
-Este documento define el orden de trabajo para corregir la auditoría sin dejar el
-proyecto en un estado intermedio.
+**Última actualización:** 2026-08-01
+**Rama de trabajo:** `arena/019fbedd-marketplace-vzla`
+**Estado:** código preparado para revisión; todavía no se ha abierto PR hacia `main`.
+
+Este documento es la fuente de verdad de la auditoría. Separa lo que ya está
+corregido de lo que todavía debe implementarse y de lo que debe comprobarse
+manualmente antes de abrir el PR.
+
+---
 
 ## Reglas de trabajo
 
-1. Cada cambio de esquema va en una migración nueva, aditiva y reversible cuando sea posible.
-2. Antes de revocar permisos o cambiar una columna se actualizan todos los consumidores del repositorio.
-3. No se elimina ni renombra una columna usada por código sin una migración de transición.
-4. Cada fase debe pasar `tsc`, tests unitarios, lint y build; si una validación no puede ejecutarse, se documenta.
-5. No se considera una corrección terminada hasta verificar también los flujos afectados.
-6. Las migraciones deben aplicarse primero en staging y comprobarse con una copia de producción.
+1. Cada cambio de esquema va en una migración nueva.
+2. Antes de revocar permisos o cambiar una columna se actualizan todos sus consumidores.
+3. No se elimina ni renombra una columna usada por código sin una transición.
+4. Las migraciones se ejecutan primero en staging o en una copia de prueba.
+5. No se abre el PR hacia `main` hasta completar la lista de pruebas manuales.
+6. No se considera una tarea terminada solo porque compile: también se prueba el flujo real.
+7. Si una migración falla por datos existentes, se detiene el proceso y se prepara una migración de conservación de datos; no se borra información automáticamente.
+8. El despliegue del código que depende de una migración se hace junto con esa migración o después de ella, nunca antes.
 
-## Fases
+---
 
-### Fase 1 — Integridad y permisos de datos
+## Migraciones aplicadas
 
-- Reducir permisos directos del cliente sobre perfiles, productos, créditos y reseñas.
-- Proteger solicitudes de verificación, cédulas, comprobantes y suscripciones push.
-- Añadir operaciones atómicas para visitas, créditos y promociones.
-- Mover lecturas privadas de perfil a una API autenticada.
+### ✅ `202608010001_hardening_integridad.sql`
 
-### Fase 2 — Moderación, chat y reputación
+Confirmada como ejecutada correctamente.
 
-- Revalidar moderación en servidor.
-- Validar que el destinatario pertenece a la conversación.
-- Validar compra/venta antes de permitir reseñas.
-- Corregir triggers de reputación y evitar recursión.
+Incluye:
 
-### Fase 3 — Pérdida de datos y experiencia principal
+- Restricción de columnas públicas/privadas de `perfiles`.
+- Escrituras privadas de perfil mediante `/api/perfil`.
+- Restricción de inserción, borrado y campos protegidos de `productos`.
+- Créditos y reseñas escritos mediante API/RPC de servidor.
+- Solicitudes de verificación restringidas a usuario propietario o admin.
+- Comprobantes privados y acceso administrativo firmado.
+- Función `is_admin()` para políticas RLS.
+- `incrementar_visitas()` atómico.
+- Aprobación de créditos idempotente.
+- `agregar_creditos_admin()` atómico.
+- `usar_boost()` y `usar_destacado()` con descuento atómico.
+- Corrección del trigger de reputación para no reactivarse por sus propios campos.
+- Historial de precios mediante función `SECURITY DEFINER`.
+- Corrección del RPC `obtener_detalle_producto` para respetar visibilidad telefónica.
 
-- Cargar/guardar imágenes y métodos de contacto en edición y detalle.
-- Corregir paginación del catálogo.
-- Corregir visitas, filtros y consultas con columnas inexistentes.
+### ✅ `202608010002_chat_resenas_integridad.sql`
 
-### Fase 4 — Migraciones, SEO, i18n y PWA
+Confirmada como ejecutada correctamente después de hacerla idempotente.
 
-- Consolidar la historia de migraciones sin ejecutar scripts destructivos automáticamente.
-- Corregir landings ciudad/categoría, slugs duplicados, sitemap y Open Graph.
-- Completar traducciones y revisar la caché del Service Worker.
+Incluye:
 
-### Fase 5 — Calidad y despliegue
+- Conversaciones creadas/eliminadas mediante API autenticada.
+- Índices únicos para evitar conversaciones duplicadas.
+- Mensajes escritos mediante API autenticada.
+- Políticas que impiden enviar mensajes a destinatarios ajenos.
+- Reseñas escritas mediante API después de validar la venta.
+- Protección de la cola de notificaciones push.
 
-- Corregir lint, build reproducible y auditoría de dependencias.
-- Añadir pruebas de API/RLS y una prueba E2E de autenticación, compra, publicación y edición.
-- Aplicar en staging, verificar y solo entonces desplegar en producción.
+---
 
-## Estado inicial
+## Cambios ya realizados en código
 
-La primera corrección incluye la migración de permisos/integridad y los cambios de
-cliente necesarios para que esos permisos no rompan los flujos existentes.
+### ✅ Publicación y moderación
+
+- `/api/publicar` ya no confía en `estado_moderacion`, `activo`, `destacado` ni otros campos protegidos enviados por el navegador.
+- La moderación se recalcula en el servidor.
+- El contenido prohibido se rechaza desde el servidor.
+- El contenido sospechoso queda pendiente y genera una sola alerta.
+- Se eliminó la alerta duplicada que se enviaba desde el cliente.
+
+### ✅ Perfil y permisos
+
+- Header y dashboard leen el perfil privado mediante `/api/perfil`.
+- La edición de perfil usa `PATCH /api/perfil`.
+- Los datos privados ya no se leen directamente con la clave pública.
+- El panel admin usa APIs protegidas para usuarios y transacciones.
+
+### ✅ Productos
+
+- El editor incluye `especificaciones`, `imagenes` y `metodos_contacto` en el SELECT.
+- El editor usa `maybeSingle()` para productos inexistentes.
+- El detalle de producto carga galería y métodos de contacto.
+- Las visitas usan el RPC atómico.
+- El borrado del editor pasa por una API autenticada.
+- Reactivar un producto vendido pasa por `/api/productos/reactivar`.
+
+### ✅ Créditos y pagos
+
+- El precio del paquete se calcula en servidor.
+- La transacción guarda `precio_usd` cuando la migración está aplicada.
+- El admin consulta transacciones mediante `/api/admin/transacciones`.
+- El rechazo pasa por `/api/admin/rechazar-transaccion`.
+- Los comprobantes se abren mediante `/api/admin/comprobante`.
+- Las nuevas subidas de comprobantes usan una carpeta por usuario.
+- La aprobación desde Telegram usa una operación atómica e idempotente.
+
+### ✅ Chat y reseñas
+
+- Los mensajes pasan por `/api/enviar-mensaje`.
+- Se valida que el destinatario sea el otro miembro de la conversación.
+- El envío tiene rate limit.
+- Las notificaciones push de mensajes se generan desde el servidor.
+- Crear conversación valida que el vendedor corresponda al producto.
+- El vendedor solo puede elegir como comprador a un participante de una conversación previa.
+- El borrado de conversaciones pasa por `/api/eliminar-conversacion`.
+- Las reseñas exigen venta confirmada, comprador/vendedor correctos y puntuación válida.
+- Se impiden reseñas duplicadas y auto-reseñas.
+- `review-status` solo permite reseñar al comprador real de un producto marcado como vendido.
+- `marcar-vendido` valida que el comprador tenga una conversación sobre ese producto.
+
+### ✅ Calidad básica
+
+- TypeScript pasa.
+- Los 87 tests unitarios pasan.
+- Lint ya no tiene errores bloqueantes.
+- Se corrigió el error de sintaxis de `scripts/performance-test.js`.
+- Se corrigió el warning de display name del mock de `ProductCard`.
+- Se corrigió la limpieza de previews de imágenes.
+
+---
+
+# Pruebas manuales obligatorias antes del PR
+
+Estas pruebas deben hacerse en staging, preview o una base de prueba con dos
+cuentas normales y una cuenta admin. No usar pruebas destructivas contra
+producción sin respaldo.
+
+## A. Perfil y permisos
+
+- [ ] Un usuario normal puede abrir su dashboard.
+- [ ] El balance de créditos aparece correctamente.
+- [ ] Puede cambiar nombre, teléfono, estado y municipio.
+- [ ] Los cambios persisten después de recargar.
+- [ ] Un usuario normal no puede consultar el `credito_balance` de otra persona desde el cliente.
+- [ ] Un usuario normal no puede modificar `credito_balance`, `verificado`, `nivel_confianza` ni `badges_automaticos`.
+- [ ] Un usuario normal no puede modificar el perfil de otro usuario.
+
+## B. Publicar y moderar
+
+- [ ] Publicar un producto normal funciona.
+- [ ] La categoría y subcategoría se guardan correctamente.
+- [ ] Las especificaciones aparecen en el detalle.
+- [ ] Un contenido sospechoso queda pendiente.
+- [ ] Un contenido prohibido es rechazado aunque se manipule la petición del navegador.
+- [ ] Un usuario normal no puede insertar directamente un producto saltándose la API.
+- [ ] Un usuario normal no puede marcar su producto como verificado o destacado mediante REST directo.
+
+## C. Editar productos
+
+- [ ] Editar título conserva las especificaciones.
+- [ ] Editar precio conserva las especificaciones.
+- [ ] Editar un producto con varias imágenes conserva todas las imágenes.
+- [ ] Añadir una imagen conserva las imágenes antiguas.
+- [ ] Quitar un método de contacto no borra los demás.
+- [ ] WhatsApp, teléfono, email y Messenger aparecen según la configuración guardada.
+- [ ] Un ID inexistente muestra “No encontrado”.
+- [ ] Cambiar el precio no falla por el historial de precios.
+
+## D. Galería, detalle y visitas
+
+- [ ] El detalle muestra todas las imágenes.
+- [ ] El carrusel y el lightbox funcionan en móvil y escritorio.
+- [ ] Los métodos de contacto configurados funcionan.
+- [ ] Un visitante anónimo incrementa las visitas.
+- [ ] Dos visitas simultáneas no producen errores ni modifican otros campos.
+- [ ] Un producto rechazado o inexistente no es expuesto por el RPC de detalle.
+- [ ] El teléfono solo aparece cuando corresponde a la configuración de visibilidad.
+
+## E. Créditos y comprobantes
+
+- [ ] Un usuario puede enviar una compra de un paquete válido.
+- [ ] Un paquete inventado es rechazado.
+- [ ] El admin ve la transacción pendiente.
+- [ ] El admin puede abrir el comprobante.
+- [ ] Un usuario normal no puede abrir el comprobante de otro usuario.
+- [ ] Aprobar una transacción suma créditos una sola vez.
+- [ ] Repetir el callback de aprobación no vuelve a sumar créditos.
+- [ ] Rechazar una transacción aprobada no la cambia de estado.
+- [ ] Añadir créditos manualmente actualiza balance e histórico juntos.
+- [ ] Boost y destacado descuentan el balance correcto.
+- [ ] Dos operaciones simultáneas no permiten saldo negativo.
+
+## F. Chat
+
+- [ ] Un comprador puede iniciar conversación desde un producto activo.
+- [ ] El vendedor puede responder.
+- [ ] Ambos lados reciben los mensajes.
+- [ ] El contador de no leídos se actualiza.
+- [ ] Marcar mensajes como leídos funciona.
+- [ ] Una persona no puede enviar mensajes a un destinatario que no pertenece a la conversación.
+- [ ] Una persona no puede crear una conversación arbitraria sobre el producto de otro vendedor.
+- [ ] El rate limit de mensajes responde con 429 al superar el límite.
+- [ ] La notificación push del mensaje no requiere ser admin.
+- [ ] Eliminar una conversación funciona solo para un participante.
+
+## G. Venta y reseñas
+
+- [ ] El vendedor puede marcar como vendido un producto.
+- [ ] Solo puede seleccionar como comprador a un participante de ese producto.
+- [ ] El comprador recibe la notificación de venta.
+- [ ] El comprador ve el botón de reseña únicamente después de la venta confirmada.
+- [ ] Un producto pausado, pero no vendido, no permite reseña.
+- [ ] El comprador puede dejar una reseña válida.
+- [ ] No puede dejar una segunda reseña para la misma venta.
+- [ ] No puede reseñarse a sí mismo.
+- [ ] Un usuario ajeno no puede dejar una reseña para esa venta.
+- [ ] La puntuación fuera de 1–5 es rechazada.
+
+## H. Verificación y documentos
+
+- [ ] Un usuario puede enviar una solicitud con sus propios documentos.
+- [ ] La alerta de Telegram llega una sola vez.
+- [ ] El usuario ve su propia solicitud después de recargar.
+- [ ] Un usuario normal no puede ver solicitudes ajenas.
+- [ ] Un usuario normal no puede descargar cédulas ajenas.
+- [ ] El admin puede revisar y aprobar/rechazar solicitudes.
+- [ ] La aprobación actualiza el perfil correcto.
+
+---
+
+# Pendiente de implementación
+
+## Fase 3 — Catálogo y experiencia principal
+
+- [ ] Rehacer la paginación usando `totalCount`, no solo los productos cargados.
+- [ ] Cargar páginas posteriores realmente desde servidor.
+- [ ] Resetear la página al cambiar filtros.
+- [ ] Mostrar errores de carga del catálogo en vez de mostrar una lista vacía.
+- [ ] Corregir consultas que todavía usan `select('*')` innecesariamente.
+- [ ] Unificar los datos de contacto y la galería en todas las tarjetas/detalles.
+
+## Fase 4 — SEO y localización
+
+- [ ] Corregir el filtro de categoría de las landings ciudad/categoría.
+- [ ] Unificar municipio almacenado y ciudad SEO.
+- [ ] Resolver slugs duplicados de ciudades.
+- [ ] Corregir breadcrumbs de ubicación.
+- [ ] Corregir Open Graph de productos con slug SEO.
+- [ ] Corregir Open Graph del catálogo con filtros.
+- [ ] Completar URLs `/en` en sitemap.
+- [ ] Evitar `lastModified: new Date()` para todas las URLs.
+- [ ] Revisar cadenas hardcodeadas en español dentro del locale inglés.
+
+## Fase 5 — Autenticación, emails y PWA
+
+- [ ] Verificar con una prueba E2E el flujo de confirmación PKCE.
+- [ ] Verificar recuperación de contraseña con el flujo PKCE.
+- [ ] Mover el envío de emails desde Server Actions sin rate limit a APIs controladas.
+- [ ] Escapar datos de usuario en plantillas HTML de emails.
+- [ ] Corregir logo inexistente `logo-vendet.png` en emails.
+- [ ] Activar validación real de tamaño/MIME en URLs firmadas de R2.
+- [ ] Limpiar archivos R2 huérfanos.
+- [ ] Añadir rate limit y validación de keys a push subscriptions.
+- [ ] Añadir rate limit server-side para registro y reenvío de confirmación.
+- [ ] Revisar caché de HTML personalizado del Service Worker.
+- [ ] Reducir el render dinámico causado por el layout raíz.
+
+## Fase 6 — Migraciones y calidad de entrega
+
+- [ ] Consolidar migraciones con números duplicados (`002`, `003`, `011`, `012`, `019`).
+- [ ] Documentar qué migraciones históricas son destructivas (`014_chat_reset`, `015_clean_chat`).
+- [ ] No ejecutar scripts destructivos automáticamente en una base con datos.
+- [ ] Corregir migración `019_fulltext_search.sql` y la columna `seller_nombre`.
+- [ ] Añadir pruebas automatizadas de APIs y RLS.
+- [ ] Añadir pruebas E2E de autenticación, publicación, edición, compra y chat.
+- [ ] Hacer que `npm run build` no dependa de descargar Google Fonts durante el build.
+- [ ] Resolver las vulnerabilidades reportadas por `npm audit` sin usar `--force` a ciegas.
+- [ ] Eliminar warnings de lint restantes.
+- [ ] Añadir un job CI que ejecute también `npm run lint`.
+
+---
+
+# Puerta de salida hacia `main`
+
+No se abre el PR hasta que se cumpla todo esto:
+
+- [ ] Fase 1 SQL aplicada y verificada.
+- [ ] Fase 2 SQL aplicada y verificada.
+- [ ] Checklist manual A–H completado.
+- [ ] `tsc` correcto.
+- [ ] Tests correctos.
+- [ ] Lint sin errores.
+- [ ] Build exitoso o bloqueo documentado y resuelto.
+- [ ] Working tree limpio.
+- [ ] Revisión final del diff.
+- [ ] PR abierto desde `arena/019fbedd-marketplace-vzla` hacia `main`.
