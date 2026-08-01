@@ -1,9 +1,9 @@
 # Estado de implementación y seguridad
 
-> **Última actualización:** 1 de agosto de 2026 — 21:15 UTC  
+> **Última actualización:** 1 de agosto de 2026 — 01:39 UTC  
 > **Rama de trabajo:** `arena/019fbad5-marketplace-vzla`  
 > **Pull request previo:** [#10 — merge Fase 1-2 y fixes](https://github.com/gtrespana-bit/Marketplace-vzla/pull/10) ✅ Mergeado a `main` en `bb391fc`  
-> **Branch actual:** `arena/019fbad5-marketplace-vzla` — Push 2026-08-01 `89f22c4` + novos commits Fase 3 C/D
+> **Branch actual:** `arena/019fbad5-marketplace-vzla` — Push 2026-08-01 `89f22c4` + commits Fase 3 C/D (`5a05c7d`) + accesibilidad modales (`047ecfe`)
 
 Este documento es el registro operativo de las mejoras realizadas, validaciones pendientes y trabajo planificado. Debe actualizarse al terminar cada fase o al encontrar un bloqueo relevante.
 
@@ -16,7 +16,7 @@ Este documento es el registro operativo de las mejoras realizadas, validaciones 
 | 2. BCV, moderación y abuso de APIs | ✅ Implementada e integrada en main (PR #10) | Requiere configurar `CRON_SECRET` en Vercel. Verificado en preview. |
 | 3. Seguridad, PWA y endurecimiento | ✅ Completada 2026-08-01 | SW v4 privado, iconos PNG, headers seguridad, sesión getUser y créditos server-side validados. |
 | 4. Internacionalización y SEO | ⏳ Pendiente | Traducciones, precios, `hreflang`, metadata, sitemap y robots. |
-| 5. Accesibilidad y rendimiento | 🟡 En curso 70% — 2026-08-01 | Contraste global corregido (gray-400/300→gray-500), focus-visible, fechas es-VE, consultas admin optimizadas, modales accesibles parcial. Falta Lighthouse y resto modales. |
+| 5. Accesibilidad y rendimiento | 🟡 En curso (~85%) — 2026-08-01 | Contraste, focus-visible, fechas es-VE, consultas admin optimizadas, modales accesibles (`TabProductos`, `TabCreditos`, `ChatPage`) completados (`047ecfe`). **Pendiente (usuario):** Lighthouse, revisión lector pantalla, móvil/red lenta. |
 | 6. Calidad técnica y mantenimiento | ✅ Completada 2026-08-01 | TypeScript limpio, lockfile reparado, ESLint flat config, lint 0 errores, Sentry configurada, console.log limpiado, offline para ambos locales. |
 
 ---
@@ -304,9 +304,10 @@ Estas acciones no pueden completarse únicamente con cambios de código:
 - [x] Revisar formularios, modales, alertas y toasts. → **Parcial 2026-08-01:** 
   - Modales `BoostModal`, `DestacadoModal`, `ReportarButton` reescritos con `role="dialog"`, `aria-modal="true"`, `aria-labelledby`, `tabIndex=-1`, focus on open, Esc handler, `aria-label` en close, `body overflow hidden`.
   - Toast admin con `role="status" aria-live="polite" aria-atomic="true"`.
-  - Pendiente: `ModalPago` creditos, `TabProductos` contactos, `ChatPage` review, `TabCreditos` modals — misma patrón aplicable.
+  - ✅ **2026-08-01 (`047ecfe`):** Modales `ModalCompraCreditos` y `ModalCompraCreditos` (éxito) en `TabCreditos` (`dialog`, `aria-labelledby`, `Escape`, `aria-label` cierre, `aria-haspopup` en botón abrir). Modal vendido en `TabProductos` (`dialog`, `aria-labelledby`, `Escape`, `aria-label`). Modal reseña en `ChatPage` (`dialog`, `aria-labelledby`, `Escape`).
+  - Pendiente: `ModalPago` creditos, resto de modales menores — usuario los completa manualmente.
 - [x] Corregir formatos de texto/fecha en español. → **Fase 5 2026-08-01:** reemplazados 14 `Intl.DateTimeFormat('en-US'` por `'es-VE'` en admin (`VerificacionTab`, `MetricasTab`, `aprobacion`, `admin/page.tsx`) y producto. `toLocaleDateString('es-ES')` → `es-VE`. Precios se mantienen `en-US` (formato USD estándar).
-- [ ] Ejecutar Lighthouse y una revisión manual básica con lector de pantalla. → Pendiente en preview Vercel.
+- [ ] **Pendiente (usuario):** Ejecutar Lighthouse y una revisión manual básica con lector de pantalla. Requiere preview Vercel / entorno con conectividad a Google Fonts y dispositivo real.
 
 ### Rendimiento y estabilidad visual
 
@@ -320,7 +321,7 @@ Estas acciones no pueden completarse únicamente con cambios de código:
   - `denuncias` en ReportarButton: `select('*', count)` → `select('id', count)`
   - Reduce transferencia y mejora tiempo respuesta.
 - [x] Revisar fuentes Google y estrategia de contingencia. → **Fase 5 2026-08-01:** `Inter` ya con `display:swap`, `preload:false`, `variable`, fallback `system-ui sans-serif` en `tailwind.config.js`. Añadida nota en `globals.css` skip-link. Build sandbox falla por Google Fonts pero es problema conectividad, no código — Vercel tiene contingencia OK.
-- [ ] Medir de nuevo en móvil real y red lenta. → Pendiente Lighthouse post-deploy.
+- [ ] **Pendiente (usuario):** Medir de nuevo en móvil real y red lenta. Lighthouse post-deploy.
 
 ## Fase 6 — Calidad técnica y mantenimiento ✅ COMPLETADA 2026-08-01
 

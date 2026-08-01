@@ -379,7 +379,14 @@ export default function TabProductos({
 
       {/* MODAL MARCAR COMO VENDIDO */}
       {vendidoModal && (
-        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+        <div
+          className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="vendido-titulo"
+          tabIndex={-1}
+          onKeyDown={(e) => { if (e.key === 'Escape') setVendidoModal(null) }}
+        >
           <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 animate-fadeIn">
             <div className="flex items-center justify-between mb-4">
               {vendidoPaso !== 'tipo' ? (
@@ -387,7 +394,7 @@ export default function TabProductos({
                   <ArrowLeft size={16} /> Atrás
                 </button>
               ) : <div />}
-              <button onClick={() => setVendidoModal(null)} className="p-1 hover:bg-gray-100 rounded-full">
+              <button onClick={() => setVendidoModal(null)} aria-label="Cerrar modal" className="p-1 hover:bg-gray-100 rounded-full">
                 <X size={20} />
               </button>
             </div>
@@ -395,7 +402,7 @@ export default function TabProductos({
             {/* PASO 1: ¿Cómo se vendió? */}
             {vendidoPaso === 'tipo' && (
               <>
-                <h3 className="text-lg font-bold mb-2">¿Cómo se vendió?</h3>
+                <h3 id="vendido-titulo" className="text-lg font-bold mb-2">¿Cómo se vendió?</h3>
                 <p className="text-sm text-gray-500 mb-6">Esto marca tu anuncio como vendido y ya no aparecerá activo.</p>
                 <div className="space-y-3">
                   <button

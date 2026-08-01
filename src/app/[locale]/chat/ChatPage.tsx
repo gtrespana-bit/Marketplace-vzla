@@ -661,9 +661,17 @@ export default function ChatPageClient() {
 
                 {/* ─── Modal reseña comprador ─── */}
                 {mostrarResena && (
-                  <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setMostrarResena(false)}>
+                  <div
+                    className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+                    role="dialog"
+                    aria-modal="true"
+                    aria-labelledby="resena-titulo"
+                    tabIndex={-1}
+                    onKeyDown={(e) => { if (e.key === 'Escape') setMostrarResena(false) }}
+                    onClick={() => setMostrarResena(false)}
+                  >
                     <div className="bg-white rounded-2xl p-6 w-full max-w-md" onClick={e => e.stopPropagation()}>
-                      <h3 className="text-lg font-bold text-gray-800 mb-1">⭐ Deja tu reseña</h3>
+                      <h3 id="resena-titulo" className="text-lg font-bold text-gray-800 mb-1">⭐ Deja tu reseña</h3>
                       <p className="text-sm text-gray-500 mb-4">¿Cómo fue tu experiencia con {convActual?.otro_nombre}?</p>
 
                       {/* Estrellas */}
