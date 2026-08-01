@@ -3,6 +3,7 @@
 import { useState, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import { clientCache } from '@/lib/clientCache';
+import { getCatalogPageRange } from '@/lib/catalog-pagination';
 
 interface ProductFilter {
   categoria?: string;
@@ -101,11 +102,12 @@ export const useProductLoader = (): UseProductLoaderResult => {
         query = query.lte('precio_usd', parseFloat(filters.precioMax));
       }
 
-      // Página real desde el servidor
-      const offset = (page - 1) * pageSize;
+      // Página real desde el servidor. El mismo tamaño se comparte con el
+      // SSR inicial para no dejar filas sin mostrar entre páginas.
+      const { from, to } = getCatalogPageRange(page, pageSize);
       query = query
         .order('creado_en', { ascending: false })
-        .range(offset, offset + pageSize - 1);
+        .range(from, to);
 
       const { data, count, error: fetchError } = await query;
 

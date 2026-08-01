@@ -335,7 +335,9 @@ export default function PublicarPage() {
           ubicacion_ciudad: ubicacionCiudad,
           imagen_url: imagenUrl,
           imagenes: imagenesArray,
-          metodos_contacto: Object.keys(metodosContacto).length > 0 ? metodosContacto : null,
+          // `{}` significa que esta publicación solo acepta chat. Reservamos
+          // `null` para anuncios legacy que aún no tenían esta configuración.
+          metodos_contacto: metodosContacto,
           activo: true,
           destacado: false,
         }),
