@@ -1,4 +1,13 @@
-/* Service Worker - VendeT PWA - v6
+/* Service Worker - VendeT PWA - v7
+ *
+ * Cambios v7 (fix "The FetchEvent ... resulted in a network error response"):
+ * - El fallback offline ahora es por idioma y se cachea en instalación
+ *   (/offline, /es/offline y /en/offline). Antes solo se intentaba /offline
+ *   y, si no estaba cacheado, la navegación se resolvía con Response.error(),
+ *   que llenaba la consola con "network error response" ante cualquier blip
+ *   de red (muy común en redes móviles de Venezuela).
+ * - El caché sube a vendet-v7 para forzar una instalación limpia que
+ *   re-cachee las páginas offline en todos los idiomas.
  *
  * Cambios v6 (fix "Failed to load resource: 503"):
  * - El SW ya NO responde 503 sintéticos: un `503` inventado hacía creer (a la
@@ -13,9 +22,11 @@
  * - Las navegaciones reintentan 1 vez antes de caer al fallback offline
  *   (los "blips" de redes móviles son muy comunes en Venezuela).
  */
-const CACHE_NAME = 'vendet-v6'
+const CACHE_NAME = 'vendet-v7'
 const STATIC_ASSETS = [
   '/offline',
+  '/es/offline',
+  '/en/offline',
   '/manifest.json',
   '/icon-192.png',
   '/icon-512.png',
@@ -105,6 +116,23 @@ function fetchWithRetry(request, retries = 2, timeoutMs = 10000) {
       })
   }
   return attempt(0)
+}
+
+// ── Fallback offline por idioma ──
+// El sitio usa rutas localizadas (/es/..., /en/...). Cuando la red falla en
+// una navegación, buscamos la página offline del idioma detectado y, como
+// respaldo, /offline. Así nunca resolvemos la navegación con un
+// Response.error() si existe una página offline cacheada en instalación.
+async function getOfflineFallback(requestUrl) {
+  const cache = await caches.open(CACHE_NAME)
+  const segments = (requestUrl.pathname || '').split('/').filter(Boolean)
+  const locale = segments.length && ['es', 'en'].includes(segments[0]) ? segments[0] : 'es'
+  const candidates = [`/${locale}/offline`, '/offline']
+  for (const candidate of candidates) {
+    const hit = await cache.match(candidate, { ignoreVary: true })
+    if (hit) return hit
+  }
+  return undefined
 }
 
 // Install: cache static assets
@@ -197,7 +225,7 @@ self.addEventListener('fetch', event => {
     if (request.mode === 'navigate' || (request.headers.get('accept') || '').includes('text/html')) {
       event.respondWith(
         fetchWithRetry(request, 1, 15000)
-          .catch(() => caches.match('/offline').then(r => r || Response.error()))
+          .catch(() => getOfflineFallback(url).then(r => r || Response.error()))
       )
     } else {
       // For other assets on private pages, network only (no cache put)
@@ -225,8 +253,8 @@ self.addEventListener('fetch', event => {
           return response
         })
         .catch(() => {
-          return caches.match(request)
-            .then(cached => cached || caches.match('/offline'))
+          return caches.match(request, { ignoreVary: true })
+            .then(cached => cached || getOfflineFallback(url))
             .then(res => res || Response.error())
         })
     )
