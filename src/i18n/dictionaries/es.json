@@ -236,7 +236,9 @@
     "terms": "Términos",
     "privacy": "Privacidad",
     "madeWithLove": "Hecho con ❤️ en Venezuela",
-    "allRightsReserved": "Todos los derechos reservados."
+    "allRightsReserved": "Todos los derechos reservados.",
+    "cities": "Ciudades",
+    "classifiedsIn": "Clasificados en {city}"
   },
   "catalog": {
     "title": "Catálogo",

@@ -2,57 +2,84 @@ import type { Metadata } from 'next'
 import { supabase } from '@/lib/supabase'
 import { routing } from '@/i18n/routing'
 import { Suspense } from 'react'
+import { permanentRedirect } from 'next/navigation'
 import ProductoPageClient from './ProductoPageClient'
 import { getTranslations } from 'next-intl/server'
 import Breadcrumbs from '@/components/Breadcrumbs'
 import LocalLink from '@/components/LocalLink'
+import { isUuid } from '@/lib/product-url'
 
 // ISR: cache product pages for 5 minutes
 export const revalidate = 300
 
 type Props = {
-  params: Promise<{ slug: string }>
+  params: Promise<{ locale: string; slug: string }>
 }
 
-async function getProduct(slug: string) {
-  // Validate slug format first to avoid unnecessary DB queries
-  if (!slug || typeof slug !== 'string' || slug.length < 10) {
-    return null;
-  }
-  
-  const { data, error } = await supabase
+const PRODUCT_COLUMNS = `
+  id,
+  slug,
+  titulo,
+  descripcion,
+  precio_usd,
+  estado,
+  categoria_id,
+  subcategoria,
+  marca,
+  modelo,
+  ubicacion_estado,
+  ubicacion_ciudad,
+  activo,
+  visitas,
+  creado_en,
+  user_id,
+  imagen_url,
+  destacado,
+  destacado_hasta,
+  boosteado_en
+`
+
+const PRODUCT_COLUMNS_LEGACY = PRODUCT_COLUMNS.replace(/\n\s*slug,/, '')
+
+function queryProducto(column: 'id' | 'slug', value: string, columns: string) {
+  return supabase
     .from('productos')
-    .select(`
-      id, 
-      titulo, 
-      descripcion, 
-      precio_usd, 
-      estado, 
-      categoria_id, 
-      subcategoria, 
-      marca, 
-      modelo, 
-      ubicacion_estado, 
-      ubicacion_ciudad, 
-      activo, 
-      visitas, 
-      creado_en, 
-      user_id, 
-      imagen_url, 
-      destacado, 
-      destacado_hasta, 
-      boosteado_en
-    `)
-    .eq('id', slug)
+    .select(columns)
+    .eq(column, value)
     .eq('activo', true)
     // Check for approved status, pending (still show), or null (default to approved)
     .or('estado_moderacion.is.null,estado_moderacion.eq.aprobado,estado_moderacion.eq.pendiente')
-    .single()
-  
+    .maybeSingle()
+}
+
+async function getProduct(slugOrId: string) {
+  // Validate param format first to avoid unnecessary DB queries
+  if (!slugOrId || typeof slugOrId !== 'string' || slugOrId.length < 3) {
+    return null
+  }
+
+  let data: any = null
+  let error: any = null
+
+  if (isUuid(slugOrId)) {
+    // URL legacy con UUID
+    ;({ data, error } = await queryProducto('id', slugOrId, PRODUCT_COLUMNS))
+    if (error && /slug/i.test(error.message || '')) {
+      ;({ data, error } = await queryProducto('id', slugOrId, PRODUCT_COLUMNS_LEGACY))
+    }
+  } else {
+    // URL canónica con slug SEO
+    ;({ data, error } = await queryProducto('slug', slugOrId, PRODUCT_COLUMNS))
+    if (error && /slug/i.test(error.message || '')) {
+      // Migración de slugs aún no aplicada en la DB: intenta por id
+      ;({ data, error } = await queryProducto('id', slugOrId, PRODUCT_COLUMNS_LEGACY))
+    }
+  }
+
   if (error || !data) {
     // Avoid logging expected missing/inactive products during ISR generation.
-    if (error && error.code !== 'PGRST116') {
-      console.error('Error fetching product:', error.code, 'Slug:', slug)
+    if (error) {
+      console.error('Error fetching product:', error.code || error.message, 'Slug:', slugOrId)
     }
     return null
   }
@@ -75,6 +102,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!producto) {
     return { title: 'No encontrado | VendeT-Venezuela' }
   }
+
+  // La canonical SIEMPRE usa el slug SEO aunque se haya entrado por UUID
+  const canonicalSlug = producto.slug || slug
 
   const parts = [producto.titulo]
   if (producto.precio_usd) {
@@ -111,10 +141,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       images: image,
     },
     alternates: {
-      canonical: `https://vendet.online/producto/${slug}`,
+      canonical: `https://vendet.online/producto/${canonicalSlug}`,
       languages: {
-        es: `https://vendet.online/producto/${slug}`,
-        en: `https://vendet.online/en/producto/${slug}`,
+        'es-VE': `https://vendet.online/producto/${canonicalSlug}`,
+        en: `https://vendet.online/en/producto/${canonicalSlug}`,
+        'x-default': `https://vendet.online/producto/${canonicalSlug}`,
       },
     },
   }
@@ -124,25 +155,51 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export const dynamicParams = true;
 
 export async function generateStaticParams() {
-  // Pre-render the 100 most recent products for SSG in both locales
-  const { data } = await supabase
+  // Pre-render the 100 most recent products for SSG in both locales.
+  // Usa slug cuando exista; si la migración no corrió aún, cae al UUID.
+  const moderacion = 'estado_moderacion.is.null,estado_moderacion.eq.aprobado,estado_moderacion.eq.pendiente'
+  let data: any[] | null = null
+
+  const withSlug = await supabase
     .from('productos')
-    .select('id')
+    .select('id, slug')
     .eq('activo', true)
-    .or('estado_moderacion.is.null,estado_moderacion.eq.aprobado,estado_moderacion.eq.pendiente')
+    .or(moderacion)
     .order('creado_en', { ascending: false })
     .limit(100)
 
+  if (withSlug.error) {
+    const legacy = await supabase
+      .from('productos')
+      .select('id')
+      .eq('activo', true)
+      .or(moderacion)
+      .order('creado_en', { ascending: false })
+      .limit(100)
+    data = legacy.data
+  } else {
+    data = withSlug.data
+  }
+
   const locales = routing.locales
   return (data || []).flatMap((p: any) =>
-    locales.map((locale) => ({ locale, slug: p.id }))
+    locales.map((locale) => ({ locale, slug: p.slug || p.id }))
   )
 }
 
 export default async function ProductoPage({ params }: Props) {
-  const { slug } = await params
+  const { locale, slug } = await params
   const producto = await getProduct(slug)
   const t = await getTranslations('productDetail')
+
+  // 301 permanente: URLs legacy con UUID o con slug viejo → slug canónico.
+  // Transfiere el link equity acumulado a las nuevas URLs semánticas.
+  if (producto?.slug && producto.slug !== slug) {
+    const canonicalPath = `/producto/${producto.slug}`
+    permanentRedirect(
+      locale === routing.defaultLocale ? canonicalPath : `/${locale}${canonicalPath}`
+    )
+  }
 
   if (!producto) {
     return (
@@ -163,9 +220,12 @@ export default async function ProductoPage({ params }: Props) {
   const jsonLd: any = {
     '@context': 'https://schema.org',
     '@type': 'Product',
+    '@id': `https://vendet.online/producto/${producto.slug || slug}`,
     name: producto.titulo,
     description: producto.descripcion?.slice(0, 500) || producto.titulo,
     image: producto.imagen_url ? [producto.imagen_url] : [],
+    url: `https://vendet.online/producto/${producto.slug || slug}`,
+    sku: producto.id,
     offers: {
       '@type': 'Offer',
       price: producto.precio_usd || 0,

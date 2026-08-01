@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase'
 import { MapPin, ChevronRight } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { Suspense } from 'react'
+import { productUrl } from '@/lib/product-url'
 
 interface Props {
   ciudadSlug: string
@@ -29,7 +30,7 @@ const CATEGORIA_MAP: Record<string, string> = {
 async function getProductos(ciudadNombre: string, categoriaSlug: string) {
   const { data } = await supabase
     .from('productos')
-    .select('id, titulo, precio_usd, estado, imagen_url, ubicacion_ciudad, subcategoria, destacado, destacado_hasta')
+    .select('id, slug, titulo, precio_usd, estado, imagen_url, ubicacion_ciudad, subcategoria, destacado, destacado_hasta')
     .eq('activo', true)
     .eq('ubicacion_ciudad', ciudadNombre)
     .eq('subcategoria', categoriaSlug)
@@ -64,7 +65,7 @@ function ProductosGrid({ productos, categoriaNombre, ciudadNombre, t }: { produc
   return (
     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
       {productos.map((p: any) => (
-        <LocalLink key={p.id} href={`/producto/${p.id}`} className="bg-white rounded-xl overflow-hidden shadow-sm border hover:shadow-lg transition group block">
+        <LocalLink key={p.id} href={productUrl(p)} className="bg-white rounded-xl overflow-hidden shadow-sm border hover:shadow-lg transition group block">
           <div className="aspect-square bg-gray-100 relative overflow-hidden">
             {p.destacado && new Date(p.destacado_hasta) > new Date() && (
               <div className="absolute top-2 left-2 z-10 bg-brand-accent text-white text-[10px] font-bold px-2 py-0.5 rounded-full">⭐ {t('featured')}</div>

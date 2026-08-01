@@ -94,7 +94,7 @@ const nextConfig = withNextIntl({
           "font-src 'self' https://fonts.gstatic.com data:",
           "img-src 'self' data: blob: https: ",
           "media-src 'self' blob: https://*.supabase.co https://*.r2.dev",
-          "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.r2.dev https://pub-d212837165c545e3956251da001fa37a.r2.dev https://vercel.live https://*.vercel-analytics.com https://*.vercel-scripts.com https://va.vercel-scripts.com https://*.sentry.io https://*.ingest.sentry.io https://api.telegram.org",
+          "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.r2.dev https://pub-d212837165c545e3956251da001fa37a.r2.dev https://vercel.live https://*.vercel-analytics.com https://*.vercel-scripts.com https://va.vercel-scripts.com https://*.sentry.io https://*.ingest.sentry.io https://api.telegram.org https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com",
           "frame-src 'self'",
           "frame-ancestors 'none'",
           "base-uri 'self'",

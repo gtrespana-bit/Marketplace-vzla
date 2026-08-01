@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase'
 import { BotonDescargarApp } from '@/components/BotonDescargarApp'
 import { getTranslations } from 'next-intl/server'
 import type { Metadata } from 'next'
+import { productUrl } from '@/lib/product-url'
 
 function generateItemListSchema(products: any[], baseUrl: string) {
   if (!products || products.length === 0) return null
@@ -12,7 +13,7 @@ function generateItemListSchema(products: any[], baseUrl: string) {
   const itemListElements = products.map((product, index) => ({
     '@type': 'ListItem',
     position: index + 1,
-    url: `${baseUrl}/producto/${product.id}`,
+    url: `${baseUrl}/producto/${product.slug || product.id}`,
     name: product.titulo,
     description: product.descripcion || `Compra ${product.titulo} en Venezuela`,
     image: product.imagen_url || `${baseUrl}/placeholder-product.webp`,
@@ -51,20 +52,21 @@ export async function generateMetadata({ params }: { params: { locale: string } 
     creator: 'VendeT.online',
     publisher: 'VendeT.online',
     alternates: {
-      canonical: 'https://vende-t.com/',
+      canonical: 'https://vendet.online/',
       languages: {
-        es: 'https://vende-t.com/',
-        en: 'https://vende-t.com/en/',
+        'es-VE': 'https://vendet.online/',
+        en: 'https://vendet.online/en/',
+        'x-default': 'https://vendet.online/',
       },
     },
     openGraph: {
       title: 'Clasificados Venezuela | VendeT.online',
       description: 'El marketplace líder de clasificados en Venezuela. Publica gratis y vende tus productos.',
-      url: 'https://vende-t.com/',
+      url: 'https://vendet.online/',
       siteName: 'VendeT.online',
       images: [
         {
-          url: 'https://vende-t.com/og-image.png',
+          url: 'https://vendet.online/og-image.webp',
           width: 1200,
           height: 630,
           alt: 'VendeT.online - Clasificados Venezuela'
@@ -77,7 +79,7 @@ export async function generateMetadata({ params }: { params: { locale: string } 
       card: 'summary_large_image',
       title: 'Clasificados Venezuela | VendeT.online',
       description: 'El marketplace líder de clasificados en Venezuela. Publica gratis y vende tus productos.',
-      images: ['https://vende-t.com/og-image.png'],
+      images: ['https://vendet.online/og-image.webp'],
     },
     robots: {
       index: true,
@@ -106,7 +108,7 @@ async function getDestacados(limit = 8) {
 
     const { data: data2 } = await supabase
       .from('productos')
-      .select('id, titulo, precio_usd, estado, imagen_url, ubicacion_ciudad, creado_en')
+      .select('id, slug, titulo, precio_usd, estado, imagen_url, ubicacion_ciudad, creado_en')
       .eq('activo', true)
       .or('estado_moderacion.is.null,estado_moderacion.eq.aprobado,estado_moderacion.eq.pendiente')
       .eq('destacado', true)
@@ -123,7 +125,7 @@ async function getDestacados(limit = 8) {
 async function getTrending(limit = 8) {
   const { data } = await supabase
     .from('productos')
-    .select('id, titulo, precio_usd, imagen_url, ubicacion_ciudad, visitas, creado_en')
+    .select('id, slug, titulo, precio_usd, imagen_url, ubicacion_ciudad, visitas, creado_en')
     .eq('activo', true)
     .or('estado_moderacion.is.null,estado_moderacion.eq.aprobado')
     .order('visitas', { ascending: false })
@@ -134,7 +136,7 @@ async function getTrending(limit = 8) {
 async function getRecentProducts(limit = 8) {
   const { data, error } = await supabase
     .from('productos')
-    .select('id, titulo, precio_usd, estado, imagen_url, ubicacion_ciudad, creado_en, boosteado_en, destacado, destacado_hasta')
+    .select('id, slug, titulo, precio_usd, estado, imagen_url, ubicacion_ciudad, creado_en, boosteado_en, destacado, destacado_hasta')
     .eq('activo', true)
     .or('estado_moderacion.is.null,estado_moderacion.eq.aprobado')
     .limit(20)
@@ -166,7 +168,7 @@ function ProductCard({ p, highlighted = false, priority = false, t }: { p: any; 
 
   return (
     <LocalLink
-      href={`/producto/${p.id}`}
+      href={productUrl(p)}
       className={`bg-white rounded-xl overflow-hidden transition-all duration-200 group block border ${
         highlighted
           ? 'border-2 border-brand-accent shadow-lg hover:shadow-xl hover:-translate-y-1'
@@ -217,7 +219,7 @@ export default async function HomePage() {
     getRecentProducts(),
   ])
 
-  const baseUrl = 'https://vende-t.com'
+  const baseUrl = 'https://vendet.online'
   const allProducts = [...destacados, ...productos].slice(0, 20)
   const itemListSchema = generateItemListSchema(allProducts, baseUrl)
 
@@ -508,7 +510,7 @@ export default async function HomePage() {
             {trending.map((p, index) => (
               <LocalLink
                 key={p.id}
-                href={`/producto/${p.id}`}
+                href={productUrl(p)}
                 prefetch={true}
                 className="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-lg hover:-translate-y-1 transition group block"
               >

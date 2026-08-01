@@ -1,6 +1,36 @@
 import { Suspense } from 'react'
+import type { Metadata } from 'next'
 import BuscarClient from './BuscarClient'
 import { Loader2 } from 'lucide-react'
+
+interface PageProps {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
+}
+
+// Las búsquedas son de CRAWLABILITY, no de indexación:
+// follow (Google descubre productos) + noindex (evita thin/duplicate content
+// por URLs de búsqueda infinitas: ?q= cualquier cosa).
+export async function generateMetadata(props: PageProps): Promise<Metadata> {
+  const searchParams = await props.searchParams
+  const q = typeof searchParams.q === 'string' ? searchParams.q.trim() : ''
+
+  return {
+    title: q
+      ? `${q} en Venezuela — Búsqueda | VendeT`
+      : 'Buscar productos — VendeT Venezuela',
+    description: q
+      ? `Resultados de búsqueda para "${q}" en VendeT, el marketplace de clasificados de Venezuela.`
+      : 'Busca y encuentra los mejores clasificados en Venezuela. Compra y vende productos nuevos y usados.',
+    robots: {
+      index: false,
+      follow: true,
+      googleBot: {
+        index: false,
+        follow: true,
+      },
+    },
+  }
+}
 
 export default function BuscarPage({ searchParams }: { searchParams: Promise<{ [key: string]: string | undefined }> }) {
   return (

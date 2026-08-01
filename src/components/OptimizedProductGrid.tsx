@@ -5,6 +5,7 @@ import { ProductCardLazy } from './ProductCardLazy';
 
 interface Producto {
   id: string;
+  slug?: string | null;
   titulo: string;
   precio_usd: number;
   estado: string;

@@ -7,6 +7,7 @@ import { AuthProvider } from '@/components/AuthProvider'
 import { Analytics } from '@vercel/analytics/react'
 import { SpeedInsights } from '@vercel/speed-insights/next'
 import { ServiceWorkerRegistration } from '@/components/ServiceWorkerRegistration'
+import GoogleAnalytics from '@/components/GoogleAnalytics'
 import { headers, cookies } from 'next/headers'
 import { routing } from '@/i18n/routing'
 import { getServerUser } from '@/lib/supabase-server'
@@ -103,16 +104,17 @@ export const metadata: Metadata = {
       'max-snippet': -1,
     },
   },
-  alternates: {
-    canonical: 'https://vendet.online',
-    languages: {
-      'es-VE': 'https://vendet.online',
-      'en-US': 'https://vendet.online/en',
-    },
-  },
-  verification: {
-    google: 'google-site-verification=vendet-online-verification-code',
-  },
+  // SIN canonical/languages aquí: esto es el layout raíz y Next lo hereda
+  // en TODAS las páginas que no definan alternates — un canonical fijo a la
+  // home haría que /catalogo, /faq, etc. canonicalizaran a la home.
+  // Cada page.tsx define su propio canonical + hreflang.
+  // Verificación de Google Search Console: el token real va en la variable
+  // de entorno GOOGLE_SITE_VERIFICATION (solo el token, sin el prefijo
+  // "google-site-verification="). Si GSC ya está verificado por DNS u otro
+  // método, esta meta es opcional y simplemente no se emite.
+  verification: process.env.GOOGLE_SITE_VERIFICATION
+    ? { google: process.env.GOOGLE_SITE_VERIFICATION }
+    : undefined,
   category: 'marketplace',
 }
 
@@ -204,6 +206,8 @@ export default async function RootLayout({
         {/* Re-enable Vercel Analytics and SpeedInsights with lazy initialization */}
         <Analytics />
         <SpeedInsights />
+        {/* GA4: solo se carga si NEXT_PUBLIC_GA_ID está configurada */}
+        <GoogleAnalytics />
         <ServiceWorkerRegistration />
       </body>
     </html>
