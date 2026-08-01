@@ -1,5 +1,5 @@
-/* Service Worker - VendeT PWA - v4 hardened */
-const CACHE_NAME = 'vendet-v4'
+/* Service Worker - VendeT PWA - v5 (retry en fallos de red transitorios) */
+const CACHE_NAME = 'vendet-v5'
 const STATIC_ASSETS = [
   '/offline',
   '/manifest.json',
@@ -52,6 +52,33 @@ function isApiRoute(pathname) {
 function isSensitiveStorage(url) {
   const path = url.pathname.toLowerCase()
   return SENSITIVE_STORAGE_KEYWORDS.some(k => path.includes(k))
+}
+
+// ── Retry ante fallos de red transitorios ──
+// Un solo blip de conectividad (muy común en redes móviles) hacía que el SW
+// respondiera 503 al instante y la consola mostrara "Failed to load resource:
+// the server responded with a status of 503 ()". Ahora se reintenta 2 veces
+// con backoff corto antes de rendirse. No se reintentan respuestas HTTP
+// (4xx/5xx) reales del servidor, solo fallos de red (fetch rechazado).
+function fetchWithRetry(request, retries = 2, timeoutMs = 8000) {
+  let lastError = null
+  const attempt = (n) => {
+    const controller = new AbortController()
+    const timer = setTimeout(() => controller.abort(), timeoutMs)
+    return fetch(request.clone(), { signal: controller.signal })
+      .finally(() => clearTimeout(timer))
+      .catch((err) => {
+        // Si la página abortó la petición, no tiene sentido reintentar
+        if (err && err.name === 'AbortError') throw err
+        lastError = err
+        if (n < retries) {
+          return new Promise((resolve) => setTimeout(resolve, 600 * (n + 1)))
+            .then(() => attempt(n + 1))
+        }
+        throw lastError
+      })
+  }
+  return attempt(0)
 }
 
 // Install: cache static assets
@@ -112,7 +139,7 @@ self.addEventListener('fetch', event => {
   // ── Never cache API routes — network only ──
   if (isApiRoute(pathname)) {
     event.respondWith(
-      fetch(request).catch(() => {
+      fetchWithRetry(request).catch(() => {
         return new Response(JSON.stringify({ error: 'offline' }), {
           status: 503,
           headers: { 'Content-Type': 'application/json' }
@@ -125,7 +152,7 @@ self.addEventListener('fetch', event => {
   // ── Never cache sensitive storage buckets ──
   if (url.hostname.includes('supabase.co') && url.pathname.includes('/storage/v1/object/') && isSensitiveStorage(url)) {
     event.respondWith(
-      fetch(request).catch(() => new Response(null, { status: 404 }))
+      fetchWithRetry(request).catch(() => new Response(null, { status: 404 }))
     )
     return
   }
@@ -140,7 +167,7 @@ self.addEventListener('fetch', event => {
     } else {
       // For other assets on private pages, network only (no cache put)
       event.respondWith(
-        fetch(request).catch(() => new Response(null, { status: 404 }))
+        fetchWithRetry(request).catch(() => new Response(null, { status: 404 }))
       )
     }
     return
@@ -203,7 +230,7 @@ self.addEventListener('fetch', event => {
           }
         }
         // No valid cache or expired: fetch and cache
-        return fetch(request).then(response => {
+        return fetchWithRetry(request).then(response => {
           if (response.ok) {
             response.clone().blob().then(blob => {
               const newResp = new Response(blob, {
@@ -229,7 +256,7 @@ self.addEventListener('fetch', event => {
     event.respondWith(
       caches.open(CACHE_NAME).then(cache =>
         cache.match(request).then(cached => {
-          const fetchPromise = fetch(request).then(response => {
+          const fetchPromise = fetchWithRetry(request).then(response => {
             if (response.ok) {
               // Do not cache if private path somehow sneaks in
               if (!isPrivatePathPrecise(pathname)) {
@@ -247,7 +274,7 @@ self.addEventListener('fetch', event => {
 
   // ── Everything else (R2 images, etc.) — network first, no cache for private ──
   event.respondWith(
-    fetch(request).then(response => {
+    fetchWithRetry(request).then(response => {
       // For R2 and other public CDNs, cache if image and not private
       if (response.ok && request.destination === 'image' && !isPrivatePathPrecise(pathname)) {
         const clone = response.clone()
