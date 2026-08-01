@@ -11,6 +11,30 @@ jest.mock('../src/components/LocalLink', () => {
   return MockLocalLink
 });
 
+// La config de Jest mapea next/image a __mocks__/next/image.js, que no existe
+// en el repo. Añadimos un mock inline para que el test sea autosuficiente.
+jest.mock('next/image', () => {
+  function MockImage(props: any) {
+    return <img {...props} />;
+  }
+  MockImage.displayName = 'MockImage'
+  return MockImage;
+});
+
+// ProductCard ahora usa `useTranslations` de next-intl (antes usaba el hook
+// `useLocalizedMessages`, que importaba el diccionario estáticamente).
+// La config de Jest no transforma el ESM de next-intl, así que mockeamos el
+// hook devolviendo las traducciones reales de las claves que usa ProductCard.
+const TRANSLATIONS: Record<string, string> = {
+  'productCard.featured': 'Destacado',
+  'productCard.boost': 'Boost',
+  'productCard.verified': 'Verificado',
+};
+
+jest.mock('next-intl', () => ({
+  useTranslations: () => (key: string) => TRANSLATIONS[key] ?? key,
+}));
+
 describe('ProductCard', () => {
   const mockProduct: ProductCardData = {
     id: '1',

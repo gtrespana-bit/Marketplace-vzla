@@ -7,12 +7,11 @@ import { usePathname } from 'next/navigation'
 import { Menu, X, Search, PlusCircle, MessageCircle, Zap, ChevronLeft, Globe } from 'lucide-react'
 import { useAuth } from '@/components/AuthProvider'
 import Avatar from '@/components/Avatar'
-import { useLocalizedMessages } from '@/hooks/useLocalizedMessages'
-import { supabase } from '@/lib/supabase'
+import { useTranslations } from 'next-intl'
 
 export function Header() {
   const { user } = useAuth()
-  const { t } = useLocalizedMessages()
+  const t = useTranslations()
   const [mobileOpen, setMobileOpen] = useState(false)
   const [creditoBalance, setCreditoBalance] = useState<number | null>(null)
   const [unreadCount, setUnreadCount] = useState(0)
@@ -49,20 +48,28 @@ export function Header() {
 
   // Consolidated fetch: credit balance + unread count in single query
   // ✅ PERFORMANCE FIX: Add timeout to prevent hanging requests
+  // ✅ FIX: @supabase/supabase-js se importa de forma DINÁMICA (solo cuando
+  // hay sesión) para no arrastrar el cliente de Supabase al bundle inicial
+  // de TODAS las páginas. Solo se descarga cuando el usuario está logueado.
   useEffect(() => {
     if (!user) return
 
+    let cancelled = false
     let timeoutId: NodeJS.Timeout
     const controller = new AbortController()
-    
+    let sb: any = null
+    let channel: { unsubscribe: () => void } | null = null
+    let bc: BroadcastChannel | null = null
+
     async function fetchAll() {
+      if (!sb) return
       // Timeout after 5 seconds
       timeoutId = setTimeout(() => controller.abort(), 5000)
       
       try {
         const [profileResponse, unreadResult] = await Promise.all([
           fetch('/api/perfil', { signal: controller.signal }),
-          supabase.from('mensajes').select('id', { count: 'exact', head: true }).eq('destinatario_id', user!.id).eq('leido', false).abortSignal(controller.signal),
+          sb.from('mensajes').select('id', { count: 'exact', head: true }).eq('destinatario_id', user!.id).eq('leido', false).abortSignal(controller.signal),
         ])
         if (!profileResponse.ok) throw new Error('No se pudo cargar el perfil')
         const profileJson = await profileResponse.json()
@@ -83,25 +90,37 @@ export function Header() {
         }
       }
     }
-    
-    fetchAll()
 
-    // Realtime subscription for unread messages
-    const channel = supabase
-      .channel('header-unread')
-      .on(
-        'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'mensajes', filter: `destinatario_id=eq.${user!.id}` },
-        () => fetchAll()
-      )
-      .subscribe()
+    async function init() {
+      try {
+        ;({ supabase: sb } = await import('@/lib/supabase'))
+      } catch {
+        return
+      }
+      if (cancelled) return
 
-    const bc = new BroadcastChannel('vendete_unread_sync')
-    bc.onmessage = () => fetchAll()
+      fetchAll()
+
+      // Realtime subscription for unread messages
+      channel = sb
+        .channel('header-unread')
+        .on(
+          'postgres_changes',
+          { event: 'INSERT', schema: 'public', table: 'mensajes', filter: `destinatario_id=eq.${user!.id}` },
+          () => fetchAll()
+        )
+        .subscribe()
+
+      bc = new BroadcastChannel('vendete_unread_sync')
+      bc.onmessage = () => fetchAll()
+    }
+
+    init()
 
     return () => {
-      supabase.removeChannel(channel)
-      bc.close()
+      cancelled = true
+      if (channel) sb?.removeChannel(channel)
+      bc?.close()
       clearTimeout(timeoutId)
       controller.abort()
     }
