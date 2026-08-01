@@ -2,19 +2,21 @@ import { Metadata } from 'next'
 import LandingCiudad from './LandingCiudad'
 import { getCiudadBySlug } from '@/lib/ubicaciones-seo'
 import Breadcrumbs from '@/components/Breadcrumbs'
+import { getTranslations } from 'next-intl/server'
 
 type Props = {
-  params: Promise<{ ciudad: string }>
+  params: Promise<{ ciudad: string; locale: string }>
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { ciudad } = await params
+  const { ciudad, locale } = await params
   const ciudadSEO = getCiudadBySlug(ciudad)
   
   if (!ciudadSEO) {
+    const t = await getTranslations({ locale, namespace: 'notFound' })
     return {
-      title: 'Ciudad no encontrada | VendeT.online',
-      description: 'La ciudad solicitada no existe en nuestro directorio de clasificados.',
+      title: `${t('title')} | VendeT.online`,
+      description: t('description'),
     }
   }
 
@@ -58,14 +60,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 // "static generation on demand" que fallaba. Sin generateStaticParams la ruta
 // se sirve igual que la home (/catalogo, /buscar): SSR dinámico y sin 500.
 export default async function CiudadPage({ params }: Props) {
-  const { ciudad } = await params
+  const { ciudad, locale } = await params
   const ciudadSEO = getCiudadBySlug(ciudad)
   
   if (!ciudadSEO) {
+    const t = await getTranslations({ locale, namespace: 'notFound' })
     return (
       <div className="container mx-auto px-4 py-16 text-center">
-        <h1 className="text-3xl font-bold mb-4">Ciudad no encontrada</h1>
-        <p className="text-gray-600">La ciudad que buscas no está disponible aún.</p>
+        <h1 className="text-3xl font-bold mb-4">{t('title')}</h1>
+        <p className="text-gray-600">{t('description')}</p>
       </div>
     )
   }
@@ -103,6 +106,7 @@ export default async function CiudadPage({ params }: Props) {
       <LandingCiudad 
         slug={ciudad} 
         nombre={ciudadSEO.nombre}
+        municipio={ciudadSEO.municipio}
         estado={ciudadSEO.estado}
         descripcion={ciudadSEO.descripcion}
       />

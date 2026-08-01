@@ -1,5 +1,6 @@
 import { ImageResponse } from 'next/og'
 import { supabase } from '@/lib/supabase'
+import { isUuid } from '@/lib/product-url'
 
 export const runtime = 'edge'
 export const alt = 'VendeT - Producto'
@@ -8,11 +9,19 @@ export const contentType = 'image/png'
 
 export default async function Image({ params }: { params: { slug: string; locale: string } }) {
   try {
-    const { data: product } = await supabase
+    const isParamUuid = isUuid(params.slug)
+    
+    let query = supabase
       .from('productos')
       .select('titulo, precio_usd, estado, ubicacion_ciudad, imagen_url')
-      .eq('id', params.slug)
-      .single()
+
+    if (isParamUuid) {
+      query = query.eq('id', params.slug)
+    } else {
+      query = query.eq('slug', params.slug)
+    }
+
+    const { data: product } = await query.maybeSingle()
 
     if (!product) {
       return new ImageResponse(

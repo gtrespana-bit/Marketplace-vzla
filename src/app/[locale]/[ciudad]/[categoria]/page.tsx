@@ -2,6 +2,7 @@ import { Metadata } from 'next'
 import LandingCategoria from './LandingCategoria'
 import { getCiudadBySlug } from '@/lib/ubicaciones-seo'
 import Breadcrumbs from '@/components/Breadcrumbs'
+import { getTranslations } from 'next-intl/server'
 
 const CATEGORIAS_SEO: Record<string, { nombre: string; descripcion: string }> = {
   vehiculos: { 
@@ -38,15 +39,20 @@ const CATEGORIAS_SEO: Record<string, { nombre: string; descripcion: string }> = 
   },
 }
 
+type Props = {
+  params: Promise<{ ciudad: string; categoria: string; locale: string }>
+}
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { ciudad, categoria } = await params
+  const { ciudad, categoria, locale } = await params
   const ciudadSEO = getCiudadBySlug(ciudad)
   const cat = CATEGORIAS_SEO[categoria] || { nombre: categoria, descripcion: categoria }
   
   if (!ciudadSEO) {
+    const t = await getTranslations({ locale, namespace: 'notFound' })
     return {
-      title: 'Categoría no encontrada | VendeT.online',
-      description: 'La ciudad o categoría solicitada no existe.',
+      title: `${t('title')} | VendeT.online`,
+      description: t('description'),
     }
   }
 
@@ -93,20 +99,18 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 // src/app/[locale]/[ciudad]/page.tsx. generateStaticParams aquí hacía que
 // Next 16 intentara "static generation on demand" al recibir cualquier
 // request de /ciudad/categoria, lanzando DYNAMIC_SERVER_USAGE → 500.
-type Props = {
-  params: Promise<{ ciudad: string; categoria: string }>
-}
 
 export default async function CategoriaPage({ params }: Props) {
-  const { ciudad, categoria } = await params
+  const { ciudad, categoria, locale } = await params
   const ciudadSEO = getCiudadBySlug(ciudad)
   const cat = CATEGORIAS_SEO[categoria] || { nombre: categoria, descripcion: categoria }
   
   if (!ciudadSEO) {
+    const t = await getTranslations({ locale, namespace: 'notFound' })
     return (
       <div className="container mx-auto px-4 py-16 text-center">
-        <h1 className="text-3xl font-bold mb-4">Página no encontrada</h1>
-        <p className="text-gray-600">La ciudad o categoría que buscas no está disponible.</p>
+        <h1 className="text-3xl font-bold mb-4">{t('title')}</h1>
+        <p className="text-gray-600">{t('description')}</p>
       </div>
     )
   }
@@ -123,6 +127,7 @@ export default async function CategoriaPage({ params }: Props) {
       <LandingCategoria 
         ciudadSlug={ciudad} 
         ciudadNombre={ciudadSEO.nombre}
+        ciudadMunicipio={ciudadSEO.municipio}
         estado={ciudadSEO.estado}
         categoriaSlug={categoria} 
         categoriaNombre={cat.nombre}

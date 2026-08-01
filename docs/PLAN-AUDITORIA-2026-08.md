@@ -1,7 +1,7 @@
 # Plan de corrección y verificación — VendeT
 
 **Última actualización:** 2026-08-01
-**Rama de trabajo:** `arena/019fbedd-marketplace-vzla`
+**Rama de trabajo:** `arena/019fbf3f-marketplace-vzla`
 **Estado:** código preparado para revisión; todavía no se ha abierto PR hacia `main`.
 
 Este documento es la fuente de verdad de la auditoría. Separa lo que ya está
@@ -234,15 +234,15 @@ producción sin respaldo.
 
 ## Fase 4 — SEO y localización
 
-- [ ] Corregir el filtro de categoría de las landings ciudad/categoría.
-- [ ] Unificar municipio almacenado y ciudad SEO.
-- [ ] Resolver slugs duplicados de ciudades.
-- [ ] Corregir breadcrumbs de ubicación.
-- [ ] Corregir Open Graph de productos con slug SEO.
-- [ ] Corregir Open Graph del catálogo con filtros.
-- [ ] Completar URLs `/en` en sitemap.
-- [ ] Evitar `lastModified: new Date()` para todas las URLs.
-- [ ] Revisar cadenas hardcodeadas en español dentro del locale inglés.
+- [x] Corregir el filtro de categoría de las landings ciudad/categoría.
+- [x] Unificar municipio almacenado y ciudad SEO.
+- [x] Resolver slugs duplicados de ciudades.
+- [x] Corregir breadcrumbs de ubicación.
+- [x] Corregir Open Graph de productos con slug SEO.
+- [x] Corregir Open Graph del catálogo con filtros.
+- [x] Completar URLs `/en` en sitemap.
+- [x] Evitar `lastModified: new Date()` para todas las URLs.
+- [x] Revisar cadenas hardcodeadas en español dentro del locale inglés.
 
 ## Fase 5 — Autenticación, emails y PWA
 

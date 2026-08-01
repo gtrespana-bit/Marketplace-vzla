@@ -8,6 +8,7 @@ import { productUrl } from '@/lib/product-url'
 interface Props {
   ciudadSlug: string
   ciudadNombre: string
+  ciudadMunicipio?: string
   estado: string
   categoriaSlug: string
   categoriaNombre: string
@@ -25,16 +26,35 @@ const CATEGORIA_MAP: Record<string, string> = {
   otros: 'otros',
 }
 
-async function getProductos(ciudadNombre: string, categoriaSlug: string) {
-  const { data } = await supabase
+async function getProductos(ciudadNombre: string, ciudadMunicipio: string | undefined, categoriaSlug: string) {
+  // Primero, busquemos el id de la categoría para evitar hacer joins complejos
+  const { data: catRow } = await supabase
+    .from('categorias')
+    .select('id')
+    .eq('nombre', categoriaSlug)
+    .maybeSingle()
+
+  let query = supabase
     .from('productos')
     .select('id, slug, titulo, precio_usd, estado, imagen_url, ubicacion_ciudad, subcategoria, destacado, destacado_hasta')
     .eq('activo', true)
-    .eq('ubicacion_ciudad', ciudadNombre)
-    .eq('subcategoria', categoriaSlug)
     .or('estado_moderacion.is.null,estado_moderacion.eq.aprobado')
     .order('creado_en', { ascending: false })
     .limit(24)
+
+  if (catRow) {
+    query = query.eq('categoria_id', catRow.id)
+  } else {
+    query = query.eq('subcategoria', categoriaSlug)
+  }
+
+  if (ciudadMunicipio && ciudadMunicipio !== ciudadNombre) {
+    query = query.or(`ubicacion_ciudad.eq."${ciudadNombre}",ubicacion_ciudad.eq."${ciudadMunicipio}"`)
+  } else {
+    query = query.eq('ubicacion_ciudad', ciudadNombre)
+  }
+
+  const { data } = await query
   return data || []
 }
 
@@ -85,12 +105,12 @@ function ProductosGrid({ productos, categoriaNombre, ciudadNombre, t }: { produc
   )
 }
 
-export default async function LandingCategoria({ ciudadSlug, ciudadNombre, categoriaSlug, categoriaNombre }: Props) {
+export default async function LandingCategoria({ ciudadSlug, ciudadNombre, ciudadMunicipio, categoriaSlug, categoriaNombre }: Props) {
   // getTranslations (API server de next-intl) en vez de useTranslations:
   // useTranslations dentro de un Server Component async bajo <Suspense>
   // lanzaba "Expected a suspended thenable" en Next 16 → 500.
   const t = await getTranslations('catLanding')
-  const productos = await getProductos(ciudadNombre, categoriaSlug)
+  const productos = await getProductos(ciudadNombre, ciudadMunicipio, categoriaSlug)
 
   // Categorias relacionadas para la ciudad
   const categoriasRelacionadas = Object.entries(CATEGORIA_MAP)

@@ -6,6 +6,7 @@ import { MUNICIPIOS_POR_ESTADO, ESTADOS } from './ubicaciones'
 export interface CiudadSEO {
   slug: string
   nombre: string
+  municipio?: string
   estado: string
   descripcion: string
   keywords: string[]
@@ -13,16 +14,35 @@ export interface CiudadSEO {
 }
 
 // Generar todas las ciudades con su información SEO
-export const CIUDADES_SEO: CiudadSEO[] = []
+const slugMap = new Map<string, number>()
+
+// Primera pasada: contar ocurrencias de cada slug base y deduplicar intra-estado
+const tempCiudades: Array<{
+  baseSlug: string
+  nombre: string
+  municipio: string
+  estado: string
+  descripcion: string
+  keywords: string[]
+  titulo: string
+}> = []
 
 ESTADOS.forEach((estado) => {
   const municipios = MUNICIPIOS_POR_ESTADO[estado] || []
   municipios.forEach((municipio) => {
-    const slug = municipio.capital.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
+    // Evitar añadir la misma capital dos veces para el mismo estado (p. ej. Falcón Píritu o Monagas Santa Bárbara)
+    const yaExisteEnEstado = tempCiudades.some(c => c.nombre === municipio.capital && c.estado === estado)
+    if (yaExisteEnEstado) return
+
+    const baseSlug = municipio.capital.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
     
-    CIUDADES_SEO.push({
-      slug,
+    // Contar ocurrencia
+    slugMap.set(baseSlug, (slugMap.get(baseSlug) || 0) + 1)
+
+    tempCiudades.push({
+      baseSlug,
       nombre: municipio.capital,
+      municipio: municipio.nombre,
       estado,
       titulo: `Clasificados en ${municipio.capital}, ${estado} | VendeT.online`,
       descripcion: `Compra y vende en ${municipio.capital}, ${estado}. Miles de anuncios clasificados: carros, casas, celulares, empleo y más. Publica gratis en VendeT.online.`,
@@ -39,9 +59,48 @@ ESTADOS.forEach((estado) => {
   })
 })
 
+// Segunda pasada: generar la lista final CIUDADES_SEO aplicando slugs únicos para duplicados entre estados
+export const CIUDADES_SEO: CiudadSEO[] = tempCiudades.map((c) => {
+  const count = slugMap.get(c.baseSlug) || 0
+  let finalSlug = c.baseSlug
+
+  if (count > 1) {
+    const estadoSlug = c.estado.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
+    finalSlug = `${c.baseSlug}-${estadoSlug}`
+  }
+
+  return {
+    slug: finalSlug,
+    nombre: c.nombre,
+    municipio: c.municipio,
+    estado: c.estado,
+    descripcion: c.descripcion,
+    keywords: c.keywords,
+    titulo: c.titulo
+  }
+})
+
 // Helper para buscar ciudad por slug
 export function getCiudadBySlug(slug: string): CiudadSEO | undefined {
   return CIUDADES_SEO.find(c => c.slug === slug)
+}
+
+// Helper para buscar ciudad por municipio o capital
+export function getCiudadByMunicipio(municipio: string): CiudadSEO | undefined {
+  if (!municipio) return undefined
+  const normalizedMuni = municipio.trim().toLowerCase()
+  return CIUDADES_SEO.find(c => c.municipio?.trim().toLowerCase() === normalizedMuni || c.nombre.trim().toLowerCase() === normalizedMuni)
+}
+
+// Helper para buscar ciudad por municipio/capital y estado de forma exacta
+export function getCiudadByMunicipioYEstado(municipio: string, estado: string): CiudadSEO | undefined {
+  if (!municipio) return undefined
+  const normalizedMuni = municipio.trim().toLowerCase()
+  const normalizedEstado = estado?.trim().toLowerCase()
+  return CIUDADES_SEO.find(c => 
+    (c.municipio?.trim().toLowerCase() === normalizedMuni || c.nombre.trim().toLowerCase() === normalizedMuni) &&
+    (!normalizedEstado || c.estado.trim().toLowerCase() === normalizedEstado)
+  )
 }
 
 // Helper para obtener todas las ciudades de un estado

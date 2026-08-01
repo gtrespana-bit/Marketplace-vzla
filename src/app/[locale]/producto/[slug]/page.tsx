@@ -8,6 +8,7 @@ import { getTranslations } from 'next-intl/server'
 import Breadcrumbs from '@/components/Breadcrumbs'
 import LocalLink from '@/components/LocalLink'
 import { isUuid } from '@/lib/product-url'
+import { getCiudadByMunicipioYEstado } from '@/lib/ubicaciones-seo'
 
 // IMPORTANTE — Ruta DINÁMICA a propósito: ver el comentario en
 // src/app/[locale]/[ciudad]/page.tsx. Con generateStaticParams + revalidate
@@ -246,10 +247,18 @@ export default async function ProductoPage({ params }: Props) {
     },
   }
 
+  // Encontrar ciudad SEO para la ubicación
+  const ciudadSEO = producto.ubicacion_ciudad 
+    ? getCiudadByMunicipioYEstado(producto.ubicacion_ciudad, producto.ubicacion_estado || '') 
+    : undefined
+
   // Breadcrumb items
   const breadcrumbItems = [
     { label: producto.subcategoria || 'Categoría', href: `/catalogo?subcategoria=${producto.subcategoria}` },
-    { label: producto.ubicacion_ciudad || 'Ubicación', href: `/${producto.ubicacion_ciudad?.toLowerCase().normalize('NFD').replace(/[^\u0300-\u036f\s]/g, '').replace(/\s+/g, '-')}` },
+    { 
+      label: ciudadSEO ? ciudadSEO.nombre : (producto.ubicacion_ciudad || 'Ubicación'), 
+      href: ciudadSEO ? `/${ciudadSEO.slug}` : `/catalogo?ciudad=${producto.ubicacion_ciudad}` 
+    },
     { label: producto.titulo, href: undefined }
   ]
 
