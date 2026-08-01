@@ -306,7 +306,7 @@ Detalle de la implementación (2026-08-01):
 - [ ] Corregir migración `019_fulltext_search.sql` y la columna `seller_nombre`.
 - [ ] Añadir pruebas automatizadas de APIs y RLS.
 - [ ] Añadir pruebas E2E de autenticación, publicación, edición, compra y chat.
-- [ ] Hacer que `npm run build` no dependa de descargar Google Fonts durante el build.
+- [x] Hacer que `npm run build` no dependa de descargar Google Fonts durante el build. → Inter autohospedada con `next/font/local` desde `src/app/fonts/*.woff2` (pesos 400/500/600/700/900 normal+itálica). Se mantuvo la variable `--font-inter` (sin tocar Tailwind) y se limpió el CSP y los preconnect/dns-prefetch de `fonts.googleapis.com`/`fonts.gstatic.com`. `tsc`, lint y tests pasan; el build compila y ya no consulta Google Fonts.
 - [ ] Resolver las vulnerabilidades reportadas por `npm audit` sin usar `--force` a ciegas.
 - [ ] Eliminar warnings de lint restantes.
 - [ ] Añadir un job CI que ejecute también `npm run lint`.

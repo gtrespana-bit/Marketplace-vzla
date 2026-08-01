@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next'
-import { Inter } from 'next/font/google'
+import localFont from 'next/font/local'
 import './globals.css'
 import { Header } from '@/components/Header'
 import { Footer } from '@/components/Footer'
@@ -18,8 +18,24 @@ import PWAInstallBanner from '@/components/PWAInstallBanner'
 import PushNotificationBanner from '@/components/PushNotificationBanner'
 import BottomTabNav from '@/components/BottomTabNav'
 
-const inter = Inter({
-  subsets: ['latin'],
+// Fuente Inter autohospedada (woff2 locales) en lugar de next/font/google.
+// Elimina la dependencia de Google Fonts durante el build (que fallaba sin
+// red), mejora la velocidad (origen propio, sin petición externa) y la
+// privacidad. Mantiene la variable CSS `--font-inter` para que el config de
+// Tailwind siga funcionando sin cambios.
+const inter = localFont({
+  src: [
+    { path: './fonts/inter-latin-400-normal.woff2', weight: '400', style: 'normal' },
+    { path: './fonts/inter-latin-400-italic.woff2', weight: '400', style: 'italic' },
+    { path: './fonts/inter-latin-500-normal.woff2', weight: '500', style: 'normal' },
+    { path: './fonts/inter-latin-500-italic.woff2', weight: '500', style: 'italic' },
+    { path: './fonts/inter-latin-600-normal.woff2', weight: '600', style: 'normal' },
+    { path: './fonts/inter-latin-600-italic.woff2', weight: '600', style: 'italic' },
+    { path: './fonts/inter-latin-700-normal.woff2', weight: '700', style: 'normal' },
+    { path: './fonts/inter-latin-700-italic.woff2', weight: '700', style: 'italic' },
+    { path: './fonts/inter-latin-900-normal.woff2', weight: '900', style: 'normal' },
+    { path: './fonts/inter-latin-900-italic.woff2', weight: '900', style: 'italic' },
+  ],
   variable: '--font-inter',
   display: 'swap',
   preload: false,
@@ -169,9 +185,7 @@ export default async function RootLayout({
     <html lang={lang} className={inter.variable} suppressHydrationWarning>
       <head>
         <link rel="preconnect" href="https://jmbkqelkusxjebsdnjoc.supabase.co" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://jmbkqelkusxjebsdnjoc.supabase.co" />
-        <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
