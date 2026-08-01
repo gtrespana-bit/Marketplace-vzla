@@ -112,7 +112,7 @@ export default function PWAInstallBanner() {
       {mounted && showBanner && (
         <div className="fixed bottom-4 inset-x-4 z-[60] md:inset-x-auto md:left-4 md:bottom-4 md:max-w-sm animate-fadeIn">
           <div className="bg-white rounded-2xl shadow-2xl border border-gray-200 p-4">
-            <button onClick={handleDismiss} aria-label={t('pwa.closeBanner')} className="absolute top-3 right-3 text-gray-400 hover:text-gray-600">
+            <button onClick={handleDismiss} aria-label={t('pwa.closeBanner')} className="absolute top-3 right-3 text-gray-500 hover:text-gray-600">
               <X size={16} />
             </button>
             <div className="flex items-start gap-3">
@@ -137,7 +137,7 @@ export default function PWAInstallBanner() {
       {showIOS && (
         <div className="fixed inset-0 z-[60] bg-black/50 flex items-center justify-center p-4 animate-fadeIn">
           <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-5 animate-slideUp relative">
-            <button onClick={handleDismiss} aria-label={t('pwa.close')} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
+            <button onClick={handleDismiss} aria-label={t('pwa.close')} className="absolute top-4 right-4 text-gray-500 hover:text-gray-600">
               <X size={20} />
             </button>
             <div className="text-center mb-4">

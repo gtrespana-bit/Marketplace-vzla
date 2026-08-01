@@ -52,11 +52,12 @@ export default function MetricasTab() {
           .order('visitas', { ascending: false })
           .limit(10)
 
-        // Aggregate by seller
+        // Aggregate by seller - Fase 5: limitar a 1000 productos activos para evitar payload gigante
         const sellerStats: Record<string, any> = {}
         const { data: prods } = await supabase
           .from('productos')
           .select('seller_nombre, visitas, activo')
+          .limit(1000)
 
         prods?.forEach((p: any) => {
           if (!p.seller_nombre) return
@@ -135,22 +136,22 @@ export default function MetricasTab() {
               <div key={p.id} className="px-5 py-3 flex items-center justify-between">
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-gray-800 truncate">{p.titulo}</p>
-                  <p className="text-xs text-gray-400">
+                  <p className="text-xs text-gray-500">
                     ${new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 }).format(Number(p.precio_usd || 0))} · {p.seller_nombre}
                   </p>
                 </div>
                 <div className="text-right ml-4">
                   <p className="text-xs text-gray-500">
-                    {new Intl.DateTimeFormat('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date(p.creado_en))}
+                    {new Intl.DateTimeFormat('es-VE', { year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date(p.creado_en))}
                   </p>
-                  <p className="text-xs text-gray-400 flex items-center gap-1 justify-end">
+                  <p className="text-xs text-gray-500 flex items-center gap-1 justify-end">
                     <Eye size={10} /> {p.visitas || 0}
                   </p>
                 </div>
               </div>
             ))}
             {recentActivity.length === 0 && (
-              <p className="px-5 py-8 text-center text-sm text-gray-400">No hay publicaciones aún</p>
+              <p className="px-5 py-8 text-center text-sm text-gray-500">No hay publicaciones aún</p>
             )}
           </div>
         </div>
@@ -171,7 +172,7 @@ export default function MetricasTab() {
                   </span>
                   <div>
                     <p className="text-sm font-medium text-gray-800">{s.nombre}</p>
-                    <p className="text-xs text-gray-400">{s.activeProducts} activos de {s.totalProducts}</p>
+                    <p className="text-xs text-gray-500">{s.activeProducts} activos de {s.totalProducts}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-1.5 text-sm font-bold text-brand-primary">
@@ -181,7 +182,7 @@ export default function MetricasTab() {
               </div>
             ))}
             {topSellers.length === 0 && (
-              <p className="px-5 py-8 text-center text-sm text-gray-400">No hay datos aún</p>
+              <p className="px-5 py-8 text-center text-sm text-gray-500">No hay datos aún</p>
             )}
           </div>
         </div>

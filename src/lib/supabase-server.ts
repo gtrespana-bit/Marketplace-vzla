@@ -1,63 +1,49 @@
 import { cookies } from 'next/headers'
+import { createServerClient } from '@supabase/ssr'
 
 /**
- * ✅ HYDRATION FIX: Parse JWT directly from cookies (NO network call).
- *
- * Root cause: `getUser()` makes a network call to Supabase that can fail
- * silently in production, returning null even when the user is logged in.
- * Server renders "Sign In" but client has valid session → hydration mismatch.
- *
- * Fix: Parse the JWT token directly from the Supabase auth cookie.
- * This is synchronous, reliable, and always matches the client's session
- * because both read from the same cookie.
+ * Fase 3 Bloque D — getServerUser seguro
+ * 
+ * Antes hacía parseo manual JWT (Buffer.from(..., 'base64url')),
+ * no validaba expiración ni firma contra Supabase.
+ * 
+ * Ahora usa `supabase.auth.getUser()` que valida el JWT contra
+ * el servidor Supabase (firma + expiración).
+ * 
+ * Mantiene compatibilidad con el retorno previo pero seguro.
  */
 export async function getServerUser(): Promise<any | null> {
   try {
     const cookieStore = await cookies()
-    const allCookies = cookieStore.getAll()
 
-    // Supabase stores auth token in cookie named 'sb-{projectRef}-auth-token'
-    // Also check for legacy format 'sb-auth-token'
-    const authCookie = allCookies.find(c =>
-      c.name.includes('auth-token')
-    )
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+      return null
+    }
 
-    if (!authCookie?.value) return null
-
-    let parsed: any
-    try {
-      parsed = JSON.parse(authCookie.value)
-    } catch {
-      // Cookie value might not be JSON, try URL-decoding first
-      try {
-        parsed = JSON.parse(decodeURIComponent(authCookie.value))
-      } catch {
-        return null
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+      {
+        cookies: {
+          getAll() {
+            return cookieStore.getAll()
+          },
+          setAll() {
+            // En Server Components las cookies son de solo lectura para escritura.
+            // El refresh ocurre en middleware/client. Aquí solo leemos.
+          },
+        },
       }
-    }
-
-    // Supabase cookie structure: { access_token, refresh_token, user, ... }
-    const accessToken = parsed?.access_token
-    if (!accessToken) return null
-
-    // Parse JWT payload (base64url encoded)
-    const parts = accessToken.split('.')
-    if (parts.length !== 3) return null
-
-    const payload = JSON.parse(
-      Buffer.from(parts[1], 'base64url').toString('utf-8')
     )
 
-    // Return user object matching Supabase's User interface
-    return {
-      id: payload.sub,
-      email: payload.email,
-      user_metadata: payload.user_metadata || {},
-      app_metadata: payload.app_metadata || {},
-      aud: payload.aud || 'authenticated',
-      role: payload.role || 'authenticated',
-      created_at: payload.created_at || '',
+    // Valida JWT contra Supabase (verifica firma y expiración)
+    const { data, error } = await supabase.auth.getUser()
+
+    if (error || !data.user) {
+      return null
     }
+
+    return data.user
   } catch {
     return null
   }

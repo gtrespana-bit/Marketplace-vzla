@@ -149,8 +149,11 @@ export default async function RootLayout({
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="apple-mobile-web-app-title" content="VendeT" />
         <meta name="application-name" content="VendeT" />
-        <link rel="apple-touch-icon" sizes="180x180" href="/icons/icon-192x192.png" />
-        <link rel="apple-touch-icon" sizes="152x152" href="/icons/icon-192x192.png" />
+        <link rel="apple-touch-icon" sizes="180x180" href="/icon-192.png" />
+        <link rel="apple-touch-icon" sizes="192x192" href="/icon-192.png" />
+        <link rel="apple-touch-icon" sizes="512x512" href="/icon-512.png" />
+        <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
+        <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png" />
         <link rel="manifest" href="/manifest.json" />
         <meta name="geo.region" content="VE" />
         <meta name="geo.placename" content="Venezuela" />
@@ -175,7 +178,7 @@ export default async function RootLayout({
                 '@type': 'Organization',
                 name: 'VendeT',
                 url: 'https://vendet.online',
-                logo: 'https://vendet.online/icons/icon-192x192.png',
+                logo: 'https://vendet.online/icon-192.png',
                 sameAs: [
                   'https://instagram.com/vendet',
                   'https://twitter.com/vendet',

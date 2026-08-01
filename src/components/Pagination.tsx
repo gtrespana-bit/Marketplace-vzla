@@ -72,7 +72,7 @@ export const Pagination = ({ currentPage, totalPages, itemsPerPage, totalItems }
           disabled={currentPage <= 1}
           className={`px-3 py-1 rounded-md flex items-center ${
             currentPage <= 1
-              ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+              ? 'bg-gray-100 text-gray-500 cursor-not-allowed'
               : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300'
           }`}
           aria-label="Página anterior"
@@ -112,7 +112,7 @@ export const Pagination = ({ currentPage, totalPages, itemsPerPage, totalItems }
           disabled={currentPage >= totalPages}
           className={`px-3 py-1 rounded-md flex items-center ${
             currentPage >= totalPages
-              ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+              ? 'bg-gray-100 text-gray-500 cursor-not-allowed'
               : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300'
           }`}
           aria-label="Página siguiente"

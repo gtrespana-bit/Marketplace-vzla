@@ -291,7 +291,7 @@ export default function CatalogoClient({ initialProducts = [], initialCount = 0 
         <nav className="flex items-center gap-2 text-sm text-gray-500 mb-6 flex-wrap" aria-label="Breadcrumb">
           {breadcrumbs.map((item, index) => (
             <span key={index} className="flex items-center gap-2">
-              {index > 0 && <ChevronRight size={14} className="text-gray-400" />}
+              {index > 0 && <ChevronRight size={14} className="text-gray-500" />}
               {item.href ? (
                 <LocalLink 
                   href={item.href} 
@@ -353,7 +353,7 @@ export default function CatalogoClient({ initialProducts = [], initialCount = 0 
             <LoadingIndicator count={6} />
           ) : productosToUse.length === 0 ? (
             <div className="bg-white rounded-xl p-16 text-center shadow-sm border">
-              <Search size={48} className="text-gray-300 mx-auto mb-4" />
+              <Search size={48} className="text-gray-500 mx-auto mb-4" />
               <h3 className="text-xl font-bold text-gray-800 mb-2">{t('catalog.empty')}</h3>
               <p className="text-gray-500 mb-4">{t('catalog.emptyCta')}</p>
               <LocalLink href="/publicar" className="inline-block bg-brand-accent text-white px-6 py-3 rounded-lg font-bold hover:bg-accent/90 transition">

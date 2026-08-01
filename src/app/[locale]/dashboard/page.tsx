@@ -341,7 +341,7 @@ export default function DashboardPage() {
       {/* Tab Content */}
       {activeTab === 'resumen' && <TabResumen userId={user!.id} />}
       {activeTab === 'productos' && (
-        <Suspense fallback={<div className="p-12 text-center text-gray-400">{t('loadingListings')}</div>}>
+        <Suspense fallback={<div className="p-12 text-center text-gray-500">{t('loadingListings')}</div>}>
           <TabProductos
             productos={data.productos}
             onBoost={setBoostTarget}

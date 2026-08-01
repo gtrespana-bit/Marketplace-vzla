@@ -114,13 +114,13 @@ export default function AprobacionPage() {
       {cargando ? (
         <div className="text-center py-20">
           <Loader2 size={32} className="mx-auto text-brand-primary animate-spin" />
-          <p className="text-gray-400 mt-4">Cargando...</p>
+          <p className="text-gray-500 mt-4">Cargando...</p>
         </div>
       ) : pendientes.length === 0 ? (
         <div className="bg-white rounded-xl p-12 text-center border">
           <p className="text-4xl mb-4">🎉</p>
           <p className="text-lg font-bold text-gray-800">No hay pagos pendientes</p>
-          <p className="text-gray-400 text-sm mt-2">Todo limpio</p>
+          <p className="text-gray-500 text-sm mt-2">Todo limpio</p>
         </div>
       ) : (
         <div className="space-y-4">
@@ -134,7 +134,7 @@ export default function AprobacionPage() {
                     <span className="bg-yellow-100 text-yellow-700 text-xs px-2 py-0.5 rounded-full font-bold">PENDIENTE</span>
                   </div>
                   <p className="text-sm text-gray-600">💲 ${t.precio_usd || '?'} USD — {t.metodo_pago || 'N/A'}</p>
-                  <p className="text-xs text-gray-400">{new Intl.DateTimeFormat('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date(t.creado_en))} {new Intl.DateTimeFormat('en-US', { hour: '2-digit', minute: '2-digit' }).format(new Date(t.creado_en))}</p>
+                  <p className="text-xs text-gray-500">{new Intl.DateTimeFormat('es-VE', { year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date(t.creado_en))} {new Intl.DateTimeFormat('es-VE', { hour: '2-digit', minute: '2-digit' }).format(new Date(t.creado_en))}</p>
 
                   {/* Comprobante */}
                   {t.comprobante_url && (

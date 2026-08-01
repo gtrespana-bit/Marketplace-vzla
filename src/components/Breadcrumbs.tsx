@@ -39,7 +39,7 @@ export default function Breadcrumbs({ items }: BreadcrumbsProps) {
           </li>
           {items.map((item, index) => (
             <li key={index} className="flex items-center gap-2">
-              <ChevronRight size={12} className="text-gray-400" />
+              <ChevronRight size={12} className="text-gray-500" />
               {item.href ? (
                 <LocalLink 
                   href={item.href} 

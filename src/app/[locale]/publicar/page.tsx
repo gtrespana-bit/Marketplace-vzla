@@ -414,7 +414,7 @@ export default function PublicarPage() {
         {[{ num: 1, label: t('stepCategory') }, { num: 2, label: t('stepDetails') }, { num: 3, label: t('stepPhotos') }, { num: 4, label: t('stepReview') }].map(s => (
           <div key={s.num} className="flex items-center gap-2 flex-shrink-0">
             <button onClick={() => setStep(s.num)} className={`w-10 h-10 rounded-full font-bold text-sm transition ${step >= s.num ? 'bg-brand-primary text-white' : 'bg-gray-200 text-gray-500'}`}>{s.num}</button>
-            <span className={`text-sm font-medium hidden sm:inline ${step >= s.num ? 'text-gray-900' : 'text-gray-400'}`}>{s.label}</span>
+            <span className={`text-sm font-medium hidden sm:inline ${step >= s.num ? 'text-gray-900' : 'text-gray-500'}`}>{s.label}</span>
             {s.num < 4 && <div className={`w-6 sm:w-8 h-0.5 ${step > s.num ? 'bg-brand-primary' : 'bg-gray-200'}`} />}
           </div>
         ))}
@@ -660,7 +660,7 @@ export default function PublicarPage() {
               ))}
               {imagenes.length < 10 && (
                 <label className="aspect-square rounded-lg border-2 border-dashed border-gray-300 flex flex-col items-center justify-center cursor-pointer hover:border-brand-accent hover:bg-yellow-50 transition">
-                  <Camera size={24} className="text-gray-400" /><span className="text-xs text-gray-500 mt-1">{t('add')}</span>
+                  <Camera size={24} className="text-gray-500" /><span className="text-xs text-gray-500 mt-1">{t('add')}</span>
                   <input type="file" accept="image/*" multiple onChange={handleImageUpload} className="hidden" />
                 </label>
               )}

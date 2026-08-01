@@ -56,8 +56,33 @@ export function AuthProvider({ children, initialUser }: { children: React.ReactN
         }
 
         // Listen for auth changes AFTER getting initial session
-        const { data } = supabase.auth.onAuthStateChange((_event, s) => {
+        const { data } = supabase.auth.onAuthStateChange((event, s) => {
           if (cancelled) return
+          // Fase 3: al cerrar sesión, limpiar caches privadas para evitar fuga en dispositivo compartido
+          if (event === 'SIGNED_OUT') {
+            try {
+              // Limpiar Cache Storage del SW
+              if (typeof window !== 'undefined' && 'caches' in window) {
+                caches.keys().then(keys => {
+                  keys.forEach(k => {
+                    if (k.startsWith('vendet-')) {
+                      caches.delete(k)
+                    }
+                  })
+                })
+              }
+              // Notificar al SW activo para que borre todo
+              if (typeof navigator !== 'undefined' && navigator.serviceWorker?.controller) {
+                navigator.serviceWorker.controller.postMessage({ type: 'CLEAR_PRIVATE_CACHE' })
+              }
+              // Limpiar sessionStorage usado por ChatPage
+              if (typeof sessionStorage !== 'undefined') {
+                sessionStorage.clear()
+              }
+            } catch {
+              // ignore
+            }
+          }
           setSession(s)
           setUser(s?.user ?? null)
           setLoading(false)

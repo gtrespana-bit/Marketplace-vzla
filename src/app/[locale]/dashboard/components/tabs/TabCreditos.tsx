@@ -67,7 +67,7 @@ export default function TabCreditos({ creditos, tasaBs, refreshCreditos }: { cre
               </div>
               <div className="p-6 text-center">
                 <p className="text-3xl font-black text-gray-800 mb-1">${pkg.precio} <span className="text-sm font-normal text-gray-500">USD</span></p>
-                <p className="text-sm text-gray-400 mb-4">≈ Bs. {precioBs}</p>
+                <p className="text-sm text-gray-500 mb-4">≈ Bs. {precioBs}</p>
                 <p className="text-xs text-gray-500 mb-5 bg-gray-50 rounded-lg py-1 px-2 inline-block">${porCredito} por crédito</p>
                 <ul className="text-sm text-gray-600 space-y-2 mb-6 text-left">
                   <li className="flex items-center gap-2"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /><strong>{pkg.creditos}</strong> boost(s) al #1</li>
@@ -234,7 +234,7 @@ function ModalCompraCreditos({ paquete, tasa, onClose, onCompraExitosa }: { paqu
                   {copiado === 'precioBs' ? '✓' : 'Copiar'}
                 </button>
               </div>
-              <p className="text-xs text-gray-400 mt-1 text-center">Tasa BCV: Bs. {tasa.toFixed(2)} / ${paquete.precio}</p>
+              <p className="text-xs text-gray-500 mt-1 text-center">Tasa BCV: Bs. {tasa.toFixed(2)} / ${paquete.precio}</p>
             </div>
           )}
 
@@ -275,9 +275,9 @@ function ModalCompraCreditos({ paquete, tasa, onClose, onCompraExitosa }: { paqu
                   </div>
                 ) : (
                   <>
-                    <Upload size={32} className="mx-auto text-gray-400 mb-2" />
+                    <Upload size={32} className="mx-auto text-gray-500 mb-2" />
                     <p className="text-sm text-gray-500">Toca para subir captura del pago</p>
-                    <p className="text-xs text-gray-400 mt-1">JPG, PNG — máx 5MB</p>
+                    <p className="text-xs text-gray-500 mt-1">JPG, PNG — máx 5MB</p>
                   </>
                 )}
               </div>
@@ -289,7 +289,7 @@ function ModalCompraCreditos({ paquete, tasa, onClose, onCompraExitosa }: { paqu
           )}
 
           {!metodo && (
-            <div className="text-center py-4 text-sm text-gray-400">Selecciona un método de pago para continuar ↓</div>
+            <div className="text-center py-4 text-sm text-gray-500">Selecciona un método de pago para continuar ↓</div>
           )}
         </div>
       </div>

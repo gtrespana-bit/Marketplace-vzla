@@ -55,7 +55,7 @@ export default function ResultadosUbicacion({
         <form action="/buscar" method="GET" className="flex gap-2 w-full sm:w-auto">
           <div className="relative flex-1 sm:w-60">
             <input name="q" defaultValue={q} placeholder="Buscar..." className="w-full border rounded-lg pl-9 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-accent" />
-            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
           </div>
           <button type="submit" className="bg-brand-accent text-white px-5 rounded-lg font-bold text-sm hover:bg-accent/90 transition whitespace-nowrap">Buscar</button>
         </form>
@@ -101,7 +101,7 @@ export default function ResultadosUbicacion({
                 value={ciudadParam}
                 onChange={(e) => onUbicacionChange(estadoParam, e.target.value)}
                 disabled={!estadoParam}
-                className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-accent disabled:bg-gray-100 disabled:text-gray-400"
+                className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-accent disabled:bg-gray-100 disabled:text-gray-500"
               >
                 <option value="">Todos los municipios</option>
                 {ciudades.map((c) => (

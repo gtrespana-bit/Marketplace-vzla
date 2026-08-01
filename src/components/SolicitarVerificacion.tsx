@@ -270,7 +270,7 @@ export default function SolicitarVerificacion() {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Foto de frente</label>
                 <label className="flex items-center gap-2 border-2 border-dashed border-gray-300 rounded-lg p-4 cursor-pointer hover:border-brand-primary transition">
-                  <Camera size={20} className="text-gray-400" />
+                  <Camera size={20} className="text-gray-500" />
                   <span className="text-sm text-gray-500">{frenteFile ? frenteFile.name : 'Seleccionar...'}</span>
                   <input type="file" accept="image/*" onChange={handleFrenteFile} className="hidden" />
                 </label>
@@ -279,7 +279,7 @@ export default function SolicitarVerificacion() {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Foto del dorso</label>
                 <label className="flex items-center gap-2 border-2 border-dashed border-gray-300 rounded-lg p-4 cursor-pointer hover:border-brand-primary transition">
-                  <Camera size={20} className="text-gray-400" />
+                  <Camera size={20} className="text-gray-500" />
                   <span className="text-sm text-gray-500">{dorsoFile ? dorsoFile.name : 'Seleccionar...'}</span>
                   <input type="file" accept="image/*" onChange={handleDorsoFile} className="hidden" />
                 </label>
@@ -369,7 +369,7 @@ export default function SolicitarVerificacion() {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Foto de frente</label>
               <label className="flex items-center gap-2 border-2 border-dashed border-gray-300 rounded-lg p-4 cursor-pointer hover:border-brand-primary transition">
-                <Camera size={20} className="text-gray-400" />
+                <Camera size={20} className="text-gray-500" />
                 <span className="text-sm text-gray-500">{frenteFile ? frenteFile.name : 'Seleccionar...'}</span>
                 <input type="file" accept="image/*" onChange={handleFrenteFile} className="hidden" />
               </label>
@@ -378,7 +378,7 @@ export default function SolicitarVerificacion() {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Foto del dorso</label>
               <label className="flex items-center gap-2 border-2 border-dashed border-gray-300 rounded-lg p-4 cursor-pointer hover:border-brand-primary transition">
-                <Camera size={20} className="text-gray-400" />
+                <Camera size={20} className="text-gray-500" />
                 <span className="text-sm text-gray-500">{dorsoFile ? dorsoFile.name : 'Seleccionar...'}</span>
                 <input type="file" accept="image/*" onChange={handleDorsoFile} className="hidden" />
               </label>
