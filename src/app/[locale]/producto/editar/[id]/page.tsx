@@ -187,7 +187,10 @@ export default function EditarPage() {
         activo,
         imagen_url: uploadedUrls[0] || null,
         imagenes: uploadedUrls,
-        metodos_contacto: Object.keys(metodosContacto).length > 0 ? metodosContacto : null,
+        // `{}` expresa explícitamente que el anunciante eligió no exponer
+        // métodos adicionales. `null` se conserva para publicaciones legacy,
+        // donde el detalle puede usar el teléfono visible del perfil.
+        metodos_contacto: metodosContacto,
       }
 
       let { error: dbError } = await supabase.from('productos').update(updates).eq('id', productoId)

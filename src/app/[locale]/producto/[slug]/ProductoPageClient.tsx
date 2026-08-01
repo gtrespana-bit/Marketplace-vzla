@@ -13,6 +13,7 @@ import ReportarButton from '@/components/ReportarButton'
 import BadgeVerificado from '@/components/BadgeVerificado'
 import ImageGallery from '@/components/ImageGallery'
 import SellerReputation from '@/components/SellerReputation'
+import { resolveContactMethods } from '@/lib/contact-methods'
 import { useTranslations } from 'next-intl'
 
 // Error boundary to catch render errors
@@ -166,16 +167,26 @@ function ProductoPageClientInner({ initialProduct }: ProductoPageClientProps) {
 
 
 
-  const mc = producto.metodos_contacto
-  const mcConfigured = mc && Object.keys(mc).length > 0
-  const contactPhone = mcConfigured ? (mc.telefono || mc.whatsapp || '') : (vendedor?.telefono || '')
-  const metodos = { chat: true, whatsapp: contactPhone.trim().length > 0, telefono: mcConfigured ? !!(mc.telefono && mc.telefono.trim()) : false, email: mcConfigured ? !!(mc.email && vendedor?.email) : !!(vendedor?.email) }
+  const contactos = resolveContactMethods(producto.metodos_contacto, vendedor?.telefono || '')
+  const contactPhone = contactos.phone
+  // WhatsApp y teléfono pueden ser números distintos. No usar el teléfono
+  // como preferencia cuando el anunciante configuró expresamente WhatsApp.
+  const whatsappPhone = contactos.whatsapp || (!contactos.hasProductConfiguration ? contactPhone : '')
+  const metodos = {
+    chat: true,
+    // Publicaciones antiguas sin contacto específico conservan el fallback
+    // telefónico visible del perfil. Las nuevas solo muestran lo configurado.
+    whatsapp: Boolean(whatsappPhone),
+    telefono: contactos.hasProductConfiguration ? Boolean(contactos.phone) : false,
+    email: Boolean(contactos.email),
+    messenger: Boolean(contactos.messengerUrl),
+  }
   const imagenes = producto.imagenes && producto.imagenes.length > 0 ? producto.imagenes : producto.imagen_url ? [producto.imagen_url] : []
   const precioBs = producto.precio_usd && tasaBs > 0 ? new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 }).format(Math.round(producto.precio_usd * tasaBs)) : ''
 
   let whatsappLink = ''
-  if (contactPhone.trim()) {
-    const phoneClean = contactPhone.replace(/[^0-9]/g, '')
+  if (whatsappPhone.trim()) {
+    const phoneClean = whatsappPhone.replace(/[^0-9]/g, '')
     const phoneNoZero = phoneClean.startsWith('0') ? phoneClean.slice(1) : phoneClean
     const finalPhone = phoneNoZero.startsWith('58') ? phoneNoZero : '58' + phoneNoZero
     whatsappLink = 'https://wa.me/' + finalPhone + '?text=' + encodeURIComponent(t('whatsappMsg').replace('{title}', producto.titulo))
@@ -324,7 +335,10 @@ function ProductoPageClientInner({ initialProduct }: ProductoPageClientProps) {
                   <a href={`tel:${contactPhone}`} className="border py-3 rounded-xl font-medium hover:bg-gray-50 transition flex items-center justify-center gap-2 text-sm"><Phone size={16} /> {t('call')}</a>
                 )}
                 {metodos.email && (
-                  <a href={`mailto:${vendedor.email}`} className="border py-3 rounded-xl font-medium hover:bg-gray-50 transition flex items-center justify-center gap-2 text-sm"><Mail size={16} /> Email</a>
+                  <a href={`mailto:${contactos.email}`} className="border py-3 rounded-xl font-medium hover:bg-gray-50 transition flex items-center justify-center gap-2 text-sm"><Mail size={16} /> Email</a>
+                )}
+                {metodos.messenger && (
+                  <a href={contactos.messengerUrl} target="_blank" rel="noopener noreferrer" className="border py-3 rounded-xl font-medium hover:bg-gray-50 transition flex items-center justify-center gap-2 text-sm"><MessageCircle size={16} /> Messenger</a>
                 )}
               </div>
             </div>

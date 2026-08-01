@@ -15,6 +15,7 @@ import { OptimizedProductGrid } from '@/components/OptimizedProductGrid'
 import { CatalogFilters } from '@/components/CatalogFilters'
 import { useProductPagination } from '@/hooks/useProductPagination'
 import { useProductLoader } from '@/hooks/useProductLoader'
+import { CATALOG_PAGE_SIZE } from '@/lib/catalog-pagination'
 import { LoadingIndicator } from '@/components/LoadingIndicator'
 import { usePrefetch } from '@/hooks/usePrefetch'
 import { productUrl } from '@/lib/product-url'
@@ -146,7 +147,7 @@ export default function CatalogoClient({ initialProducts = [], initialCount = 0 
   const router = useRouter()
 
   // Usar hook de paginación
-  const { currentPage, itemsPerPage, goToPage } = useProductPagination({ itemsPerPage: 24 })
+  const { currentPage, itemsPerPage, goToPage } = useProductPagination({ itemsPerPage: CATALOG_PAGE_SIZE })
 
   const categoria = searchParams.get('categoria') || ''
   const subcategoria = searchParams.get('subcategoria') || ''

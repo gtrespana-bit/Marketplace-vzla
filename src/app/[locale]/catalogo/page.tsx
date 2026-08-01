@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { supabase } from '@/lib/supabase'
+import { CATALOG_PAGE_SIZE } from '@/lib/catalog-pagination'
 import CatalogoClient from './CatalogoPage'
 import { Suspense } from 'react'
 
@@ -51,7 +52,7 @@ async function getInitialProducts() {
       .eq('activo', true)
       .or('estado_moderacion.is.null,estado_moderacion.eq.aprobado,estado_moderacion.eq.pendiente')
       .order('creado_en', { ascending: false })
-      .limit(12) // Reducir de 48 a 12 para mejor rendimiento inicial
+      .limit(CATALOG_PAGE_SIZE) // Debe coincidir con la página del cliente; de lo contrario se omiten filas.
 
     if (error || !data) return { products: [], count: 0 }
 

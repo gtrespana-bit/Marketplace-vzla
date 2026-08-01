@@ -3,7 +3,6 @@
 import { useEffect, useState, useCallback } from 'react'
 import { Loader2, ShieldCheck } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
-import Image from 'next/image'
 
 // ============================ VERIFICACIÓN TAB ============================
 export default function VerificacionTab({ notify }: { notify: (msg: string) => void }) {
@@ -20,7 +19,7 @@ export default function VerificacionTab({ notify }: { notify: (msg: string) => v
     // 1. Obtener solicitudes
     let query = supabase
       .from('solicitudes_verificacion')
-      .select('id, user_id, pago_movil_telefono, pago_movil_cedula, pago_movil_banco, mensaje, estado, creada_en, revisada_en, rechazo_motivo, cedula_foto_frente_url')
+      .select('id, user_id, pago_movil_telefono, pago_movil_cedula, pago_movil_banco, mensaje, estado, creada_en, revisada_en, rechazo_motivo, cedula_foto_frente_url, cedula_foto_dorso_url')
       .order('creada_en', { ascending: false })
 
     if (filtro !== 'todas') {
@@ -68,6 +67,33 @@ export default function VerificacionTab({ notify }: { notify: (msg: string) => v
   useEffect(() => {
     cargar()
   }, [cargar])
+
+  async function abrirCedula(path: string) {
+    // Abrir una ventana de forma síncrona conserva el gesto de usuario y evita
+    // que el navegador bloquee el documento mientras obtenemos la firma.
+    const preview = window.open('', '_blank')
+    if (!preview) {
+      notify('El navegador bloqueó la ventana del documento')
+      return
+    }
+    preview.opener = null
+
+    try {
+      const response = await fetch(`/api/admin/cedula?path=${encodeURIComponent(path)}`, {
+        cache: 'no-store',
+      })
+      const result = await response.json().catch(() => ({}))
+      if (!response.ok || !result.signedUrl) {
+        preview.close()
+        notify(result.error || 'No se pudo abrir el documento')
+        return
+      }
+      preview.location.replace(result.signedUrl)
+    } catch {
+      preview.close()
+      notify('No se pudo abrir el documento')
+    }
+  }
 
   async function aprobarSol(id: string, userId: string, sol: any) {
     // 1. Solicitud aprobada
@@ -209,18 +235,31 @@ export default function VerificacionTab({ notify }: { notify: (msg: string) => v
                     </p>
                   </div>
 
-                  {/* Foto de cedula */}
-                  {sol.cedula_foto_frente_url && (
-                    <div className="hidden sm:block">
-                      <p className="text-xs text-gray-500 mb-1">Cédula:</p>
-                      <Image
-                        src={supabase.storage.from('cedulas').getPublicUrl(sol.cedula_foto_frente_url).data.publicUrl}
-                        alt="Cédula frente"
-                        className="w-32 h-20 object-cover rounded-lg border cursor-pointer hover:opacity-80 transition"
-                        width={128}
-                        height={80}
-                        onClick={() => window.open(supabase.storage.from('cedulas').getPublicUrl(sol.cedula_foto_frente_url).data.publicUrl, '_blank')}
-                      />
+                  {/* El bucket `cedulas` es privado. Nunca usar getPublicUrl:
+                      cada documento se abre mediante una URL firmada de 5 min. */}
+                  {(sol.cedula_foto_frente_url || sol.cedula_foto_dorso_url) && (
+                    <div className="flex-shrink-0 min-w-28">
+                      <p className="text-xs text-gray-500 mb-1.5">Documentos:</p>
+                      <div className="flex flex-col gap-1.5">
+                        {sol.cedula_foto_frente_url && (
+                          <button
+                            type="button"
+                            onClick={() => abrirCedula(sol.cedula_foto_frente_url)}
+                            className="text-left text-xs font-semibold text-brand-primary hover:underline"
+                          >
+                            Ver frente
+                          </button>
+                        )}
+                        {sol.cedula_foto_dorso_url && (
+                          <button
+                            type="button"
+                            onClick={() => abrirCedula(sol.cedula_foto_dorso_url)}
+                            className="text-left text-xs font-semibold text-brand-primary hover:underline"
+                          >
+                            Ver dorso
+                          </button>
+                        )}
+                      </div>
                     </div>
                   )}
 

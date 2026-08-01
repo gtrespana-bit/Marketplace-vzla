@@ -136,7 +136,7 @@ arroja el error 403. Ver sección C de pruebas manuales.
 ### ✅ Calidad básica
 
 - TypeScript pasa.
-- Los 87 tests unitarios pasan.
+- Los 93 tests unitarios pasan.
 - Lint ya no tiene errores bloqueantes.
 - Se corrigió el error de sintaxis de `scripts/performance-test.js`.
 - Se corrigió el warning de display name del mock de `ProductCard`.
@@ -268,9 +268,28 @@ Detalle de la implementación (2026-08-01):
   "Reintentar" cuando la carga falla.
 - Consultas `select('*')` reducidas a las columnas necesarias en
   `BuscarClient`, `useDashboard` y `publicar` (cuentas con `select('id')`).
-- `tsc`, `npm test` (87/87) y `npm run lint` (0 errores) pasan.
+- `tsc`, `npm test` (93/93) y `npm run lint` (0 errores) pasan.
 - Build local bloqueado solo por descarga de Google Fonts (entorno), sin errores
   de código.
+
+### Correcciones P1 posteriores a la auditoría
+
+- El SSR inicial de `/catalogo` y el cliente comparten ahora
+  `CATALOG_PAGE_SIZE = 24`. Antes el SSR recibía solo 12 resultados, mientras
+  la página 2 comenzaba en el 25; por tanto se omitían los resultados 13–24.
+  El rango del loader también se centralizó y tiene prueba unitaria.
+- El bucket privado `cedulas` se abre desde el panel admin mediante
+  `GET /api/admin/cedula`, que exige admin, valida la ruta y devuelve una URL
+  firmada de 5 minutos con `no-store`. Se eliminó el uso incorrecto de
+  `getPublicUrl`; el panel permite abrir frente y dorso.
+- El detalle de producto ya muestra email y Messenger configurados por
+  publicación. Los enlaces Messenger se limitan a HTTPS en hosts oficiales;
+  WhatsApp y teléfono pueden usar números distintos. Una configuración vacía
+  `{}` expresa que solo se debe mostrar chat, sin recuperar el teléfono de un
+  perfil legacy.
+- Estas correcciones pasan `tsc`, 93/93 tests, lint sin errores y build con
+  variables públicas de Supabase. Sigue pendiente su validación manual en
+  staging según las listas C, D y H.
 
 ## Fase 4 — SEO y localización
 
