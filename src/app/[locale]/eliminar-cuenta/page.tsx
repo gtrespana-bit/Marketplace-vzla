@@ -1,13 +1,15 @@
 import type { Metadata } from 'next'
-import { getTranslations } from 'next-intl/server'
+import { getTranslations, setRequestLocale } from 'next-intl/server'
 
 export const metadata: Metadata = {
   title: 'Eliminar tu cuenta — VendeT',
   description: 'Solicita la eliminación de tu cuenta y datos asociados en VendeT.',
 }
 
-export default async function EliminarCuentaPage() {
-  const t = await getTranslations('deleteAccount')
+export default async function EliminarCuentaPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params
+  setRequestLocale(locale)
+  const t = await getTranslations({ locale, namespace: 'deleteAccount' })
   return (
     <div className="max-w-3xl mx-auto px-4 py-12">
       <h1 className="text-4xl font-black text-gray-800 mb-2">{t('title')}</h1>

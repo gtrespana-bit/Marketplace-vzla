@@ -8,7 +8,7 @@ import { AlertCircle } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 
 export default function ResetPasswordPage() {
-  const t = useTranslations('auth')
+  const t = useTranslations('resetPassword')
   const router = useRouter()
   const [password, setPassword] = useState('')
   const [confirmedPassword, setConfirmedPassword] = useState('')

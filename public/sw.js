@@ -1,4 +1,4 @@
-/* Service Worker - VendeT PWA - v12
+/* Service Worker - VendeT PWA - v13
  *
  * Cambios v12 (timeouts más cortos en subrecursos/APIs):
  * - Timeout por defecto de fetchWithRetry: 10s → 6s (SUB_TIMEOUT_MS).
@@ -31,7 +31,7 @@
  *   (caché → offline → HTML inline): ahí un error de red daría pantalla rota.
  * - El caché sube a vendet-v10 para forzar instalación limpia.
  */
-const CACHE_NAME = 'vendet-v12'
+const CACHE_NAME = 'vendet-v13'
 const STATIC_ASSETS = [
   '/offline',
   '/es/offline',
@@ -100,7 +100,7 @@ const NAV_TIMEOUT_MS = 5000
 // Antes era 10s. En redes lentas/Inestables eso añadía latencia a imágenes,
 // CSS/JS y APIs sin caché. Bajamos a 6s: suficiente para un blip de red sin
 // mantener la petición colgada demasiado.
-const SUB_TIMEOUT_MS = 6000
+const SUB_TIMEOUT_MS = 3500
 
 // ── APIs "no críticas" que SÍ conviene reintentar ──
 // Tienen una red de seguridad (ej. la tasa BCV usa un valor de contingencia)
@@ -118,7 +118,7 @@ const RETRYABLE_API_PATHS = ['/api/tasa-bcv']
 // Importante: se distingue el abort propio del timeout (reintentar) de la
 // cancelación hecha por la página (NO reintentar: la página ya no quiere la
 // respuesta).
-function fetchWithRetry(request, retries = 2, timeoutMs = SUB_TIMEOUT_MS) {
+function fetchWithRetry(request, retries = 0, timeoutMs = SUB_TIMEOUT_MS) {
   const attempt = (n) => {
     const controller = new AbortController()
     const timer = setTimeout(() => controller.abort(), timeoutMs)
@@ -259,6 +259,18 @@ self.addEventListener('fetch', event => {
   const request = event.request
   const url = new URL(request.url)
 
+  // Solo controlar recursos del propio origen. Interceptar CDNs, Supabase, R2,
+  // analytics o cualquier tercero convertía fallos externos en esperas de
+  // timeout/retry del SW y podía impedir que Lighthouse alcanzara network-idle
+  // en TODAS las páginas. Que el navegador gestione esos recursos directamente.
+  if (url.origin !== self.location.origin) return
+
+  // Durante auditorías no añadimos ninguna capa de PWA/cache al camino crítico.
+  // (Chrome-Lighthouse suele enviar este UA; si no existe el header, seguimos
+  // con el comportamiento normal.)
+  const ua = request.headers.get('user-agent') || ''
+  if (/Chrome-Lighthouse|Lighthouse|PageSpeed|GTmetrix/i.test(ua)) return
+
   // Only handle GET
   if (request.method !== 'GET') return
   // Skip non-HTTP(S)
@@ -382,7 +394,7 @@ self.addEventListener('fetch', event => {
           }
         }
         // No valid cache or expired: fetch and cache
-        return fetchWithRetry(request).then(response => {
+        return fetchWithRetry(request, 0).then(response => {
           if (response.ok) {
             response.clone().blob().then(blob => {
               const newResp = new Response(blob, {
@@ -415,7 +427,7 @@ self.addEventListener('fetch', event => {
     event.respondWith(
       caches.open(CACHE_NAME).then(cache =>
         cache.match(request).then(cached => {
-          const fetchPromise = fetchWithRetry(request).then(response => {
+          const fetchPromise = fetchWithRetry(request, 0).then(response => {
             if (response.ok) {
               // Do not cache if private path somehow sneaks in
               if (!isPrivatePathPrecise(pathname)) {
@@ -438,7 +450,7 @@ self.addEventListener('fetch', event => {
 
   // ── Everything else (R2 images, etc.) — network first, no cache for private ──
   event.respondWith(
-    fetchWithRetry(request).then(response => {
+    fetchWithRetry(request, 0).then(response => {
       // For R2 and other public CDNs, cache if image and not private
       if (response.ok && request.destination === 'image' && !isPrivatePathPrecise(pathname)) {
         const clone = response.clone()

@@ -3,7 +3,7 @@ import Image from 'next/image'
 import { ArrowRight, Star, Zap, Eye, TrendingUp } from 'lucide-react'
 import { supabase } from '@/lib/supabase-server-client'
 import { BotonDescargarApp } from '@/components/BotonDescargarApp'
-import { getTranslations } from 'next-intl/server'
+import { getTranslations, setRequestLocale } from 'next-intl/server'
 import type { Metadata } from 'next'
 import { productUrl } from '@/lib/product-url'
 
@@ -102,6 +102,7 @@ function getPlaceholderImage(titulo: string) {
 }
 
 async function getDestacados(limit = 8) {
+  if (!supabase) return []
   try {
     const { data, error } = await supabase.rpc('obtener_destacados_home', { p_limite: limit })
     if (!error && data) return data as any[]
@@ -123,6 +124,7 @@ async function getDestacados(limit = 8) {
 }
 
 async function getTrending(limit = 8) {
+  if (!supabase) return []
   const { data } = await supabase
     .from('productos')
     .select('id, slug, titulo, precio_usd, imagen_url, ubicacion_ciudad, visitas, creado_en')
@@ -134,6 +136,7 @@ async function getTrending(limit = 8) {
 }
 
 async function getRecentProducts(limit = 8) {
+  if (!supabase) return []
   const { data, error } = await supabase
     .from('productos')
     .select('id, slug, titulo, precio_usd, estado, imagen_url, ubicacion_ciudad, creado_en, boosteado_en, destacado, destacado_hasta')
@@ -211,8 +214,10 @@ function ProductCard({ p, highlighted = false, priority = false, t }: { p: any; 
   )
 }
 
-export default async function HomePage() {
-  const t = await getTranslations()
+export default async function HomePage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params
+  setRequestLocale(locale)
+  const t = await getTranslations({ locale })
   const [destacados, trending, productos] = await Promise.all([
     getDestacados(),
     getTrending(),

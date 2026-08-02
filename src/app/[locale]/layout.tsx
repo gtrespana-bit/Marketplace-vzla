@@ -1,18 +1,24 @@
 import { NextIntlClientProvider } from 'next-intl'
+import { setRequestLocale } from 'next-intl/server'
 import { notFound } from 'next/navigation'
 import { routing } from '@/i18n/routing'
 import { Header } from '@/components/Header'
 import { Footer } from '@/components/Footer'
-import PWAInstallBanner from '@/components/PWAInstallBanner'
-import PushNotificationBanner from '@/components/PushNotificationBanner'
-import BottomTabNav from '@/components/BottomTabNav'
 import HtmlLangSetter from '@/components/HtmlLangSetter'
+import LocaleClientEffects from '@/components/LocaleClientEffects'
 
 // NO generar metadata/hreflang aquí: este layout envuelve TODAS las rutas
 // y un alternates genérico sobrescribe (merge de metadata de Next) el
 // hreflang correcto que define cada page.tsx. Las páginas declaran sus
 // propios alternates.languages con sus URLs reales.
 //
+// Generar los dos locales conocidos permite que Next.js pueda prerenderizar
+// las páginas públicas que no dependen de datos dinámicos. Sin esto, todo lo
+// que cuelga de /[locale] queda como SSR bajo demanda.
+export function generateStaticParams() {
+  return routing.locales.map((locale) => ({ locale }))
+}
+
 // Load messages directly from URL locale - never use getMessages()
 async function getDictionary(locale: string) {
   return (await import(`@/i18n/dictionaries/${locale}.json`)).default
@@ -31,6 +37,11 @@ export default async function LocaleLayout({
     notFound()
   }
 
+  // Fija el locale desde el segmento de URL sin usar headers()/cookies().
+  // Es la pieza que necesita next-intl para no marcar las páginas como
+  // dinámicas solo por llamar a getTranslations()/useTranslations().
+  setRequestLocale(locale)
+
   const messages = await getDictionary(locale)
 
   // Header/Footer/banners se renderizan AQUÍ, dentro del
@@ -44,9 +55,7 @@ export default async function LocaleLayout({
       <Header />
       <main id="main-content" className="min-h-screen bg-white">{children}</main>
       <Footer />
-      <PWAInstallBanner />
-      <PushNotificationBanner />
-      <BottomTabNav />
+      <LocaleClientEffects />
     </NextIntlClientProvider>
   )
 }

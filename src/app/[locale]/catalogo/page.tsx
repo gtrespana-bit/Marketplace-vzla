@@ -44,6 +44,7 @@ export async function generateMetadata({ searchParams }: PageProps): Promise<Met
 // ✅ Fetch server-side de productos iniciales
 // Replica exactamente la misma query + ordenamiento que usa el cliente
 async function getInitialProducts() {
+  if (!supabase) return { products: [], count: 0 }
   try {
     // Optimización: Seleccionar solo columnas necesarias para la vista de catálogo
     const { data, count, error } = await supabase

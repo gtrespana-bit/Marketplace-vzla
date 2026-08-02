@@ -1,15 +1,17 @@
 import type { Metadata } from 'next'
 import { CheckCircle, Zap, Shield, MessageCircle, Eye, Camera, DollarSign, X } from 'lucide-react'
 import LocalLink from '@/components/LocalLink'
-import { getTranslations } from 'next-intl/server'
+import { getTranslations, setRequestLocale } from 'next-intl/server'
 
 export const metadata: Metadata = {
   title: '¿Cómo Funciona? — VendeT-Venezuela',
   description: 'Publica gratis en VendeT en 4 pasos simples. Compra y vende en Venezuela sin comisiones.',
 }
 
-export default async function ComoFuncionaPage() {
-  const t = await getTranslations('howItWorks')
+export default async function ComoFuncionaPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params
+  setRequestLocale(locale)
+  const t = await getTranslations({ locale, namespace: 'howItWorks' })
 
   const jsonLd = {
     '@context': 'https://schema.org',

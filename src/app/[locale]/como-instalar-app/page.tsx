@@ -1,15 +1,17 @@
 import type { Metadata } from 'next'
 import LocalLink from '@/components/LocalLink'
 import { ArrowLeft, Smartphone, Share, Download, PlusCircle, ArrowDownToLine, CheckCircle2, Apple, MonitorDown } from 'lucide-react'
-import { getTranslations } from 'next-intl/server'
+import { getTranslations, setRequestLocale } from 'next-intl/server'
 
 export const metadata: Metadata = {
   title: 'Instala la App de VendeT — VendeT-Venezuela',
   description: 'Aprende cómo instalar VendeT-Venezuela como app en tu teléfono. Guía paso a paso para Android e iPhone.',
 }
 
-export default async function ComoInstalarAppPage() {
-  const t = await getTranslations('installApp')
+export default async function ComoInstalarAppPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params
+  setRequestLocale(locale)
+  const t = await getTranslations({ locale, namespace: 'installApp' })
   return (
     <div className="max-w-2xl mx-auto px-4 py-8">
       {/* Botón volver */}

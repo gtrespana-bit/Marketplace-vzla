@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { getTranslations } from 'next-intl/server'
+import { getTranslations, setRequestLocale } from 'next-intl/server'
 import LocalLink from '@/components/LocalLink'
 import fs from 'fs'
 import path from 'path'
@@ -57,11 +57,11 @@ function getAllSlugs(): string[] {
   return fs.readdirSync(dir).filter(f => f.endsWith('.md')).map(f => f.replace('.md', ''))
 }
 
-function generateStaticParams(): { slug: string }[] {
+export function generateStaticParams(): { slug: string }[] {
   return getAllSlugs().map(slug => ({ slug }))
 }
 
-async function generateMetadata(props: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+export async function generateMetadata(props: { params: Promise<{ locale: string; slug: string }> }): Promise<Metadata> {
   const { slug } = await props.params
   const post = getPostBySlug(slug)
   if (!post) return { title: 'Post not found — VendeT' }
@@ -224,10 +224,11 @@ function renderMarkdown(content: string): string {
 }
 
 // Static pages for SSR
-export default async function BlogPost(props: { params: Promise<{ slug: string }> }) {
-  const { slug } = await props.params
+export default async function BlogPost(props: { params: Promise<{ locale: string; slug: string }> }) {
+  const { locale, slug } = await props.params
+  setRequestLocale(locale)
   const post = getPostBySlug(slug)
-  const t = await getTranslations('blog')
+  const t = await getTranslations({ locale, namespace: 'blog' })
 
   if (!post) {
     return (

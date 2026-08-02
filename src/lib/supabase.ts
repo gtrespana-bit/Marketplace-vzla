@@ -1,7 +1,7 @@
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
 
 // Patrón Singleton estricto para evitar múltiples instancias de GoTrueClient
 //
@@ -19,6 +19,10 @@ let globalSupabase: ReturnType<typeof createClient> | null = null
 
 // Cliente estándar con persistencia de sesión (para consultas de datos y mantener estado de autenticación)
 export const getSupabaseClient = () => {
+  if (!supabaseUrl || !supabaseAnonKey) {
+    throw new Error('Supabase no está configurado: faltan NEXT_PUBLIC_SUPABASE_URL o NEXT_PUBLIC_SUPABASE_ANON_KEY')
+  }
+
   if (!globalSupabase) {
     globalSupabase = createClient(supabaseUrl, supabaseAnonKey, {
       auth: {
@@ -30,13 +34,21 @@ export const getSupabaseClient = () => {
       }
     })
   }
-  return globalSupabase
+  return globalSupabase as any
 }
 
-// Exportación por defecto para compatibilidad con el código existente
-// Usamos `as any` para evitar errores de tipos estrictos en RPCs no tipados
-export const supabase = getSupabaseClient() as any
+// Exportación por defecto para compatibilidad con el código existente.
+// Importante: no instanciamos Supabase durante la evaluación del módulo. Las
+// páginas client pueden prerenderizarse en el servidor y, si faltan variables
+// en un entorno local/CI, crear el cliente aquí rompe el build completo.
+export const supabase = new Proxy({} as any, {
+  get(_target, prop) {
+    const client = getSupabaseClient()
+    const value = client[prop as keyof ReturnType<typeof createClient>]
+    return typeof value === 'function' ? value.bind(client) : value
+  },
+})
 
 export const isSupabaseConfigured = () => {
-  return !!process.env.NEXT_PUBLIC_SUPABASE_URL && !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  return !!supabaseUrl && !!supabaseAnonKey
 }

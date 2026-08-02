@@ -1,5 +1,4 @@
 'use client'
-import { supabase } from '@/lib/supabase'
 
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/components/AuthProvider'
@@ -87,7 +86,9 @@ function usePushNotification() {
       })
 // debug
 
-      // 4. Check session
+      // 4. Check session. Importar Supabase aquí evita cargar el cliente de
+      // Supabase/push en el bundle inicial de todas las páginas.
+      const { supabase } = await import('@/lib/supabase')
       const { data } = await supabase.auth.getSession()
 // debug
       if (!data.session) {
