@@ -8,7 +8,7 @@ import { supabase } from '@/lib/supabase'
 import { useTranslations } from 'next-intl'
 
 export default function ConfirmEmailPage() {
-  const t = useTranslations('auth')
+  const t = useTranslations('confirmEmail')
   const router = useRouter()
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading')
   const [errorMsg, setErrorMsg] = useState('')

@@ -3,7 +3,7 @@ import LocalLink from '@/components/LocalLink'
 import fs from 'fs'
 import path from 'path'
 import { Calendar, ArrowRight, Clock, TrendingUp } from 'lucide-react'
-import { getTranslations } from 'next-intl/server'
+import { getTranslations, setRequestLocale } from 'next-intl/server'
 
 interface Post {
   slug: string
@@ -79,8 +79,10 @@ const categoryIcons: Record<string, string> = {
   'Tendencias': '📊',
 }
 
-export default async function BlogPage() {
-  const t = await getTranslations('blog')
+export default async function BlogPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params
+  setRequestLocale(locale)
+  const t = await getTranslations({ locale, namespace: 'blog' })
   const posts = getPosts()
   const featured = posts.filter(p => p.featured)
   const regular = posts.filter(p => !p.featured)

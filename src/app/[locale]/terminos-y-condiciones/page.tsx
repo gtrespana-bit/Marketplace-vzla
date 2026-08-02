@@ -1,12 +1,14 @@
 import type { Metadata } from 'next'
-import { getTranslations } from 'next-intl/server'
+import { getTranslations, setRequestLocale } from 'next-intl/server'
 
 export const metadata: Metadata = {
   title: 'Términos y Condiciones — VendeT-Venezuela',
 }
 
-export default async function TerminosPage() {
-  const t = await getTranslations('terms')
+export default async function TerminosPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params
+  setRequestLocale(locale)
+  const t = await getTranslations({ locale, namespace: 'terms' })
   return (
     <div className="max-w-3xl mx-auto px-4 py-12">
       <h1 className="text-4xl font-black text-gray-800 mb-2">{t('title')}</h1>

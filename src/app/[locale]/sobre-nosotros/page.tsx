@@ -1,14 +1,16 @@
 import type { Metadata } from 'next'
 import LocalLink from '@/components/LocalLink'
-import { getTranslations } from 'next-intl/server'
+import { getTranslations, setRequestLocale } from 'next-intl/server'
 
 export const metadata: Metadata = {
   title: 'Sobre Nosotros — VendeT-Venezuela',
   description: 'Conoce VendeT: el marketplace gratuito para comprar y vender en Venezuela. Sin comisiones, sin intermediarios, contacto directo entre compradores y vendedores.',
 }
 
-export default async function SobreNosotrosPage() {
-  const t = await getTranslations('about')
+export default async function SobreNosotrosPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params
+  setRequestLocale(locale)
+  const t = await getTranslations({ locale, namespace: 'about' })
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'AboutPage',

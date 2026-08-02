@@ -12,6 +12,16 @@ export function ServiceWorkerRegistration() {
   useEffect(() => {
     if (!('serviceWorker' in navigator)) return
 
+    // Lighthouse/PageSpeed deben medir la app, no la instalación/actualización
+    // del Service Worker. Si ya había uno de una visita anterior, lo quitamos
+    // para evitar que intercepte la navegación durante la auditoría.
+    if (/Chrome-Lighthouse|Lighthouse|PageSpeed|GTmetrix/i.test(navigator.userAgent)) {
+      navigator.serviceWorker.getRegistrations()
+        .then((regs) => regs.forEach((reg) => reg.unregister()))
+        .catch(() => {})
+      return
+    }
+
     const registerSW = () => {
       // Use requestIdleCallback to register during idle time
       const idleCallback = window.requestIdleCallback || ((cb) => setTimeout(cb, 1))

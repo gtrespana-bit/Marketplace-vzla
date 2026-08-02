@@ -1,13 +1,15 @@
 import type { Metadata } from 'next'
-import { getTranslations } from 'next-intl/server'
+import { getTranslations, setRequestLocale } from 'next-intl/server'
 
 export const metadata: Metadata = {
   title: 'Preguntas Frecuentes — VendeT-Venezuela',
   description: 'Resuelve tus dudas sobre VendeT: cómo publicar, seguridad, créditos, métodos de pago y más.',
 }
 
-export default async function FAQPage() {
-  const t = await getTranslations('faq')
+export default async function FAQPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params
+  setRequestLocale(locale)
+  const t = await getTranslations({ locale, namespace: 'faq' })
 
   const faqData = [
     { question: t('q1'), answer: t('a1') },

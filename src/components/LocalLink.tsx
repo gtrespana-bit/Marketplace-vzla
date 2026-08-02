@@ -22,7 +22,14 @@ function addLocaleToHref(href: string, locale: string): string {
   return `/${locale}${href === '/' ? '' : href}`
 }
 
-export default function LocalLink({ href, ...props }: LinkProps & React.ComponentPropsWithoutRef<'a'>) {
+export default function LocalLink({
+  href,
+  // Desactivado por defecto: el header/footer tienen muchos enlaces visibles.
+  // Con rutas dinámicas, el prefetch automático dispara múltiples peticiones
+  // RSC en segundo plano y puede impedir que Lighthouse llegue a network-idle.
+  prefetch = false,
+  ...props
+}: LinkProps & React.ComponentPropsWithoutRef<'a'>) {
   const pathname = usePathname()
   const locale = getLocaleFromPathname(pathname)
   
@@ -37,5 +44,5 @@ export default function LocalLink({ href, ...props }: LinkProps & React.Componen
   
   const localizedHref = addLocaleToHref(hrefString, locale)
   
-  return <Link href={localizedHref} {...props} />
+  return <Link href={localizedHref} prefetch={prefetch} {...props} />
 }
