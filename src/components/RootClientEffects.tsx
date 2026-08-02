@@ -16,11 +16,6 @@ const ServiceWorkerRegistration = dynamic(
   { ssr: false }
 )
 
-function isAuditUserAgent() {
-  if (typeof navigator === 'undefined') return false
-  return /Chrome-Lighthouse|Lighthouse|PageSpeed|GTmetrix/i.test(navigator.userAgent)
-}
-
 function onIdleAfterLoad(callback: () => void) {
   let cancelled = false
   let timeoutId: ReturnType<typeof setTimeout> | null = null
@@ -61,17 +56,9 @@ export default function RootClientEffects() {
   const [enabled, setEnabled] = useState(false)
 
   useEffect(() => {
-    if (isAuditUserAgent()) {
-      // Si el navegador de la auditoría reutiliza un perfil con un SW antiguo,
-      // desregistrarlo tras la carga evita que próximas pasadas sigan medidas
-      // detrás de una capa de cache/retry obsoleta.
-      if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.getRegistrations()
-          .then((regs) => regs.forEach((reg) => reg.unregister()))
-          .catch(() => {})
-      }
-      return
-    }
+    // Keep the audit path free of non-critical effects during the initial
+    // render, but do not unregister the application's push/offline worker.
+    // The worker itself only handles public navigations and push events.
     return onIdleAfterLoad(() => setEnabled(true))
   }, [])
 

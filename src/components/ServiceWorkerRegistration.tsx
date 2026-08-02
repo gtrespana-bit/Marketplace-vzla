@@ -3,35 +3,40 @@
 import { useEffect } from 'react'
 
 /**
- * Retires the legacy Service Worker rather than registering a new one.
- *
- * The old worker intercepted every same-origin request and introduced its own
- * retry/timeout/cache layer in front of Next.js. That is a global critical-path
- * dependency and is incompatible with a reliable Lighthouse audit. This runs
- * for real users too, so clients that still control an old worker are cleaned
- * up without asking them to clear site data manually.
+ * Registers the focused Service Worker used for push notifications and a
+ * public offline fallback. It deliberately does not install a global network
+ * proxy: assets, APIs and private pages go directly to the browser network.
  */
 export function ServiceWorkerRegistration() {
   useEffect(() => {
     if (!('serviceWorker' in navigator)) return
 
-    navigator.serviceWorker.getRegistrations()
-      .then((registrations) => Promise.all(
-        registrations
-          .filter((registration) => {
-            // This app has used /sw.js at origin scope. Restrict removal to
-            // that scope so an unrelated worker is never touched.
-            try {
-              return new URL(registration.scope).origin === window.location.origin
-            } catch {
-              return false
-            }
-          })
-          .map((registration) => registration.unregister())
-      ))
-      .catch(() => {
-        // A failed cleanup must never affect rendering or navigation.
-      })
+    let cancelled = false
+
+    const register = async () => {
+      try {
+        const registration = await navigator.serviceWorker.register('/sw.js', {
+          scope: '/',
+          updateViaCache: 'none',
+        })
+
+        if (cancelled) return
+
+        // Apply an already downloaded update promptly. The worker itself also
+        // calls skipWaiting during install for first-time registration.
+        if (registration.waiting) {
+          registration.waiting.postMessage({ type: 'SKIP_WAITING' })
+        }
+        await registration.update()
+      } catch {
+        // Push/offline are progressive enhancements; never block rendering.
+      }
+    }
+
+    register()
+    return () => {
+      cancelled = true
+    }
   }, [])
 
   return null
