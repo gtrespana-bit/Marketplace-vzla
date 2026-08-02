@@ -79,7 +79,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   if (!data) {
     return {
-      title: 'Vendedor no encontrado | VendeT',
+      title: 'Vendedor no encontrado',
       robots: { index: false, follow: false },
     }
   }
@@ -89,8 +89,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const ubicacion = [perfil.ciudad, perfil.estado].filter(Boolean).join(', ')
 
   const title = ubicacion
-    ? `${nombre} — Vendedor en ${ubicacion} | VendeT Venezuela`
-    : `${nombre} — Vendedor en VendeT Venezuela`
+    ? `${nombre} — Vendedor en ${ubicacion}`
+    : `${nombre} — Vendedor`
 
   const parts: string[] = []
   if (perfil.verificado) parts.push('Vendedor verificado')

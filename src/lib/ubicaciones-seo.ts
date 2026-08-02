@@ -44,7 +44,8 @@ ESTADOS.forEach((estado) => {
       nombre: municipio.capital,
       municipio: municipio.nombre,
       estado,
-      titulo: `Clasificados en ${municipio.capital}, ${estado} | VendeT.online`,
+      // Sin marca: el template del layout raíz (%s | VendeT) la agrega una sola vez.
+      titulo: `Clasificados en ${municipio.capital}, ${estado}`,
       descripcion: `Compra y vende en ${municipio.capital}, ${estado}. Miles de anuncios clasificados: carros, casas, celulares, empleo y más. Publica gratis en VendeT.online.`,
       keywords: [
         `clasificados ${municipio.capital}`,
@@ -116,15 +117,19 @@ export function generateCityParams() {
 }
 
 // Helper para categorías populares por ciudad
+// IMPORTANTE — Estas categorías DEBEN coincidir con las categorías reales del
+// marketplace (src/lib/categorias.ts, header, footer y la landing
+// [ciudad]/[categoria]). Si no, el sitemap genera landing pages que no existen
+// (contenido delgado) y las categorías reales quedan fuera del SEO local.
 export const CATEGORIAS_POPULARES = [
   'vehiculos',
-  'inmuebles', 
-  'electronicos',
-  'hogar',
+  'tecnologia',
   'moda',
-  'deportes',
-  'empleo',
-  'servicios'
+  'hogar',
+  'herramientas',
+  'materiales',
+  'repuestos',
+  'otros'
 ]
 
 // Generar combinaciones ciudad-categoría para SEO programático

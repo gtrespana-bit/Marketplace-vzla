@@ -42,10 +42,8 @@ export async function generateMetadata({ params }: { params: { locale: string } 
   const t = await getTranslations({ locale: params.locale, namespace: 'Home' })
   
   return {
-    title: {
-      default: 'Clasificados Venezuela | VendeT.online - Compra y Venta en Venezuela',
-      template: `%s | VendeT.online`
-    },
+    // Sin marca aquí: el template del layout raíz (%s | VendeT) la agrega una sola vez.
+    title: 'Clasificados Venezuela — Compra y Venta',
     description: 'VendeT.online es el marketplace líder de clasificados en Venezuela. Publica gratis, compra y vende productos nuevos y usados en todo el país. Únete a miles de usuarios.',
     keywords: ['clasificados venezuela', 'compra venta venezuela', 'marketplace venezuela', 'vender en venezuela', 'clasificados online', 'tienda online venezuela', 'productos venezuela', 'mercado libre venezuela'],
     authors: [{ name: 'VendeT.online' }],
@@ -60,10 +58,10 @@ export async function generateMetadata({ params }: { params: { locale: string } 
       },
     },
     openGraph: {
-      title: 'Clasificados Venezuela | VendeT.online',
+      title: 'Clasificados Venezuela — Compra y Venta',
       description: 'El marketplace líder de clasificados en Venezuela. Publica gratis y vende tus productos.',
       url: 'https://vendet.online/',
-      siteName: 'VendeT.online',
+      siteName: 'VendeT',
       images: [
         {
           url: 'https://vendet.online/og-image.webp',
@@ -77,7 +75,7 @@ export async function generateMetadata({ params }: { params: { locale: string } 
     },
     twitter: {
       card: 'summary_large_image',
-      title: 'Clasificados Venezuela | VendeT.online',
+      title: 'Clasificados Venezuela — Compra y Venta',
       description: 'El marketplace líder de clasificados en Venezuela. Publica gratis y vende tus productos.',
       images: ['https://vendet.online/og-image.webp'],
     },

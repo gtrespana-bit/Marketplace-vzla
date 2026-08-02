@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
 
 export const metadata: Metadata = {
-  title: 'Eliminar tu cuenta — VendeT',
+  title: 'Eliminar tu cuenta',
   description: 'Solicita la eliminación de tu cuenta y datos asociados en VendeT.',
 }
 

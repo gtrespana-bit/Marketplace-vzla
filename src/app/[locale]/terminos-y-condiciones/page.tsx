@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
 
 export const metadata: Metadata = {
-  title: 'Términos y Condiciones — VendeT-Venezuela',
+  title: 'Términos y Condiciones',
 }
 
 export default async function TerminosPage({ params }: { params: Promise<{ locale: string }> }) {

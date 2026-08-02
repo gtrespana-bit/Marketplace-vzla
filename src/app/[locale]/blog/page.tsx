@@ -51,7 +51,7 @@ function getPosts(): Post[] {
 }
 
 export const metadata: Metadata = {
-  title: 'Blog — VendeT Venezuela | Consejos de compra, venta y emprendimiento',
+  title: 'Blog de Compra y Venta en Venezuela',
   description: 'Guías, precios del mercado venezolano y consejos para comprar y vender sin estafas. Todo sobre emprendimiento y comercio electrónico en Venezuela.',
   alternates: {
     canonical: 'https://vendet.online/blog',
@@ -62,10 +62,10 @@ export const metadata: Metadata = {
     },
   },
   openGraph: {
-    title: 'Blog VendeT Venezuela — Compra, Venta y Emprendimiento',
+    title: 'Blog de Compra y Venta en Venezuela',
     description: 'Guías del mercado venezolano, consejos para emprendedores y mucho más.',
     url: 'https://vendet.online/blog',
-    siteName: 'VendeT-Venezuela',
+    siteName: 'VendeT',
     type: 'website',
     locale: 'es_VE',
   },

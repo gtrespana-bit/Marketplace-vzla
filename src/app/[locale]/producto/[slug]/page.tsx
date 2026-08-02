@@ -22,6 +22,13 @@ type Props = {
   params: Promise<{ locale: string; slug: string }>
 }
 
+// ISR on-demand: cachea la página renderizada 5 minutos para evitar que cada
+// visita/rastreo de Google re-ejecute el render + queries a Supabase (TTFB alto).
+// Sin generateStaticParams a propósito (ver comentario de la ruta: eso causaba
+// DYNAMIC_SERVER_USAGE → 500). Solo con revalidate se sirve estático y se
+// regenera bajo demanda. Requiere Supabase configurado en el entorno de build.
+export const revalidate = 300
+
 const PRODUCT_COLUMNS = `
   id,
   slug,
@@ -130,7 +137,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const producto = await getProduct(slug)
 
   if (!producto) {
-    return { title: 'No encontrado | VendeT-Venezuela' }
+    return { title: 'No encontrado' }
   }
 
   // La canonical SIEMPRE usa el slug SEO aunque se haya entrado por UUID
@@ -142,7 +149,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
   const ubicacion = [producto.ubicacion_ciudad, producto.ubicacion_estado].filter(Boolean).join(', ')
   if (ubicacion) parts.push(ubicacion)
-  parts.push('VendeT-Venezuela')
+  // Sin marca aquí: el template del layout raíz (%s | VendeT) la agrega una sola vez.
 
   const title = parts.join(' — ')
 

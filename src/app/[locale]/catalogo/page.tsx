@@ -22,11 +22,11 @@ export async function generateMetadata({ searchParams }: PageProps): Promise<Met
     : 'https://vendet.online/api/og/catalog'
 
   return {
-    title: 'Catálogo — Compra y Venta en Venezuela | VendeT-Venezuela',
-    description: 'Explora el catálogo de productos en VendeT-Venezuela. Carros, tecnología, moda, hogar, herramientas y más.',
+    title: 'Catálogo — Compra y Venta en Venezuela',
+    description: 'Explora el catálogo de productos en VendeT. Carros, tecnología, moda, hogar, herramientas y más.',
     openGraph: {
-      title: 'Catálogo — Compra y Venta en Venezuela | VendeT-Venezuela',
-      description: 'Explora el catálogo de productos en VendeT-Venezuela. Carros, tecnología, moda, hogar, herramientas y más.',
+      title: 'Catálogo — Compra y Venta en Venezuela',
+      description: 'Explora el catálogo de productos en VendeT. Carros, tecnología, moda, hogar, herramientas y más.',
       images: [{ url: ogImageUrl, width: 1200, height: 630, alt: 'Catálogo - VendeT' }],
       locale: 'es_VE',
     },
