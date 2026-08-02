@@ -164,51 +164,45 @@ export default function EditarPage() {
       if (showWhatsApp && contactWhatsApp) metodosContacto.whatsapp = contactWhatsApp
       if (showMessenger && contactMessenger) metodosContacto.messenger = contactMessenger
 
-      // Get category id
-      // maybeSingle(): evita el 406 de single() con cero filas.
-      const { data: catData } = await supabase.from('categorias').select('id').eq('nombre', categoria).maybeSingle()
+      // La edición pasa por una API server-side. Allí se comprueban el
+      // propietario, la categoría, la ubicación, las imágenes y la moderación;
+      // el cliente nunca escribe directamente las columnas de productos.
+      const res = await fetch('/api/productos/editar', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          productId: productoId,
+          titulo,
+          descripcion,
+          categoria,
+          subcategoria,
+          marca: marca || null,
+          modelo: (() => {
+            const campoModelo = camposEspeciales.find(c => c.label.toLowerCase() === 'modelo')
+            return campoModelo ? (specs[campoModelo.label] || '').trim() || null : null
+          })(),
+          especificaciones: Object.fromEntries(
+            Object.entries(specs)
+              .map(([k, v]) => [k, (v || '').trim()])
+              .filter(([, v]) => v)
+          ),
+          estado: estadoProd,
+          precio_usd: precioUsd === '' ? null : Number(precioUsd),
+          ubicacion_estado: ubicacionEstado,
+          ubicacion_ciudad: ubicacionCiudad,
+          activo,
+          imagen_url: uploadedUrls[0] || null,
+          imagenes: uploadedUrls,
+          metodos_contacto: metodosContacto,
+        }),
+      })
 
-      // Build updates
-      const updates: Record<string, any> = {
-        titulo,
-        descripcion,
-        categoria_id: catData?.id || null,
-        subcategoria,
-        marca: marca || null,
-        // Las specs se cargaban en el formulario pero no se guardaban:
-        // cualquier edición de Marca/Modelo/etc. del bloque de abajo se perdía.
-        especificaciones: Object.fromEntries(
-          Object.entries(specs).map(([k, v]) => [k, (v || '').trim()]).filter(([, v]) => v)
-        ),
-        estado: estadoProd,
-        precio_usd: parseFloat(precioUsd) || null,
-        ubicacion_estado: ubicacionEstado,
-        ubicacion_ciudad: ubicacionCiudad,
-        activo,
-        imagen_url: uploadedUrls[0] || null,
-        imagenes: uploadedUrls,
-        // `{}` expresa explícitamente que el anunciante eligió no exponer
-        // métodos adicionales. `null` se conserva para publicaciones legacy,
-        // donde el detalle puede usar el teléfono visible del perfil.
-        metodos_contacto: metodosContacto,
-      }
-
-      let { error: dbError } = await supabase.from('productos').update(updates).eq('id', productoId)
-
-      // Si la migración 025 aún no se aplicó, la columna `especificaciones` no
-      // existe y PostgREST rechaza el UPDATE entero. Reintentamos sin ella para
-      // no bloquear la edición del resto de campos.
-      if (dbError && /especificaciones/i.test(dbError.message || '')) {
-        console.warn('Columna `especificaciones` ausente — aplica la migración 025.')
-        const { especificaciones: _omitida, ...sinSpecs } = updates
-        ;({ error: dbError } = await supabase.from('productos').update(sinSpecs).eq('id', productoId))
-      }
-
-      if (dbError) {
-        setError('Error al guardar: ' + dbError.message)
+      const result = await res.json().catch(() => ({}))
+      if (!res.ok || !result.ok) {
+        setError('Error al guardar: ' + (result.error || 'No se pudo guardar el producto'))
       } else {
         setSuccess('Guardado correctamente')
-        setTimeout(() => router.push(`/producto/${productoId}`), 1500)
+        setTimeout(() => router.push(`/producto/${result.product?.slug || productoId}`), 1500)
       }
     } catch (err) {
       setError('Error inesperado')

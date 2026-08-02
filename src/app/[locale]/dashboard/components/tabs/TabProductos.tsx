@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import LocalLink from '@/components/LocalLink'
 import { Package, X, Pause, Play, Edit, Zap, Star, CheckCircle2, ChevronDown, ArrowLeft, Send } from 'lucide-react'
-import { supabase } from '@/lib/supabase'
 import { productUrl } from '@/lib/product-url'
 import Image from 'next/image'
 
@@ -200,7 +199,18 @@ export default function TabProductos({
 
   const pausarActivar = async (id: string, activoActual: boolean) => {
     cerrarMenus()
-    await supabase.from('productos').update({ activo: !activoActual }).eq('id', id)
+    const res = await fetch('/api/productos/editar', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ productId: id, activo: !activoActual }),
+    })
+
+    if (!res.ok) {
+      const result = await res.json().catch(() => ({}))
+      alert('Error: ' + (result.error || 'No se pudo actualizar la publicación'))
+      return
+    }
+
     window.location.reload()
   }
 

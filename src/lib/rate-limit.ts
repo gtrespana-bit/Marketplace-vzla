@@ -1,51 +1,37 @@
 /**
- * Rate limiter distribuido usando Supabase como storage.
- * Funciona correctamente en Vercel serverless (cada invocación comparte la DB).
+ * Rate limiter distribuido y atómico usando Supabase como storage.
  *
- * Protección por userId Y por IP address.
+ * La decisión y el registro se realizan en una única RPC SQL protegida por un
+ * advisory lock por (key, identifier). Esto evita que peticiones concurrentes
+ * salten el límite entre el COUNT y el INSERT.
  */
 import { createClient } from '@supabase/supabase-js'
 
 const LIMITS: Record<string, { max: number; windowMs: number }> = {
-  // Publicaciones: 20 por hora (nuevos usuarios subiendo inventario)
   'producto:create': { max: 20, windowMs: 60 * 60 * 1000 },
-  // Mensajes: 200 por hora (conversaciones activas entre usuarios)
   'mensaje:create': { max: 200, windowMs: 60 * 60 * 1000 },
-  // Denuncias: 10 por hora
   'denuncia:create': { max: 10, windowMs: 60 * 60 * 1000 },
-  // Login: 5 por 15 min por IP (anti brute force)
   'auth:login': { max: 5, windowMs: 15 * 60 * 1000 },
-  // Comprar créditos: SIN límite práctico (no bloquear ventas)
   'creditos:comprar': { max: 12, windowMs: 60 * 60 * 1000 },
-  // Registro de usuarios: 3 por hora por IP
   'auth:register': { max: 3, windowMs: 60 * 60 * 1000 },
-  // Reset password: 5 por hora por IP
   'auth:reset': { max: 5, windowMs: 60 * 60 * 1000 },
-  // Contacto: 10 por hora por IP
   'contacto:send': { max: 10, windowMs: 60 * 60 * 1000 },
-  // Conversaciones: 20 por hora por usuario
   'conversacion:create': { max: 20, windowMs: 60 * 60 * 1000 },
-  // Favoritos: 100 por hora por usuario
   'favorito:toggle': { max: 100, windowMs: 60 * 60 * 1000 },
-  // Foto perfil: 10 por hora por usuario
   'foto-perfil:update': { max: 10, windowMs: 60 * 60 * 1000 },
-  // Subida R2: 50 por hora por usuario
   'r2-upload': { max: 50, windowMs: 60 * 60 * 1000 },
-  // Consultar tasa BCV: 60 por hora por IP
   'tasa-bcv': { max: 60, windowMs: 60 * 60 * 1000 },
-  // Webhook Telegram: 120 por hora
   'telegram:webhook': { max: 120, windowMs: 60 * 60 * 1000 },
-  // Notificaciones que activan proveedores externos.
   'notificacion:send': { max: 20, windowMs: 60 * 60 * 1000 },
 }
 
 function getSupabaseClient() {
   return createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    { auth: { persistSession: false, autoRefreshToken: false } },
   )
 }
-
 
 export function getClientIp(request: Request): string {
   return request.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
@@ -59,71 +45,39 @@ export function rateLimitResponse(resetIn: number): Response {
 
 export async function checkRateLimit(
   key: string,
-  identifier: string, // userId o IP
-  extraData?: { ip?: string }
+  identifier: string,
+  extraData?: { ip?: string },
 ): Promise<{ ok: boolean; remaining: number; resetIn: number; limit: number }> {
   const limit = LIMITS[key]
   if (!limit) return { ok: true, remaining: 999, resetIn: 0, limit: 0 }
 
-  const now = Date.now()
-  const windowStart = new Date(now - limit.windowMs).toISOString()
-
-  const sb = getSupabaseClient()
-
   try {
-    // Contar intentos en la ventana actual
-    const { count, error: countError } = await sb
-      .from('rate_limit')
-      .select('*', { count: 'exact', head: true })
-      .eq('key', key)
-      .eq('identifier', identifier)
-      .gte('created_at', windowStart)
-
-    if (countError) {
-      console.error('Rate limit count error:', countError)
-      // Si falla la DB, permitir por defecto (fail-open)
-      return { ok: true, remaining: 999, resetIn: 0, limit: limit.max }
-    }
-
-    const currentCount = count || 0
-    const remaining = Math.max(0, limit.max - currentCount)
-
-    if (currentCount >= limit.max) {
-      // Calcular reset: encontrar el registro más antiguo en la ventana
-      const { data: oldest } = await sb
-        .from('rate_limit')
-        .select('created_at')
-        .eq('key', key)
-        .eq('identifier', identifier)
-        .gte('created_at', windowStart)
-        .order('created_at', { ascending: true })
-        .limit(1)
-        .single()
-
-      const resetIn = oldest
-        ? new Date(oldest.created_at).getTime() + limit.windowMs - now
-        : limit.windowMs
-
-      return { ok: false, remaining: 0, resetIn: Math.max(0, resetIn), limit: limit.max }
-    }
-
-    // Registrar este intento (async, no bloquear)
-    sb.from('rate_limit').insert({
-      key,
-      identifier,
-      ip: extraData?.ip || null,
-    }).then(({ error }) => {
-      if (error) console.error('Rate limit insert error:', error)
+    const { data, error } = await getSupabaseClient().rpc('check_rate_limit_atomic', {
+      p_key: key,
+      p_identifier: identifier,
+      p_ip: extraData?.ip || null,
+      p_limit: limit.max,
+      p_window_ms: limit.windowMs,
     })
 
-    return { ok: true, remaining: remaining - 1, resetIn: limit.windowMs, limit: limit.max }
-  } catch (err) {
-    console.error('Rate limit check error:', err)
-    return { ok: true, remaining: 999, resetIn: 0, limit: limit.max }
+    if (error || !data || typeof data.ok !== 'boolean') {
+      console.error('Atomic rate limit RPC error:', error?.message || 'invalid response')
+      // Sensitive endpoints must fail closed if the limiter is unavailable.
+      return { ok: false, remaining: 0, resetIn: 60_000, limit: limit.max }
+    }
+
+    return {
+      ok: data.ok === true,
+      remaining: Number(data.remaining) || 0,
+      resetIn: Math.max(0, Number(data.resetIn) || 0),
+      limit: Number(data.limit) || limit.max,
+    }
+  } catch (error) {
+    console.error('Atomic rate limit check error:', error)
+    return { ok: false, remaining: 0, resetIn: 60_000, limit: limit.max }
   }
 }
 
-// Limpiar registros antiguos (más de 24 horas)
 export async function cleanOldRateLimits(): Promise<number> {
   const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
   const sb = getSupabaseClient()

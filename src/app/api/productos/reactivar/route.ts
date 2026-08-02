@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
 
   const { data: product, error: productError } = await sb
     .from('productos')
-    .select('user_id, vendido')
+    .select('user_id, vendido, estado_moderacion')
     .eq('id', body.productoId)
     .maybeSingle()
 
@@ -36,6 +36,9 @@ export async function POST(request: NextRequest) {
   }
   if (product.user_id !== auth.user.id) {
     return NextResponse.json({ error: 'No tienes permisos' }, { status: 403 })
+  }
+  if (product.estado_moderacion === 'rechazado') {
+    return NextResponse.json({ error: 'Un producto rechazado requiere revisión administrativa' }, { status: 409 })
   }
 
   const { error } = await sb
