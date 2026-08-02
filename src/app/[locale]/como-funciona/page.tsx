@@ -4,7 +4,7 @@ import LocalLink from '@/components/LocalLink'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
 
 export const metadata: Metadata = {
-  title: '¿Cómo Funciona? — VendeT-Venezuela',
+  title: '¿Cómo Funciona?',
   description: 'Publica gratis en VendeT en 4 pasos simples. Compra y vende en Venezuela sin comisiones.',
 }
 

@@ -51,7 +51,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!ciudadSEO) {
     const t = await getTranslations({ locale, namespace: 'notFound' })
     return {
-      title: `${t('title')} | VendeT.online`,
+      title: t('title'),
       description: t('description'),
     }
   }
@@ -59,7 +59,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const cityName = ciudadSEO.nombre
   const stateName = ciudadSEO.estado
   
-  const title = `${cat.nombre} en ${cityName}, ${stateName} | Clasificados VendeT.online`
+  const title = `${cat.nombre} en ${cityName}, ${stateName} | Clasificados`
   const description = `Compra y vende ${cat.descripcion.toLowerCase()} en ${cityName}, ${stateName}. Anuncios clasificados gratis. Publica sin costo en VendeT.online.`
   
   const keywords = [

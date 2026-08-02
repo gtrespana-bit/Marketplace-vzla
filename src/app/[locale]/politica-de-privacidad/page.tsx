@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
 
 export const metadata: Metadata = {
-  title: 'Política de Privacidad — VendeT-Venezuela',
+  title: 'Política de Privacidad',
 }
 
 export default async function PrivacidadPage({ params }: { params: Promise<{ locale: string }> }) {

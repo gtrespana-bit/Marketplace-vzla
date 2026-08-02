@@ -15,7 +15,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!ciudadSEO) {
     const t = await getTranslations({ locale, namespace: 'notFound' })
     return {
-      title: `${t('title')} | VendeT.online`,
+      title: t('title'),
       description: t('description'),
     }
   }

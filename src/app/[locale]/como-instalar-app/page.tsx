@@ -4,7 +4,7 @@ import { ArrowLeft, Smartphone, Share, Download, PlusCircle, ArrowDownToLine, Ch
 import { getTranslations, setRequestLocale } from 'next-intl/server'
 
 export const metadata: Metadata = {
-  title: 'Instala la App de VendeT — VendeT-Venezuela',
+  title: 'Instala la App',
   description: 'Aprende cómo instalar VendeT-Venezuela como app en tu teléfono. Guía paso a paso para Android e iPhone.',
 }
 

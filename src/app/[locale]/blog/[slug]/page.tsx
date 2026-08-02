@@ -64,10 +64,10 @@ export function generateStaticParams(): { slug: string }[] {
 export async function generateMetadata(props: { params: Promise<{ locale: string; slug: string }> }): Promise<Metadata> {
   const { slug } = await props.params
   const post = getPostBySlug(slug)
-  if (!post) return { title: 'Post not found — VendeT' }
+  if (!post) return { title: 'Post no encontrado' }
 
   return {
-    title: `${post.title} — Blog VendeT Venezuela`,
+    title: post.title,
     description: post.excerpt,
     alternates: {
       canonical: `https://vendet.online/blog/${post.slug}`,

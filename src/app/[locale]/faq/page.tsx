@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
 
 export const metadata: Metadata = {
-  title: 'Preguntas Frecuentes — VendeT-Venezuela',
+  title: 'Preguntas Frecuentes',
   description: 'Resuelve tus dudas sobre VendeT: cómo publicar, seguridad, créditos, métodos de pago y más.',
 }
 
