@@ -97,4 +97,4 @@ Si tu batería está sobre 90% y tienes caja/factura, sí: los precios de usados
 
 El mercado más líquido de smartphones usados de Venezuela, con perfiles verificados y cero comisión.
 
-[Ver iPhones en el catálogo](/catalogo?categoria=tecnologia) · [Publicar gratis](/publicar)
+[Ver iPhones en el catálogo](/categoria/tecnologia) · [Publicar gratis](/publicar)

@@ -3,9 +3,10 @@ import { getSupabaseServerClient } from '@/lib/supabase-server-client'
 import fs from 'fs'
 import path from 'path'
 import { CIUDADES_SEO, CATEGORIAS_POPULARES } from '@/lib/ubicaciones-seo'
+import { CATEGORIAS_SEO_LIST } from '@/lib/categorias-seo'
 
 const BASE_URL = 'https://vendet.online'
-const LAST_MODIFIED_DATE = new Date('2026-08-01')
+const LAST_MODIFIED_DATE = new Date('2026-08-03')
 
 // ÚNICO sitemap del sitio. No crear otro en [locale]/.
 // El blog vive en src/content/blog/*.md (fs), NO en una tabla de Supabase:
@@ -76,40 +77,31 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { path: '/politica-de-privacidad', changeFrequency: 'yearly', priority: 0.3 },
   ]
 
-  const staticUrls: MetadataRoute.Sitemap = []
-  staticPaths.forEach((p) => {
-    // Español (default)
-    staticUrls.push({
-      url: `${BASE_URL}${p.path}`,
-      lastModified: LAST_MODIFIED_DATE,
-      changeFrequency: p.changeFrequency,
-      priority: p.priority,
-    })
-    // Inglés (en)
-    staticUrls.push({
-      url: `${BASE_URL}/en${p.path === '' ? '' : p.path}`,
-      lastModified: LAST_MODIFIED_DATE,
-      changeFrequency: p.changeFrequency,
-      priority: Math.max(0.1, p.priority - 0.1),
-    })
-  })
+  // Solo se publican URLs en español. La versión /en permanece disponible
+  // para usuarios, pero está fuera del índice mediante X-Robots-Tag.
+  const staticUrls: MetadataRoute.Sitemap = staticPaths.map((p) => ({
+    url: `${BASE_URL}${p.path}`,
+    lastModified: LAST_MODIFIED_DATE,
+    changeFrequency: p.changeFrequency,
+    priority: p.priority,
+  }))
+
+  // ── Categorías principales con URL canónica propia ───────────────────
+  const categoryUrls: MetadataRoute.Sitemap = CATEGORIAS_SEO_LIST.map((categoria) => ({
+    url: `${BASE_URL}/categoria/${categoria.slug}`,
+    lastModified: LAST_MODIFIED_DATE,
+    changeFrequency: 'daily' as const,
+    priority: 0.9,
+  }))
 
   // ── Landing pages de ciudad (SEO local) ──────────────────────────────
   const cityUrls: MetadataRoute.Sitemap = []
   CIUDADES_SEO.forEach((ciudad) => {
-    // Español
     cityUrls.push({
       url: `${BASE_URL}/${ciudad.slug}`,
       lastModified: LAST_MODIFIED_DATE,
       changeFrequency: 'weekly' as const,
       priority: 0.7,
-    })
-    // Inglés
-    cityUrls.push({
-      url: `${BASE_URL}/en/${ciudad.slug}`,
-      lastModified: LAST_MODIFIED_DATE,
-      changeFrequency: 'weekly' as const,
-      priority: 0.6,
     })
   })
 
@@ -117,19 +109,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const cityCategoryUrls: MetadataRoute.Sitemap = []
   for (const ciudad of CIUDADES_SEO) {
     for (const categoria of CATEGORIAS_POPULARES) {
-      // Español
       cityCategoryUrls.push({
         url: `${BASE_URL}/${ciudad.slug}/${categoria}`,
         lastModified: LAST_MODIFIED_DATE,
         changeFrequency: 'weekly' as const,
         priority: 0.6,
-      })
-      // Inglés
-      cityCategoryUrls.push({
-        url: `${BASE_URL}/en/${ciudad.slug}/${categoria}`,
-        lastModified: LAST_MODIFIED_DATE,
-        changeFrequency: 'weekly' as const,
-        priority: 0.5,
       })
     }
   }
@@ -137,19 +121,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // ── Blog (desde src/content/blog) ────────────────────────────────────
   const blogUrls: MetadataRoute.Sitemap = []
   getBlogSlugs().forEach((post) => {
-    // Español
     blogUrls.push({
       url: `${BASE_URL}/blog/${post.slug}`,
       lastModified: post.lastModified,
       changeFrequency: 'monthly' as const,
       priority: 0.6,
-    })
-    // Inglés
-    blogUrls.push({
-      url: `${BASE_URL}/en/blog/${post.slug}`,
-      lastModified: post.lastModified,
-      changeFrequency: 'monthly' as const,
-      priority: 0.5,
     })
   })
 
@@ -163,19 +139,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       const rawDate = p.actualizado_en ? new Date(p.actualizado_en) : LAST_MODIFIED_DATE
       const validDate = isNaN(rawDate.getTime()) ? LAST_MODIFIED_DATE : rawDate
 
-      // Español
       productUrls.push({
         url: `${BASE_URL}/producto/${p.slug || p.id}`,
         lastModified: validDate,
         changeFrequency: 'weekly' as const,
         priority: 0.8,
-      })
-      // Inglés
-      productUrls.push({
-        url: `${BASE_URL}/en/producto/${p.slug || p.id}`,
-        lastModified: validDate,
-        changeFrequency: 'weekly' as const,
-        priority: 0.7,
       })
     })
 
@@ -186,19 +154,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     
     const vendorUrls: MetadataRoute.Sitemap = []
     vendorIds.forEach((id) => {
-      // Español
       vendorUrls.push({
         url: `${BASE_URL}/vendedor/${id}`,
         lastModified: LAST_MODIFIED_DATE,
         changeFrequency: 'weekly' as const,
         priority: 0.5,
-      })
-      // Inglés
-      vendorUrls.push({
-        url: `${BASE_URL}/en/vendedor/${id}`,
-        lastModified: LAST_MODIFIED_DATE,
-        changeFrequency: 'weekly' as const,
-        priority: 0.4,
       })
     })
 
@@ -207,5 +167,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // Si Supabase falla, servir al menos las URLs estáticas
   }
 
-  return [...staticUrls, ...cityUrls, ...cityCategoryUrls, ...blogUrls, ...dynamicUrls]
+  return [...staticUrls, ...categoryUrls, ...cityUrls, ...cityCategoryUrls, ...blogUrls, ...dynamicUrls]
 }

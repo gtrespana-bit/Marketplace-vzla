@@ -267,7 +267,7 @@ export default function CatalogoClient({ initialProducts = [], initialCount = 0 
   if (categoria && cat) {
     breadcrumbs.push({ 
       label: `${cat.icon} ${t('catalog.categories.' + categoria)}`, 
-      href: `/catalogo?categoria=${categoria}` 
+      href: `/categoria/${categoria}`
     })
   }
   

@@ -34,7 +34,6 @@ export async function generateMetadata({ searchParams }: PageProps): Promise<Met
       canonical: 'https://vendet.online/catalogo',
       languages: {
         'es-VE': 'https://vendet.online/catalogo',
-        en: 'https://vendet.online/en/catalogo',
         'x-default': 'https://vendet.online/catalogo',
       },
     },

@@ -4,8 +4,7 @@ import LocalLink from '@/components/LocalLink'
 import Image from 'next/image'
 import { useTranslations } from 'next-intl'
 
-// Categorías del footer → filtros del catálogo (antes todas apuntaban a
-// /catalogo genérico: anchor text sin destino semántico = señal SEO nula)
+// Categorías del footer → landing pages SEO con URL canónica propia.
 const CATEGORIAS_FOOTER = [
   { key: 'header.categories.vehiculos', slug: 'vehiculos' },
   { key: 'header.categories.tecnologia', slug: 'tecnologia' },
@@ -44,7 +43,7 @@ export function Footer() {
               <ul className="space-y-2 text-sm">
                 {CATEGORIAS_FOOTER.map(c => (
                   <li key={c.slug}>
-                    <LocalLink href={`/catalogo?categoria=${c.slug}`} className="hover:text-brand-accent transition">
+                    <LocalLink href={`/categoria/${c.slug}`} className="hover:text-brand-accent transition">
                       {t(c.key)}
                     </LocalLink>
                   </li>
@@ -57,7 +56,7 @@ export function Footer() {
                 {CIUDADES_FOOTER.map(c => (
                   <li key={c.slug}>
                     <LocalLink href={`/${c.slug}`} className="hover:text-brand-accent transition">
-                      {t('footer.classifiedsIn').replace('{city}', c.nombre)}
+                      {t('footer.classifiedsIn', { city: c.nombre })}
                     </LocalLink>
                   </li>
                 ))}

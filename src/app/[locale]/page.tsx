@@ -53,7 +53,6 @@ export async function generateMetadata({ params }: { params: { locale: string } 
       canonical: 'https://vendet.online/',
       languages: {
         'es-VE': 'https://vendet.online/',
-        en: 'https://vendet.online/en/',
         'x-default': 'https://vendet.online/',
       },
     },
@@ -488,7 +487,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
           ].map((cat) => (
             <LocalLink
               key={cat.id}
-              href={`/catalogo?categoria=${cat.id}`}
+              href={`/categoria/${cat.id}`}
               prefetch={true}
               className="bg-white rounded-2xl p-6 text-center shadow-sm border hover:border-brand-accent transition hover:shadow-lg group"
             >

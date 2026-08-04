@@ -119,4 +119,4 @@ Las gaming (ROG, Legion) sirven para todo lo pesado: edición, render, CAD, IA l
 
 Miles de compradores buscando laptops en toda Venezuela, con perfiles con reputación real y cero comisiones.
 
-[Ver laptops en el catálogo](/catalogo?categoria=tecnologia) · [Publicar gratis](/publicar)
+[Ver laptops en el catálogo](/categoria/tecnologia) · [Publicar gratis](/publicar)
