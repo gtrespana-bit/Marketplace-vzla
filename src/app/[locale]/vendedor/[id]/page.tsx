@@ -113,7 +113,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       canonical: `https://vendet.online/vendedor/${id}`,
       languages: {
         'es-VE': `https://vendet.online/vendedor/${id}`,
-        en: `https://vendet.online/en/vendedor/${id}`,
         'x-default': `https://vendet.online/vendedor/${id}`,
       },
     },

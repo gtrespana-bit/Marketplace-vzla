@@ -57,7 +57,6 @@ export const metadata: Metadata = {
     canonical: 'https://vendet.online/blog',
     languages: {
       'es-VE': 'https://vendet.online/blog',
-      en: 'https://vendet.online/en/blog',
       'x-default': 'https://vendet.online/blog',
     },
   },

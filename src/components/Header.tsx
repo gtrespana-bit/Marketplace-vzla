@@ -325,7 +325,7 @@ export function Header() {
             {categorias.map((cat) => (
               <LocalLink
                 key={cat.id}
-                href={cat.id === 'ver-todo' ? '/catalogo' : `/catalogo?categoria=${cat.id}`}
+                href={cat.id === 'ver-todo' ? '/catalogo' : `/categoria/${cat.id}`}
                 className={`flex items-center gap-1.5 px-3 py-2 text-sm rounded-lg transition font-medium whitespace-nowrap ${
                   cat.id === 'ver-todo'
                     ? 'text-brand-primary bg-blue-50 hover:bg-blue-100 font-bold'

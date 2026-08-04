@@ -54,6 +54,26 @@ const nextConfig = withNextIntl({
 
   reactStrictMode: true,
 
+  // Redirigir los dominios alternativos al dominio canónico conservando
+  // la ruta y los parámetros de búsqueda. Ejemplo:
+  // vendete.online/catalogo?q=carro → vendet.online/catalogo?q=carro
+  async redirects() {
+    return [
+      {
+        source: '/:path*',
+        has: [{ type: 'host', value: 'vendete.online' }],
+        destination: 'https://vendet.online/:path*',
+        permanent: true,
+      },
+      {
+        source: '/:path*',
+        has: [{ type: 'host', value: 'www.vendete.online' }],
+        destination: 'https://vendet.online/:path*',
+        permanent: true,
+      },
+    ]
+  },
+
   // ═══════════════════════════════════════════════════════
   // Fase 3 Bloque C — Cabeceras de seguridad
   // ═══════════════════════════════════════════════════════
@@ -113,6 +133,14 @@ const nextConfig = withNextIntl({
       {
         source: '/(.*)',
         headers: securityHeaders,
+      },
+      // El sitio en inglés sigue disponible para usuarios, pero no debe
+      // competir en Google con el contenido principal en español.
+      {
+        source: '/en/:path*',
+        headers: [
+          { key: 'X-Robots-Tag', value: 'noindex, follow' },
+        ],
       },
       // No cache para SW y manifest (siempre frescos)
       {
