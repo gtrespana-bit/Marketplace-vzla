@@ -30,7 +30,14 @@ export async function GET(request: NextRequest) {
     .gte('creado_en', desde)
     .limit(200)
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  if (error) {
+    const msg = error.message || ''
+    // Tabla sin migrar u opinión de schema distinta: saltar sin error
+    if (!msg || /42P01|does not exist|not found|could not find the table|schema cache/i.test(msg)) {
+      return NextResponse.json({ ok: true, reason: 'tabla-no-existe' })
+    }
+    return NextResponse.json({ error: msg }, { status: 500 })
+  }
 
   // usuario → lista de productos que le interesan y bajaron
   const porUsuario = new Map<string, { titulo: string; slug: string; nuevo: number; anterior: number }[]>()

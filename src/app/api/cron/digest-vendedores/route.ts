@@ -34,10 +34,20 @@ export async function GET(request: NextRequest) {
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
-  // 2) Snapshots existentes
-  const { data: snapshots } = await admin
+  // 2) Snapshots existentes (si la tabla aún no está migrada, esta corrida
+  // solo deja pasar: la siguiente, con tabla y línea base, ya calculará)
+  const { data: snapshots, error: snapError } = await admin
     .from('visitas_snapshot')
     .select('producto_id, visitas')
+  if (snapError) {
+    const msg = snapError.message || ''
+    // PostgREST usa mensajes distintos según la versión: cubrimos el rango
+    // (una corrida saltada es preferible a un error semanal repetido).
+    if (!msg || /42P01|does not exist|not found|could not find the table|schema cache/i.test(msg)) {
+      return NextResponse.json({ ok: true, reason: 'tabla-no-existe' })
+    }
+    return NextResponse.json({ error: msg }, { status: 500 })
+  }
   const previo = new Map<string, number>((snapshots || []).map((s: any) => [s.producto_id, s.visitas]))
 
   // 3) Delta por usuario (solo productos con snapshot previo = no es corrida 1)
