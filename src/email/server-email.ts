@@ -200,3 +200,35 @@ export async function buscarEmailsUsuarios(userIds: string[]): Promise<UserEmail
     .filter(u => userIds.includes(u.id) && u.email)
     .map(u => ({ nombre: u.email?.split('@')[0] || '', email: u.email! }))
 }
+
+/**
+ * DIGEST SEMANAL DEL VENDEDOR
+ * "Tus anuncios tuvieron N vistas esta semana" — endowment: le recuerda
+ * el valor que la plataforma le genera gratis y lo trae de vuelta.
+ */
+export async function enviarDigestVendedor(
+  email: string,
+  nombre: string,
+  stats: { visitas: number; guardados: number; topTitulo?: string }
+) {
+  const url = `${process.env.NEXT_PUBLIC_URL || 'https://vendet.online'}/dashboard`
+  const topLine = stats.topTitulo
+    ? `<p style="margin:8px 0 0;color:#4b5563">Tu anuncio más visto: <strong>${stats.topTitulo}</strong></p>`
+    : ''
+  return enviar('VendeT-Venezuela', email, `📊 ${stats.visitas} personas vieron tus anuncios esta semana`, `
+    <div style="font-family:sans-serif;max-width:500px;margin:0 auto">
+      <h2 style="color:#7B2D3B">Hola ${nombre}!</h2>
+      <p>Así fueron tus anuncios esta semana en VendeT:</p>
+      <div style="background:#f3f4f6;padding:16px;border-radius:10px;margin:16px 0;text-align:center">
+        <p style="margin:0;font-size:32px;font-weight:bold;color:#7B2D3B">👀 ${stats.visitas}</p>
+        <p style="margin:4px 0 12px;color:#6b7280">vistas esta semana</p>
+        <p style="margin:0;font-size:20px;font-weight:bold;color:#7B2D3B">❤️ ${stats.guardados}</p>
+        <p style="margin:4px 0 0;color:#6b7280">personas guardaron tus anuncios</p>
+        ${topLine}
+      </div>
+      <p>¿Ya renovaste tus anuncios? Renovar los sube como "recién publicados" — gratis.</p>
+      <a href="${url}" style="display:inline-block;background:#7B2D3B;color:#fff;padding:12px 28px;text-decoration:none;border-radius:8px;font-weight:bold">Ver mis anuncios →</a>
+      <p style="color:#6b7280;font-size:12px;margin-top:28px">VendeT-Venezuela — Publica más, vende más</p>
+    </div>
+  `)
+}

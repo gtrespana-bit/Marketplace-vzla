@@ -70,6 +70,9 @@ function ProductoPageClientInner({ initialProduct, favoritosCount = 0 }: Product
   const [vendedorStats, setVendedorStats] = useState<any>(null)
   const [historial, setHistorial] = useState<any[]>([])
   const [copiado, setCopiado] = useState(false)
+  // Invitados: en vez de redirigir a login de golpe, se explica el paso y
+  // se ofrece la alternativa inmediata (WhatsApp) — el muro mata compradores.
+  const [pedirCuenta, setPedirCuenta] = useState(false)
 
   // Tasa BCV
   useEffect(() => {
@@ -112,7 +115,7 @@ function ProductoPageClientInner({ initialProduct, favoritosCount = 0 }: Product
 
   const handleContacto = () => {
     if (authLoading) return
-    if (!user) { router.push(`/login?redirect=/producto/${slug}`); return }
+    if (!user) { setPedirCuenta(true); return }
     router.push(`/chat?producto_id=${producto.id}&vendedor_id=${producto.user_id}`)
   }
 
@@ -390,6 +393,40 @@ function ProductoPageClientInner({ initialProduct, favoritosCount = 0 }: Product
                 )}
               </div>
             </div>
+
+            {pedirCuenta && !user && (
+              <div className="mt-4 bg-brand-primary/5 border border-brand-primary/20 rounded-xl p-4 animate-fadeIn">
+                <p className="text-sm font-semibold text-gray-900">{t('guestNudgeTitle')}</p>
+                <p className="text-xs text-gray-600 mt-1 mb-3">{t('guestNudgeDesc')}</p>
+                <div className="flex flex-wrap gap-2">
+                  <LocalLink
+                    href={`/register?redirect=/producto/${slug}`}
+                    onClick={() => setPedirCuenta(false)}
+                    className="bg-brand-primary text-white text-xs font-bold px-4 py-2 rounded-lg hover:bg-brand-dark transition"
+                  >
+                    {t('guestNudgeCreate')}
+                  </LocalLink>
+                  <LocalLink
+                    href={`/login?redirect=/producto/${slug}`}
+                    onClick={() => setPedirCuenta(false)}
+                    className="border border-gray-300 text-gray-700 text-xs font-bold px-4 py-2 rounded-lg hover:bg-gray-50 transition"
+                  >
+                    {t('guestNudgeLogin')}
+                  </LocalLink>
+                  {metodos.whatsapp && whatsappLink && (
+                    <a
+                      href={whatsappLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={() => setPedirCuenta(false)}
+                      className="text-[#128C4A] text-xs font-bold px-2 py-2 hover:underline"
+                    >
+                      {t('guestNudgeWhatsapp')} →
+                    </a>
+                  )}
+                </div>
+              </div>
+            )}
 
             {(producto.ubicacion_ciudad || producto.ubicacion_estado) && (
               <div className="flex items-center gap-2 text-sm text-gray-500 mt-4 pt-4 border-t">

@@ -456,7 +456,15 @@
     "haveSomething": "Have something to sell?",
     "publishFreeDesc": "Post free on VendeT and reach thousands of buyers across Venezuela",
     "publishFree": "Post for free",
-    "moreArticles": "More articles"
+    "moreArticles": "More articles",
+    "exploreTitle": "Put it to work today on VendeT",
+    "catTech": "Browse Electronics",
+    "catVehicles": "Browse Vehicles",
+    "catFashion": "Browse Fashion",
+    "catHome": "Browse Home",
+    "catTools": "Browse Tools",
+    "catCatalog": "View full catalog",
+    "catPublish": "Post for free"
   },
   "productDetail": {
     "notFound": "Product not found",
@@ -489,7 +497,12 @@
     "savedCount": "{count, plural, =1 {1 person saved it} other {# people saved it}}",
     "shareWhatsapp": "Share on WhatsApp",
     "copyLink": "Copy link",
-    "copied": "Link copied!"
+    "copied": "Link copied!",
+    "guestNudgeTitle": "Create an account to start chatting",
+    "guestNudgeDesc": "The chat keeps your conversation and your number private. Signing up takes less than a minute.",
+    "guestNudgeCreate": "Create account (free)",
+    "guestNudgeLogin": "I already have an account",
+    "guestNudgeWhatsapp": "Or message on WhatsApp now"
   },
   "creditos": {
     "title1": "Buy credits and",

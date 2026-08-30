@@ -456,7 +456,15 @@
     "haveSomething": "¿Tienes algo para vender?",
     "publishFreeDesc": "Publica gratis en VendeT y llega a miles de compradores en toda Venezuela",
     "publishFree": "Publicar gratis",
-    "moreArticles": "Más artículos"
+    "moreArticles": "Más artículos",
+    "exploreTitle": "Lo que lees, aplícalo hoy en VendeT",
+    "catTech": "Ver Tecnología",
+    "catVehicles": "Ver Vehículos",
+    "catFashion": "Ver Moda",
+    "catHome": "Ver Hogar",
+    "catTools": "Ver Herramientas",
+    "catCatalog": "Ver catálogo completo",
+    "catPublish": "Publicar gratis"
   },
   "productDetail": {
     "notFound": "Producto no encontrado",
@@ -489,7 +497,12 @@
     "savedCount": "{count, plural, =1 {1 persona lo guardó} other {# personas lo guardaron}}",
     "shareWhatsapp": "Compartir por WhatsApp",
     "copyLink": "Copiar enlace",
-    "copied": "¡Enlace copiado!"
+    "copied": "¡Enlace copiado!",
+    "guestNudgeTitle": "Una cuenta y puedes escribirle",
+    "guestNudgeDesc": "El chat protege tu conversación y tu número. Crear la cuenta toma menos de un minuto.",
+    "guestNudgeCreate": "Crear cuenta (gratis)",
+    "guestNudgeLogin": "Ya tengo cuenta",
+    "guestNudgeWhatsapp": "O escríbele por WhatsApp ya"
   },
   "creditos": {
     "title1": "Compra créditos y",

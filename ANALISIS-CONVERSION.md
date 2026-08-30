@@ -123,13 +123,13 @@ El modelo (publicar gratis, destacar opcional) es el correcto y ya está bien do
 | # | Acción | Por qué | Estado |
 |---|---|---|---|
 | 10 | **Búsquedas guardadas + alertas push** | El mecanismo #1 de retorno de compradores; usa la infra de push existente | ✅ Aplicado (migración `20260829000103`, API + botón en /buscar + cron cada 6 h) |
-| 11 | Emails de ciclo de vida: "tu anuncio tuvo X visitas", "alguien lo guardó", "bajó de precio" | Endowment + reactivación del vendedor | ⏳ Pendiente (el push de favoritos ya existe) |
-| 12 | **Flujo publicar foto-primero** + simplificar registro | Fricción de activación | 🔶 Registro simplificado (4 campos, contraseña 8+ sin composición, ubicación/teléfono en contexto). Foto-primero pendiente |
+| 11 | Emails de ciclo de vida: "tu anuncio tuvo X visitas", "alguien lo guardó", "bajó de precio" | Endowment + reactivación del vendedor | ✅ Aplicado (digest semanal email+push con snapshot de visitas — migración `20260829000105` — y cron diario de bajadas de precio a quien guardó en favoritos) |
+| 12 | **Flujo publicar foto-primero** + simplificar registro | Fricción de activación | ✅ Aplicado (fotos → categoría → detalles → revisar; registro de 4 campos) |
 | 13 | **Renovar anuncio gratis cada 7 días** | Inventario vivo + hábito semanal | ✅ Aplicado (API `/api/productos/renovar` + botón en Gestionar) |
-| 14 | Primer mensaje como invitado (sin registro para el 1er contacto) | Quitar el muro al comprador caliente | ⏳ Pendiente |
-| 15 | Resumen de reputación visible en el card de producto ("⭐4.8 · 12 ventas") + tiempo de respuesta del vendedor | Confianza en 3 segundos | ⏳ Pendiente |
+| 14 | Primer mensaje como invitado (sin registro para el 1er contacto) | Quitar el muro al comprador caliente | ✅ Aplicado (nudge con alternativa WhatsApp + crear cuenta en 1 clic, en vez de redirect seco; WhatsApp/teléfono públicos ya existían) |
+| 15 | Resumen de reputación visible en el card de producto ("⭐4.8 · 12 ventas") + tiempo de respuesta del vendedor | Confianza en 3 segundos | 🔶 Ya existía en la página de producto (SellerReputation). Pendiente: resumen en cards de listados y tiempo de respuesta |
 | 16 | Bonus Emprendedor visible en el flujo de publicar | Goal gradient | ✅ Ya existía (barra de progreso {count}/10 en el paso final de /publicar) |
-| 17 | Blog: 3-5 enlaces internos a categorías/búsquedas por artículo + 10 landings "vender X en Y" | Autoridad → conversación | ⏳ Pendiente |
+| 17 | Blog: 3-5 enlaces internos a categorías/búsquedas por artículo + 10 landings "vender X en Y" | Autoridad → conversación | 🔶 Bloque de enlaces aplicado en todos los artículos (categorías según tags + catálogo + publicar). Landings "vender X en Y" pendientes |
 
 ### P2 — Este trimestre (ventaja competitiva)
 
@@ -137,7 +137,7 @@ El modelo (publicar gratis, destacar opcional) es el correcto y ya está bien do
 |---|---|---|
 | 18 | **Programa de referidos** (2+1 créditos) | Loop de adquisición vía WhatsApp |
 | 19 | **Guía de precios con datos propios** ("el iPhone 12 se vende entre $220-260 esta semana") | Valor que ni Facebook ni ML dan; posiciona como experto; alimenta SEO |
-| 20 | Estrategia de densidad: dominar 2-3 ciudades antes que "todo el país" | La liquidez es local; 500 anuncios en Caracas venden más que 500 repartidos |
+| 20 | ~~Estrategia de densidad: dominar 2-3 ciudades~~ | **Decisión del equipo: mantener cobertura NACIONAL** — se descarta la concentración por ciudad. Las 330 landings locales siguen siendo el soporte SEO de esa decisión |
 | 21 | Auto-aprobación de créditos para compradores recurrentes | Confianza progresiva |
 | 22 | Onboarding del vendedor verificado (cedula ya existe en admin) con ladder de beneficios | Confianza + estatus |
 | 23 | Decidir con datos el coste real de `/en` (duplica mantenimiento de textos) | Si no hay tráfico, redirigir |
