@@ -6,7 +6,6 @@ import {
   Clock, ArrowRight, Activity, Megaphone, CheckCircle2, DollarSign,
   ShoppingBag, UserPlus, Wallet,
 } from 'lucide-react'
-import { supabase } from '@/lib/supabase'
 import LocalLink from '@/components/LocalLink'
 import { productUrl } from '@/lib/product-url'
 import {
@@ -36,25 +35,6 @@ type DashboardData = {
   last7Transactions: number[]
 }
 
-const daysAgo = (days: number) => new Date(Date.now() - days * 86400000).toISOString()
-
-function lastDaysBuckets<T>(rows: T[], getDate: (r: T) => string | null | undefined, days = 7): number[] {
-  const buckets = Array.from({ length: days }, (_, i) => {
-    const d = new Date()
-    d.setHours(0, 0, 0, 0)
-    d.setDate(d.getDate() - (days - 1 - i))
-    return d.toISOString().slice(0, 10)
-  })
-  const counts = new Array(days).fill(0)
-  rows.forEach((r) => {
-    const d = getDate(r)?.slice(0, 10)
-    if (!d) return
-    const idx = buckets.indexOf(d)
-    if (idx >= 0) counts[idx] += 1
-  })
-  return counts
-}
-
 export default function AdminDashboard({
   notify,
   jump,
@@ -78,18 +58,12 @@ export default function AdminDashboard({
     else setLoading(true)
     setError(null)
     try {
-      const [users, products, active, sold, pendingMod, reports, pendVerif, verified, reviews, pendTx] = await Promise.all([
-        supabase.from('perfiles').select('id', { count: 'exact', head: true }),
-        supabase.from('productos').select('id', { count: 'exact', head: true }),
-        supabase.from('productos').select('id', { count: 'exact', head: true }).eq('activo', true),
-        supabase.from('productos').select('id', { count: 'exact', head: true }).eq('vendido', true),
-        supabase.from('productos').select('id', { count: 'exact', head: true }).eq('estado_moderacion', 'pendiente'),
-        supabase.from('denuncias').select('id', { count: 'exact', head: true }).eq('estado', 'activa'),
-        supabase.from('solicitudes_verificacion').select('id', { count: 'exact', head: true }).eq('estado', 'pendiente'),
-        supabase.from('perfiles').select('id', { count: 'exact', head: true }).eq('verificado', true),
-        supabase.from('resenas').select('id', { count: 'exact', head: true }),
-        supabase.from('transacciones_creditos').select('id', { count: 'exact', head: true }).eq('estado', 'pendiente').eq('tipo', 'compra'),
-      ])
+      const dashResponse = await fetch('/api/admin/dashboard', { cache: 'no-store' })
+      const dashJson = await dashResponse.json().catch(() => ({}))
+      if (!dashResponse.ok || !dashJson.ok) {
+        throw new Error(dashJson.error || 'No se pudieron cargar los datos del dashboard')
+      }
+      const counts = dashJson.counts || {}
 
       const txResponse = await fetch('/api/admin/transacciones?limit=500')
       const txJson = await txResponse.json().catch(() => ({}))
@@ -100,59 +74,33 @@ export default function AdminDashboard({
       const todayTx = approvedPurchases.filter((t: any) => (t.creado_en || '').startsWith(today))
       const revenueToday = todayTx.reduce((s: number, t: any) => s + (Number(t.precio_usd) || 0), 0)
 
-      const [recentRes, topRes, usersRes, productsAll, txAll] = await Promise.all([
-        supabase
-          .from('productos')
-          .select('id, slug, titulo, precio_usd, imagen_url, visitas, activo, vendido, creado_en, user_id, categoria_id')
-          .order('creado_en', { ascending: false })
-          .limit(14),
-        supabase
-          .from('productos')
-          .select('id, slug, titulo, precio_usd, imagen_url, visitas, activo, creado_en, user_id')
-          .order('visitas', { ascending: false })
-          .limit(10),
-        supabase
-          .from('perfiles')
-          .select('id, nombre, verificado, credito_balance, nivel_confianza, creado_en, estado, ciudad')
-          .order('creado_en', { ascending: false })
-          .limit(10),
-        supabase
-          .from('productos')
-          .select('id, creado_en')
-          .gte('creado_en', daysAgo(7)),
-        supabase
-          .from('transacciones_creditos')
-          .select('id, creado_en')
-          .gte('creado_en', daysAgo(7)),
-      ])
-
       const statusRes = await fetch('/api/admin/status').catch(() => null)
       const statusJson = statusRes?.ok ? await statusRes.json().catch(() => null) : null
 
-      const last7Products = lastDaysBuckets((productsAll.data as any[]) || [], (p: any) => p.creado_en)
-      const last7Transactions = lastDaysBuckets((txAll.data as any[]) || [], (p: any) => p.creado_en)
+      const recentProducts = dashJson.recentProducts || []
+      const topProducts = dashJson.topProducts || []
 
       setData({
-        users: users.count || 0,
-        products: products.count || 0,
-        active: active.count || 0,
-        sold: sold.count || 0,
-        pendingModeration: pendingMod.count || 0,
-        activeReports: reports.count || 0,
-        pendingVerifications: pendVerif.count || 0,
-        pendingTransactions: pendTx.count || 0,
-        verified: verified.count || 0,
-        reviews: reviews.count || 0,
+        users: counts.users || 0,
+        products: counts.products || 0,
+        active: counts.active || 0,
+        sold: counts.sold || 0,
+        pendingModeration: counts.pendingModeration || 0,
+        activeReports: counts.activeReports || 0,
+        pendingVerifications: counts.pendingVerifications || 0,
+        pendingTransactions: counts.pendingTransactions || 0,
+        verified: counts.verified || 0,
+        reviews: counts.reviews || 0,
         revenueUsd,
         revenueToday,
         transactionsToday: todayTx.length,
-        totalVisits: (topRes.data || []).reduce((s: number, p: any) => s + (p.visitas || 0), 0),
-        last7Products,
-        last7Transactions,
+        totalVisits: topProducts.reduce((s: number, p: any) => s + (p.visitas || 0), 0),
+        last7Products: dashJson.last7Products || [],
+        last7Transactions: dashJson.last7Transactions || [],
       })
-      setRecentProducts(recentRes.data || [])
-      setTopProducts(topRes.data || [])
-      setRecentUsers(usersRes.data || [])
+      setRecentProducts(recentProducts)
+      setTopProducts(topProducts)
+      setRecentUsers(dashJson.recentUsers || [])
       setRecentTransactions(approvedPurchases.slice(0, 8))
       setStatus(statusJson?.config || null)
       lastRefreshed.current = new Date()

@@ -29,42 +29,54 @@ export default function AdminModeracion({
   const load = useCallback(async (isRefresh = false) => {
     if (isRefresh) setRefreshing(true)
     else setLoading(true)
-    const [{ data: denies }, { data: pends }, { data: revisadosData }] = await Promise.all([
-      supabase
-        .from('denuncias')
-        .select('id, producto_id, reportante_id, motivo, descripcion, estado, creada_en, producto:productos(titulo, user_id, precio_usd, imagen_url), reportante:perfiles(nombre)')
-        .eq('estado', 'activa')
-        .order('creada_en', { ascending: false }),
-      supabase
-        .from('productos')
-        .select('id, slug, user_id, titulo, descripcion, precio_usd, imagen_url, subcategoria, marca, ubicacion_ciudad, activo, vendido, estado_moderacion, motivo_moderacion, visitas, creado_en')
-        .eq('estado_moderacion', 'pendiente')
-        .order('creado_en', { ascending: false }),
-      supabase
-        .from('denuncias')
-        .select('id, producto_id, motivo, estado, creada_en')
-        .in('estado', ['resuelta', 'invalidada'])
-        .order('creada_en', { ascending: false })
-        .limit(20),
-    ])
-    setDenuncias((denies || []) as Denuncia[])
-    setPendientes((pends || []) as Producto[])
-    setRevisados((revisadosData || []) as Denuncia[])
+    try {
+      // Denuncias (activas + revisadas) vía endpoint server-side (service_role):
+      // la tabla está protegida por RLS y el embed `reportante:perfiles` no es
+      // válido desde el cliente.
+      const res = await fetch('/api/admin/denuncias', { cache: 'no-store' })
+      const json = await res.json().catch(() => ({}))
+      if (!res.ok || !json.ok) throw new Error(json.error || 'No se pudieron cargar las denuncias')
+
+      const [{ data: pends }] = await Promise.all([
+        supabase
+          .from('productos')
+          .select('id, slug, user_id, titulo, descripcion, precio_usd, imagen_url, subcategoria, marca, ubicacion_ciudad, activo, vendido, estado_moderacion, motivo_moderacion, visitas, creado_en')
+          .eq('estado_moderacion', 'pendiente')
+          .order('creado_en', { ascending: false }),
+      ])
+
+      setDenuncias((json.denuncias || []) as Denuncia[])
+      setPendientes((pends || []) as Producto[])
+      setRevisados((json.revisados || []) as Denuncia[])
+    } catch (e: any) {
+      notify('❌ ' + (e?.message || 'Error cargando moderación'))
+    }
     setLoading(false)
     setRefreshing(false)
-  }, [])
+  }, [notify])
 
   useEffect(() => {
     load()
   }, [load])
 
+  async function updateDenuncia(id: string, action: 'ignorar' | 'bloquear') {
+    const res = await fetch('/api/admin/denuncias', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action, id }),
+    })
+    const json = await res.json().catch(() => ({}))
+    if (!res.ok || !json.ok) throw new Error(json.error || 'No se pudo actualizar la denuncia')
+  }
+
   async function ignorarDenuncia(id: string) {
     setBusyId(id)
-    const { error } = await supabase.from('denuncias').update({ estado: 'invalidada' }).eq('id', id)
-    if (error) notify('❌ ' + error.message)
-    else {
+    try {
+      await updateDenuncia(id, 'ignorar')
       notify('✅ Denuncia descartada')
       setDenuncias((prev) => prev.filter((d) => d.id !== id))
+    } catch (e: any) {
+      notify('❌ ' + e.message)
     }
     setBusyId(null)
   }
@@ -73,8 +85,7 @@ export default function AdminModeracion({
     if (!d.id || !d.producto_id) return
     setBusyId(d.id)
     try {
-      const { error } = await supabase.from('denuncias').update({ estado: 'resuelta' }).eq('id', d.id)
-      if (error) throw new Error(error.message)
+      await updateDenuncia(d.id, 'bloquear')
       await apiJson('/api/admin/moderar-producto', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

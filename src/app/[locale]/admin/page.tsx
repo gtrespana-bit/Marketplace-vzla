@@ -7,7 +7,6 @@ import {
   Tag, Megaphone, Download, Settings2, LogIn, LogOut, ArrowLeft, Menu, X, Sparkles,
 } from 'lucide-react'
 import LocalLink from '@/components/LocalLink'
-import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/components/AuthProvider'
 import { ADMIN_EMAILS } from '@/lib/admin-config'
 import AdminDashboard from './components/AdminDashboard'
@@ -80,17 +79,15 @@ export default function AdminPage() {
 
   async function loadCounts() {
     try {
-      const [tx, pubs, verif, denies] = await Promise.all([
-        supabase.from('transacciones_creditos').select('id', { count: 'exact', head: true }).eq('estado', 'pendiente').eq('tipo', 'compra'),
-        supabase.from('productos').select('id', { count: 'exact', head: true }).eq('estado_moderacion', 'pendiente'),
-        supabase.from('solicitudes_verificacion').select('id', { count: 'exact', head: true }).eq('estado', 'pendiente'),
-        supabase.from('denuncias').select('id', { count: 'exact', head: true }).eq('estado', 'activa'),
-      ])
+      const res = await fetch('/api/admin/counts', { cache: 'no-store' })
+      const json = await res.json().catch(() => ({}))
+      if (!res.ok || !json.ok) return
+      const c = json.counts || {}
       setCounts({
-        transacciones: tx.count || 0,
-        publicaciones: pubs.count || 0,
-        moderacion: (pubs.count || 0) + (denies.count || 0),
-        verificacion: verif.count || 0,
+        transacciones: c.transacciones || 0,
+        publicaciones: c.publicaciones || 0,
+        moderacion: (c.publicaciones || 0) + (c.denuncias || 0),
+        verificacion: c.verificacion || 0,
       })
     } catch {
       // Sin contadores la navegación sigue disponible.
@@ -188,7 +185,7 @@ export default function AdminPage() {
       )}
 
       {/* mobile top bar */}
-      <div className="sticky top-[57px] z-40 border-b border-gray-200 bg-white px-4 py-2 lg:hidden">
+      <div className="sticky top-0 z-40 border-b border-gray-200 bg-white px-4 py-2 lg:hidden">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <button onClick={() => setMobileOpen(!mobileOpen)} className="rounded-lg p-2 text-gray-600 hover:bg-gray-100" aria-label="Abrir navegación">

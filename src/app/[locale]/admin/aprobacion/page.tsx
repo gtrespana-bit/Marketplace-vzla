@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/components/AuthProvider'
 import { Check, X, Loader2, RefreshCw, Shield } from 'lucide-react'
 import LocalLink from '@/components/LocalLink'
@@ -41,13 +40,15 @@ export default function AprobacionPage() {
 
   async function aprobar(id: string, userId: string, monto: number) {
     setProcesando(id)
-    const { error } = await supabase.rpc('aprobar_transaccion', {
-      p_transaccion_id: id,
-      p_admin_id: user!.id,
+    const response = await fetch('/api/admin/aprobar-transaccion', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ transactionId: id }),
     })
     setProcesando(null)
-    if (error) {
-      alert(`Error: ${error.message}`)
+    if (!response.ok) {
+      const result = await response.json().catch(() => ({}))
+      alert(`Error: ${result.error || 'No se pudo aprobar'}`)
     } else {
       // Email notification
       try {

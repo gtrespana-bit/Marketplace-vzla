@@ -2,7 +2,6 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import { Loader2, ShieldCheck } from 'lucide-react'
-import { supabase } from '@/lib/supabase'
 
 // ============================ VERIFICACIÓN TAB ============================
 export default function VerificacionTab({ notify }: { notify: (msg: string) => void }) {
@@ -16,22 +15,16 @@ export default function VerificacionTab({ notify }: { notify: (msg: string) => v
   const cargar = useCallback(async () => {
     setCargando(true)
 
-    // 1. Obtener solicitudes
-    let query = supabase
-      .from('solicitudes_verificacion')
-      .select('id, user_id, pago_movil_telefono, pago_movil_cedula, pago_movil_banco, mensaje, estado, creada_en, revisada_en, rechazo_motivo, cedula_foto_frente_url, cedula_foto_dorso_url')
-      .order('creada_en', { ascending: false })
-
-    if (filtro !== 'todas') {
-      query = query.eq('estado', filtro)
-    }
-
-    const { data: sols, error } = await query
+    // 1. Obtener solicitudes (service_role: RLS protege esta tabla para el cliente)
+    const params = filtro !== 'todas' ? `?estado=${encodeURIComponent(filtro)}` : ''
+    const res = await fetch(`/api/admin/solicitudes-verificacion${params}`, { cache: 'no-store' })
+    const result = await res.json().catch(() => ({}))
     setCargando(false)
-    if (error) {
-      notify('Error: ' + error.message)
+    if (!res.ok || !result.ok) {
+      notify('Error: ' + (result.error || 'No se pudieron cargar las solicitudes'))
       return
     }
+    const sols = result.solicitudes || []
 
     // 2. Obtener perfiles de esos users
     const userIds = (sols || []).map((s: any) => s.user_id).filter(Boolean)
@@ -96,28 +89,22 @@ export default function VerificacionTab({ notify }: { notify: (msg: string) => v
   }
 
   async function aprobarSol(id: string, userId: string, sol: any) {
-    // 1. Solicitud aprobada
-    const { error: err1 } = await supabase
-      .from('solicitudes_verificacion')
-      .update({ estado: 'aprobada', revisada_en: new Date().toISOString() })
-      .eq('id', id)
-    if (err1) { notify('Error aprobando: ' + err1.message); return }
-
-    // 2. Perfil verificado via server-side endpoint (bypass RLS)
-    const res = await fetch('/api/admin/verificar-venta', {
+    // Solicitud + perfil verificado via endpoint server-side (service_role).
+    const res = await fetch('/api/admin/solicitudes-verificacion', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
+        action: 'aprobar',
+        id,
         userId,
-        cedula_numero: sol.pago_movil_cedula || '',
         pago_movil_telefono: sol.pago_movil_telefono || '',
         pago_movil_cedula: sol.pago_movil_cedula || '',
         pago_movil_banco: sol.pago_movil_banco || '',
       }),
     })
-    const result = await res.json()
-    if (!res.ok) {
-      notify('Error perfil: ' + result.error)
+    const result = await res.json().catch(() => ({}))
+    if (!res.ok || !result.ok) {
+      notify('Error aprobando: ' + (result.error || 'No se pudo aprobar'))
       return
     }
 
@@ -135,11 +122,13 @@ export default function VerificacionTab({ notify }: { notify: (msg: string) => v
 
   async function rechazarSol(id: string) {
     if (!rechazoMotivo.trim()) { notify('Escribe motivo de rechazo'); return }
-    const { error } = await supabase
-      .from('solicitudes_verificacion')
-      .update({ estado: 'rechazada', rechazo_motivo: rechazoMotivo, revisada_en: new Date().toISOString() })
-      .eq('id', id)
-    if (error) { notify('Error: ' + error.message); return }
+    const res = await fetch('/api/admin/solicitudes-verificacion', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'rechazar', id, motivo: rechazoMotivo }),
+    })
+    const result = await res.json().catch(() => ({}))
+    if (!res.ok || !result.ok) { notify('Error: ' + (result.error || 'No se pudo rechazar')); return }
     setRechazoMotivo('')
     setRechazoModal(null)
     notify('Solicitud rechazada')

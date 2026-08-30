@@ -6,7 +6,6 @@ import {
   Package, Pause, Play, Star, Zap, Trash2, Eye, ExternalLink, CheckSquare, Square,
   Filter, ChevronLeft, ChevronRight, Search, Loader2,
 } from 'lucide-react'
-import { supabase } from '@/lib/supabase'
 import LocalLink from '@/components/LocalLink'
 import { productUrl } from '@/lib/product-url'
 import { Badge, Button, Card, Confirm, Empty, Loading, Modal, RefreshButton, SearchInput, Segmented, formatDate, formatDateTime, formatMoney, formatNumber, timeAgo } from './AdminUi'
@@ -44,16 +43,11 @@ export default function AdminPublicaciones({ notify }: { notify: (msg: string) =
   const load = useCallback(async (isRefresh = false) => {
     if (isRefresh) setRefreshing(true)
     else setLoading(true)
-    const { data, error } = await supabase
-      .from('productos')
-      .select('id, slug, user_id, titulo, descripcion, precio_usd, categoria_id, subcategoria, marca, estado, ubicacion_estado, ubicacion_ciudad, imagen_url, imagenes, metodos_contacto, activo, vendido, vendido_en, comprador_id, estado_moderacion, motivo_moderacion, destacado, destacado_hasta, boosteado_en, visitas, creado_en, actualizado_en')
-      .order('creado_en', { ascending: false })
-      .limit(1000)
-
-    if (error) {
-      notify('❌ ' + error.message)
-    } else {
-      const productos = (data || []) as Producto[]
+    try {
+      const res = await fetch('/api/admin/productos', { cache: 'no-store' })
+      const json = await res.json().catch(() => ({}))
+      if (!res.ok || !json.ok) throw new Error(json.error || 'No se pudieron cargar las publicaciones')
+      const productos = (json.productos || []) as Producto[]
       setItems(productos)
       const userIds = Array.from(new Set(productos.map((p) => p.user_id).filter(Boolean))).slice(0, 100)
       if (userIds.length) {
@@ -72,6 +66,8 @@ export default function AdminPublicaciones({ notify }: { notify: (msg: string) =
       }
       setSelected(new Set())
       setPage(1)
+    } catch (e: any) {
+      notify('❌ ' + (e?.message || 'Error cargando publicaciones'))
     }
     setLoading(false)
     setRefreshing(false)
