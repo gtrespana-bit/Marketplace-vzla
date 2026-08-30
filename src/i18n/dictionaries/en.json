@@ -993,7 +993,9 @@
     "showingAll": "Showing all products ({count} results)",
     "showingResults": "{count} results",
     "search": "Search",
-    "searchPlaceholder": "Search products..."
+    "searchPlaceholder": "Search products...",
+    "saveAlert": "🔔 Notify me when it appears",
+    "savedAlertOn": "🔔 Alert on — we’ll tell you"
   },
   "editProduct": {
     "title": "Edit listing",

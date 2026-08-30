@@ -5,7 +5,6 @@ import LocalLink from '@/components/LocalLink'
 import { useRouter, usePathname } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { AlertCircle } from 'lucide-react'
-import { ESTADOS, CIUDADES_POR_ESTADO } from '@/lib/ubicaciones'
 import { useTranslations } from 'next-intl'
 import { routing } from '@/i18n/routing'
 
@@ -15,15 +14,10 @@ export default function RegisterPage() {
   const pathname = usePathname()
   const [nombre, setNombre] = useState('')
   const [email, setEmail] = useState('')
-  const [telefono, setTelefono] = useState('')
   const [password, setPassword] = useState('')
   const [repeatPassword, setRepeatPassword] = useState('')
-  const [estado, setEstado] = useState('')
-  const [ciudad, setCiudad] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-
-  const ciudades = estado ? CIUDADES_POR_ESTADO[estado] || [] : []
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -42,17 +36,11 @@ export default function RegisterPage() {
       return
     }
 
-    // Validación de contraseña
+    // Validación de contraseña — NIST 800-63B: longitud mínima, sin reglas
+    // de composición obligatoria (las reglas de mayúscula/número generan
+    // contraseñas que se olvidan y usuarios que no vuelven).
     if (password.length < 8) {
       setError('La contraseña debe tener al menos 8 caracteres')
-      return
-    }
-    if (!/[A-Z]/.test(password)) {
-      setError('La contraseña debe tener al menos una mayúscula')
-      return
-    }
-    if (!/[0-9]/.test(password)) {
-      setError('La contraseña debe tener al menos un número')
       return
     }
 
@@ -63,15 +51,15 @@ export default function RegisterPage() {
 
     setLoading(true)
 
+    // Nota: teléfono y ubicación NO se piden aquí. Se piden en contexto
+    // (ubicación al publicar, teléfono al configurar contacto) para no
+    // frenar el registro.
     const { error } = await supabase.auth.signUp({
       email,
       password,
       options: {
         data: {
           nombre,
-          telefono,
-          estado,
-          ciudad,
         },
       },
     })
@@ -148,48 +136,6 @@ export default function RegisterPage() {
                 required
                 className="w-full border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-accent bg-white text-gray-900"
               />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('register.phone')}</label>
-              <input
-                type="tel"
-                value={telefono}
-                onChange={(e) => setTelefono(e.target.value)}
-                placeholder="+58 412 1234567"
-                className="w-full border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-accent bg-white text-gray-900"
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('register.state')}</label>
-                <select
-                  value={estado}
-                  onChange={(e) => { setEstado(e.target.value); setCiudad('') }}
-                  required
-                  className="w-full border rounded-lg px-3 py-3 focus:outline-none focus:ring-2 focus:ring-brand-accent text-sm"
-                >
-                  <option value="">Selecciona...</option>
-                  {ESTADOS.map((e) => (
-                    <option key={e} value={e}>{e}</option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('register.city')}</label>
-                <select
-                  value={ciudad}
-                  onChange={(e) => setCiudad(e.target.value)}
-                  required
-                  className="w-full border rounded-lg px-3 py-3 focus:outline-none focus:ring-2 focus:ring-brand-accent text-sm"
-                >
-                  <option value="">Selecciona...</option>
-                  {ciudades.map((c) => (
-                    <option key={c} value={c}>{c}</option>
-                  ))}
-                </select>
-              </div>
             </div>
 
             <div>

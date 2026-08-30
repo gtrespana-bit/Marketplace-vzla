@@ -120,16 +120,16 @@ El modelo (publicar gratis, destacar opcional) es el correcto y ya está bien do
 
 ### P1 — Este mes (las palancas estructurales de retención)
 
-| # | Acción | Por qué |
-|---|---|---|
-| 10 | **Búsquedas guardadas + alertas email/push** | El mecanismo #1 de retorno de compradores; usa la infra de push existente |
-| 11 | Emails de ciclo de vida: "tu anuncio tuvo X visitas", "alguien lo guardó", "bajó de precio" | Endowment + reactivación del vendedor |
-| 12 | **Flujo publicar foto-primero** (pantalla 1: foto+título+precio) + simplificar registro (teléfono/ubicación después; contraseña simple) | Fricción de activación |
-| 13 | **Renovar anuncio gratis cada 7 días** | Inventario vivo + hábito semanal |
-| 14 | Primer mensaje como invitado (sin registro para el 1er contacto) | Quitar el muro al comprador caliente |
-| 15 | Resumen de reputación visible en el card de producto ("⭐4.8 · 12 ventas") + tiempo de respuesta del vendedor | Confianza en 3 segundos |
-| 16 | Bonus Emprendedor visible en el flujo de publicar | Goal gradient |
-| 17 | Blog: 3-5 enlaces internos a categorías/búsquedas por artículo + 10 landings "vender X en Y" | Autoridad → conversación |
+| # | Acción | Por qué | Estado |
+|---|---|---|---|
+| 10 | **Búsquedas guardadas + alertas push** | El mecanismo #1 de retorno de compradores; usa la infra de push existente | ✅ Aplicado (migración `20260829000103`, API + botón en /buscar + cron cada 6 h) |
+| 11 | Emails de ciclo de vida: "tu anuncio tuvo X visitas", "alguien lo guardó", "bajó de precio" | Endowment + reactivación del vendedor | ⏳ Pendiente (el push de favoritos ya existe) |
+| 12 | **Flujo publicar foto-primero** + simplificar registro | Fricción de activación | 🔶 Registro simplificado (4 campos, contraseña 8+ sin composición, ubicación/teléfono en contexto). Foto-primero pendiente |
+| 13 | **Renovar anuncio gratis cada 7 días** | Inventario vivo + hábito semanal | ✅ Aplicado (API `/api/productos/renovar` + botón en Gestionar) |
+| 14 | Primer mensaje como invitado (sin registro para el 1er contacto) | Quitar el muro al comprador caliente | ⏳ Pendiente |
+| 15 | Resumen de reputación visible en el card de producto ("⭐4.8 · 12 ventas") + tiempo de respuesta del vendedor | Confianza en 3 segundos | ⏳ Pendiente |
+| 16 | Bonus Emprendedor visible en el flujo de publicar | Goal gradient | ✅ Ya existía (barra de progreso {count}/10 en el paso final de /publicar) |
+| 17 | Blog: 3-5 enlaces internos a categorías/búsquedas por artículo + 10 landings "vender X en Y" | Autoridad → conversación | ⏳ Pendiente |
 
 ### P2 — Este trimestre (ventaja competitiva)
 

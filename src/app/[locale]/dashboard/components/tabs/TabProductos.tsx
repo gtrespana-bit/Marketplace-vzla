@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import LocalLink from '@/components/LocalLink'
-import { Package, X, Pause, Play, Edit, Zap, Star, CheckCircle2, ChevronDown, ArrowLeft, Send } from 'lucide-react'
+import { Package, X, Pause, Play, Edit, Zap, Star, CheckCircle2, ChevronDown, ArrowLeft, Send, RefreshCw } from 'lucide-react'
 import { productUrl } from '@/lib/product-url'
 import Image from 'next/image'
 
@@ -214,6 +214,22 @@ export default function TabProductos({
     window.location.reload()
   }
 
+  // Renovar (gratis, cada 7 días): el anuncio reaparece como "recién publicado"
+  const renovarProducto = async (id: string) => {
+    cerrarMenus()
+    const res = await fetch('/api/productos/renovar', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ productId: id }),
+    })
+    const result = await res.json().catch(() => ({}))
+    if (!res.ok) {
+      alert('Error: ' + (result.error || 'No se pudo renovar la publicación'))
+      return
+    }
+    window.location.reload()
+  }
+
   const eliminarProducto = async (id: string) => {
     cerrarMenus()
     if (!confirm('¿Eliminar esta publicación permanentemente? Esta acción no se puede deshacer y se borrarán también las fotos.')) return
@@ -243,6 +259,7 @@ export default function TabProductos({
   }
 
   const now = new Date().toISOString()
+  const nowTs = Date.now()
 
   return (
     <div className="space-y-4">
@@ -316,6 +333,14 @@ export default function TabProductos({
                           className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-gray-50 w-full text-left"
                         >
                           <CheckCircle2 size={14} className="text-green-600" /> Marcar como vendido
+                        </button>
+                      )}
+                      {!isVendido && p.activo && p.creado_en && (nowTs - new Date(p.creado_en).getTime()) >= 7 * 864e5 && (
+                        <button
+                          onClick={() => renovarProducto(p.id)}
+                          className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-gray-50 w-full text-left"
+                        >
+                          <RefreshCw size={14} className="text-blue-600" /> Renovar (subir como nuevo)
                         </button>
                       )}
                       {isVendido && (

@@ -993,7 +993,9 @@
     "showingAll": "Mostrando todos los productos ({count} resultados)",
     "showingResults": "{count} resultados",
     "search": "Buscar",
-    "searchPlaceholder": "Buscar productos..."
+    "searchPlaceholder": "Buscar productos...",
+    "saveAlert": "🔔 Avisarme cuando aparezca",
+    "savedAlertOn": "🔔 Alerta activa — te avisaremos"
   },
   "editProduct": {
     "title": "Editar publicación",
