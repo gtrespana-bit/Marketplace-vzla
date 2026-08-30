@@ -38,8 +38,9 @@ function generateItemListSchema(products: any[], baseUrl: string) {
   }
 }
 
-export async function generateMetadata({ params }: { params: { locale: string } }): Promise<Metadata> {
-  const t = await getTranslations({ locale: params.locale, namespace: 'Home' })
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale } = await params
+  const t = await getTranslations({ locale, namespace: 'Home' })
   
   return {
     // Sin marca aquí: el template del layout raíz (%s | VendeT) la agrega una sola vez.
@@ -69,7 +70,7 @@ export async function generateMetadata({ params }: { params: { locale: string } 
           alt: 'VendeT.online - Clasificados Venezuela'
         }
       ],
-      locale: params.locale === 'en' ? 'en_US' : 'es_VE',
+      locale: locale === 'en' ? 'en_US' : 'es_VE',
       type: 'website',
     },
     twitter: {

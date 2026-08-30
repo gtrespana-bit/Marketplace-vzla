@@ -1,6 +1,7 @@
 'use client'
 
 import LocalLink from '@/components/LocalLink'
+import SiteAnnouncement from '@/components/SiteAnnouncement'
 import Image from 'next/image'
 import { useState, useEffect } from 'react'
 import { usePathname } from 'next/navigation'
@@ -132,6 +133,7 @@ export function Header() {
 
   return (
     <>
+      <SiteAnnouncement />
       {/* ============ HEADER PRINCIPAL ============ */}
       <header className="bg-gradient-to-r from-brand-dark via-brand-primary to-brand-primary text-white relative sticky top-0 z-50 shadow-lg">
         <div className="max-w-7xl mx-auto px-4">
