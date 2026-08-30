@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import { Download, FileSpreadsheet, FileJson, Package, Users, CreditCard, Star, History, ShieldCheck, AlertTriangle, ChevronDown, Loader2 } from 'lucide-react'
-import { supabase } from '@/lib/supabase'
 import { Badge, Button, Card, formatNumber } from './AdminUi'
 import { apiJson } from './admin-utils'
 
@@ -37,14 +36,21 @@ export default function AdminExportar({ notify }: { notify: (msg: string) => voi
     return new Date(Date.now() - Number(rango) * 86400000).toISOString()
   }
 
+  async function fetchExportar(dataset: 'productos' | 'resenas' | 'solicitudes' | 'denuncias'): Promise<any[]> {
+    const res = await fetch('/api/admin/exportar', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ dataset, since: dateRange() }),
+    })
+    const json = await res.json().catch(() => ({}))
+    if (!res.ok || !json.ok) throw new Error(json.error || 'No se pudieron exportar los datos')
+    return json.rows || []
+  }
+
   async function exportarProductos() {
     setExportando('productos')
     try {
-      let q = supabase.from('productos').select('id, slug, user_id, titulo, descripcion, precio_usd, categoria_id, subcategoria, marca, estado, ubicacion_estado, ubicacion_ciudad, imagen_url, activo, vendido, estado_moderacion, motivo_moderacion, destacado, boosteado_en, visitas, creado_en')
-      const since = dateRange()
-      if (since) q = q.gte('creado_en', since)
-      const { data } = await q
-      const rows = data || []
+      const rows = await fetchExportar('productos')
       const headers = ['id', 'slug', 'user_id', 'titulo', 'precio_usd', 'categoria_id', 'subcategoria', 'marca', 'estado', 'ubicacion_estado', 'ubicacion_ciudad', 'activo', 'vendido', 'estado_moderacion', 'destacado', 'visitas', 'creado_en']
       descargar(`productos_${Date.now()}.${tipo}`, tipo === 'csv' ? toCSV(headers, rows) : toJSON(rows), tipo === 'csv' ? 'text/csv' : 'application/json')
       notify(`✅ ${formatNumber(rows.length)} publicaciones exportadas`)
@@ -84,11 +90,7 @@ export default function AdminExportar({ notify }: { notify: (msg: string) => voi
   async function exportarResenas() {
     setExportando('resenas')
     try {
-      const since = dateRange()
-      let q = supabase.from('resenas').select('id, producto_id, vendedor_id, comprador_id, puntuacion, comentario, creado_en').order('creado_en', { ascending: false }).limit(5000)
-      if (since) q = q.gte('creado_en', since)
-      const { data } = await q
-      const rows = data || []
+      const rows = await fetchExportar('resenas')
       descargar(`resenas_${Date.now()}.${tipo}`, tipo === 'csv' ? toCSV(['id', 'producto_id', 'vendedor_id', 'comprador_id', 'puntuacion', 'comentario', 'creado_en'], rows) : toJSON(rows), tipo === 'csv' ? 'text/csv' : 'application/json')
       notify(`✅ ${formatNumber(rows.length)} reseñas exportadas`)
     } catch (e: any) {
@@ -113,11 +115,7 @@ export default function AdminExportar({ notify }: { notify: (msg: string) => voi
   async function exportarVerificaciones() {
     setExportando('verificaciones')
     try {
-      const since = dateRange()
-      let q = supabase.from('solicitudes_verificacion').select('id, user_id, estado, pago_movil_telefono, pago_movil_cedula, pago_movil_banco, rechazo_motivo, creada_en, revisada_en').order('creada_en', { ascending: false }).limit(5000)
-      if (since) q = q.gte('creada_en', since)
-      const { data } = await q
-      const rows = data || []
+      const rows = await fetchExportar('solicitudes')
       descargar(`verificaciones_${Date.now()}.${tipo}`, tipo === 'csv' ? toCSV(['id', 'user_id', 'estado', 'pago_movil_telefono', 'pago_movil_cedula', 'pago_movil_banco', 'rechazo_motivo', 'creada_en', 'revisada_en'], rows) : toJSON(rows), tipo === 'csv' ? 'text/csv' : 'application/json')
       notify(`✅ ${formatNumber(rows.length)} solicitudes exportadas`)
     } catch (e: any) {
@@ -129,11 +127,7 @@ export default function AdminExportar({ notify }: { notify: (msg: string) => voi
   async function exportarDenuncias() {
     setExportando('denuncias')
     try {
-      const since = dateRange()
-      let q = supabase.from('denuncias').select('id, producto_id, reportante_id, motivo, descripcion, estado, creada_en').order('creada_en', { ascending: false }).limit(5000)
-      if (since) q = q.gte('creada_en', since)
-      const { data } = await q
-      const rows = data || []
+      const rows = await fetchExportar('denuncias')
       descargar(`denuncias_${Date.now()}.${tipo}`, tipo === 'csv' ? toCSV(['id', 'producto_id', 'reportante_id', 'motivo', 'descripcion', 'estado', 'creada_en'], rows) : toJSON(rows), tipo === 'csv' ? 'text/csv' : 'application/json')
       notify(`✅ ${formatNumber(rows.length)} denuncias exportadas`)
     } catch (e: any) {

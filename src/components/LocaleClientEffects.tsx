@@ -2,6 +2,8 @@
 
 import dynamic from 'next/dynamic'
 import { useEffect, useState } from 'react'
+import { usePathname } from 'next/navigation'
+import { isAdminPath } from '@/lib/admin-path'
 
 const PWAInstallBanner = dynamic(() => import('@/components/PWAInstallBanner'), { ssr: false })
 const PushNotificationBanner = dynamic(() => import('@/components/PushNotificationBanner'), { ssr: false })
@@ -54,13 +56,17 @@ function onIdleAfterLoad(callback: () => void) {
  */
 export default function LocaleClientEffects() {
   const [enabled, setEnabled] = useState(false)
+  const pathname = usePathname()
+  const admin = isAdminPath(pathname)
 
   useEffect(() => {
+    if (admin) return
     if (isAuditUserAgent()) return
     return onIdleAfterLoad(() => setEnabled(true))
-  }, [])
+  }, [admin])
 
-  if (!enabled) return null
+  // El panel admin no muestra navegación inferior ni banners del sitio.
+  if (admin || !enabled) return null
 
   return (
     <>

@@ -4,7 +4,6 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   Check, X, Eye, CreditCard, ChevronLeft, ChevronRight, RefreshCw, Wallet, Loader2, DollarSign,
 } from 'lucide-react'
-import { supabase } from '@/lib/supabase'
 import { Badge, Button, Card, Empty, Loading, Modal, RefreshButton, SearchInput, Segmented, formatDate, formatDateTime, formatMoney, formatNumber, timeAgo } from './AdminUi'
 import { apiJson, type Transaccion, type Perfil } from './admin-utils'
 
@@ -84,12 +83,11 @@ export default function AdminTransacciones({
   async function aprobar(t: Transaccion) {
     setBusyId(t.id)
     try {
-      const { data: userData } = await supabase.auth.getUser()
-      const { error } = await supabase.rpc('aprobar_transaccion', {
-        p_transaccion_id: t.id,
-        p_admin_id: userData?.user?.id,
+      await apiJson('/api/admin/aprobar-transaccion', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ transactionId: t.id }),
       })
-      if (error) throw new Error(error.message)
       notify(`✅ +${t.monto} créditos aprobados`)
 
       // notificaciones
