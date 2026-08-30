@@ -103,7 +103,11 @@ function ModalPago({ paquete, tasa, onClose }: { paquete: any; tasa: number; onC
             <CheckCircle size={32} className="text-brand-primary" />
           </div>
           <h3 className="text-xl font-bold text-brand-primary mb-2">{t('receiptSent')}</h3>
-          <p className="text-sm text-gray-600 mb-4" dangerouslySetInnerHTML={{ __html: t('receiptDesc').replace('{count}', String(paquete.creditos)) }}>
+          <p className="text-sm text-gray-600 mb-4">
+            {t.rich('receiptDesc', {
+              count: paquete.creditos,
+              strong: (chunks) => <strong>{chunks}</strong>,
+            })}
           </p>
           <button onClick={onClose} className="w-full bg-brand-primary text-white py-3 rounded-xl font-bold hover:bg-brand-dark transition">{t('closeBtn')}</button>
         </div>
@@ -230,7 +234,9 @@ export default function CreditosPage() {
     <div className="max-w-5xl mx-auto px-4 py-12">
       <div className="text-center mb-12">
         <h1 className="text-3xl md:text-4xl font-black text-gray-800 mb-4">{t('title1')} <span className="text-brand-accent">{t('title2')}</span></h1>
-        <p className="text-lg text-gray-500 max-w-2xl mx-auto" dangerouslySetInnerHTML={{ __html: t('subtitle') }}></p>
+        <p className="text-lg text-gray-500 max-w-2xl mx-auto">
+          {t.rich('subtitle', { strong: (chunks) => <strong>{chunks}</strong> })}
+        </p>
       </div>
 
       {/* Info */}
@@ -242,7 +248,9 @@ export default function CreditosPage() {
               <div className="p-3 rounded-xl bg-yellow-50 text-brand-accent"><Zap size={28} /></div>
               <div>
                 <h3 className="font-bold text-gray-800 text-lg mb-1">{t('boostTitle')}</h3>
-                <p className="text-sm text-gray-500 mb-3" dangerouslySetInnerHTML={{ __html: t('boostDesc') }}></p>
+                <p className="text-sm text-gray-500 mb-3">
+                  {t.rich('boostDesc', { strong: (chunks) => <strong>{chunks}</strong> })}
+                </p>
                 <span className="text-brand-primary font-bold text-2xl">{t('boostPrice')}</span>
               </div>
             </div>
@@ -252,7 +260,9 @@ export default function CreditosPage() {
               <div className="p-3 rounded-xl bg-blue-50 text-brand-primary"><Star size={28} /></div>
               <div>
                 <h3 className="font-bold text-gray-800 text-lg mb-1">{t('featureTitle')}</h3>
-                <p className="text-sm text-gray-500 mb-3" dangerouslySetInnerHTML={{ __html: t('featureDesc') }}></p>
+                <p className="text-sm text-gray-500 mb-3">
+                  {t.rich('featureDesc', { strong: (chunks) => <strong>{chunks}</strong> })}
+                </p>
                 <div className="space-y-1 text-sm">
                   <p className="text-brand-primary font-bold">4 créditos → 12h</p>
                   <p className="text-brand-primary font-bold">6 créditos → 24h</p>
@@ -290,7 +300,7 @@ export default function CreditosPage() {
                   <p className="text-xs text-gray-500 mb-5 bg-gray-50 rounded-lg py-1 px-2 inline-block">${porCredito} {t('perCredit')}</p>
                   <ul className="text-sm text-gray-600 space-y-2 mb-6 text-left">
                     <li className="flex items-center gap-2"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /><strong>{pkg.creditos}</strong> {t('boosts')}</li>
-                    <li className="flex items-center gap-2"><CheckCircle size={14} className="text-green-500 flex-shrink-0" />{t('orFeatured').replace('{count}', String(Math.floor(pkg.creditos / 4)))}</li>
+                    <li className="flex items-center gap-2"><CheckCircle size={14} className="text-green-500 flex-shrink-0" />{t('orFeatured', { count: Math.floor(pkg.creditos / 4) })}</li>
                     <li className="flex items-center gap-2"><CheckCircle size={14} className="text-green-500 flex-shrink-0" />{t('noExpiration')}</li>
                   </ul>
                   <button onClick={() => setPaqueteSeleccionado(pkg)} className="w-full bg-brand-primary text-white py-3 rounded-lg font-bold hover:bg-brand-dark transition cursor-pointer">{t('buy')}</button>

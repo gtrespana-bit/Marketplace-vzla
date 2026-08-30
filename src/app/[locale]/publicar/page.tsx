@@ -430,7 +430,9 @@ export default function PublicarPage() {
             <span className="text-3xl">🎉</span>
             <div>
               <h3 className="font-bold text-purple-800 text-lg">{t('entrepreneurTitle')}</h3>
-              <p className="text-purple-700 text-sm mt-1" dangerouslySetInnerHTML={{ __html: t('entrepreneurDesc') }}></p>
+              <p className="text-purple-700 text-sm mt-1">
+                {t.rich('entrepreneurDesc', { strong: (chunks) => <strong>{chunks}</strong> })}
+              </p>
               <p className="text-purple-600 text-xs mt-0.5">{t('entrepreneurMore')}</p>
             </div>
           </div>

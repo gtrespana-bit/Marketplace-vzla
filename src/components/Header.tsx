@@ -129,8 +129,10 @@ export function Header() {
 
   // ✅ FIX: Don't block the entire header while auth loads.
   // Treat loading as guest → render immediately → update when session resolves.
-  const showCreditoBadge = !user
-
+  // Los créditos solo se muestran a usuarios con sesión: para un visitante
+  // nuevo, el acceso a "Créditos" en el header sugiere que hay que pagar para
+  // publicar (la monetización se descubre en su contexto, p. ej. /creditos
+  // desde el dashboard o la home, nunca como acción primaria del header).
   return (
     <>
       <SiteAnnouncement />
@@ -199,28 +201,29 @@ export function Header() {
                 <span className="text-xs font-medium">{isEn ? 'ES' : 'EN'}</span>
               </a>
 
-              {/* Credits */}
+              {/* Credits — solo usuarios con sesión */}
+              {user && (
+              <>
               <LocalLink href="/creditos" className="relative hidden md:flex items-center gap-1.5 bg-white/10 hover:bg-white/20 text-white px-3 py-2 rounded-lg text-sm font-medium transition" title={t('header.creditsTitle')}>
                 <Zap size={16} className="text-brand-accent" />
                 <span className="hidden lg:inline">{t('header.credits')}</span>
-                {showCreditoBadge && (
-                  <span className="absolute -top-1 -right-1 bg-green-500 text-white text-[9px] font-black px-1 rounded-full">{t('header.freeBadge')}</span>
-                )}
                 {creditoChecked && creditoBalance !== null && creditoBalance > 0 && (
                   <span className="absolute -top-1 -right-1 bg-brand-accent text-brand-dark text-[9px] font-black px-1.5 py-0.5 rounded-full min-w-[16px] text-center">{creditoBalance}</span>
                 )}
               </LocalLink>
-              <LocalLink 
-                href="/creditos" 
+              <LocalLink
+                href="/creditos"
                 aria-label={t('header.credits')}
-                className="md:hidden p-2 hover:bg-white/10 rounded-lg transition relative" 
+                className="md:hidden p-2 hover:bg-white/10 rounded-lg transition relative"
                 title={t('header.credits')}
               >
                 <Zap size={20} className="text-brand-accent" />
-                {showCreditoBadge && (
-                  <span className="absolute top-0 right-0 bg-green-400 text-brand-primary text-[9px] font-black w-4 h-4 flex items-center justify-center rounded-full">1</span>
+                {creditoChecked && creditoBalance !== null && creditoBalance > 0 && (
+                  <span className="absolute top-0 right-0 bg-brand-accent text-brand-dark text-[9px] font-black px-1 rounded-full min-w-[16px] text-center leading-4">{creditoBalance}</span>
                 )}
               </LocalLink>
+              </>
+              )}
 
               {/* Language toggle for mobile - full page reload */}
               <a
