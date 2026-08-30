@@ -108,7 +108,7 @@ El modelo (publicar gratis, destacar opcional) es el correcto y ya está bien do
 
 | # | Acción | Palanca | Esfuerzo |
 |---|---|---|---|
-| 1 | ✅ Corregir marca "Todo Anuncios" en emails de verificación (falta pegar en Supabase Dashboard) | Confianza | 30 min |
+| 1 | ✅ Marca sincronizada en plantillas del repo (producción en Supabase ya estaba correcta) | Confianza | 30 min |
 | 2 | Productos relacionados en página de producto | Exploración | 0.5 día |
 | 3 | Activar BottomTabNav en móvil web (no solo PWA) | Fricción | 0.5 día |
 | 4 | Feed "Vendido esta semana" en home (datos de `marcar-vendido`) | Prueba social | 1 día |
