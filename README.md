@@ -1,5 +1,7 @@
 # 🇻🇪 VendeT — Marketplace para Venezuela
 
+> 📍 **¿Dónde estamos?** Ver [`ESTADO-PROYECTO.md`](./ESTADO-PROYECTO.md) — estado del ciclo actual, checklist operativo pendiente, métricas y backlog. SEO: [`ANALISIS-SEO.md`](./ANALISIS-SEO.md) · Conversión: [`ANALISIS-CONVERSION.md`](./ANALISIS-CONVERSION.md).
+
 El marketplace venezolano. Compra y vende de todo: carros, tecnología, moda, hogar y más. Publica gratis, contacta directo.
 
 ## 🚀 Quick Start
