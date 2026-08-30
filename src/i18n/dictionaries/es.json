@@ -37,19 +37,20 @@
   },
   "home": {
     "hero": {
-      "title1": "Vende rápido",
-      "title2": "en Venezuela",
-      "subtitle1": "Publica gratis y empieza a recibir mensajes.",
-      "subtitle2": "¿Quieres vender aún más rápido? Destaca tu anuncio y",
-      "subtitle3": "llega a miles más",
-      "publishFree": "Publicar Gratis",
-      "seeHowToFeature": "Ver Cómo Destacar",
-      "featuredBadge": "Los anuncios destacados se venden",
-      "featuredBadgeBold": "3x más rápido",
+      "chip": "🇻🇪 El marketplace de Venezuela",
+      "title1": "Vende rápido,",
+      "title2": "compra mejor",
+      "subtitle": "Publica tu artículo gratis en minutos o encuentra lo que buscas entre cientos de publicaciones nuevas cada día.",
+      "searchPlaceholder": "¿Qué estás buscando? iPhone, moto, sofá…",
+      "searchButton": "Buscar",
+      "publishFree": "Publicar gratis",
+      "explore": "Explorar productos",
+      "collageTitle": "Tu producto aquí",
+      "collageCta": "Publica gratis hoy",
       "stats": {
-        "activeProducts": "Productos activos",
-        "users": "Usuarios",
-        "featureFrom": "Destacarlo desde"
+        "activeProducts": "Artículos activos",
+        "users": "Personas registradas",
+        "commission": "Comisión por vender"
       }
     },
     "freeBanner": {
@@ -57,45 +58,10 @@
       "subtitle": "En MercadoLibre pagas por publicar · Aquí nunca pagas comisión",
       "compare": "Comparar con otros →"
     },
-    "featured": {
-      "wantToFeature": "¿Quieres aparecer aquí?",
-      "featureDesc": "Destaca tu publicación desde $1 y multiplica tus ventas",
-      "seePackages": "Ver paquetes",
-      "title": "Destacados",
-      "badge": "Publicaciones promovidas",
-      "emptyTitle": "Sé el primero en destacar tu anuncio",
-      "emptyDesc": "Los productos destacados aparecen aquí, en la página principal, y llegan a miles más compradores.",
-      "emptyPrice": "Desde solo $1 USD por 12 horas",
-      "publishFree": "Publicar Gratis",
-      "seeCreditPackages": "Ver Paquetes de Créditos"
-    },
-    "boost": {
-      "title": "Potencia tu publicación",
-      "subtitle": "Elige cómo quieres que más compradores vean tu anuncio",
-      "boost": {
-        "name": "Boost",
-        "price": "1 crédito",
-        "desc": "Sube tu publicación al #1 de la lista al instante",
-        "detail": "El más barato · Para aparecer arriba"
-      },
-      "featured24": {
-        "name": "Destacado 24h",
-        "price": "6 créditos",
-        "desc": "Tu anuncio en la página principal todo un día",
-        "detail": "Visibilidad máxima",
-        "popular": "MÁS POPULAR"
-      },
-      "featured48": {
-        "name": "Destacado 48h",
-        "price": "10 créditos",
-        "desc": "48 horas en la página principal — máximo impacto",
-        "detail": "Dos días completos de visibilidad"
-      },
-      "buyCredits": "Comprar Créditos"
-    },
     "categories": {
       "title": "Explora por categoría",
       "subtitle": "Encuentra lo que necesitas en segundos",
+      "viewAll": "Ver catálogo completo",
       "vehicles": "Vehículos",
       "vehiclesDesc": "Carros, motos",
       "tech": "Tecnología",
@@ -109,26 +75,54 @@
       "others": "Otros",
       "othersDesc": "De todo un poco"
     },
-    "trending": {
-      "title": "Lo más visto",
-      "period": "Últimos 7 días",
-      "views": "vistas"
-    },
     "recent": {
-      "title": "Agregados recientemente",
+      "title": "Recién publicado",
       "viewAll": "Ver todos",
       "empty": "Aún no hay publicaciones",
       "emptyCta": "Sé el primero en publicar algo",
       "publishFree": "Publicar gratis"
     },
+    "featured": {
+      "title": "Destacados"
+    },
+    "trending": {
+      "title": "Lo más visto",
+      "period": "Últimos 7 días",
+      "views": "vistas"
+    },
+    "how": {
+      "eyebrow": "Publicar es así de fácil",
+      "title": "Vende en 3 pasos",
+      "subtitle": "Sin comisiones y sin letra pequeña. Publicar es y será gratis.",
+      "step1Title": "Sube tu artículo",
+      "step1Desc": "Una foto, un título y un precio. En menos de 2 minutos está publicado.",
+      "step2Title": "Recibe mensajes",
+      "step2Desc": "Los compradores te escriben por el chat integrado, sin exponer tu número.",
+      "step3Title": "Vende y cobra",
+      "step3Desc": "Acuerda la entrega y el pago directo con el comprador. Te quedas con el 100%.",
+      "cta": "Publicar ahora — es gratis",
+      "moreInfo": "Ver cómo funciona"
+    },
+    "optional": {
+      "title": "¿Quieres vender aún más rápido?",
+      "desc": "Publicar siempre será gratis. Destacar tu anuncio es opcional — solo si un día quieres más visibilidad.",
+      "cta": "Ver opciones para destacar"
+    },
     "cta": {
       "title": "¿Tienes algo para vender?",
       "subtitle": "Publica gratis en segundos. Miles de compradores te esperan.",
       "publishNow": "Publica ahora — Es gratis",
-      "featureAd": "Destacar mi anuncio"
+      "explore": "Explorar productos",
+      "note": "Sin tarjeta · Sin comisiones · Publica hoy y vende hoy"
     },
     "productCard": {
       "featured": "Destacado"
+    },
+    "timeAgo": {
+      "now": "ahora mismo",
+      "minutes": "hace {count} min",
+      "hours": "hace {count} h",
+      "days": "hace {count} d"
     }
   },
   "notFound": {

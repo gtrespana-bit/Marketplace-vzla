@@ -37,19 +37,20 @@
   },
   "home": {
     "hero": {
-      "title1": "Buy and Sell",
-      "title2": "All in One Place",
-      "subtitle1": "The marketplace for Venezuela.",
-      "subtitle2": "Free listings, simple",
-      "subtitle3": "featured ads from $1",
-      "publishFree": "Post Free Ad",
-      "seeHowToFeature": "How to Feature",
-      "featuredBadge": "Featured ads sell",
-      "featuredBadgeBold": "3x faster",
+      "chip": "🇻🇪 Venezuela's marketplace",
+      "title1": "Sell fast,",
+      "title2": "buy smarter",
+      "subtitle": "Post your item for free in minutes, or browse hundreds of fresh listings every day.",
+      "searchPlaceholder": "What are you looking for? iPhone, bike, sofa…",
+      "searchButton": "Search",
+      "publishFree": "Post for Free",
+      "explore": "Browse products",
+      "collageTitle": "Your product here",
+      "collageCta": "Post it free today",
       "stats": {
-        "activeProducts": "Active Listings",
-        "users": "Users",
-        "featureFrom": "Feature from"
+        "activeProducts": "Active listings",
+        "users": "Registered users",
+        "commission": "Selling commission"
       }
     },
     "freeBanner": {
@@ -57,45 +58,10 @@
       "subtitle": "No commissions. No hidden fees. Ever.",
       "compare": "See how it works"
     },
-    "featured": {
-      "wantToFeature": "Want to be featured?",
-      "featureDesc": "Get 10x more views with our credit packages",
-      "seePackages": "See Packages",
-      "title": "Featured",
-      "badge": "Promoted listings",
-      "emptyTitle": "Be the first to post!",
-      "emptyDesc": "Your product could be here, seen by thousands of buyers across Venezuela.",
-      "emptyPrice": "Starting at just $1 USD",
-      "publishFree": "Post for Free",
-      "seeCreditPackages": "See Credit Packages"
-    },
-    "boost": {
-      "title": "Boost Your Visibility",
-      "subtitle": "Choose the plan that works best for you",
-      "boost": {
-        "name": "Boost",
-        "price": "$1",
-        "desc": "24h at the top of recent listings",
-        "detail": "Cheapest way to get seen"
-      },
-      "featured24": {
-        "name": "Featured 24h",
-        "price": "$3",
-        "desc": "24h on the featured carousel on the homepage",
-        "detail": "per day",
-        "popular": "MOST POPULAR"
-      },
-      "featured48": {
-        "name": "Featured 48h",
-        "price": "$5",
-        "desc": "48h on the featured carousel on the homepage",
-        "detail": "best value"
-      },
-      "buyCredits": "Buy Credits"
-    },
     "categories": {
       "title": "Browse by Category",
       "subtitle": "Find what you need in our most popular categories",
+      "viewAll": "View full catalog",
       "vehicles": "Vehicles",
       "vehiclesDesc": "Cars, trucks, motorcycles",
       "tech": "Electronics",
@@ -109,26 +75,54 @@
       "others": "Others",
       "othersDesc": "Everything else"
     },
+    "recent": {
+      "title": "Just posted",
+      "viewAll": "See all",
+      "empty": "No listings yet",
+      "emptyCta": "Be the first to post something",
+      "publishFree": "Post for free"
+    },
+    "featured": {
+      "title": "Featured"
+    },
     "trending": {
       "title": "Trending Now",
       "period": "Last 7 days",
       "views": "views"
     },
-    "recent": {
-      "title": "Just Listed",
-      "viewAll": "View all",
-      "empty": "No listings yet",
-      "emptyCta": "Be the first to post and reach thousands of buyers!",
-      "publishFree": "Post for Free"
+    "how": {
+      "eyebrow": "Posting is this easy",
+      "title": "Sell in 3 steps",
+      "subtitle": "No commissions and no fine print. Posting is — and always will be — free.",
+      "step1Title": "List your item",
+      "step1Desc": "One photo, a title and a price. Live in under 2 minutes.",
+      "step2Title": "Get messages",
+      "step2Desc": "Buyers reach you through the built-in chat — your number stays private.",
+      "step3Title": "Sell and get paid",
+      "step3Desc": "Arrange delivery and payment directly with the buyer. You keep 100%.",
+      "cta": "Post now — it's free",
+      "moreInfo": "See how it works"
+    },
+    "optional": {
+      "title": "Want to sell even faster?",
+      "desc": "Posting will always be free. Featuring your ad is optional — only if you ever want extra visibility.",
+      "cta": "See featuring options"
     },
     "cta": {
-      "title": "Ready to Start Selling?",
-      "subtitle": "Join thousands of sellers on Venezuela's marketplace",
-      "publishNow": "Post Your Ad",
-      "featureAd": "Feature My Ad"
+      "title": "Got something to sell?",
+      "subtitle": "Post it free in seconds. Thousands of buyers are waiting.",
+      "publishNow": "Post now — it's free",
+      "explore": "Browse products",
+      "note": "No card · No commissions · Post today, sell today"
     },
     "productCard": {
       "featured": "Featured"
+    },
+    "timeAgo": {
+      "now": "just now",
+      "minutes": "{count} min ago",
+      "hours": "{count} h ago",
+      "days": "{count} d ago"
     }
   },
   "notFound": {
