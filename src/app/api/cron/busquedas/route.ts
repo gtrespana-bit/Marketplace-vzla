@@ -31,9 +31,10 @@ export async function GET(request: NextRequest) {
 
   // Tabla aún no migrada → sin error, nada que hacer
   if (error) {
-    const noMigrada = /42P01|does not exist|not found/i.test(error.message || '')
+    const msg = error.message || ''
+    const noMigrada = /42P01|does not exist|not found|could not find the table|schema cache/i.test(msg)
     if (noMigrada) return NextResponse.json({ ok: true, checked: 0, reason: 'tabla-no-existe' })
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json({ error: msg || 'error desconocido' }, { status: 500 })
   }
 
   const ahora = Date.now()
