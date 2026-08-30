@@ -73,6 +73,8 @@ export async function POST(request: NextRequest) {
       activo: false,
       vendido: true,
       vendido_en: lugar,
+      // Fecha real de venta → alimenta "Vendidos recientemente" en la home
+      vendido_fecha: new Date().toISOString(),
     }
     if (compradorId) {
       updateData.comprador_id = compradorId

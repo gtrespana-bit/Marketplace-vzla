@@ -50,12 +50,14 @@
       "stats": {
         "activeProducts": "Active listings",
         "users": "Registered users",
-        "commission": "Selling commission"
+        "commission": "Selling commission",
+        "week": "New listings this week",
+        "cost": "Cost to post"
       }
     },
     "freeBanner": {
       "title": "100% Free to Post",
-      "subtitle": "No commissions. No hidden fees. Ever.",
+      "subtitle": "Post, sell, and get paid. No commissions, no fine print.",
       "compare": "See how it works"
     },
     "categories": {
@@ -123,6 +125,12 @@
       "minutes": "{count} min ago",
       "hours": "{count} h ago",
       "days": "{count} d ago"
+    },
+    "sold": {
+      "title": "Recently sold",
+      "subtitle": "This is selling on VendeT. Yours could be next.",
+      "badge": "Sold",
+      "cta": "Post yours — free"
     }
   },
   "notFound": {
@@ -476,7 +484,12 @@
     "successTitle": "Published successfully! 🎉",
     "successDesc": "Your ad is now visible to thousands of buyers in Venezuela.",
     "successFree": "100% FREE listing · 0 commissions · Always",
-    "whatsappMsg": "Hi, I saw your listing for \"{title}\" on VendeT. Is it available?"
+    "whatsappMsg": "Hi, I saw your listing for \"{title}\" on VendeT. Is it available?",
+    "relatedTitle": "You might also like",
+    "savedCount": "{count, plural, =1 {1 person saved it} other {# people saved it}}",
+    "shareWhatsapp": "Share on WhatsApp",
+    "copyLink": "Copy link",
+    "copied": "Link copied!"
   },
   "creditos": {
     "title1": "Buy credits and",

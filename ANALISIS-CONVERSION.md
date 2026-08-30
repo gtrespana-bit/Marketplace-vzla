@@ -106,17 +106,17 @@ El modelo (publicar gratis, destacar opcional) es el correcto y ya está bien do
 
 ### P0 — Esta semana (alto impacto, bajo esfuerzo; la mayoría usa datos/infra que ya existe)
 
-| # | Acción | Palanca | Esfuerzo |
+| # | Acción | Palanca | Estado |
 |---|---|---|---|
-| 1 | ✅ Marca sincronizada en plantillas del repo (producción en Supabase ya estaba correcta) | Confianza | 30 min |
-| 2 | Productos relacionados en página de producto | Exploración | 0.5 día |
-| 3 | Activar BottomTabNav en móvil web (no solo PWA) | Fricción | 0.5 día |
-| 4 | Feed "Vendido esta semana" en home (datos de `marcar-vendido`) | Prueba social | 1 día |
-| 5 | Reemplazar stat "+130 productos" por actividad semanal; quitar "MercadoLibre" del banner home | Psicología | 1 h |
-| 6 | Botones de compartir (WhatsApp) en el banner de éxito post-publicación | Peak-end | 0.5 día |
-| 7 | "N personas lo guardaron" + "visitas hoy" en producto (datos existentes) | Urgencia | 0.5 día |
-| 8 | Header: ocultar "Créditos" a visitantes | Claridad | 15 min |
-| 9 | (bug) `FORMATTING_ERROR` de next-intl en `/creditos` (`<strong>` en strings) | — | 1 h |
+| 1 | Corregir marca "Todo Anuncios" en emails (repo) | Confianza | ✅ Sincronizado (Supabase ya estaba bien) |
+| 2 | Productos relacionados en página de producto | Exploración | ✅ Aplicado |
+| 3 | Activar BottomTabNav en móvil web (no solo PWA) | Fricción | ✅ Aplicado |
+| 4 | Feed "Vendidos recientemente" en home (datos de `marcar-vendido` + migración `vendido_fecha`) | Prueba social | ✅ Aplicado |
+| 5 | Reemplazar stat "+130 productos" por actividad semanal; quitar "MercadoLibre" del banner home | Psicología | ✅ Aplicado |
+| 6 | Botones de compartir (WhatsApp/copiar) en el éxito post-publicación | Peak-end | ✅ Aplicado |
+| 7 | "N personas lo guardaron" en producto ("visitas hoy" requiere tracking diario nuevo — pendiente) | Urgencia | ✅ Parcial |
+| 8 | Header: ocultar "Créditos" a visitantes | Claridad | ✅ Aplicado |
+| 9 | (bug) `FORMATTING_ERROR` de next-intl en `/creditos`, `/publicar` y en el enlace WhatsApp del producto | — | ✅ Aplicado |
 
 ### P1 — Este mes (las palancas estructurales de retención)
 

@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Image from 'next/image'
 import { supabase } from '@/lib/supabase-server-client'
 import { routing } from '@/i18n/routing'
 import { Suspense } from 'react'
@@ -132,6 +133,60 @@ async function getProduct(slugOrId: string) {
   return { ...data, perfil: perfil ? { ...perfil, nombre_completo: perfil.nombre } : null }
 }
 
+/**
+ * Productos relacionados: misma categoría (o subcategoría/marca como fallback).
+ * Evita el "callejón sin salida": si el anuncio no convence, el visitante
+ * sigue explorando en vez de salir de la web.
+ */
+async function getRelacionados(producto: any) {
+  if (!supabase) return []
+
+  const base = () =>
+    supabase
+      .from('productos')
+      .select('id, slug, titulo, precio_usd, imagen_url, ubicacion_ciudad')
+      .eq('activo', true)
+      .neq('id', producto.id)
+      // Los vendidos se marcan activo=false, pero por si acaso
+      .or('estado_moderacion.is.null,estado_moderacion.eq.aprobado,estado_moderacion.eq.pendiente')
+      .order('creado_en', { ascending: false })
+      .limit(4)
+
+  try {
+    if (producto.categoria_id) {
+      const { data } = await base().eq('categoria_id', producto.categoria_id)
+      if (data && data.length > 0) return data
+    }
+    if (producto.subcategoria) {
+      const { data } = await base().eq('subcategoria', producto.subcategoria)
+      if (data && data.length > 0) return data
+    }
+    if (producto.marca) {
+      const { data } = await base().eq('marca', producto.marca)
+      if (data && data.length > 0) return data
+    }
+    // Último recurso: lo más reciente de todo el catálogo
+    const { data } = await base()
+    return data || []
+  } catch {
+    return []
+  }
+}
+
+/** Nº de personas que guardaron el producto en favoritos (señal de urgencia). */
+async function getFavoritosCount(productoId: string) {
+  if (!supabase) return 0
+  try {
+    const { count } = await supabase
+      .from('favoritos')
+      .select('id', { count: 'exact', head: true })
+      .eq('producto_id', productoId)
+    return count || 0
+  } catch {
+    return 0
+  }
+}
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params
   const producto = await getProduct(slug)
@@ -211,6 +266,11 @@ export default async function ProductoPage({ params }: Props) {
     )
   }
 
+  const [relacionados, favoritosCount] = await Promise.all([
+    getRelacionados(producto),
+    getFavoritosCount(producto.id),
+  ])
+
   // JSON-LD Product Schema
   const sellerName = producto.perfil?.nombre_completo || 'Vendedor VendeT';
   const sellerPhone = producto.perfil?.telefono;
@@ -276,8 +336,49 @@ export default async function ProductoPage({ params }: Props) {
       />
       <Breadcrumbs items={breadcrumbItems} />
       <Suspense fallback={<div className="max-w-7xl mx-auto px-4 py-20 text-center">{t('loading')}</div>}>
-        <ProductoPageClient initialProduct={producto} />
+        <ProductoPageClient initialProduct={producto} favoritosCount={favoritosCount} />
       </Suspense>
+
+      {relacionados.length > 0 && (
+        <section className="max-w-7xl mx-auto px-4 py-8 border-t border-gray-100 mt-8">
+          <h2 className="text-xl md:text-2xl font-black text-gray-900 mb-4">
+            {t('relatedTitle')}
+          </h2>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+            {relacionados.map((p: any) => (
+              <LocalLink
+                key={p.id}
+                href={`/producto/${p.slug || p.id}`}
+                className="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-lg hover:-translate-y-1 transition group block"
+              >
+                <div className="aspect-square bg-gray-100 relative overflow-hidden">
+                  <Image
+                    src={p.imagen_url || '/placeholder-product.webp'}
+                    alt={p.titulo}
+                    fill
+                    sizes="(max-width: 768px) 45vw, 300px"
+                    className="object-cover group-hover:scale-105 transition-transform duration-300"
+                    loading="lazy"
+                    decoding="async"
+                    quality={75}
+                  />
+                </div>
+                <div className="p-3">
+                  <h3 className="font-semibold text-gray-900 text-sm truncate group-hover:text-brand-primary transition-colors">
+                    {p.titulo}
+                  </h3>
+                  <p className="text-lg font-black text-brand-primary mt-0.5">
+                    ${new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 }).format(Number(p.precio_usd || 0))}
+                  </p>
+                  {p.ubicacion_ciudad && (
+                    <p className="text-[11px] text-gray-500 truncate">{p.ubicacion_ciudad}</p>
+                  )}
+                </div>
+              </LocalLink>
+            ))}
+          </div>
+        </section>
+      )}
     </>
   )
 }

@@ -37,9 +37,10 @@ class ProductErrorBoundary extends Component<{children: React.ReactNode}, {hasEr
 
 interface ProductoPageClientProps {
   initialProduct: any
+  favoritosCount?: number
 }
 
-function ProductoPageClientInner({ initialProduct }: ProductoPageClientProps) {
+function ProductoPageClientInner({ initialProduct, favoritosCount = 0 }: ProductoPageClientProps) {
   const t = useTranslations('productDetail')
   const router = useRouter()
   const { user, loading: authLoading } = useAuth()
@@ -68,6 +69,7 @@ function ProductoPageClientInner({ initialProduct }: ProductoPageClientProps) {
   const [tasaBs, setTasaBs] = useState(0)
   const [vendedorStats, setVendedorStats] = useState<any>(null)
   const [historial, setHistorial] = useState<any[]>([])
+  const [copiado, setCopiado] = useState(false)
 
   // Tasa BCV
   useEffect(() => {
@@ -112,6 +114,24 @@ function ProductoPageClientInner({ initialProduct }: ProductoPageClientProps) {
     if (authLoading) return
     if (!user) { router.push(`/login?redirect=/producto/${slug}`); return }
     router.push(`/chat?producto_id=${producto.id}&vendedor_id=${producto.user_id}`)
+  }
+
+  // Compartir (momento pico: banner de "publicado con éxito")
+  const anuncioUrl = () => (typeof window !== 'undefined' ? window.location.href : '')
+
+  const handleShareWhatsapp = () => {
+    const texto = `${producto.titulo} — ${anuncioUrl()}`
+    window.open(`https://wa.me/?text=${encodeURIComponent(texto)}`, '_blank', 'noopener,noreferrer')
+  }
+
+  const handleCopiarEnlace = async () => {
+    try {
+      await navigator.clipboard.writeText(anuncioUrl())
+      setCopiado(true)
+      setTimeout(() => setCopiado(false), 2500)
+    } catch {
+      // clipboard no disponible (http, permiso denegado) — silencioso
+    }
   }
 
   const toggleFavorito = async () => {
@@ -189,7 +209,7 @@ function ProductoPageClientInner({ initialProduct }: ProductoPageClientProps) {
     const phoneClean = whatsappPhone.replace(/[^0-9]/g, '')
     const phoneNoZero = phoneClean.startsWith('0') ? phoneClean.slice(1) : phoneClean
     const finalPhone = phoneNoZero.startsWith('58') ? phoneNoZero : '58' + phoneNoZero
-    whatsappLink = 'https://wa.me/' + finalPhone + '?text=' + encodeURIComponent(t('whatsappMsg').replace('{title}', producto.titulo))
+    whatsappLink = 'https://wa.me/' + finalPhone + '?text=' + encodeURIComponent(t('whatsappMsg', { title: producto.titulo }))
   }
 
   return (
@@ -200,10 +220,33 @@ function ProductoPageClientInner({ initialProduct }: ProductoPageClientProps) {
             <span className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center shrink-0 mt-0.5">
               <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
             </span>
-            <div>
+            <div className="min-w-0">
               <h3 className="font-bold text-green-800 text-lg">{t('successTitle')}</h3>
               <p className="text-green-700 text-sm mt-1">{t('successDesc')}</p>
               <p className="text-green-600 text-xs mt-2 font-bold">{t('successFree')}</p>
+              {/* Pico de dopamina del vendedor: compartir = tráfico gratis de SU red */}
+              <div className="flex flex-wrap gap-2 mt-3">
+                <button
+                  type="button"
+                  onClick={handleShareWhatsapp}
+                  className="inline-flex items-center gap-1.5 bg-[#25D366] text-white text-xs font-bold px-3 py-2 rounded-lg hover:brightness-95 transition"
+                >
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+                  {t('shareWhatsapp')}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleCopiarEnlace}
+                  className={`inline-flex items-center gap-1.5 text-xs font-bold px-3 py-2 rounded-lg border transition ${
+                    copiado
+                      ? 'bg-green-100 border-green-400 text-green-800'
+                      : 'bg-white border-green-300 text-green-800 hover:bg-green-50'
+                  }`}
+                >
+                  <Share2 size={14} />
+                  {copiado ? t('copied') : t('copyLink')}
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -266,12 +309,17 @@ function ProductoPageClientInner({ initialProduct }: ProductoPageClientProps) {
           <div className="bg-white rounded-2xl shadow-sm border p-6 sticky top-20">
             <p className="text-4xl font-black text-brand-primary">${new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 }).format(Number(producto.precio_usd || 0))}</p>
             {precioBs && <p className="text-sm text-gray-500 mt-1">Bs. {precioBs} <span className="text-[10px] text-gray-500">· tasa BCV {tasaBs > 0 ? tasaBs : 'ref.'}</span></p>}
-            <div className="flex items-center gap-4 text-xs text-gray-500 my-4 pb-4 border-b">
+            <div className="flex items-center gap-4 text-xs text-gray-500 my-4 pb-4 border-b flex-wrap">
               <span className="flex items-center gap-1"><Clock size={14} /> {t('published')}</span>
               <span className="flex items-center gap-1">
                 <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx={12} cy={12} r={3} /></svg>
                 {producto.visitas || 0} {t('views')}
               </span>
+              {favoritosCount > 0 && (
+                <span className="flex items-center gap-1 text-brand-primary font-semibold">
+                  <Heart size={14} /> {t('savedCount', { count: favoritosCount })}
+                </span>
+              )}
             </div>
 
             {historial.length > 0 && (

@@ -50,12 +50,14 @@
       "stats": {
         "activeProducts": "Artículos activos",
         "users": "Personas registradas",
-        "commission": "Comisión por vender"
+        "commission": "Comisión por vender",
+        "week": "Publicaciones esta semana",
+        "cost": "Costo por publicar"
       }
     },
     "freeBanner": {
       "title": "Publicar es 100% GRATIS",
-      "subtitle": "En MercadoLibre pagas por publicar · Aquí nunca pagas comisión",
+      "subtitle": "Publica, vende y cobra. Sin comisiones y sin letra pequeña.",
       "compare": "Comparar con otros →"
     },
     "categories": {
@@ -123,6 +125,12 @@
       "minutes": "hace {count} min",
       "hours": "hace {count} h",
       "days": "hace {count} d"
+    },
+    "sold": {
+      "title": "Vendidos recientemente",
+      "subtitle": "Esto se vende en VendeT. El tuyo puede ser el próximo.",
+      "badge": "Vendido",
+      "cta": "Publica el tuyo — gratis"
     }
   },
   "notFound": {
@@ -476,7 +484,12 @@
     "successTitle": "¡Publicado con éxito! 🎉",
     "successDesc": "Tu anuncio ya es visible para miles de compradores en Venezuela.",
     "successFree": "Publicación 100% GRATIS · 0 comisiones · Siempre",
-    "whatsappMsg": "Hola, vi tu publicación de \"{title}\" en VendeT. ¿Está disponible?"
+    "whatsappMsg": "Hola, vi tu publicación de \"{title}\" en VendeT. ¿Está disponible?",
+    "relatedTitle": "También te puede interesar",
+    "savedCount": "{count, plural, =1 {1 persona lo guardó} other {# personas lo guardaron}}",
+    "shareWhatsapp": "Compartir por WhatsApp",
+    "copyLink": "Copiar enlace",
+    "copied": "¡Enlace copiado!"
   },
   "creditos": {
     "title1": "Compra créditos y",

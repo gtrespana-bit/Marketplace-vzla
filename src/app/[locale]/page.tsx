@@ -183,6 +183,59 @@ async function getRecentProducts(limit = 8) {
     .slice(0, limit)
 }
 
+/**
+ * Vendidos recientemente — la prueba social más fuerte disponible:
+ * evidencia de que en VendeT SÍ se vende. Requiere `vendido_fecha`
+ * (migración 20260829000101); si la DB no la tiene aún, cae a
+ * ordenar por creado_en.
+ */
+async function getVendidos(limit = 4) {
+  if (!supabase) return []
+  try {
+    const { data, error } = await supabase
+      .from('productos')
+      .select('id, slug, titulo, precio_usd, imagen_url, ubicacion_ciudad, vendido_fecha, creado_en')
+      .eq('vendido', true)
+      .order('vendido_fecha', { ascending: false, nullsFirst: false })
+      .limit(limit)
+    if (error) throw new Error(error.message)
+    return data || []
+  } catch {
+    try {
+      const { data } = await supabase
+        .from('productos')
+        .select('id, slug, titulo, precio_usd, imagen_url, ubicacion_ciudad, creado_en')
+        .eq('vendido', true)
+        .order('creado_en', { ascending: false })
+        .limit(limit)
+      return data || []
+    } catch {
+      return []
+    }
+  }
+}
+
+/**
+ * Publicaciones de los últimos 7 días. Mide ACTIVIDAD (siempre crece),
+ * no inventario total: mostrar "+130 productos" revelaba un catálogo
+ * pequeño. Límite 50 para no traer filas: arriba de eso basta "50+".
+ */
+async function getSemanal() {
+  if (!supabase) return 0
+  try {
+    const desde = new Date(Date.now() - 7 * 864e5).toISOString()
+    const { data } = await supabase
+      .from('productos')
+      .select('id')
+      .eq('activo', true)
+      .gte('creado_en', desde)
+      .limit(50)
+    return data?.length || 0
+  } catch {
+    return 0
+  }
+}
+
 function ProductCard({ p, highlighted = false, priority = false, t }: { p: any; highlighted?: boolean; priority?: boolean; t: any }) {
   const imgUrl = p.imagen_url || getPlaceholderImage(p.titulo)
   const meta = [p.estado, p.ubicacion_ciudad || '', relativeTime(p.creado_en, t)].filter(Boolean).join(' · ')
@@ -310,10 +363,12 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
   const { locale } = await params
   setRequestLocale(locale)
   const t = await getTranslations({ locale })
-  const [destacados, trending, productos] = await Promise.all([
+  const [destacados, trending, productos, vendidos, semanal] = await Promise.all([
     getDestacados(),
     getTrending(),
     getRecentProducts(),
+    getVendidos(),
+    getSemanal(),
   ])
 
   const baseUrl = 'https://vendet.online'
@@ -327,6 +382,22 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
 
   const searchAction = locale === 'en' ? '/en/buscar' : '/buscar'
   const now = new Date().toISOString()
+
+  // Stats del hero: actividad (crece siempre) en vez de inventario total.
+  // Un "+130 productos activos" revelaba catálogo pequeño; "+9 esta semana"
+  // comunica un mercado vivo. Sin actividad aún → beneficios duros.
+  const heroStats =
+    semanal > 0
+      ? [
+          { v: semanal >= 50 ? '50+' : `+${semanal}`, l: t('home.hero.stats.week') },
+          { v: '+5K', l: t('home.hero.stats.users') },
+          { v: '0%', l: t('home.hero.stats.commission') },
+        ]
+      : [
+          { v: '+5K', l: t('home.hero.stats.users') },
+          { v: '$0', l: t('home.hero.stats.cost') },
+          { v: '0%', l: t('home.hero.stats.commission') },
+        ]
 
   return (
     <>
@@ -413,18 +484,12 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
             </div>
 
             <div className="grid grid-cols-3 gap-4 max-w-md mx-auto lg:mx-0 text-center lg:text-left">
-              <div>
-                <p className="text-2xl md:text-3xl font-black text-brand-accent">+130</p>
-                <p className="text-[10px] md:text-[11px] text-white/70 mt-0.5">{t('home.hero.stats.activeProducts')}</p>
-              </div>
-              <div>
-                <p className="text-2xl md:text-3xl font-black text-brand-accent">+5K</p>
-                <p className="text-[10px] md:text-[11px] text-white/70 mt-0.5">{t('home.hero.stats.users')}</p>
-              </div>
-              <div>
-                <p className="text-2xl md:text-3xl font-black text-brand-accent">0%</p>
-                <p className="text-[10px] md:text-[11px] text-white/70 mt-0.5">{t('home.hero.stats.commission')}</p>
-              </div>
+              {heroStats.map((s) => (
+                <div key={s.l}>
+                  <p className="text-2xl md:text-3xl font-black text-brand-accent">{s.v}</p>
+                  <p className="text-[10px] md:text-[11px] text-white/70 mt-0.5">{s.l}</p>
+                </div>
+              ))}
             </div>
           </div>
 
@@ -603,6 +668,81 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
                 </div>
               </LocalLink>
             ))}
+          </div>
+        </section>
+      )}
+
+      {/* ============ Vendidos recientemente: prueba social de que aquí SÍ se vende ============ */}
+      {vendidos.length > 0 && (
+        <section className="max-w-7xl mx-auto px-4 py-8">
+          <div className="flex items-center justify-between mb-4 gap-3 flex-wrap">
+            <div className="flex items-center gap-2.5">
+              <span className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center shrink-0">
+                <svg
+                  viewBox="0 0 24 24"
+                  width="16"
+                  height="16"
+                  fill="none"
+                  stroke="white"
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
+              </span>
+              <div>
+                <h2 className="text-2xl font-black text-gray-900 leading-tight">{t('home.sold.title')}</h2>
+                <p className="text-xs text-gray-500">{t('home.sold.subtitle')}</p>
+              </div>
+            </div>
+            <LocalLink
+              href="/publicar"
+              className="text-brand-primary font-semibold text-sm hover:underline flex items-center gap-1 shrink-0"
+            >
+              {t('home.sold.cta')} <ArrowRight size={14} />
+            </LocalLink>
+          </div>
+
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+            {vendidos.map((p) => {
+              const vendidoCuando = relativeTime(p.vendido_fecha || p.creado_en, t)
+              return (
+                <div
+                  key={p.id}
+                  className="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100"
+                  aria-label={`${p.titulo} — ${t('home.sold.badge')}`}
+                >
+                  <div className="aspect-square bg-gray-100 relative overflow-hidden">
+                    <Image
+                      src={p.imagen_url || getPlaceholderImage(p.titulo)}
+                      alt={p.titulo}
+                      fill
+                      sizes="(max-width: 768px) 45vw, 300px"
+                      className="object-cover grayscale opacity-90"
+                      loading="lazy"
+                      decoding="async"
+                      quality={75}
+                      placeholder="blur"
+                      blurDataURL="/placeholder-product.webp"
+                    />
+                    <span className="absolute top-2 left-2 z-10 bg-green-600 text-white text-[10px] font-black px-2 py-0.5 rounded-full shadow-sm">
+                      ✓ {t('home.sold.badge')}
+                    </span>
+                  </div>
+                  <div className="p-3.5">
+                    <h3 className="font-semibold text-gray-600 truncate text-sm">{p.titulo}</h3>
+                    <p className="text-lg font-black text-gray-400 mt-0.5">
+                      {formatPrice(p.precio_usd)}
+                    </p>
+                    <p className="text-[11px] text-gray-400 mt-0.5 truncate">
+                      {p.ubicacion_ciudad || 'Venezuela'}
+                      {vendidoCuando ? ` · ${vendidoCuando}` : ''}
+                    </p>
+                  </div>
+                </div>
+              )
+            })}
           </div>
         </section>
       )}
