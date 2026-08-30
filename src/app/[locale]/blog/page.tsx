@@ -59,6 +59,9 @@ export const metadata: Metadata = {
       'es-VE': 'https://vendet.online/blog',
       'x-default': 'https://vendet.online/blog',
     },
+    types: {
+      'application/rss+xml': 'https://vendet.online/feed.xml',
+    },
   },
   openGraph: {
     title: 'Blog de Compra y Venta en Venezuela',

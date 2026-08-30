@@ -39,6 +39,10 @@ const CATEGORIAS_SEO: Record<string, { nombre: string; descripcion: string }> = 
   },
 }
 
+import { getSupabaseServerClient } from '@/lib/supabase-server-client'
+import { hayAnunciosEnCiudadCategoria } from '@/lib/seo-landings'
+import { notFound } from 'next/navigation'
+
 type Props = {
   params: Promise<{ ciudad: string; categoria: string; locale: string }>
 }
@@ -88,7 +92,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       },
     },
     robots: {
-      index: true,
+      // Combinación sin anuncios = página vacía: noindex hasta que haya
+      // inventario (fail-open si la DB falla).
+      index: await hayAnunciosEnCiudadCategoria(
+        getSupabaseServerClient(),
+        ciudadSEO.nombre,
+        ciudadSEO.municipio,
+        categoria,
+      ),
       follow: true,
     },
   }
@@ -104,14 +115,10 @@ export default async function CategoriaPage({ params }: Props) {
   const ciudadSEO = getCiudadBySlug(ciudad)
   const cat = CATEGORIAS_SEO[categoria] || { nombre: categoria, descripcion: categoria }
   
-  if (!ciudadSEO) {
-    const t = await getTranslations({ locale, namespace: 'notFound' })
-    return (
-      <div className="container mx-auto px-4 py-16 text-center">
-        <h1 className="text-3xl font-bold mb-4">{t('title')}</h1>
-        <p className="text-gray-600">{t('description')}</p>
-      </div>
-    )
+  if (!ciudadSEO || !CATEGORIAS_SEO[categoria]) {
+    // 404 real: ciudad desconocida o slug de categoría arbitrario
+    // (antes respondía 200 con contenido thin para cualquier /ciudad/cosa)
+    notFound()
   }
 
   // Breadcrumb items

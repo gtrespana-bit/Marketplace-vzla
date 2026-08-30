@@ -502,7 +502,9 @@
     "guestNudgeDesc": "The chat keeps your conversation and your number private. Signing up takes less than a minute.",
     "guestNudgeCreate": "Create account (free)",
     "guestNudgeLogin": "I already have an account",
-    "guestNudgeWhatsapp": "Or message on WhatsApp now"
+    "guestNudgeWhatsapp": "Or message on WhatsApp now",
+    "soldBannerTitle": "This item has already been sold",
+    "soldBannerDesc": "Things like this sell every day on VendeT. Check the similar items below 👇"
   },
   "creditos": {
     "title1": "Buy credits and",

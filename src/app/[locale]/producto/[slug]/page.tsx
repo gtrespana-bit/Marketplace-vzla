@@ -2,8 +2,8 @@ import type { Metadata } from 'next'
 import Image from 'next/image'
 import { supabase } from '@/lib/supabase-server-client'
 import { routing } from '@/i18n/routing'
-import { Suspense } from 'react'
-import { permanentRedirect } from 'next/navigation'
+import { Suspense, cache } from 'react'
+import { permanentRedirect, notFound } from 'next/navigation'
 import ProductoPageClient from './ProductoPageClient'
 import { getTranslations } from 'next-intl/server'
 import Breadcrumbs from '@/components/Breadcrumbs'
@@ -72,8 +72,9 @@ function queryProducto(column: 'id' | 'slug', value: string, columns: string) {
     .from('productos')
     .select(columns)
     .eq(column, value)
-    .eq('activo', true)
-    // Check for approved status, pending (still show), or null (default to approved)
+    // Sin filtro de `activo` aquí: los VENDIDOS siguen renderizándose con
+    // estado "vendido" + noindex (más abajo se decide). Pausados/eliminados
+    // → 404. Antes todo inactivo caía en un 200 "No encontrado" = soft-404.
     .or('estado_moderacion.is.null,estado_moderacion.eq.aprobado,estado_moderacion.eq.pendiente')
     .maybeSingle()
 }
@@ -121,6 +122,17 @@ async function getProduct(slugOrId: string) {
     }
     return null
   }
+  // Inactivo: SOLO los vendidos se siguen sirviendo (con noindex y sección
+  // de similares). Pausados/eliminados → notFound() real (404 de estado).
+  if (!data.activo) {
+    const { data: flag } = await supabase
+      .from('productos')
+      .select('vendido')
+      .eq('id', data.id)
+      .maybeSingle()
+    if (!flag?.vendido) return null
+    return { ...data, vendido: true }
+  }
 
   // productos.user_id references auth.users, not perfiles. PostgREST can only embed
   // tables connected by a real FK, so load the public seller profile separately.
@@ -132,6 +144,10 @@ async function getProduct(slugOrId: string) {
 
   return { ...data, perfil: perfil ? { ...perfil, nombre_completo: perfil.nombre } : null }
 }
+
+// cache(): generateMetadata() y la página piden el mismo producto — una sola
+// query a Supabase por request en vez de dos.
+const getProductCached = cache(getProduct)
 
 /**
  * Productos relacionados: misma categoría (o subcategoría/marca como fallback).
@@ -189,10 +205,13 @@ async function getFavoritosCount(productoId: string) {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params
-  const producto = await getProduct(slug)
+  const producto = await getProductCached(slug)
 
   if (!producto) {
-    return { title: 'No encontrado' }
+    // notFound() AQUÍ (en generateMetadata) y no solo en la página: con
+    // loading.tsx el shell se streamea con 200 antes de que la página
+    // ejecute; lanzándolo antes del stream el status es 404 de verdad.
+    notFound()
   }
 
   // La canonical SIEMPRE usa el slug SEO aunque se haya entrado por UUID
@@ -239,12 +258,17 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         'x-default': `https://vendet.online/producto/${canonicalSlug}`,
       },
     },
+    // Vendido: la URL sigue viva (llega tráfico de WhatsApp/Google y hay
+    // similares que mostrar) pero fuera del índice: contenido agotado.
+    robots: producto.vendido
+      ? { index: false, follow: true }
+      : { index: true, follow: true },
   }
 }
 
 export default async function ProductoPage({ params }: Props) {
   const { locale, slug } = await params
-  const producto = await getProduct(slug)
+  const producto = await getProductCached(slug)
   const t = await getTranslations('productDetail')
 
   // 301 permanente: URLs legacy con UUID o con slug viejo → slug canónico.
@@ -256,14 +280,9 @@ export default async function ProductoPage({ params }: Props) {
     )
   }
 
+  // 404 REAL (status 404, no soft-404): pausados, eliminados o inexistentes.
   if (!producto) {
-    return (
-      <div className="max-w-7xl mx-auto px-4 py-20 text-center">
-        <h1 className="text-3xl font-bold text-gray-800 mb-4">{t('notFound')}</h1>
-        <p className="text-gray-500 mb-8">{t('notFoundDesc')}</p>
-        <LocalLink href="/" className="inline-block bg-brand-primary text-white px-8 py-3 rounded-lg font-bold">{t('backHome')}</LocalLink>
-      </div>
-    )
+    notFound()
   }
 
   const [relacionados, favoritosCount] = await Promise.all([
@@ -290,7 +309,7 @@ export default async function ProductoPage({ params }: Props) {
       '@type': 'Offer',
       price: producto.precio_usd || 0,
       priceCurrency: 'USD',
-      availability: 'https://schema.org/InStock',
+      availability: producto.vendido ? 'https://schema.org/OutOfStock' : 'https://schema.org/InStock',
       seller: {
         '@type': 'Person',
         name: sellerName,

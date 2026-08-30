@@ -502,7 +502,9 @@
     "guestNudgeDesc": "El chat protege tu conversación y tu número. Crear la cuenta toma menos de un minuto.",
     "guestNudgeCreate": "Crear cuenta (gratis)",
     "guestNudgeLogin": "Ya tengo cuenta",
-    "guestNudgeWhatsapp": "O escríbele por WhatsApp ya"
+    "guestNudgeWhatsapp": "O escríbele por WhatsApp ya",
+    "soldBannerTitle": "Este artículo ya fue vendido",
+    "soldBannerDesc": "Cosas como esta se venden todos los días en VendeT. Mira los similares que aparecen más abajo 👇"
   },
   "creditos": {
     "title1": "Compra créditos y",

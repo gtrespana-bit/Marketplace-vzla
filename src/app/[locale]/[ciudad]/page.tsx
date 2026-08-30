@@ -1,8 +1,11 @@
 import { Metadata } from 'next'
+import { notFound } from 'next/navigation'
 import LandingCiudad from './LandingCiudad'
 import { getCiudadBySlug } from '@/lib/ubicaciones-seo'
 import Breadcrumbs from '@/components/Breadcrumbs'
 import { getTranslations } from 'next-intl/server'
+import { getSupabaseServerClient } from '@/lib/supabase-server-client'
+import { hayAnunciosEnCiudad } from '@/lib/seo-landings'
 
 type Props = {
   params: Promise<{ ciudad: string; locale: string }>
@@ -11,7 +14,7 @@ type Props = {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { ciudad, locale } = await params
   const ciudadSEO = getCiudadBySlug(ciudad)
-  
+
   if (!ciudadSEO) {
     const t = await getTranslations({ locale, namespace: 'notFound' })
     return {
@@ -42,7 +45,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       },
     },
     robots: {
-      index: true,
+      // Ciudad sin anuncios = página vacía: fuera del índice (pero se
+      // rastrea) hasta que haya inventario. Fail-open si la DB falla.
+      index: await hayAnunciosEnCiudad(getSupabaseServerClient(), ciudadSEO.nombre, ciudadSEO.municipio),
       follow: true,
     },
   }
@@ -63,13 +68,8 @@ export default async function CiudadPage({ params }: Props) {
   const ciudadSEO = getCiudadBySlug(ciudad)
   
   if (!ciudadSEO) {
-    const t = await getTranslations({ locale, namespace: 'notFound' })
-    return (
-      <div className="container mx-auto px-4 py-16 text-center">
-        <h1 className="text-3xl font-bold mb-4">{t('title')}</h1>
-        <p className="text-gray-600">{t('description')}</p>
-      </div>
-    )
+    // 404 real (antes: div con estado 200 = soft-404 que Google penaliza)
+    notFound()
   }
 
   // Breadcrumb items

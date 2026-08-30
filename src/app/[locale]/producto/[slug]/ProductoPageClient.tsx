@@ -7,7 +7,7 @@ import LocalLink from '@/components/LocalLink'
 import Image from 'next/image'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/components/AuthProvider'
-import { MapPin, Tag, MessageCircle, Phone, Mail, ChevronRight, Shield, Clock, Heart, Share2 } from 'lucide-react'
+import { MapPin, Tag, MessageCircle, Phone, Mail, ChevronRight, Shield, Clock, Heart, Share2, CheckCircle2 } from 'lucide-react'
 import Avatar from '@/components/Avatar'
 import ReportarButton from '@/components/ReportarButton'
 import BadgeVerificado from '@/components/BadgeVerificado'
@@ -217,6 +217,19 @@ function ProductoPageClientInner({ initialProduct, favoritosCount = 0 }: Product
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
+      {producto.vendido && (
+        <div className="mb-6 bg-gray-100 border-2 border-gray-300 rounded-2xl p-5 animate-fadeIn">
+          <div className="flex items-start gap-3">
+            <span className="w-10 h-10 bg-gray-500 rounded-full flex items-center justify-center shrink-0 mt-0.5">
+              <CheckCircle2 size={22} className="text-white" />
+            </span>
+            <div>
+              <h3 className="font-bold text-gray-800 text-lg">{t('soldBannerTitle')}</h3>
+              <p className="text-gray-600 text-sm mt-1">{t('soldBannerDesc')}</p>
+            </div>
+          </div>
+        </div>
+      )}
       {esNuevaPublicacion && (
         <div className="mb-6 bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-300 rounded-2xl p-5 animate-fadeIn">
           <div className="flex items-start gap-3">
@@ -368,6 +381,8 @@ function ProductoPageClientInner({ initialProduct, favoritosCount = 0 }: Product
             )}
 
             <div className="space-y-3">
+              {!producto.vendido && (
+              <>
               <div className="grid grid-cols-2 gap-2">
                 {metodos.chat && (
                   <button onClick={handleContacto} className="bg-brand-primary text-white py-3 rounded-xl font-bold hover:bg-brand-dark transition flex items-center justify-center gap-2 text-sm">
@@ -392,6 +407,8 @@ function ProductoPageClientInner({ initialProduct, favoritosCount = 0 }: Product
                   <a href={contactos.messengerUrl} target="_blank" rel="noopener noreferrer" className="border py-3 rounded-xl font-medium hover:bg-gray-50 transition flex items-center justify-center gap-2 text-sm"><MessageCircle size={16} /> Messenger</a>
                 )}
               </div>
+              </>
+              )}
             </div>
 
             {pedirCuenta && !user && (
