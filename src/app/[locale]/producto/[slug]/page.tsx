@@ -1,8 +1,9 @@
 import type { Metadata } from 'next'
+import Image from 'next/image'
 import { supabase } from '@/lib/supabase-server-client'
 import { routing } from '@/i18n/routing'
-import { Suspense } from 'react'
-import { permanentRedirect } from 'next/navigation'
+import { Suspense, cache } from 'react'
+import { permanentRedirect, notFound } from 'next/navigation'
 import ProductoPageClient from './ProductoPageClient'
 import { getTranslations } from 'next-intl/server'
 import Breadcrumbs from '@/components/Breadcrumbs'
@@ -71,8 +72,9 @@ function queryProducto(column: 'id' | 'slug', value: string, columns: string) {
     .from('productos')
     .select(columns)
     .eq(column, value)
-    .eq('activo', true)
-    // Check for approved status, pending (still show), or null (default to approved)
+    // Sin filtro de `activo` aquí: los VENDIDOS siguen renderizándose con
+    // estado "vendido" + noindex (más abajo se decide). Pausados/eliminados
+    // → 404. Antes todo inactivo caía en un 200 "No encontrado" = soft-404.
     .or('estado_moderacion.is.null,estado_moderacion.eq.aprobado,estado_moderacion.eq.pendiente')
     .maybeSingle()
 }
@@ -120,6 +122,17 @@ async function getProduct(slugOrId: string) {
     }
     return null
   }
+  // Inactivo: SOLO los vendidos se siguen sirviendo (con noindex y sección
+  // de similares). Pausados/eliminados → notFound() real (404 de estado).
+  if (!data.activo) {
+    const { data: flag } = await supabase
+      .from('productos')
+      .select('vendido')
+      .eq('id', data.id)
+      .maybeSingle()
+    if (!flag?.vendido) return null
+    return { ...data, vendido: true }
+  }
 
   // productos.user_id references auth.users, not perfiles. PostgREST can only embed
   // tables connected by a real FK, so load the public seller profile separately.
@@ -132,12 +145,97 @@ async function getProduct(slugOrId: string) {
   return { ...data, perfil: perfil ? { ...perfil, nombre_completo: perfil.nombre } : null }
 }
 
+// cache(): generateMetadata() y la página piden el mismo producto — una sola
+// query a Supabase por request en vez de dos.
+const getProductCached = cache(getProduct)
+
+/**
+ * Productos relacionados: misma categoría (o subcategoría/marca como fallback).
+ * Evita el "callejón sin salida": si el anuncio no convence, el visitante
+ * sigue explorando en vez de salir de la web.
+ */
+async function getRelacionados(producto: any) {
+  if (!supabase) return []
+
+  const base = () =>
+    supabase
+      .from('productos')
+      .select('id, slug, titulo, precio_usd, imagen_url, ubicacion_ciudad')
+      .eq('activo', true)
+      .neq('id', producto.id)
+      // Los vendidos se marcan activo=false, pero por si acaso
+      .or('estado_moderacion.is.null,estado_moderacion.eq.aprobado,estado_moderacion.eq.pendiente')
+      .order('creado_en', { ascending: false })
+      .limit(4)
+
+  try {
+    if (producto.categoria_id) {
+      const { data } = await base().eq('categoria_id', producto.categoria_id)
+      if (data && data.length > 0) return data
+    }
+    if (producto.subcategoria) {
+      const { data } = await base().eq('subcategoria', producto.subcategoria)
+      if (data && data.length > 0) return data
+    }
+    if (producto.marca) {
+      const { data } = await base().eq('marca', producto.marca)
+      if (data && data.length > 0) return data
+    }
+    // Último recurso: lo más reciente de todo el catálogo
+    const { data } = await base()
+    return data || []
+  } catch {
+    return []
+  }
+}
+
+/** Nº de personas que guardaron el producto en favoritos (señal de urgencia). */
+async function getFavoritosCount(productoId: string) {
+  if (!supabase) return 0
+  try {
+    const { count } = await supabase
+      .from('favoritos')
+      .select('id', { count: 'exact', head: true })
+      .eq('producto_id', productoId)
+    return count || 0
+  } catch {
+    return 0
+  }
+}
+
+/**
+ * Reseñas de este producto (las reseñas se escriben tras una venta verificada
+ * y llevan producto_id). Con ≥1 reseña se expone AggregateRating en el schema:
+ * Google dibuja las estrellas en el resultado → CTR.
+ */
+export const getResumenResenas = cache(
+  async (productoId: string): Promise<{ count: number; avg: number }> => {
+    if (!supabase) return { count: 0, avg: 0 }
+    try {
+      const { data } = await supabase
+        .from('resenas')
+        .select('puntuacion')
+        .eq('producto_id', productoId)
+        .limit(50)
+      if (!data || data.length === 0) return { count: 0, avg: 0 }
+      const count = data.length
+      const avg = Math.round((data.reduce((s: number, r: any) => s + r.puntuacion, 0) / count) * 10) / 10
+      return { count, avg }
+    } catch {
+      return { count: 0, avg: 0 }
+    }
+  },
+)
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params
-  const producto = await getProduct(slug)
+  const producto = await getProductCached(slug)
 
   if (!producto) {
-    return { title: 'No encontrado' }
+    // notFound() AQUÍ (en generateMetadata) y no solo en la página: con
+    // loading.tsx el shell se streamea con 200 antes de que la página
+    // ejecute; lanzándolo antes del stream el status es 404 de verdad.
+    notFound()
   }
 
   // La canonical SIEMPRE usa el slug SEO aunque se haya entrado por UUID
@@ -184,12 +282,17 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         'x-default': `https://vendet.online/producto/${canonicalSlug}`,
       },
     },
+    // Vendido: la URL sigue viva (llega tráfico de WhatsApp/Google y hay
+    // similares que mostrar) pero fuera del índice: contenido agotado.
+    robots: producto.vendido
+      ? { index: false, follow: true }
+      : { index: true, follow: true },
   }
 }
 
 export default async function ProductoPage({ params }: Props) {
   const { locale, slug } = await params
-  const producto = await getProduct(slug)
+  const producto = await getProductCached(slug)
   const t = await getTranslations('productDetail')
 
   // 301 permanente: URLs legacy con UUID o con slug viejo → slug canónico.
@@ -201,15 +304,16 @@ export default async function ProductoPage({ params }: Props) {
     )
   }
 
+  // 404 REAL (status 404, no soft-404): pausados, eliminados o inexistentes.
   if (!producto) {
-    return (
-      <div className="max-w-7xl mx-auto px-4 py-20 text-center">
-        <h1 className="text-3xl font-bold text-gray-800 mb-4">{t('notFound')}</h1>
-        <p className="text-gray-500 mb-8">{t('notFoundDesc')}</p>
-        <LocalLink href="/" className="inline-block bg-brand-primary text-white px-8 py-3 rounded-lg font-bold">{t('backHome')}</LocalLink>
-      </div>
-    )
+    notFound()
   }
+
+  const [relacionados, favoritosCount, resumenResenas] = await Promise.all([
+    getRelacionados(producto),
+    getFavoritosCount(producto.id),
+    getResumenResenas(producto.id),
+  ])
 
   // JSON-LD Product Schema
   const sellerName = producto.perfil?.nombre_completo || 'Vendedor VendeT';
@@ -230,7 +334,7 @@ export default async function ProductoPage({ params }: Props) {
       '@type': 'Offer',
       price: producto.precio_usd || 0,
       priceCurrency: 'USD',
-      availability: 'https://schema.org/InStock',
+      availability: producto.vendido ? 'https://schema.org/OutOfStock' : 'https://schema.org/InStock',
       seller: {
         '@type': 'Person',
         name: sellerName,
@@ -251,6 +355,18 @@ export default async function ProductoPage({ params }: Props) {
       addressRegion: producto.ubicacion_estado || '',
       addressCountry: 'VE',
     },
+  }
+
+  // Estrellas en resultados de Google: solo con reseñas reales de este
+  // producto (Google exige reviewCount ≥ 1; sin reseñas no se envía nada).
+  if (resumenResenas.count > 0) {
+    jsonLd.aggregateRating = {
+      '@type': 'AggregateRating',
+      ratingValue: resumenResenas.avg,
+      reviewCount: resumenResenas.count,
+      bestRating: 5,
+      worstRating: 1,
+    }
   }
 
   // Encontrar ciudad SEO para la ubicación
@@ -276,8 +392,49 @@ export default async function ProductoPage({ params }: Props) {
       />
       <Breadcrumbs items={breadcrumbItems} />
       <Suspense fallback={<div className="max-w-7xl mx-auto px-4 py-20 text-center">{t('loading')}</div>}>
-        <ProductoPageClient initialProduct={producto} />
+        <ProductoPageClient initialProduct={producto} favoritosCount={favoritosCount} />
       </Suspense>
+
+      {relacionados.length > 0 && (
+        <section className="max-w-7xl mx-auto px-4 py-8 border-t border-gray-100 mt-8">
+          <h2 className="text-xl md:text-2xl font-black text-gray-900 mb-4">
+            {t('relatedTitle')}
+          </h2>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+            {relacionados.map((p: any) => (
+              <LocalLink
+                key={p.id}
+                href={`/producto/${p.slug || p.id}`}
+                className="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-lg hover:-translate-y-1 transition group block"
+              >
+                <div className="aspect-square bg-gray-100 relative overflow-hidden">
+                  <Image
+                    src={p.imagen_url || '/placeholder-product.webp'}
+                    alt={p.titulo}
+                    fill
+                    sizes="(max-width: 768px) 45vw, 300px"
+                    className="object-cover group-hover:scale-105 transition-transform duration-300"
+                    loading="lazy"
+                    decoding="async"
+                    quality={75}
+                  />
+                </div>
+                <div className="p-3">
+                  <h3 className="font-semibold text-gray-900 text-sm truncate group-hover:text-brand-primary transition-colors">
+                    {p.titulo}
+                  </h3>
+                  <p className="text-lg font-black text-brand-primary mt-0.5">
+                    ${new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 }).format(Number(p.precio_usd || 0))}
+                  </p>
+                  {p.ubicacion_ciudad && (
+                    <p className="text-[11px] text-gray-500 truncate">{p.ubicacion_ciudad}</p>
+                  )}
+                </div>
+              </LocalLink>
+            ))}
+          </div>
+        </section>
+      )}
     </>
   )
 }

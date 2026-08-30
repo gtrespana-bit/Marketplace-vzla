@@ -119,3 +119,61 @@ El footer enlaza solo 6 ciudades a `/ciudad` y las categorías del footer/header
 6. Completar metadata (canonical/hreflang/OG) en las páginas informativas.
 7. Ajustar el H1 de la home a la query principal.
 8. Verificar GSC + enviar sitemap + revisar Coverage.
+
+---
+
+# RONDA 2 — SEO interno (agosto 2026)
+
+> Enfocada 100% en lo que depende de nosotros (código y contenido): indexación, estados de respuesta, contenido delgado y señales de frescura. Verificada con pruebas de estado HTTP reales (build de producción y dev).
+
+## 🔴 CRÍTICO — Soft-404 generalizado: notFound() devolvía HTTP 200
+
+**Síntoma verificado:** TODAS las URLs inválidas (`/producto/x`, `/categoria/x`, `/ciudad-que-no-existe`, cualquier `/foo`) respondían **200** con una página "No encontrado". Para Google son soft-404: ensucian el índice, disparan "Página no indexada / duplicado sin canonical" en GSC y desperdician crawl budget.
+
+**Causa raíz (dos capas):**
+1. `loading.tsx` en `[locale]` (y en `producto/[slug]`) hace streaming del shell: el status 200 sale ANTES de que la página ejecute `notFound()`. Con streaming, el status no se puede cambiar a posteriori.
+2. Varias páginas ni siquiera llamaban `notFound()`: devolvían un `<div>` de "no encontrado" con 200 (producto, ciudad, ciudad/categoría), y `/ciudad/categoria-cualquier-cosa` renderizaba 200 para slugs arbitrarios.
+
+**Fix aplicado:**
+- Eliminados `[locale]/loading.tsx` y `[locale]/producto/[slug]/loading.tsx` (el esqueleto de carga no puede pesar más que un 404 correcto).
+- `notFound()` real en: producto (página **y** `generateMetadata`, antes del stream), ciudad, ciudad/categoría (también para slugs de categoría desconocidos) — categoría ya lo tenía.
+- `login` y `admin` (usaban `useSearchParams` cubiertos por el loading eliminado) pasaron al patrón wrapper `<Suspense>` (login → `LoginClient.tsx`, admin → `AdminClient.tsx`); `chat`, `catalogo` y `producto` ya lo tenían.
+
+**Verificado:** 404 real en producto inexistente, producto pausado, ciudad inválida, categoría inválida, `/ciudad/categoria-inventada` y rutas random. 200 correcto en todas las vivas.
+
+## 🔴 Productos vendidos mataban la URL indexada
+
+Cada venta (`marcar-vendido` → `activo=false`) convertía una URL ya indexada (y compartida por WhatsApp) en "no encontrada". En un marketplace el long-tail de producto es el tráfico orgánico principal: **cada venta borraba una página que posicionaba**.
+
+**Fix:** los vendidos se siguen sirviendo (200) con:
+- `robots: noindex, follow` (fuera del índice pero pasando crawl a los similares),
+- banner "Ya fue vendido" + botones de contacto ocultos,
+- sección de similares (el tráfico que llega por Google/WhatsApp aterriza en productos vivos),
+- schema `availability: OutOfStock`.
+Los pausados/eliminados sí dan 404 real. Extra: `getProduct` ahora va envuelto en `cache()` — metadata y página comparten una única query a Supabase.
+
+## 🟠 Landings de ciudad vacías estaban indexadas
+
+330 ciudades × 8 categorías con `index: true` fijo: las que no tienen anuncios son contenido vacío que diluye la calidad del dominio (la señal de "ratio de páginas útiles" de Google Helpful Content).
+
+**Fix:** nuevo `src/lib/seo-landings.ts` con conteo head (barato) por request: hay anuncios → `index`; no hay → `noindex, follow` (se re-indexa sola cuando llegue el primero). Fail-open: si Supabase falla, se indexa (nunca desindexar por un timeout).
+
+## 🟡 RSS feed del blog
+
+Nuevo `/feed.xml` (RSS 2.0, artículos de `src/content/blog`, revalidate 1 h) + `<link rel="alternate" type="application/rss+xml">` en `/blog`. Señal de frescura para rastreadores y puerta a Google Discover.
+
+## Ronda 2, parte B — aplicado (agosto 2026)
+
+- ✅ **Estrellas en resultados**: `AggregateRating` en el schema del producto cuando tiene ≥1 reseña (las reseñas llevan `producto_id` desde ventas verificadas). Verificado: `ratingValue 4.5, reviewCount 2, bestRating 5`.
+- ✅ **Sitemap de imágenes**: `/sitemap-images.xml` (route handler; Next no soporta el namespace `image:`) — hasta 3 fotos por producto, 2.000 productos, 6 h de caché, listado también en robots.txt.
+- ✅ **Contenido head (Bloque B)**: 5 artículos atacando queries genéricas, cada uno enlazado a catálogo/categorías/ciudades y con el bloque de enlaces internos:
+  - `clasificados-venezuela-gratis-guia-2026` → "clasificados venezuela / gratis"
+  - `publicar-anuncios-gratis-venezuela` → "publicar anuncios gratis"
+  - `comprar-y-vender-usado-venezuela` → "comprar y vender usado venezuela"
+  - `clasificados-caracas` → "clasificados caracas"
+  - `clasificados-ciudades-venezuela` → "clasificados maracaibo/valencia/barquisimeto/maracay"
+
+## Pendientes internos (no aplicados aún)
+
+- **Landings de intención larga** ("vender iphone caracas") cuando haya datos de GSC de qué búsquedas traen impresiones.
+- **FAQPage schema** en los artículos con sección de preguntas (cuando el renderer lo soporte por artículo).

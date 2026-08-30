@@ -1,11 +1,12 @@
 'use client'
 
 import LocalLink from '@/components/LocalLink'
-import { Search, ChevronRight, XCircle, Loader2 } from 'lucide-react'
+import { Search, ChevronRight, XCircle, Loader2, Bell, BellRing } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState, useCallback, use } from 'react'
 import Image from 'next/image'
 import { supabase } from '@/lib/supabase'
+import { useAuth } from '@/components/AuthProvider'
 import { categoriasData } from '@/lib/categorias'
 import UbicacionSelector from '@/components/UbicacionSelector'
 import { useTranslations } from 'next-intl'
@@ -137,6 +138,78 @@ export default function BuscarClient({ searchParams: searchParamsPromise }: { se
   const [productos, setProductos] = useState<Producto[]>([])
   const [loading, setLoading] = useState(false)
   const [resultCount, setResultCount] = useState(0)
+
+  // ---- Búsqueda guardada ("avísame cuando aparezca") ----
+  const { user } = useAuth()
+  const [busquedaGuardadaId, setBusquedaGuardadaId] = useState<string | null>(null)
+  const [guardandoBusqueda, setGuardandoBusqueda] = useState(false)
+  const tieneFiltros = !!(query || categoria || subcategoria || marca || condicion || ubicacionEstado || ubicacionCiudad || precioMin || precioMax)
+
+  // ¿Esta búsqueda ya está guardada? (marca el botón como activo)
+  useEffect(() => {
+    if (!user || !tieneFiltros) { setBusquedaGuardadaId(null); return }
+    let cancelled = false
+    ;(async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession()
+        const res = await fetch('/api/busquedas-guardadas', {
+          headers: { Authorization: `Bearer ${session?.access_token || ''}` },
+        })
+        if (!res.ok) return
+        const data = await res.json()
+        if (cancelled) return
+        const match = (data.busquedas || []).find((b: any) =>
+          (b.q || '') === (query || '') &&
+          (b.categoria || '') === (categoria || '') &&
+          (b.subcategoria || '') === (subcategoria || '') &&
+          (b.marca || '') === (marca || '') &&
+          (b.ubicacion_ciudad || '') === (ubicacionCiudad || '') &&
+          (b.ubicacion_estado || '') === (ubicacionEstado || '')
+        )
+        setBusquedaGuardadaId(match?.id || null)
+      } catch { /* silencioso */ }
+    })()
+    return () => { cancelled = true }
+  }, [user, query, categoria, subcategoria, marca, ubicacionEstado, ubicacionCiudad, tieneFiltros])
+
+  const toggleGuardarBusqueda = async () => {
+    if (guardandoBusqueda) return
+    if (!user) {
+      const params = new URLSearchParams(window.location.search)
+      router.push(`/login?redirect=${encodeURIComponent('/buscar?' + params.toString())}`)
+      return
+    }
+    setGuardandoBusqueda(true)
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      const headers = { Authorization: `Bearer ${session?.access_token || ''}`, 'Content-Type': 'application/json' }
+
+      if (busquedaGuardadaId) {
+        const res = await fetch(`/api/busquedas-guardadas?id=${busquedaGuardadaId}`, { method: 'DELETE', headers })
+        if (res.ok) setBusquedaGuardadaId(null)
+      } else {
+        const res = await fetch('/api/busquedas-guardadas', {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({
+            q: query || null,
+            categoria: categoria || null,
+            subcategoria: subcategoria || null,
+            marca: marca || null,
+            condicion: condicion || null,
+            ubicacion_estado: ubicacionEstado || null,
+            ubicacion_ciudad: ubicacionCiudad || null,
+            precio_min: precioMin || null,
+            precio_max: precioMax || null,
+          }),
+        })
+        const data = await res.json()
+        if (res.ok && data.id) setBusquedaGuardadaId(data.id)
+      }
+    } catch { /* silencioso */ } finally {
+      setGuardandoBusqueda(false)
+    }
+  }
 
   const cat = categoria ? categoriasData[categoria] : undefined
   const subs = cat ? cat.subs : []
@@ -424,9 +497,26 @@ export default function BuscarClient({ searchParams: searchParamsPromise }: { se
 
           {true && (
             <>
-              <p className="text-sm text-gray-500 mb-4">
-                {loading ? 'Buscando...' : `${resultCount} resultado${resultCount !== 1 ? 's' : ''}${query ? ` para &ldquo;<strong>${query}</strong>&rdquo;` : ''}`}
-              </p>
+              <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
+                <p className="text-sm text-gray-500">
+                  {loading ? 'Buscando...' : `${resultCount} resultado${resultCount !== 1 ? 's' : ''}${query ? ` para &ldquo;<strong>${query}</strong>&rdquo;` : ''}`}
+                </p>
+                {tieneFiltros && (
+                  <button
+                    type="button"
+                    onClick={toggleGuardarBusqueda}
+                    disabled={guardandoBusqueda}
+                    className={`inline-flex items-center gap-1.5 text-xs font-bold px-3 py-2 rounded-full border transition ${
+                      busquedaGuardadaId
+                        ? 'bg-brand-primary text-white border-brand-primary hover:bg-brand-dark'
+                        : 'bg-white text-brand-primary border-brand-primary/40 hover:border-brand-primary'
+                    } ${guardandoBusqueda ? 'opacity-60' : ''}`}
+                  >
+                    {guardandoBusqueda ? <Loader2 size={14} className="animate-spin" /> : busquedaGuardadaId ? <BellRing size={14} /> : <Bell size={14} />}
+                    {busquedaGuardadaId ? t('savedAlertOn') : t('saveAlert')}
+                  </button>
+                )}
+              </div>
 
               {loading ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">

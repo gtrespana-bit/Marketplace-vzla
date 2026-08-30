@@ -193,7 +193,7 @@ function randomDate(daysBack) {
 }
 
 async function main() {
-  console.log('🚀 Generando publicaciones para Todo Anuncios...\n')
+  console.log('🚀 Generando publicaciones para VendeT...\n')
 
   // Get categoria IDs
   const { data: categorias } = await supabase.from('categorias').select('id, nombre')

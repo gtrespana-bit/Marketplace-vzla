@@ -5,14 +5,15 @@ import LocalLink from '@/components/LocalLink'
 import { Home, Search, PlusCircle, MessageCircle, User } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 
-function isPWA(): boolean {
-  if (typeof window === 'undefined') return false
-  return (
-    window.matchMedia('(display-mode: standalone)').matches ||
-    (window.navigator as any).standalone === true
-  )
-}
-
+/**
+ * Barra de navegación inferior.
+ *
+ * Antes solo se montaba en modo PWA, pero la gran mayoría del tráfico móvil
+ * llega por enlace compartido (WhatsApp, Google) directamente al navegador.
+ * Ahí el botón grande de "Publicar" —el patrón que mejor convierte en móvil—
+ * no existía. Ahora se muestra en todo móvil (PWA y navegador) y desaparece
+ * en escritorio (md:hidden).
+ */
 export default function BottomTabNav() {
   const pathname = usePathname()
   const t = useTranslations()
@@ -25,11 +26,9 @@ export default function BottomTabNav() {
     { href: '/dashboard', icon: User, label: t('bottomNav.profile') },
   ]
 
-  if (!isPWA()) return null
-
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200"
+      className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 md:hidden"
       style={{ paddingBottom: 'env(safe-area-inset-bottom, 0)' }}
       role="navigation"
     >

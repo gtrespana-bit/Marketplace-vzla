@@ -1,5 +1,7 @@
 # Marketplace VZLA — Proyecto Completo
 
+> 📍 Estado actual del ciclo, checklist operativo y backlog: [`ESTADO-PROYECTO.md`](./ESTADO-PROYECTO.md)
+
 ## General
 - **Repo:** `gtrespana-bit/Marketplace-vzla` (GitHub)
 - **Branch:** `main`

@@ -430,7 +430,9 @@ export default function PublicarPage() {
             <span className="text-3xl">🎉</span>
             <div>
               <h3 className="font-bold text-purple-800 text-lg">{t('entrepreneurTitle')}</h3>
-              <p className="text-purple-700 text-sm mt-1" dangerouslySetInnerHTML={{ __html: t('entrepreneurDesc') }}></p>
+              <p className="text-purple-700 text-sm mt-1">
+                {t.rich('entrepreneurDesc', { strong: (chunks) => <strong>{chunks}</strong> })}
+              </p>
               <p className="text-purple-600 text-xs mt-0.5">{t('entrepreneurMore')}</p>
             </div>
           </div>
@@ -439,7 +441,7 @@ export default function PublicarPage() {
 
       {/* Steps */}
       <div className="flex items-center gap-2 mb-8 overflow-x-auto pb-2">
-        {[{ num: 1, label: t('stepCategory') }, { num: 2, label: t('stepDetails') }, { num: 3, label: t('stepPhotos') }, { num: 4, label: t('stepReview') }].map(s => (
+        {[{ num: 1, label: t('stepPhotos') }, { num: 2, label: t('stepCategory') }, { num: 3, label: t('stepDetails') }, { num: 4, label: t('stepReview') }].map(s => (
           <div key={s.num} className="flex items-center gap-2 flex-shrink-0">
             <button onClick={() => setStep(s.num)} className={`w-10 h-10 rounded-full font-bold text-sm transition ${step >= s.num ? 'bg-brand-primary text-white' : 'bg-gray-200 text-gray-500'}`}>{s.num}</button>
             <span className={`text-sm font-medium hidden sm:inline ${step >= s.num ? 'text-gray-900' : 'text-gray-500'}`}>{s.label}</span>
@@ -450,8 +452,8 @@ export default function PublicarPage() {
 
       <div className="bg-white rounded-2xl shadow-sm p-6 border border-gray-100">
 
-        {/* PASO 1: Categoria → Subcategoria → Marca */}
-        {step === 1 && (
+        {/* PASO 2: Categoria → Subcategoria → Marca */}
+        {step === 2 && (
           <div className="space-y-5 animate-fadeIn">
             <h2 className="text-xl font-bold text-gray-900">{t('whatToPublish')}</h2>
 
@@ -511,12 +513,15 @@ export default function PublicarPage() {
               </>
             )}
 
-            <button onClick={() => setStep(2)} disabled={!canGoToStep2} className="w-full bg-brand-primary text-white py-3 rounded-lg font-bold hover:bg-brand-dark transition disabled:opacity-50">{t('next')}</button>
+            <div className="flex gap-3">
+              <button onClick={() => setStep(1)} className="px-6 py-3 rounded-lg font-medium border border-gray-200 hover:bg-gray-50">{t('back')}</button>
+              <button onClick={() => setStep(3)} disabled={!canGoToStep2} className="flex-1 bg-brand-primary text-white py-3 rounded-lg font-bold hover:bg-brand-dark transition disabled:opacity-50">{t('next')}</button>
+            </div>
           </div>
         )}
 
-        {/* PASO 2: Detalles */}
-        {step === 2 && (
+        {/* PASO 3: Detalles */}
+        {step === 3 && (
           <div className="space-y-5 animate-fadeIn">
             <h2 className="text-xl font-bold text-gray-900">{t('productDetails')}</h2>
 
@@ -653,14 +658,15 @@ export default function PublicarPage() {
             </div>
 
             <div className="flex gap-3">
-              <button onClick={() => setStep(1)} className="px-6 py-3 rounded-lg font-medium border border-gray-200 hover:bg-gray-50">{t('back')}</button>
-              <button onClick={() => setStep(3)} disabled={!canGoToStep3} className="flex-1 bg-brand-primary text-white py-3 rounded-lg font-bold hover:bg-brand-dark transition disabled:opacity-50">{t('next')}</button>
+              <button onClick={() => setStep(2)} className="px-6 py-3 rounded-lg font-medium border border-gray-200 hover:bg-gray-50">{t('back')}</button>
+              <button onClick={() => setStep(4)} disabled={!canGoToStep3} className="flex-1 bg-brand-primary text-white py-3 rounded-lg font-bold hover:bg-brand-dark transition disabled:opacity-50">{t('next')}</button>
             </div>
           </div>
         )}
 
         {/* PASO 3: Fotos */}
-        {step === 3 && (
+        {/* PASO 1: Fotos (foto-primero: la foto es el gancho, como en WhatsApp) */}
+        {step === 1 && (
           <div className="space-y-5 animate-fadeIn">
             <h2 className="text-xl font-bold text-gray-900">{t('addPhotos')}</h2>
             <p className="text-sm text-gray-500">{t('photosDesc')}</p>
@@ -725,10 +731,7 @@ export default function PublicarPage() {
               </div>
             )}
 
-            <div className="flex gap-3">
-              <button onClick={() => setStep(2)} className="px-6 py-3 rounded-lg font-medium border border-gray-200 hover:bg-gray-50">{t('back')}</button>
-              <button onClick={() => setStep(4)} className="flex-1 bg-brand-primary text-white py-3 rounded-lg font-bold hover:bg-brand-dark transition">{t('stepReview')}</button>
-            </div>
+            <button onClick={() => setStep(2)} className="w-full bg-brand-primary text-white py-3 rounded-lg font-bold hover:bg-brand-dark transition">{t('next')}</button>
           </div>
         )}
 

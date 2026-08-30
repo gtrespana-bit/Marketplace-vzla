@@ -342,6 +342,53 @@ export default async function BlogPost(props: { params: Promise<{ locale: string
             })}
         </div>
       </section>
+
+      {/* Enlaces internos al marketplace: la autoridad del blog debe terminar
+          en categorías/búsquedas reales, no evaporarse al salir del artículo. */}
+      <section className="max-w-4xl mx-auto px-4 pb-12">
+        <div className="bg-gray-50 border border-gray-200 rounded-2xl p-6">
+          <h3 className="text-lg font-bold text-gray-900 mb-4">{t('exploreTitle')}</h3>
+          <div className="flex flex-wrap gap-2">
+            {(post.tags || [])
+              .map((tag) => tag.toLowerCase())
+              .map((tag) => {
+                if (/iphone|celular|tel[eé]fono|laptop|tecnolog|electr[oó]|comput|samsung/.test(tag)) {
+                  return { label: `💻 ${t('catTech')}`, href: '/categoria/tecnologia' }
+                }
+                if (/carro|veh[ií]cul|moto|auto/.test(tag)) return { label: `🚗 ${t('catVehicles')}`, href: '/categoria/vehiculos' }
+                if (/ropa|moda|zapato|ropa usada|calzado|vestir/.test(tag)) return { label: `👗 ${t('catFashion')}`, href: '/categoria/moda' }
+                if (/mueble|hogar|casa|sof|electro/.test(tag)) return { label: `🛋 ${t('catHome')}`, href: '/categoria/hogar' }
+                if (/herramient|taladro|construcci|obra/.test(tag)) return { label: `🔧 ${t('catTools')}`, href: '/categoria/herramientas' }
+                return null
+              })
+              .filter((v, i, a) => v && a.findIndex(x => x && x.href === v.href) === i)
+              .slice(0, 3)
+              .map((l: { label: string; href: string } | null) =>
+                l ? (
+                  <LocalLink
+                    key={l.href}
+                    href={l.href}
+                    className="bg-white border border-gray-200 text-gray-800 text-sm font-semibold px-4 py-2 rounded-full hover:border-brand-accent hover:text-brand-primary transition"
+                  >
+                    {l.label}
+                  </LocalLink>
+                ) : null
+              )}
+            <LocalLink
+              href="/catalogo"
+              className="bg-brand-primary text-white text-sm font-semibold px-4 py-2 rounded-full hover:bg-brand-dark transition"
+            >
+              🔍 {t('catCatalog')}
+            </LocalLink>
+            <LocalLink
+              href="/publicar"
+              className="bg-brand-accent text-gray-900 text-sm font-bold px-4 py-2 rounded-full hover:brightness-95 transition"
+            >
+              📢 {t('catPublish')}
+            </LocalLink>
+          </div>
+        </div>
+      </section>
     </article>
   )
 }
