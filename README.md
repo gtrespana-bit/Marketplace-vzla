@@ -1,4 +1,4 @@
-# 🇻🇪 Todo Anuncios — Marketplace para Venezuela
+# 🇻🇪 VendeT — Marketplace para Venezuela
 
 El marketplace venezolano. Compra y vende de todo: carros, tecnología, moda, hogar y más. Publica gratis, contacta directo.
 

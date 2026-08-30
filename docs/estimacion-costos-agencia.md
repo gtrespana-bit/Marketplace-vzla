@@ -26,7 +26,7 @@ Después de analizar el código completo del repositorio (≈21.300 líneas de T
 ## 2. Análisis del proyecto (qué es exactamente lo que hay que construir)
 
 ### 2.1 Qué es
-Un **marketplace de clasificados** estilo "Todo Anuncios"/OLX/Wallapop para Venezuela: publicar anuncios gratis, contacto directo comprador–vendedor, monetización por **créditos para destacar/booster anuncios** (compra con comprobante + aprobación manual, NO pasarela de pago automática), con moderación de contenido, verificación de vendedores y sistema de reputación.
+Un **marketplace de clasificados** estilo OLX/Wallapop para Venezuela: publicar anuncios gratis, contacto directo comprador–vendedor, monetización por **créditos para destacar/booster anuncios** (compra con comprobante + aprobación manual, NO pasarela de pago automática), con moderación de contenido, verificación de vendedores y sistema de reputación.
 
 ### 2.2 Alcance medido del código real (no estimado — contado)
 

@@ -1,4 +1,4 @@
-# Template Emails de Confirmación - Todo Anuncios
+# Template Emails de Confirmación - VendeT
 ## (Copiar esto en Supabase Dashboard → Authentication → Email Templates → Confirmation Mail)
 
 ---
@@ -11,7 +11,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Confirma tu cuenta en Todo Anuncios</title>
+  <title>Confirma tu cuenta en VendeT</title>
 </head>
 <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f3f4f6;">
   <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f3f4f6; padding: 40px 20px;">
@@ -22,7 +22,7 @@
           <tr>
             <td style="background: linear-gradient(135deg, #C9A84C 0%, #F59E0B 100%); padding: 40px 30px; text-align: center;">
               <h1 style="margin: 0; font-size: 28px; font-weight: 900; color: #1a1a2e;">
-                Todo<span style="color: #fff;">Anuncios</span>
+                Vende<span style="color: #fff;">T</span>
               </h1>
               <p style="margin: 10px 0 0 0; font-size: 14px; color: #1a1a2e; font-weight: 500;">
                 La plataforma de clasificados de Venezuela
@@ -34,15 +34,15 @@
           <tr>
             <td style="padding: 40px 30px;">
               <h2 style="margin: 0 0 20px 0; font-size: 24px; color: #1f2937; font-weight: 700;">
-                👋 ¡Bienvenido a Todo Anuncios, <span style="color: #7B2D3B;">{{ .Email }}</span>!
+                👋 ¡Bienvenido a VendeT, <span style="color: #7B2D3B;">{{ .Email }}</span>!
               </h2>
               
               <p style="margin: 0 0 16px 0; font-size: 16px; color: #4b5563; line-height: 1.6;">
-                Gracias por registrarte en la plataforma de compraventa más grande de Venezuela.
+                Gracias por registrarte en VendeT, el marketplace de compraventa de Venezuela.
               </p>
               
               <p style="margin: 0 0 16px 0; font-size: 16px; color: #4b5563; line-height: 1.6;">
-                Próximamente podrás:
+                Ya puedes:
               </p>
               
               <ul style="margin: 0 0 24px 0; padding-left: 20px;">
@@ -92,7 +92,7 @@
               
               <div style="margin-top: 24px; padding-top: 24px; border-top: 1px solid #e5e7eb;">
                 <p style="margin: 0 0 8px 0; font-size: 16px; font-weight: 700; color: #1a1a2e;">
-                  Todo Anuncios
+                  VendeT
                 </p>
                 <p style="margin: 0 0 8px 0; font-size: 13px; color: #6b7280;">
                   El marketplace de Venezuela 🇻🇪
@@ -106,7 +106,7 @@
         </table>
         
         <p style="margin-top: 20px; font-size: 12px; color: #9ca3af; text-align: center;">
-          Todos los derechos reservados © 2026 Todo Anuncios. Todos los derechos reservados.
+          © 2026 VendeT · vendet.online — Todos los derechos reservados.
         </p>
       </td>
     </tr>
@@ -122,8 +122,8 @@
 ### Paso 1: En Supabase Dashboard
 
 1. Ve a **Authentication** → **URLs**
-2. En **Site URL**: `https://marketplacevzla.vercel.app`
-3. En **Redirect URL**: `https://marketplacevzla.vercel.app/confirm`
+2. En **Site URL**: `https://vendet.online`
+3. En **Redirect URL**: `https://vendet.online/confirm`
 
 ### Paso 2: Guardar cambios
 - Haz clic en **Save** o **Guardar cambios**
@@ -134,7 +134,7 @@
 ## ¿Por qué esto?
 
 - **Supabase** usa `.ConfirmationURL` que incluye el token
-- Ese URL va a `https://marketplacevzla.vercel.app/api/confirm-email?token=XXX&type=email`
+- Ese URL va a `https://vendet.online/api/confirm-email?token=XXX&type=email`
 - El API route valida el token y redirige a `/confirm`
 - `/confirm` muestra mensaje de éxito y redirige automáticamente al login
 

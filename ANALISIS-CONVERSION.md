@@ -55,7 +55,9 @@ Es la barrera #1 del mercado venezolano y hoy está a mitad de construcción:
 **Faltan las señales de "aquí SÍ se vende":**
 1. **No hay prueba social de transacciones.** El comprador nuevo no ve ninguna evidencia de que alguien haya vendido algo jamás. → Feed público **"Vendido esta semana"** en la home (título + ciudad + "vendido en X días"), usando los datos que ya genera `marcar-vendido`. Es la señal más poderosa disponible y **ya tienes los datos**.
 2. **La reputación está enterrada.** Las reseñas existen pero casi no se ven: no hay testimonios en home, ni contador de "ventas verificadas" en la home, ni resumen en el card de producto ("Juan · ⭐4.8 · 12 ventas").
-3. **Los emails dejan la marca vieja "Todo Anuncios"** (`supabase-email-templates/confirmation-mail-es*.md`). Un email de verificación con otra marca es, en la mente del usuario, **señal de phishing** → no confirman la cuenta → nunca publican. *Fix de 30 minutos, impacto directo en activación.*
+3. **Los emails dejan la marca vieja "Todo Anuncios"** (`supabase-email-templates/confirmation-mail-es*.md`). Un email de verificación con otra marca es, en la mente del usuario, **señal de phishing** → no confirman la cuenta → nunca publican.
+
+   **✅ Aplicado:** plantillas de confirmación (v1 y v2) reescritas a marca VendeT (logo "Vende**T**" con los colores del sitio), copy corregido ("Ya puedes…" en vez de "Próximamente", sin claim de "la plataforma más grande"), copyright deduplicado y **dominio viejo `marketplacevzla.vercel.app` → `vendet.online`** en las instrucciones de Site URL/Redirect. También se limpiaron README, `scripts/generar-publicaciones.js` y docs internas. ⚠️ Falta el paso operativo: **pegar las plantillas en Supabase Dashboard → Authentication → Email Templates** (y verificar Site URL), porque los `.md` del repo solo son la fuente de referencia.
 4. **Velocidad de respuesta del vendedor** ("responde en ~2 h") — la señal #1 que usa un comprador para decidir si escribe. Se calcula con timestamps del chat (datos que ya existen).
 
 ### 2.4 Publicar (el momento más crítico del embudo vendedor) — ⚠️ buena base, fricción optimizable
@@ -106,7 +108,7 @@ El modelo (publicar gratis, destacar opcional) es el correcto y ya está bien do
 
 | # | Acción | Palanca | Esfuerzo |
 |---|---|---|---|
-| 1 | Corregir marca "Todo Anuncios" en emails de verificación | Confianza | 30 min |
+| 1 | ✅ Corregir marca "Todo Anuncios" en emails de verificación (falta pegar en Supabase Dashboard) | Confianza | 30 min |
 | 2 | Productos relacionados en página de producto | Exploración | 0.5 día |
 | 3 | Activar BottomTabNav en móvil web (no solo PWA) | Fricción | 0.5 día |
 | 4 | Feed "Vendido esta semana" en home (datos de `marcar-vendido`) | Prueba social | 1 día |
