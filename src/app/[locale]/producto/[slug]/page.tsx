@@ -203,6 +203,30 @@ async function getFavoritosCount(productoId: string) {
   }
 }
 
+/**
+ * Reseñas de este producto (las reseñas se escriben tras una venta verificada
+ * y llevan producto_id). Con ≥1 reseña se expone AggregateRating en el schema:
+ * Google dibuja las estrellas en el resultado → CTR.
+ */
+export const getResumenResenas = cache(
+  async (productoId: string): Promise<{ count: number; avg: number }> => {
+    if (!supabase) return { count: 0, avg: 0 }
+    try {
+      const { data } = await supabase
+        .from('resenas')
+        .select('puntuacion')
+        .eq('producto_id', productoId)
+        .limit(50)
+      if (!data || data.length === 0) return { count: 0, avg: 0 }
+      const count = data.length
+      const avg = Math.round((data.reduce((s: number, r: any) => s + r.puntuacion, 0) / count) * 10) / 10
+      return { count, avg }
+    } catch {
+      return { count: 0, avg: 0 }
+    }
+  },
+)
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params
   const producto = await getProductCached(slug)
@@ -285,9 +309,10 @@ export default async function ProductoPage({ params }: Props) {
     notFound()
   }
 
-  const [relacionados, favoritosCount] = await Promise.all([
+  const [relacionados, favoritosCount, resumenResenas] = await Promise.all([
     getRelacionados(producto),
     getFavoritosCount(producto.id),
+    getResumenResenas(producto.id),
   ])
 
   // JSON-LD Product Schema
@@ -330,6 +355,18 @@ export default async function ProductoPage({ params }: Props) {
       addressRegion: producto.ubicacion_estado || '',
       addressCountry: 'VE',
     },
+  }
+
+  // Estrellas en resultados de Google: solo con reseñas reales de este
+  // producto (Google exige reviewCount ≥ 1; sin reseñas no se envía nada).
+  if (resumenResenas.count > 0) {
+    jsonLd.aggregateRating = {
+      '@type': 'AggregateRating',
+      ratingValue: resumenResenas.avg,
+      reviewCount: resumenResenas.count,
+      bestRating: 5,
+      worstRating: 1,
+    }
   }
 
   // Encontrar ciudad SEO para la ubicación

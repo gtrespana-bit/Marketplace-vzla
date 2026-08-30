@@ -162,9 +162,18 @@ Los pausados/eliminados sí dan 404 real. Extra: `getProduct` ahora va envuelto 
 
 Nuevo `/feed.xml` (RSS 2.0, artículos de `src/content/blog`, revalidate 1 h) + `<link rel="alternate" type="application/rss+xml">` en `/blog`. Señal de frescura para rastreadores y puerta a Google Discover.
 
+## Ronda 2, parte B — aplicado (agosto 2026)
+
+- ✅ **Estrellas en resultados**: `AggregateRating` en el schema del producto cuando tiene ≥1 reseña (las reseñas llevan `producto_id` desde ventas verificadas). Verificado: `ratingValue 4.5, reviewCount 2, bestRating 5`.
+- ✅ **Sitemap de imágenes**: `/sitemap-images.xml` (route handler; Next no soporta el namespace `image:`) — hasta 3 fotos por producto, 2.000 productos, 6 h de caché, listado también en robots.txt.
+- ✅ **Contenido head (Bloque B)**: 5 artículos atacando queries genéricas, cada uno enlazado a catálogo/categorías/ciudades y con el bloque de enlaces internos:
+  - `clasificados-venezuela-gratis-guia-2026` → "clasificados venezuela / gratis"
+  - `publicar-anuncios-gratis-venezuela` → "publicar anuncios gratis"
+  - `comprar-y-vender-usado-venezuela` → "comprar y vender usado venezuela"
+  - `clasificados-caracas` → "clasificados caracas"
+  - `clasificados-ciudades-venezuela` → "clasificados maracaibo/valencia/barquisimeto/maracay"
+
 ## Pendientes internos (no aplicados aún)
 
-- **Sitemap de imágenes** para productos (requiere route handler XML custom; Next no soporta el namespace `image:` en `MetadataRoute.Sitemap`).
-- **Reseñas a nivel de producto** en el schema (cuando existan reseñas por producto y no solo por vendedor → estrellas en resultados).
-- **Contenido para queries genéricas** ("clasificados gratis venezuela", "publicar anuncios gratis") — artículo(s) del blog apuntando al catálogo.
-- **Landings de intención larga** ("vender iphone caracas") cuando haya datos de qué búsquedas traen tráfico.
+- **Landings de intención larga** ("vender iphone caracas") cuando haya datos de GSC de qué búsquedas traen impresiones.
+- **FAQPage schema** en los artículos con sección de preguntas (cuando el renderer lo soporte por artículo).
