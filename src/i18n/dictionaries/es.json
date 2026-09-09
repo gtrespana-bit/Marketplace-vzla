@@ -166,7 +166,9 @@
       "sending": "Enviando...",
       "cancel": "Cancelar",
       "link_sent": "✅ Enlace enviado",
-      "submitting": "Iniciando sesión..."
+      "submitting": "Iniciando sesión...",
+      "resend_already": "Esta cuenta ya está confirmada. ¡Inicia sesión!",
+      "resend_already_desc": "No necesitas reenviar nada: tu email ya fue verificado."
     },
     "register": {
       "title": "Crear cuenta",
@@ -192,7 +194,7 @@
       "confirmed": "Ya confirmé mi cuenta",
       "footer": "Cuando recibas el email, confirma tu cuenta y luego regresa a hacer login.",
       "not_received": "🔒 ¿Email de confirmación no enviado aún?",
-      "resend_hint": "Regresa al login y haz clic en \"¿No recibiste el email de confirmación? Reenviarlo\"",
+      "resend_hint": "Te lo reenviamos al mismo correo en unos segundos. Revisa también la carpeta de spam.",
       "go_to_login": "Ir al login"
     }
   },
@@ -930,7 +932,9 @@
     "goLogin": "Ir al login ahora",
     "error": "No se pudo confirmar",
     "errorDefault": "El enlace puede haber expirado. Solicita uno nuevo desde el login.",
-    "resendLogin": "Ir al login para reenviar"
+    "resendLogin": "Ir al login para reenviar",
+    "successDescDashboard": "Tu cuenta está lista. Te llevamos a tu perfil...",
+    "goDashboard": "Ir a mi perfil"
   },
   "resetPassword": {
     "title": "Restablecer contraseña",

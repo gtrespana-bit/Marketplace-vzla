@@ -99,7 +99,18 @@ Repo limpio de "Todo Anuncios" y del dominio viejo. Plantillas de email de refer
 | 7 | Confirmar en Vercel que los 4 crons aparecen (clean-rate-limits, busquedas, digest, precios) | ⏳ Tras el deploy |
 | 8 | En GSC → Páginas (2-3 semanas): confirmar caída de soft-404/excluidas y subida de indexadas útiles | 📅 2-3 semanas |
 
-**Env vars requeridas** (ya existían en producción, verificadas por los sistemas preexistentes): `CRON_SECRET`, `NEXT_PUBLIC_VAPID_PUBLIC_KEY`/`VAPID_PRIVATE_KEY`, `ZOHO_SMTP_*` (el email degrada si falta), `SUPABASE_SERVICE_ROLE_KEY`.
+**Env vars requeridas** (ya existían en producción, verificadas por los sistemas preexistentes): `CRON_SECRET`, `NEXT_PUBLIC_VAPID_PUBLIC_KEY`/`VAPID_PRIVATE_KEY`, `SMTP_*` (o legado `ZOHO_SMTP_*`; el email degrada si falta), `SUPABASE_SERVICE_ROLE_KEY`.
+
+> ⚠️ **SMTP de Zoho (2026-09):** el plan gratuito de Zoho Mail NO incluye
+> acceso SMTP/IMAP/POP (solo webmail). Si la cuenta se degradó de pago a
+> gratuita, `smtp.zoho.com` deja de autenticar y NO llegan emails (confirmación
+> de registro, notificaciones…). El código de la app ya lee `SMTP_HOST /
+> SMTP_PORT / SMTP_USER / SMTP_PASS` con respaldo a `ZOHO_SMTP_*`: basta
+> apuntar las variables a un proveedor con SMTP gratuito (Resend, Brevo,
+> SendGrid) en Vercel. Además, la confirmación de cuenta se envía ahora por el
+> SMTP de la propia app (ver `src/lib/confirmacion-email.ts`), no por el del
+> Dashboard de Supabase; el SMTP del Dashboard sigue siendo necesario para el
+> resto de correos nativos de Supabase (recuperar contraseña).
 
 ---
 

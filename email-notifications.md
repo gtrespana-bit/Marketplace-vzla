@@ -482,3 +482,56 @@ A: Resend tiene logs en Dashboard. También puedes crear tabla `email_logs` en S
 ---
 
 **¿Quieres que cree los templates HTML completos de todos los emails adicionales?** 🔥
+
+---
+
+## 🔐 Confirmación de cuenta: envío por el SMTP de la app (fix 2026-09)
+
+### Síntoma
+"Me registro pero no llega el email de confirmación → no puedo activar la cuenta".
+
+### Causa raíz
+El correo de confirmación de Supabase Auth lo envía el SMTP **configurado en el
+Dashboard de Supabase** (`smtp.zoho.com`). Cuando la cuenta Zoho se degradó de
+pago al **plan gratuito** (que NO incluye SMTP/IMAP/POP, solo webmail y apps
+oficiales), `smtp.zoho.com` deja de autenticar y Supabase no puede enviar nada.
+
+### Fix implementado (sin migración SQL)
+1. El registro ya NO usa `supabase.auth.signUp()` desde el navegador:
+   - `POST /api/register` crea la cuenta con
+     `supabase.auth.admin.generateLink({ type: 'signup' })` (service-role:
+     crea el usuario si no existe, NO envía email) y **la propia app envía el
+     correo de confirmación** con el mismo SMTP de las notificaciones.
+   - Verificado en el código de GoTrue (`supabase/auth` `internal/api/mail.go`):
+     `generateLink` type `signup` no envía correo; si el usuario ya existe sin
+     confirmar, renueva el token sin tocar la contraseña (funciona como
+     reenvío); si ya confirmó, responde "already been registered".
+2. Reenvío (`/confirmacion` y login): `POST /api/reconfirmar` en vez de
+   `supabase.auth.resend()`.
+3. Página `/confirm` robustecida: acepta `?token_hash&type`, fragmento
+   `#access_token…`, `?code` (PKCE) y el caso "sin parámetros" (sesión ya
+   procesada).
+4. Variables de SMTP neutrales: `SMTP_HOST / SMTP_PORT / SMTP_USER /
+   SMTP_PASS` (con respaldo automático a las antiguas `ZOHO_SMTP_*`).
+
+Archivos clave: `src/lib/confirmacion-email.ts` (nuevo),
+`src/app/api/register/route.ts` (nuevo), `src/app/api/reconfirmar/route.ts`
+(nuevo), `src/lib/server-email.ts`, `src/lib/email-layout.ts` (nuevo),
+`src/lib/rate-limit.ts`, páginas `register`, `confirmacion`, `login`,
+`confirm` + diccionarios i18n.
+
+### Configuración tras el deploy (operaciones)
+1. Elegir proveedor SMTP con plan gratis que SÍ incluya SMTP. Recomendado
+   **Resend** (`smtp.resend.com`, puerto 465 o 587, usuario `resend`,
+   password `re_…`) o Brevo/SendGrid. Verificar SPF/DKIM del dominio.
+2. En **Vercel → Project → Settings → Environment Variables** actualizar (o
+   crear): `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`. Las variables
+   `ZOHO_SMTP_*` viejas pueden quedar, el código prefiere `SMTP_*`.
+3. En **Supabase Dashboard → Authentication → SMTP Settings** poner el MISMO
+   proveedor: sigue siendo el canal de Supabase para correos nativos
+   (recuperar contraseña, cambios de email, etc.).
+4. Probar: registrarse con un correo real → debe llegar el email de
+   "Confirma tu cuenta" (remitente noreply@vendet.online) → clic en el botón →
+   página /confirm → perfil.
+5. Usuarios creados antes del fix (nunca confirmados, token expirado): usar
+   "Reenviar email de confirmación" desde el login; el enlace nuevo dura 24 h.

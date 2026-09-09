@@ -1,27 +1,43 @@
 'use server'
 
 import nodemailer from 'nodemailer'
+import { emailLayout, card, priceLine, COLORS } from '@/lib/email-layout'
 
 const FROM = '"VendeT-Venezuela" <noreply@vendet.online>'
-const CONTACT = 'contacto@vendet.online'
 const URL = process.env.NEXT_PUBLIC_URL || 'https://vendet.online'
-const LOGO = `${URL}/logo-vendet.png`
 
 // ─── Transporter ───────────────────────────────────────────
+//
+// El envío transaccional soporta dos espacios de variables para el SMTP:
+//  1. SMTP_HOST / SMTP_PORT / SMTP_USER / SMTP_PASS  (preferido, proveedor neutral)
+//  2. ZOHO_SMTP_HOST / ZOHO_SMTP_PORT / ZOHO_SMTP_USER / ZOHO_SMTP_PASS (legado)
+// Si la cuenta SMTP de Zoho es gratuita, Zoho bloquea SMTP/IMAP/POP:
+// usa un proveedor con SMTP en plan gratis (Resend, Brevo, SendGrid…) y solo
+// cambia las variables, sin tocar código.
+
+const SMTP_HOST = process.env.SMTP_HOST || process.env.ZOHO_SMTP_HOST || 'smtp.zoho.com'
+const SMTP_PORT = Number(process.env.SMTP_PORT || process.env.ZOHO_SMTP_PORT) || 587
+const SMTP_USER = process.env.SMTP_USER || process.env.ZOHO_SMTP_USER
+const SMTP_PASS = process.env.SMTP_PASS || process.env.ZOHO_SMTP_PASS
 
 function getTransporter() {
   return nodemailer.createTransport({
-    host: process.env.ZOHO_SMTP_HOST || 'smtp.zoho.com',
-    port: Number(process.env.ZOHO_SMTP_PORT) || 587,
-    secure: process.env.ZOHO_SMTP_PORT === '465',
-    auth: { user: process.env.ZOHO_SMTP_USER, pass: process.env.ZOHO_SMTP_PASS },
+    host: SMTP_HOST,
+    port: SMTP_PORT,
+    secure: SMTP_PORT === 465,
+    auth: SMTP_USER ? { user: SMTP_USER, pass: SMTP_PASS } : undefined,
     tls: { rejectUnauthorized: false },
   })
 }
 
-async function enviar(to: string, subject: string, html: string): Promise<boolean> {
-  if (!process.env.ZOHO_SMTP_USER || !process.env.ZOHO_SMTP_PASS) {
-    console.warn('⚠️ SMTP no configurado')
+/**
+ * Envío SMTP genérico de la app. Devuelve true solo si el correo quedó
+ * entregado al servidor SMTP (es el mismo canal que usan el resto de
+ * notificaciones transaccionales de VendeT).
+ */
+export async function enviarEmailSMTP(to: string, subject: string, html: string): Promise<boolean> {
+  if (!SMTP_USER || !SMTP_PASS) {
+    console.warn('⚠️ SMTP no configurado (faltan SMTP_USER/SMTP_PASS o ZOHO_SMTP_USER/ZOHO_SMTP_PASS)')
     return false
   }
   try {
@@ -34,129 +50,8 @@ async function enviar(to: string, subject: string, html: string): Promise<boolea
   }
 }
 
-// ─── Email Layout ──────────────────────────────────────────
-
-const COLORS = {
-  primary: '#7B2D3B',
-  primaryHover: '#5C1E2B',
-  accent: '#C9A84C',
-  bg: '#F5F7FA',
-  white: '#FFFFFF',
-  dark: '#1E293B',
-  gray: '#64748B',
-  lightGray: '#E2E8F0',
-  success: '#059669',
-}
-
-function emailLayout(title: string, body: string, ctaText?: string, ctaUrl?: string): string {
-  return `<!DOCTYPE html>
-<html lang="es" style="margin:0;padding:0">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <title>${title}</title>
-  <!--[if mso]>
-  <noscript>
-    <xml>
-      <o:OfficeDocumentSettings>
-        <o:AllowPNG/>
-        <o:PixelsPerInch>96</o:PixelsPerInch>
-      </o:OfficeDocumentSettings>
-    </xml>
-  </noscript>
-  <![endif]-->
-</head>
-<body style="margin:0;padding:0;background-color:${COLORS.bg};font-family:'Inter','Segoe UI','Helvetica Neue',Arial,sans-serif;-webkit-font-smoothing:antialiased;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%">
-  <!-- Wrapper -->
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:${COLORS.bg};padding:24px 0">
-    <tr>
-      <td align="center" valign="top">
-        <!-- Container 600 -->
-        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background-color:${COLORS.white};border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.08)">
-          <!-- Header -->
-          <!-- Header -->
-          <tr>
-            <td align="center" style="background:${COLORS.primary};padding:32px 24px 28px">
-              <table role="presentation" cellpadding="0" cellspacing="0">
-                <tr>
-                  <td align="center" style="padding-bottom:8px">
-                    <a href="${URL}" style="text-decoration:none">
-                      <img src="${LOGO}" alt="VendeT-Venezuela" width="160" style="display:block;max-width:160px;height:auto;border:0">
-                    </a>
-                  </td>
-                </tr>
-                <tr>
-                  <td align="center">
-                    <h1 style="margin:0;font-family:'Inter','Segoe UI',Arial,sans-serif;font-size:20px;font-weight:700;color:${COLORS.white};letter-spacing:-0.3px">${title}</h1>
-                  </td>
-                </tr>
-              </table>
-            </td>
-          </tr>
-          <!-- Accent line -->
-          <tr>
-            <td height="3" style="background:${COLORS.accent}"></td>
-          </tr>
-          <!-- Body -->
-          <tr>
-            <td style="padding:32px 28px 8px">
-              <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
-                <tr>
-                  <td style="font-family:'Inter','Segoe UI',Arial,sans-serif;font-size:15px;color:${COLORS.dark};line-height:1.65">
-                    ${body}
-                  </td>
-                </tr>
-              </table>
-            </td>
-          </tr>
-          <!-- CTA -->
-          ${ctaText && ctaUrl ? `
-          <tr>
-            <td align="left" style="padding:24px 28px 32px">
-              <table role="presentation" cellpadding="0" cellspacing="0">
-                <tr>
-                  <th align="center" style="background:${COLORS.primary};border-radius:8px">
-                    <a href="${ctaUrl}" target="_blank" rel="noopener noreferrer"
-                       style="display:inline-block;padding:14px 36px;font-family:'Inter','Segoe UI',Arial,sans-serif;font-size:15px;font-weight:600;color:${COLORS.white};text-decoration:none;letter-spacing:0.3px">
-                      ${ctaText}
-                    </a>
-                  </th>
-                </tr>
-              </table>
-            </td>
-          </tr>` : ''}
-          <!-- Footer -->
-          <tr>
-            <td style="border-top:1px solid ${COLORS.lightGray};padding:24px 28px;background:${COLORS.bg}">
-              <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
-                <tr>
-                  <td align="center" style="font-family:'Inter','Segoe UI',Arial,sans-serif;font-size:12px;color:${COLORS.gray};line-height:1.65">
-                    <p style="margin:0 0 6px;font-weight:600;color:${COLORS.dark}">VendeT-Venezuela</p>
-                    <p style="margin:0 0 6px">El marketplace venezolano</p>
-                    <p style="margin:0"><a href="mailto:${CONTACT}" style="color:${COLORS.primary};text-decoration:none">${CONTACT}</a></p>
-                    <p style="margin:6px 0 0"><a href="${URL}" style="color:${COLORS.primary};text-decoration:none">${URL}</a></p>
-                  </td>
-                </tr>
-              </table>
-            </td>
-          </tr>
-        </table>
-        <!-- /Container -->
-      </td>
-    </tr>
-  </table>
-  <!-- /Wrapper -->
-</body>
-</html>`
-}
-
-function card(body: string): string {
-  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${COLORS.bg};border-radius:10px;padding:20px;margin:8px 0;border:1px solid ${COLORS.lightGray}"><tr><td style="font-family:'Inter','Segoe UI',Arial,sans-serif;font-size:15px;color:${COLORS.dark};line-height:1.6">${body}</td></tr></table>`
-}
-
-function priceLine(label: string, value: string): string {
-  return `<tr><td style="font-family:'Inter','Segoe UI',Arial,sans-serif;font-size:14px;color:${COLORS.gray};padding:4px 0">${label}</td><td align="right" style="font-family:'Inter','Segoe UI',Arial,sans-serif;font-size:16px;font-weight:700;color:${COLORS.primary};padding:4px 0">${value}</td></tr>`
+async function enviar(to: string, subject: string, html: string): Promise<boolean> {
+  return enviarEmailSMTP(to, subject, html)
 }
 
 // ─── 1. Producto Publicado ─────────────────────────────────
