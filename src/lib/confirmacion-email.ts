@@ -52,8 +52,9 @@ function getAdminClient() {
   })
 }
 
-/** ¿Hay credenciales SMTP para que la app envíe el correo? */
+/** ¿Hay canal de envío para que la app envíe el correo? (Resend API o SMTP) */
 export function smtpConfigurado(): boolean {
+  if (process.env.RESEND_API_KEY) return true
   return !!(
     process.env.SMTP_USER || process.env.ZOHO_SMTP_USER
   ) && !!(

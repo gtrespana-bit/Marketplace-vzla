@@ -126,14 +126,22 @@ export default function LoginPage() {
     setResetError('')
     setResetLoading(true)
 
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}${redirectPath('/reset-password')}`,
-    })
-
-    if (error) {
-      setResetError(error.message)
-    } else {
-      setResetSent(true)
+    // El email sale por el canal de la propia app (POST /api/password-reset:
+    // Resend API o SMTP) y no por el SMTP del Dashboard de Supabase.
+    try {
+      const res = await fetch('/api/password-reset', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, locale }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        setResetError(data.error || 'No se pudo enviar el correo. Inténtalo de nuevo.')
+      } else {
+        setResetSent(true)
+      }
+    } catch {
+      setResetError('Error de conexión. Intenta de nuevo.')
     }
     setResetLoading(false)
   }
