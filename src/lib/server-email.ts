@@ -1,57 +1,196 @@
 'use server'
 
 import nodemailer from 'nodemailer'
+import { Resend } from 'resend'
 import { emailLayout, card, priceLine, COLORS } from '@/lib/email-layout'
 
-const FROM = '"VendeT-Venezuela" <noreply@vendet.online>'
+// ─── Remitente ─────────────────────────────────────────────
+// Configurable con EMAIL_FROM. Por defecto noreply@vendet.online.
+// IMPORTANTE (Resend): el dominio del `from` debe estar verificado en
+// Resend (Domains → vendet.online → Verified). Si aún no lo verificas,
+// Resend rechaza el envío con 403 y el correo NUNCA llega.
+// Mientras verificas, puedes usar temporalmente:
+//   EMAIL_FROM="VendeT-Venezuela <onboarding@resend.dev>"
+// pero en ese modo Resend solo entrega al email dueño de la cuenta.
+const FROM =
+  process.env.EMAIL_FROM || '"VendeT-Venezuela" <noreply@vendet.online>'
 const URL = process.env.NEXT_PUBLIC_URL || 'https://vendet.online'
 
-// ─── Transporter ───────────────────────────────────────────
-//
-// El envío transaccional soporta dos espacios de variables para el SMTP:
-//  1. SMTP_HOST / SMTP_PORT / SMTP_USER / SMTP_PASS  (preferido, proveedor neutral)
-//  2. ZOHO_SMTP_HOST / ZOHO_SMTP_PORT / ZOHO_SMTP_USER / ZOHO_SMTP_PASS (legado)
-// Si la cuenta SMTP de Zoho es gratuita, Zoho bloquea SMTP/IMAP/POP:
-// usa un proveedor con SMTP en plan gratis (Resend, Brevo, SendGrid…) y solo
-// cambia las variables, sin tocar código.
+// ─── Canal 1: Resend API (preferido) ───────────────────────
+const RESEND_API_KEY = process.env.RESEND_API_KEY || ''
 
-const SMTP_HOST = process.env.SMTP_HOST || process.env.ZOHO_SMTP_HOST || 'smtp.zoho.com'
-const SMTP_PORT = Number(process.env.SMTP_PORT || process.env.ZOHO_SMTP_PORT) || 587
-const SMTP_USER = process.env.SMTP_USER || process.env.ZOHO_SMTP_USER
-const SMTP_PASS = process.env.SMTP_PASS || process.env.ZOHO_SMTP_PASS
+function getResend(): Resend | null {
+  if (!RESEND_API_KEY) return null
+  try {
+    return new Resend(RESEND_API_KEY)
+  } catch {
+    return null
+  }
+}
+
+// ─── Canal 2: SMTP genérico (fallback) ─────────────────────
+// Soporta dos espacios de variables:
+//  1. SMTP_HOST / SMTP_PORT / SMTP_USER / SMTP_PASS (preferido, neutral)
+//  2. ZOHO_SMTP_* (legado)
+// Para usar Resend por SMTP en vez de API:
+//   SMTP_HOST=smtp.resend.com SMTP_PORT=465 SMTP_USER=resend SMTP_PASS=re_xxx
+function smtpConfig() {
+  const host =
+    process.env.SMTP_HOST || process.env.ZOHO_SMTP_HOST || 'smtp.zoho.com'
+  const port =
+    Number(process.env.SMTP_PORT || process.env.ZOHO_SMTP_PORT) || 587
+  const user = process.env.SMTP_USER || process.env.ZOHO_SMTP_USER
+  const pass = process.env.SMTP_PASS || process.env.ZOHO_SMTP_PASS
+  return { host, port, user, pass }
+}
 
 function getTransporter() {
+  const { host, port, user, pass } = smtpConfig()
   return nodemailer.createTransport({
-    host: SMTP_HOST,
-    port: SMTP_PORT,
-    secure: SMTP_PORT === 465,
-    auth: SMTP_USER ? { user: SMTP_USER, pass: SMTP_PASS } : undefined,
+    host,
+    port,
+    secure: port === 465,
+    auth: user ? { user, pass } : undefined,
     tls: { rejectUnauthorized: false },
   })
 }
 
-/**
- * Envío SMTP genérico de la app. Devuelve true solo si el correo quedó
- * entregado al servidor SMTP (es el mismo canal que usan el resto de
- * notificaciones transaccionales de VendeT).
- */
-export async function enviarEmailSMTP(to: string, subject: string, html: string): Promise<boolean> {
-  if (!SMTP_USER || !SMTP_PASS) {
-    console.warn('⚠️ SMTP no configurado (faltan SMTP_USER/SMTP_PASS o ZOHO_SMTP_USER/ZOHO_SMTP_PASS)')
-    return false
-  }
-  try {
-    await getTransporter().sendMail({ from: FROM, to, subject, html })
-//
-    return true
-  } catch (e) {
-    console.error('❌ Error email:', e)
-    return false
+// ─── Diagnóstico (sin exponer secretos) ────────────────────
+export interface CanalEmailInfo {
+  resend: boolean
+  smtp: boolean
+  from: string
+  smtpHost: string
+  smtpPort: number
+}
+
+export async function canalEmailInfo(): Promise<CanalEmailInfo> {
+  const { host, port, user, pass } = smtpConfig()
+  return {
+    resend: !!RESEND_API_KEY,
+    smtp: !!(user && pass),
+    from: FROM,
+    smtpHost: host,
+    smtpPort: port,
   }
 }
 
-async function enviar(to: string, subject: string, html: string): Promise<boolean> {
-  return enviarEmailSMTP(to, subject, html)
+/** ¿Hay al menos un canal de envío configurado? */
+export async function emailConfigurado(): Promise<boolean> {
+  if (RESEND_API_KEY) return true
+  const { user, pass } = smtpConfig()
+  return !!(user && pass)
+}
+
+export type ResultadoEnvio =
+  | { ok: true; canal: 'resend' | 'smtp'; id?: string }
+  | { ok: false; canal: 'resend' | 'smtp' | 'ninguno'; error: string }
+
+/**
+ * Envío transaccional de la app.
+ * Orden: 1) Resend API si hay RESEND_API_KEY → 2) SMTP si hay credenciales.
+ * Devuelve el canal usado y el detalle del error para diagnóstico.
+ */
+export async function enviarEmailDetallado(
+  to: string,
+  subject: string,
+  html: string,
+  opts?: { replyTo?: string; text?: string },
+): Promise<ResultadoEnvio> {
+  // 1) Resend API
+  if (RESEND_API_KEY) {
+    try {
+      const resend = getResend()
+      if (resend) {
+        const { data, error } = await resend.emails.send({
+          from: FROM,
+          to,
+          subject,
+          html,
+          ...(opts?.replyTo ? { replyTo: opts.replyTo } : {}),
+          ...(opts?.text ? { text: opts.text } : {}),
+        })
+        if (error) {
+          const msg =
+            (error as any)?.message || JSON.stringify(error) || 'Error Resend'
+          console.error('❌ [email] Resend error:', msg, '| from:', FROM, '| to:', to)
+          // No fallback silencioso a SMTP si Resend está configurado pero
+          // falla por dominio no verificado: el admin debe ver el error real.
+          // Solo caemos a SMTP si además hay credenciales SMTP.
+          const { user, pass } = smtpConfig()
+          if (!user || !pass) {
+            return { ok: false, canal: 'resend', error: `Resend: ${msg}` }
+          }
+          console.warn('⚠️ [email] Resend falló, intentando SMTP como respaldo…')
+        } else {
+          return { ok: true, canal: 'resend', id: (data as any)?.id }
+        }
+      }
+    } catch (e: any) {
+      const msg = e?.message || String(e)
+      console.error('❌ [email] Resend excepción:', msg)
+      const { user, pass } = smtpConfig()
+      if (!user || !pass) {
+        return { ok: false, canal: 'resend', error: `Resend: ${msg}` }
+      }
+      console.warn('⚠️ [email] Resend falló, intentando SMTP como respaldo…')
+    }
+  }
+
+  // 2) SMTP (nodemailer)
+  const { host, port, user, pass } = smtpConfig()
+  if (!user || !pass) {
+    const msg =
+      'Sin canal de envío: configura RESEND_API_KEY o SMTP_USER/SMTP_PASS en Vercel'
+    console.warn('⚠️ [email]', msg)
+    return { ok: false, canal: 'ninguno', error: msg }
+  }
+  try {
+    const info = await getTransporter().sendMail({
+      from: FROM,
+      to,
+      subject,
+      html,
+      ...(opts?.replyTo ? { replyTo: opts.replyTo } : {}),
+      ...(opts?.text ? { text: opts.text } : {}),
+    })
+    return { ok: true, canal: 'smtp', id: (info as any)?.messageId }
+  } catch (e: any) {
+    const msg = e?.message || String(e)
+    console.error(
+      `❌ [email] SMTP error (${host}:${port}):`,
+      msg,
+      '| código:',
+      e?.code,
+      '| respuesta:',
+      e?.response,
+    )
+    return { ok: false, canal: 'smtp', error: `SMTP (${host}): ${msg}` }
+  }
+}
+
+/**
+ * Envío SMTP genérico de la app. Devuelve true solo si el correo quedó
+ * entregado al proveedor (Resend API o SMTP según configuración).
+ * Se mantiene el nombre por compatibilidad con el resto del código.
+ */
+export async function enviarEmailSMTP(
+  to: string,
+  subject: string,
+  html: string,
+  opts?: { replyTo?: string; text?: string },
+): Promise<boolean> {
+  const r = await enviarEmailDetallado(to, subject, html, opts)
+  return r.ok
+}
+
+async function enviar(
+  to: string,
+  subject: string,
+  html: string,
+  opts?: { replyTo?: string },
+): Promise<boolean> {
+  return enviarEmailSMTP(to, subject, html, opts)
 }
 
 // ─── 1. Producto Publicado ─────────────────────────────────

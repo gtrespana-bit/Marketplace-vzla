@@ -52,8 +52,9 @@ function getAdminClient() {
   })
 }
 
-/** ¿Hay credenciales SMTP para que la app envíe el correo? */
+/** ¿Hay canal de envío para que la app envíe el correo? (Resend API o SMTP) */
 export function smtpConfigurado(): boolean {
+  if (process.env.RESEND_API_KEY) return true
   return !!(
     process.env.SMTP_USER || process.env.ZOHO_SMTP_USER
   ) && !!(
@@ -86,17 +87,18 @@ function escapeHtml(s: string): string {
 }
 
 /** Genera el enlace de confirmación vía service-role (sin enviar nada). */
-async function generarEnlaceConfirmacion(email: string, nombre: string) {
+async function generarEnlaceConfirmacion(email: string, nombre: string, password?: string) {
   const sb = getAdminClient()
-  // Contraseña aleatoria: solo se usa si el usuario NO existe (primera vez).
+  // Contraseña del usuario: se usa SOLO si el usuario NO existe (primera vez).
   // Si el usuario ya existe sin confirmar, GoTrue ignora la contraseña y solo
-  // renueva el token de confirmación.
-  const password = randomBytes(24).toString('base64url')
+  // renueva el token de confirmación (por eso en los reenvíos se pasa una
+  // aleatoria: no tiene ningún efecto).
+  const clave = password && password.length >= 8 ? password : randomBytes(24).toString('base64url')
 
   const { data, error } = await sb.auth.admin.generateLink({
     type: 'signup',
     email,
-    password,
+    password: clave,
     options: {
       data: { nombre },
       redirectTo: REDIRECT_CONFIRMACION,
@@ -124,9 +126,13 @@ async function generarEnlaceConfirmacion(email: string, nombre: string) {
  * Genera el enlace de confirmación y envía el correo por el SMTP de la app.
  * Si la app no tiene SMTP configurado (solo dev/preview), intenta el reenvío
  * nativo de Supabase como último recurso.
+ *
+ * `password` es la contraseña elegida por el usuario en el registro: queda
+ * guardada en la cuenta creada. Sin ella el usuario confirmaría su email
+ * pero nunca podría entrar (la cuenta quedaría en el limbo).
  */
-export async function enviarConfirmacion(email: string, nombre: string): Promise<ResultadoConfirmacion> {
-  const enlace = await generarEnlaceConfirmacion(email, nombre)
+export async function enviarConfirmacion(email: string, nombre: string, password?: string): Promise<ResultadoConfirmacion> {
+  const enlace = await generarEnlaceConfirmacion(email, nombre, password)
   if (!enlace.ok) return enlace
 
   const enviado = await enviarEmailSMTP(

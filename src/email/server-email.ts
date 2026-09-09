@@ -1,39 +1,9 @@
 'use server'
-import nodemailer from 'nodemailer'
+import { enviarEmailSMTP } from '@/lib/server-email'
 
-function getTransporter() {
-  return nodemailer.createTransport({
-    host: process.env.ZOHO_SMTP_HOST || 'smtp.zoho.com',
-    port: Number(process.env.ZOHO_SMTP_PORT) || 587,
-    secure: process.env.ZOHO_SMTP_PORT === '465',
-    auth: {
-      user: process.env.ZOHO_SMTP_USER,
-      pass: process.env.ZOHO_SMTP_PASS,
-    },
-    tls: {
-      rejectUnauthorized: false,
-    },
-  })
-}
-
-async function enviar(fromName: string, email: string, subject: string, html: string) {
-  if (!process.env.ZOHO_SMTP_USER || !process.env.ZOHO_SMTP_PASS) {
-    console.warn('⚠️ SMTP no configurado')
-    return false
-  }
-  try {
-    await getTransporter().sendMail({
-      from: `"${fromName}" <noreply@vendet.online>`,
-      to: email,
-      subject,
-      html,
-    })
-//
-    return true
-  } catch (e) {
-    console.error('❌ Error email:', e)
-    return false
-  }
+async function enviar(_fromName: string, email: string, subject: string, html: string) {
+  // Canal central: Resend API (RESEND_API_KEY) con fallback a SMTP.
+  return enviarEmailSMTP(email, subject, html)
 }
 
 interface UserEmails {

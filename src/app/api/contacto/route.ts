@@ -1,20 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
-import nodemailer from 'nodemailer'
 import { checkRateLimit } from '@/lib/rate-limit'
 import { sanitizeString, isValidEmail, isValidLength } from '@/lib/validation'
+import { enviarEmailDetallado, emailConfigurado } from '@/lib/server-email'
 
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN
 const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID
-
-function getTransporter() {
-  return nodemailer.createTransport({
-    host: process.env.ZOHO_SMTP_HOST || 'smtp.zoho.com',
-    port: Number(process.env.ZOHO_SMTP_PORT) || 587,
-    secure: process.env.ZOHO_SMTP_PORT === '465',
-    auth: { user: process.env.ZOHO_SMTP_USER, pass: process.env.ZOHO_SMTP_PASS },
-    tls: { rejectUnauthorized: false },
-  })
-}
+const CONTACTO_DESTINO =
+  process.env.CONTACTO_EMAIL || 'soporte@vendet.online'
 
 /** Rate limiter distribuido vía Supabase */
 async function checkContactRateLimit(ip: string): Promise<boolean> {
@@ -73,8 +65,8 @@ export async function POST(req: NextRequest) {
   const asuntoClean = sanitizeString(asunto || '(sin asunto)', 200)
   const mensajeClean = sanitizeString(mensaje, 5000)
 
-  if (!process.env.ZOHO_SMTP_USER || !process.env.ZOHO_SMTP_PASS) {
-    console.warn('⚠️ SMTP no configurado - contacto')
+  if (!(await emailConfigurado())) {
+    console.warn('⚠️ Sin canal de email configurado - contacto')
     return NextResponse.json({ error: 'Servicio no disponible' }, { status: 503 })
   }
 
@@ -95,17 +87,23 @@ export async function POST(req: NextRequest) {
       </div>
     `
 
-    const transporter = getTransporter()
-    // Verify connection before sending
-    await transporter.verify()
-
-    await transporter.sendMail({
-      from: '"VendeT-Venezuela" <noreply@vendet.online>',
-      to: 'soporte@vendet.online',
-      replyTo: emailClean,
-      subject: `📩 Contacto: ${asuntoClean}`,
+    // Canal central: Resend API con fallback a SMTP.
+    const resultado = await enviarEmailDetallado(
+      CONTACTO_DESTINO,
+      `📩 Contacto: ${asuntoClean}`,
       html,
-    })
+      { replyTo: emailClean },
+    )
+
+    if (!resultado.ok) {
+      console.error('❌ Error enviando email de contacto:', resultado.error)
+      // Telegram sigue saliendo aunque falle el email.
+      await sendTelegramAlert(asuntoClean, nombreClean, emailClean, mensajeClean)
+      return NextResponse.json(
+        { error: 'No se pudo enviar el mensaje por email. Inténtalo de nuevo o escríbenos por Telegram.' },
+        { status: 502 },
+      )
+    }
 
     // Telegram notification
     await sendTelegramAlert(asuntoClean, nombreClean, emailClean, mensajeClean)

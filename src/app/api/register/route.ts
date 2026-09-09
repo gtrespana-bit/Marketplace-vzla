@@ -52,7 +52,7 @@ export async function POST(req: NextRequest) {
   if (!limit.ok) return rateLimitResponse(limit.resetIn)
 
   try {
-    const resultado = await enviarConfirmacion(email, nombre)
+    const resultado = await enviarConfirmacion(email, nombre, password)
 
     if (!resultado.ok) {
       if (resultado.codigo === 'registrado') {
