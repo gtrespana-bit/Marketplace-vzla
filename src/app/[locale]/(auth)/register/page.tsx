@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import LocalLink from '@/components/LocalLink'
 import { useRouter, usePathname } from 'next/navigation'
-import { supabase } from '@/lib/supabase'
 import { AlertCircle } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { routing } from '@/i18n/routing'
@@ -54,21 +53,27 @@ export default function RegisterPage() {
     // Nota: teléfono y ubicación NO se piden aquí. Se piden en contexto
     // (ubicación al publicar, teléfono al configurar contacto) para no
     // frenar el registro.
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          nombre,
-        },
-      },
-    })
+    //
+    // El registro se hace en el servidor (POST /api/register) en vez de
+    // `supabase.auth.signUp()` directo: así el email de confirmación lo envía
+    // la propia app por su SMTP (src/lib/confirmacion-email.ts) y no depende
+    // del SMTP del Dashboard de Supabase (que dejó de enviar cuando la cuenta
+    // Zoho se degradó al plan gratuito, sin acceso SMTP).
+    try {
+      const res = await fetch('/api/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nombre, email, password }),
+      })
 
-    if (error) {
-      setError(error.message === 'User already registered'
-        ? 'Ya existe una cuenta con este email'
-        : error.message)
-    } else {
+      const data = await res.json().catch(() => ({}))
+
+      if (!res.ok) {
+        setError(data.error || 'Error al crear la cuenta. Inténtalo de nuevo.')
+        setLoading(false)
+        return
+      }
+
       // Mostrar mensaje de confirmación y redirigir a pantalla de confirmación
       sessionStorage.setItem('tempEmail', email)
       // Redirect with locale prefix
@@ -81,6 +86,8 @@ export default function RegisterPage() {
       })()
       const confirmPath = locale === routing.defaultLocale ? '/confirmacion' : `/${locale}/confirmacion`
       router.push(confirmPath)
+    } catch {
+      setError('Error de conexión. Intenta de nuevo.')
     }
     setLoading(false)
   }

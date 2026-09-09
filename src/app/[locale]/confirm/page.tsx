@@ -7,57 +7,135 @@ import LocalLink from '@/components/LocalLink'
 import { supabase } from '@/lib/supabase'
 import { useTranslations } from 'next-intl'
 
+type Estado = 'loading' | 'success' | 'error'
+type Parametro = (clave: string) => string | null
+
 export default function ConfirmEmailPage() {
   const t = useTranslations('confirmEmail')
   const router = useRouter()
-  const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading')
+  const [status, setStatus] = useState<Estado>('loading')
   const [errorMsg, setErrorMsg] = useState('')
+  const [yaLogueado, setYaLogueado] = useState(false)
 
   useEffect(() => {
-    // Supabase envía el token en el hash de la URL: #access_token=xxx&type=signup
-    const hash = window.location.hash
-    if (!hash || hash.length < 2) {
-      setStatus('error')
-      setErrorMsg(t('noToken'))
-      return
+    let cancelled = false
+
+    const terminarExito = () => {
+      if (cancelled) return
+      setStatus('success')
+      setTimeout(() => {
+        if (cancelled) return
+        router.push('/dashboard')
+      }, 3000)
     }
 
-    const params = new URLSearchParams(hash.substring(1))
-    const type = params.get('type')
-    const token = params.get('access_token')
+    const terminarError = (msg: string) => {
+      if (cancelled) return
+      setStatus('error')
+      setErrorMsg(msg)
+    }
 
     async function confirmAccount() {
-      // Verificar token con Supabase
-      const { error } = await supabase.auth.verifyOtp({
-        token_hash: token || '',
-        type: (type as 'signup') || 'signup',
-      })
+      try {
+        // ── 1. Leer parámetros de la URL ─────────────────────────────────
+        // El email de confirmación puede traer el token de varias formas:
+        //   a) ?token_hash=…&type=signup  (token para verificar con verifyOtp)
+        //   b) #access_token=…&type=signup (Supabase ya validó el token y
+        //      redirige con una sesión implícita en el fragmento)
+        //   c) ?code=…&flow_id=…          (callback PKCE)
+        //   d) sin parámetros              (Supabase ya la procesó al cargar)
+        const query = new URLSearchParams(window.location.search)
+        const hash = window.location.hash
+        const hashParams = hash && hash.length > 1 ? new URLSearchParams(hash.substring(1)) : null
+        const get: Parametro = (k) => hashParams?.get(k) ?? query.get(k)
 
-      if (error) {
-        setStatus('error')
-        setErrorMsg(error.message)
-      } else {
-        setStatus('success')
-        // Actualizar la sesión del AuthProvider
-        setTimeout(() => {
-          router.push('/login')
-        }, 3000)
+        const type = get('type')
+        const tokenHash = get('token_hash') || get('token')
+        const accessToken = get('access_token')
+        const refreshToken = get('refresh_token')
+        const code = get('code')
+        const errorUrl = get('error') || query.get('error_description')
+
+        // Si Supabase devolvió error en la URL pero la sesión ya existe y está
+        // confirmada, el clic SÍ funcionó (p. ej. enlace reutilizado).
+        if (errorUrl) {
+          const { data: sesionExistente } = await supabase.auth.getSession()
+          if (sesionExistente.session?.user?.email_confirmed_at) {
+            setYaLogueado(true)
+            terminarExito()
+            return
+          }
+        }
+
+        // ── 2. Sesión implícita ya emitida por Supabase ──────────────────
+        // (Enlace verificado por GET /verify → redirect con #access_token…)
+        if (accessToken && refreshToken) {
+          const { error: errorSet } = await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken,
+          })
+          if (!errorSet) {
+            setYaLogueado(true)
+            terminarExito()
+            return
+          }
+          // Si falla, seguir e intentar verifyOtp por si el token viene aparte.
+        }
+
+        // ── 3. Token de verificación (token_hash / token + type) ─────────
+        if (tokenHash && type) {
+          // El tipo 'email' que a veces llega en el enlace equivale a 'signup'.
+          const tipoOtp = type === 'email' ? 'signup' : type
+          const { data: dataOtp, error: errorOtp } = await supabase.auth.verifyOtp({
+            token_hash: tokenHash,
+            type: tipoOtp as 'signup' | 'invite' | 'magiclink' | 'recovery' | 'email_change',
+          })
+          if (errorOtp) {
+            // Token inválido/expirado: quizá el usuario YA confirmó antes y
+            // reutilizó el enlace. Comprobar sesión antes de rendirse.
+            const { data: sesionExistente } = await supabase.auth.getSession()
+            if (sesionExistente.session?.user?.email_confirmed_at) {
+              setYaLogueado(true)
+              terminarExito()
+            } else {
+              terminarError(errorOtp.message || t('confirmError'))
+            }
+            return
+          }
+          if (dataOtp.session?.user?.email_confirmed_at) setYaLogueado(true)
+          terminarExito()
+          return
+        }
+
+        // ── 4. Callback PKCE (?code=…): intercambiar por sesión ─────────
+        if (code) {
+          const { error: errorCode } = await supabase.auth.exchangeCodeForSession(code)
+          if (errorCode) {
+            terminarError(errorCode.message || t('confirmError'))
+            return
+          }
+          const { data } = await supabase.auth.getSession()
+          if (data.session?.user?.email_confirmed_at) setYaLogueado(true)
+          terminarExito()
+          return
+        }
+
+        // ── 5. Sin parámetros: ver si supabase-js ya procesó la sesión ───
+        const { data: sessionData, error } = await supabase.auth.getSession()
+        if (sessionData.session?.user?.email_confirmed_at) {
+          setYaLogueado(true)
+          terminarExito()
+        } else {
+          terminarError((error as any)?.message || t('noToken'))
+        }
+      } catch (e: any) {
+        terminarError(e?.message || t('confirmError'))
       }
     }
 
-    if (type && token) {
-      confirmAccount()
-    } else {
-      // Sin tipo/token específico, intentar getSession por si supabase ya lo procesó
-      supabase.auth.getSession().then((res: any) => { const session = res?.data?.session;
-        if (session?.user?.email_confirmed_at) {
-          setStatus('success')
-          setTimeout(() => router.push('/login'), 3000)
-        } else {
-          setStatus('error')
-          setErrorMsg(t('confirmError'))
-        }
-      })
+    confirmAccount()
+    return () => {
+      cancelled = true
     }
   }, [router, t])
 
@@ -77,7 +155,7 @@ export default function ConfirmEmailPage() {
                 <Loader2 className="text-brand-primary animate-spin" size={48} />
               </div>
               <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center">
-                Confirmando tu cuenta...
+                {t('loading')}
               </h2>
               <p className="text-gray-500 text-center">{t('loadingDesc')}</p>
             </>
@@ -91,16 +169,16 @@ export default function ConfirmEmailPage() {
                 </div>
               </div>
               <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center">
-                ¡Email confirmado con éxito!
+                {t('success')}
               </h2>
               <p className="text-green-700 text-center mb-6">
-                Tu cuenta está lista. Redirigiendo al login...
+                {yaLogueado ? t('successDescDashboard') : t('successDesc')}
               </p>
               <LocalLink
-                href="/login"
+                href={yaLogueado ? '/dashboard' : '/login'}
                 className="block w-full bg-brand-primary text-white py-3 rounded-lg font-bold hover:bg-brand-dark transition text-center"
               >
-                Ir al login ahora
+                {yaLogueado ? t('goDashboard') : t('goLogin')}
               </LocalLink>
             </>
           )}
@@ -113,7 +191,7 @@ export default function ConfirmEmailPage() {
                 </div>
               </div>
               <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center">
-                No se pudo confirmar
+                {t('error')}
               </h2>
               <p className="text-red-600 text-center mb-6 text-sm">
                 {errorMsg || t('errorDefault')}
@@ -122,7 +200,7 @@ export default function ConfirmEmailPage() {
                 href="/login"
                 className="block w-full bg-brand-primary text-white py-3 rounded-lg font-bold hover:bg-brand-dark transition text-center"
               >
-                Ir al login para reenviar
+                {t('resendLogin')}
               </LocalLink>
             </>
           )}

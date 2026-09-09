@@ -5,7 +5,6 @@ import { useTranslations } from 'next-intl'
 import { CheckCircle, Mail, ExternalLink, ArrowRight, RefreshCw } from 'lucide-react'
 import LocalLink from '@/components/LocalLink'
 import { useRouter } from 'next/navigation'
-import { supabase } from '@/lib/supabase'
 
 function ConfirmacionContent() {
   const t = useTranslations('auth')
@@ -29,20 +28,25 @@ function ConfirmacionContent() {
     setResendStatus('idle')
 
     try {
-      const { error } = await supabase.auth.resend({
-        type: 'signup',
-        email: email,
+      // El reenvío se hace en el servidor (POST /api/reconfirmar) para que el
+      // correo salga por el SMTP de la propia app (confirmacion-email.ts) y no
+      // por el SMTP de Supabase, que dejó de funcionar.
+      const res = await fetch('/api/reconfirmar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
       })
+      const data = await res.json().catch(() => ({}))
 
-      if (error) {
+      if (!res.ok) {
         setResendStatus('error')
-        console.error('Resend error:', error.message)
+        console.error('Resend error:', data.error)
       } else {
         setResendStatus('success')
       }
     } catch (e: any) {
       setResendStatus('error')
-      console.error('Resend error:', e.message)
+      console.error('Resend error:', e?.message || e)
     }
     setResending(false)
   }

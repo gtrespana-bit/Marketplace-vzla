@@ -31,6 +31,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false)
   const [showResend, setShowResend] = useState(false)
   const [resendSuccess, setResendSuccess] = useState(false)
+  const [resendYaConfirmado, setResendYaConfirmado] = useState(false)
   const [resendLoading, setResendLoading] = useState(false)
   const [showReset, setShowReset] = useState(false)
   const [resetSent, setResetSent] = useState(false)
@@ -93,18 +94,29 @@ export default function LoginPage() {
     setError('')
     setResendLoading(true)
     setResendSuccess(false)
+    setResendYaConfirmado(false)
 
-    const { error } = await supabase.auth.resend({
-      type: 'signup',
-      email,
-    })
+    // El reenvío se hace en el servidor (POST /api/reconfirmar) para que el
+    // correo salga por el SMTP de la propia app y no por el de Supabase
+    // (roto cuando la cuenta Zoho se degradó a plan gratuito sin SMTP).
+    try {
+      const res = await fetch('/api/reconfirmar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      })
+      const data = await res.json().catch(() => ({}))
 
-    if (error) {
-      setError(error.message === 'User not found'
-        ? 'No existe una cuenta con este email'
-        : error.message)
-    } else {
-      setResendSuccess(true)
+      if (!res.ok) {
+        setError(data.error || 'No se pudo reenviar el email. Inténtalo de nuevo.')
+        setResendSuccess(false)
+      } else {
+        setResendYaConfirmado(data.yaRegistrado === true)
+        setResendSuccess(true)
+      }
+    } catch {
+      setError('Error de conexión. Intenta de nuevo.')
+      setResendSuccess(false)
     }
     setResendLoading(false)
   }
@@ -260,11 +272,11 @@ export default function LoginPage() {
               {resendSuccess ? (
                 <div className="text-center">
                   <div className="flex items-center justify-center gap-2 text-green-700 font-semibold mb-2">
-                    {t('login.resend_success')}
+                    {resendYaConfirmado ? t('login.resend_already') : t('login.resend_success')}
                   </div>
                   <p className="text-sm text-gray-600 mb-3">
-                    {t('login.resend_success_desc')}
-                    <strong> {email}</strong>
+                    {resendYaConfirmado ? t('login.resend_already_desc') : t('login.resend_success_desc')}
+                    {!resendYaConfirmado && <strong> {email}</strong>}
                   </p>
                   <button
                     type="button"

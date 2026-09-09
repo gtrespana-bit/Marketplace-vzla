@@ -166,7 +166,9 @@
       "sending": "Sending...",
       "cancel": "Cancel",
       "link_sent": "✅ Link sent",
-      "submitting": "Signing in..."
+      "submitting": "Signing in...",
+      "resend_already": "This account is already confirmed. Sign in!",
+      "resend_already_desc": "No need to resend anything: your email is already verified."
     },
     "register": {
       "title": "Create Account",
@@ -192,7 +194,7 @@
       "confirmed": "I have confirmed my account",
       "footer": "When you receive the email, confirm your account and then return to log in.",
       "not_received": "🔒 Confirmation email not sent yet?",
-      "resend_hint": "Go back to login and click \"Didn't receive the confirmation email? Resend it\"",
+      "resend_hint": "We'll resend it to the same email in a few seconds. Also check the spam folder.",
       "go_to_login": "Go to login"
     }
   },
@@ -930,7 +932,9 @@
     "goLogin": "Go to login now",
     "error": "Could not confirm",
     "errorDefault": "The link may have expired. Request a new one from the login page.",
-    "resendLogin": "Go to login to resend"
+    "resendLogin": "Go to login to resend",
+    "successDescDashboard": "Your account is ready. Taking you to your profile...",
+    "goDashboard": "Go to my profile"
   },
   "resetPassword": {
     "title": "Reset password",
