@@ -23,6 +23,10 @@ Edita `.env.local`:
 ```env
 NEXT_PUBLIC_SUPABASE_URL=https://tu-proyecto.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=tu_clave_anon
+
+# Opcionales — Google Analytics 4. Sin definir, usa el flujo real G-RMMQFHP6EC.
+# NEXT_PUBLIC_GA_ID=G-RMMQFHP6EC
+# NEXT_PUBLIC_GA_REQUIRE_CONSENT=1   # consentimiento previo estricto
 ```
 
 ### 3. Instalar y correr

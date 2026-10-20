@@ -112,12 +112,17 @@ const nextConfig = withNextIntl({
         key: 'Content-Security-Policy',
         value: [
           "default-src 'self'",
-          "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://vercel.live https://*.vercel-analytics.com https://*.vercel-scripts.com https://va.vercel-scripts.com",
+          // Google Analytics 4: gtag.js se sirve desde googletagmanager.com.
+          // Sin este origen en script-src el navegador bloquea GA en silencio
+          // (solo se ve como error de CSP en la consola).
+          "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://vercel.live https://*.vercel-analytics.com https://*.vercel-scripts.com https://va.vercel-scripts.com https://www.googletagmanager.com",
           "style-src 'self' 'unsafe-inline'",
           "font-src 'self' data:",
           "img-src 'self' data: blob: https: ",
           "media-src 'self' blob: https://*.supabase.co https://*.r2.dev https://*.r2.cloudflarestorage.com",
-          "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.r2.dev https://pub-d212837165c545e3956251da001fa37a.r2.dev https://*.r2.cloudflarestorage.com https://vercel.live https://*.vercel-analytics.com https://*.vercel-scripts.com https://va.vercel-scripts.com https://*.sentry.io https://*.ingest.sentry.io https://api.telegram.org",
+          // google-analytics.com / analytics.google.com reciben los hits de GA4
+          // (incluidos los pings sin cookies cuando analytics_storage='denied').
+          "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.r2.dev https://pub-d212837165c545e3956251da001fa37a.r2.dev https://*.r2.cloudflarestorage.com https://vercel.live https://*.vercel-analytics.com https://*.vercel-scripts.com https://va.vercel-scripts.com https://*.sentry.io https://*.ingest.sentry.io https://api.telegram.org https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com",
           "frame-src 'self'",
           "frame-ancestors 'none'",
           "base-uri 'self'",

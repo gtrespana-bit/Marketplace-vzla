@@ -11,6 +11,7 @@ import { ESTADOS, getMunicipiosNombres } from '@/lib/ubicaciones'
 import { Camera, X, UploadCloud, AlertCircle, Phone, Mail, MapPin, MessageSquare } from 'lucide-react'
 import { verificarContenido, formatearAlertaModeracion } from '@/lib/moderacion'
 import { emailProductoPublicado } from '@/lib/server-email'
+import { trackEvent } from '@/lib/analytics'
 import { compressImages } from '@/lib/compress-image'
 import { useTranslations } from 'next-intl'
 
@@ -359,6 +360,14 @@ export default function PublicarPage() {
       }
       
       const producto = apiResult.data
+
+      // Conversión principal del marketplace. Se marca como evento clave en
+      // GA4 (Administrar → Eventos) para poder usarla en informes y Ads.
+      trackEvent('publicar_anuncio', {
+        categoria: categoria || 'sin_categoria',
+        subcategoria: subcategoria || 'sin_subcategoria',
+        precio_usd: Number(precioUsd) || 0,
+      })
 
       // Check Pack Emprendedor (10+ publicaciones = 5 creditos gratis)
       const { count: pubCount } = await supabase

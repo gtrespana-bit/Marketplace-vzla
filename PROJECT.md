@@ -224,6 +224,9 @@
 - `SUPABASE_SERVICE_ROLE_KEY`
 - `SENTRY_AUTH_TOKEN` (para SourceMaps)
 - `NEXT_PUBLIC_BASE_URL` (para alertas de moderación)
+- `NEXT_PUBLIC_GA_ID` (opcional; por defecto `G-RMMQFHP6EC`)
+- `NEXT_PUBLIC_GA_REQUIRE_CONSENT` (opcional; `1` = consentimiento previo estricto)
+- `NEXT_PUBLIC_GA_SPA_PAGEVIEWS` (opcional; `0` desactiva pageviews SPA manuales)
 - Resend API key (para emails)
 
 ## Notas de Diseño

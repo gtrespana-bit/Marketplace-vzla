@@ -8,6 +8,7 @@ import { isAdminPath } from '@/lib/admin-path'
 const PWAInstallBanner = dynamic(() => import('@/components/PWAInstallBanner'), { ssr: false })
 const PushNotificationBanner = dynamic(() => import('@/components/PushNotificationBanner'), { ssr: false })
 const BottomTabNav = dynamic(() => import('@/components/BottomTabNav'), { ssr: false })
+const CookieConsent = dynamic(() => import('@/components/CookieConsent'), { ssr: false })
 
 function isAuditUserAgent() {
   if (typeof navigator === 'undefined') return false
@@ -73,6 +74,7 @@ export default function LocaleClientEffects() {
       <PWAInstallBanner />
       <PushNotificationBanner />
       <BottomTabNav />
+      <CookieConsent />
     </>
   )
 }

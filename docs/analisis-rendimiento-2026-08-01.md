@@ -1,5 +1,7 @@
 # 🔍 Análisis de rendimiento — 1 de agosto de 2026
 
+> **Actualización (20 de octubre de 2026):** GA4 se ha reinstalado con carga diferida (`afterInteractive`), Consent Mode v2 y exclusión del panel admin. Ver [`docs/ANALISIS-GA4-2026-10-20.md`](./ANALISIS-GA4-2026-10-20.md). Este documento se mantiene como registro histórico del 1 de agosto.
+
 > Alcance: problema de rendimiento en TODA la página tras cambios de las últimas 24 h.
 > Solicitud: verificar si Google Analytics (GA4) es el causante y analizar el resto de errores.
 

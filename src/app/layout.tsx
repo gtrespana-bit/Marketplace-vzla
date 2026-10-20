@@ -6,6 +6,40 @@ import './globals.css'
 import dynamic from 'next/dynamic'
 const AuthProvider = dynamic(() => import('@/components/AuthProvider').then(m => ({ default: m.AuthProvider })))
 import RootClientEffects from '@/components/RootClientEffects'
+import GoogleAnalytics from '@/components/GoogleAnalytics'
+import { CONSENT_STORAGE_KEY, GA_REQUIRE_CONSENT } from '@/lib/analytics'
+
+// Consent Mode v2: los valores por defecto se fijan en un script inline del
+// <head>, es decir, ANTES de que gtag.js se cargue (afterInteractive). Si se
+// dejara para un componente cliente, el primer hit podría salir sin
+// consentimiento declarado y GA4 lo descartaría o lo modelaría mal.
+//
+// `analytics_storage` arranca en 'granted' salvo que el usuario haya rechazado
+// el banner. Con NEXT_PUBLIC_GA_REQUIRE_CONSENT=1 se invierte: solo se mide si
+// el usuario ha aceptado explícitamente (modelo RGPD estricto).
+// `ad_*` va siempre en 'denied': el sitio no hace publicidad ni remarketing.
+const gaConsentDefaultScript = `
+window.dataLayer = window.dataLayer || [];
+window.gtag = window.gtag || function(){ window.dataLayer.push(arguments); };
+(function(){
+  var choice = null;
+  try { choice = window.localStorage.getItem('${CONSENT_STORAGE_KEY}'); } catch (e) {}
+  var analyticsStorage = ${
+    GA_REQUIRE_CONSENT
+      ? "(choice === 'accepted' ? 'granted' : 'denied')"
+      : "(choice === 'rejected' ? 'denied' : 'granted')"
+  };
+  window.gtag('consent', 'default', {
+    ad_storage: 'denied',
+    ad_user_data: 'denied',
+    ad_personalization: 'denied',
+    analytics_storage: analyticsStorage,
+    functionality_storage: 'granted',
+    security_storage: 'granted'
+  });
+  window.gtag('js', new Date());
+})();
+`
 
 // Fuente Inter autohospedada (woff2 locales) en lugar de next/font/google.
 // Elimina la dependencia de Google Fonts durante el build (que fallaba sin
@@ -148,6 +182,10 @@ export default async function RootLayout({
       <head>
         <link rel="preconnect" href="https://jmbkqelkusxjebsdnjoc.supabase.co" />
         <link rel="dns-prefetch" href="https://jmbkqelkusxjebsdnjoc.supabase.co" />
+        {/* GA4 se carga tras la hidratación (afterInteractive); un DNS prefetch
+            evita pagar la resolución DNS en ese momento. */}
+        <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
+        <script id="ga-consent-default" dangerouslySetInnerHTML={{ __html: gaConsentDefaultScript }} />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -200,6 +238,7 @@ export default async function RootLayout({
         <AuthProvider>
           {children}
         </AuthProvider>
+        <GoogleAnalytics />
         <RootClientEffects />
       </body>
     </html>

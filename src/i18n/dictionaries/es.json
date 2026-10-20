@@ -1070,6 +1070,14 @@
     "today": "Hoy",
     "yesterday": "Ayer"
   },
+  "cookies": {
+    "title": "Uso de cookies",
+    "message": "Usamos cookies propias y de terceros (Google Analytics) para analizar el tráfico y mejorar tu experiencia.",
+    "moreInfo": "Más información:",
+    "privacy": "política de privacidad",
+    "accept": "Aceptar",
+    "reject": "Rechazar"
+  },
   "pwa": {
     "installTitle": "Instala VendeT-Venezuela",
     "installDesc": "Acceso directo desde tu pantalla de inicio. Mas rapido, sin abrir el navegador.",
