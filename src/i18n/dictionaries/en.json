@@ -1070,6 +1070,14 @@
     "today": "Today",
     "yesterday": "Yesterday"
   },
+  "cookies": {
+    "title": "Cookie notice",
+    "message": "We use our own and third-party cookies (Google Analytics) to analyse traffic and improve your experience.",
+    "moreInfo": "More information:",
+    "privacy": "privacy policy",
+    "accept": "Accept",
+    "reject": "Reject"
+  },
   "pwa": {
     "installTitle": "Install VendeT-Venezuela",
     "installDesc": "Quick access from your home screen. Faster, no browser needed.",

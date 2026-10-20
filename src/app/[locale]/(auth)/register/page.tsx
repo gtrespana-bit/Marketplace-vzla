@@ -6,6 +6,7 @@ import { useRouter, usePathname } from 'next/navigation'
 import { AlertCircle } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { routing } from '@/i18n/routing'
+import { trackEvent } from '@/lib/analytics'
 
 export default function RegisterPage() {
   const t = useTranslations('auth')
@@ -73,6 +74,9 @@ export default function RegisterPage() {
         setLoading(false)
         return
       }
+
+      // Evento de conversión (nombre recomendado por GA4).
+      trackEvent('sign_up', { method: 'email' })
 
       // Mostrar mensaje de confirmación y redirigir a pantalla de confirmación
       sessionStorage.setItem('tempEmail', email)
