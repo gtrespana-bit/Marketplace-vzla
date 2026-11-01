@@ -126,8 +126,8 @@ gte/lte/in`, `or=(...)`) y se probaron los dos caminos contra `next build` +
 
 | # | Severidad | Hallazgo | Recomendación |
 |---|---|---|---|
-| S1 | 🟡 Media | `/api/contacto` limita por IP pero no valida que el campo `email` sea de un dominio real; un bot con IPs rotativas puede llenar el buzón. | Añadir rate limit también por email + cap diario global; captcha si aparece abuso. |
-| S2 | 🟡 Media | `/api/login` toma la IP de `x-forwarded-for` sin normalizar; en Vercel llega bien, pero aceptar el header tal cual permite *spoofear* la IP si algún día se despliega detrás de otro proxy. | Usar el primer valor de la lista o el `x-real-ip` de la plataforma, y documentar la dependencia. |
+| S1 | ✅ Resuelto | `/api/contacto` limitaba sólo por IP: un bot con IPs rotativas llenaba el buzón. | Rate limit **también por email** (`contacto:email`, 5/h, normalizado a minúsculas) y ambas comprobaciones deben pasar. La validación corre **antes** del rate limit para no crear claves basura con valores arbitrarios del cliente. Ver §2.4. |
+| S2 | ✅ Resuelto | **Más amplio de lo documentado**: no era sólo `/api/login`, sino **4 endpoints** (login, contacto, publicar, comprar-creditos) que usaban el header `x-forwarded-for` **entero** como identificador. Como es una lista (`cliente, proxy1, proxy2`), dos peticiones del mismo cliente detrás de proxies distintos generaban claves distintas y el límite se podía esquivar. | Todos pasan por `getClientIp()`, que toma el primer salto, **valida formato** y cae a `x-real-ip` / `cf-connecting-ip`. Ver §2.4. |
 | S3 | ✅ Resuelto | `/api/datos-pago` (endpoint huérfano) exponía la cuenta de Pago Móvil del administrador. **Corrección de criterio:** los datos de cobro *deben* ser públicos — son una dirección a la que transferir, y el flujo es pagar → comprobante → aprobación. Ocultarlos rompería la compra y además son visibles en el bundle del cliente. El riesgo real es la **suplantación**, no la visibilidad. | Se **eliminó el endpoint** (no lo llamaba nadie, usaba `SERVICE_ROLE_KEY` y tenía fallback hardcodeado) y se añadió un **aviso antifraude** junto a los datos en el modal de `/creditos`. Ver §2.3. |
 | S4 | ⚪ Baja | CSP con `'unsafe-inline'` y `'unsafe-eval'` en `script-src`. | Migrar a *nonces* (`middleware` ya existe) para endurecerla. |
 | S5 | ⚪ Baja | `/api/tasa-bcv` responde `429` cuando el rate limit se dispara; el cliente no reintenta. | Cachear en cliente 15 min (ya existe `getTasaBCVClient`) y servir la última tasa conocida. |
@@ -150,6 +150,42 @@ diciendo que es del equipo y le dé **su** número. Por eso:
 
 Contraste medido: `amber-900` sobre `amber-50` = **8.75:1** (AA y AAA).
 Cubierto por `tests/unit/creditos-aviso-fraude.test.ts` (6 casos).
+
+### 2.4 Rate limiting endurecido (S1 + S2)
+
+**S2 — la IP se usaba mal.** `x-forwarded-for` no es una IP: es una lista
+`cliente, proxy1, proxy2`. Cuatro endpoints la usaban entera como clave, así
+que la misma persona detrás de distinta cadena de proxies generaba claves
+distintas y el límite se esquivaba. Además, `x-forwarded-for: <basura>` de un
+cliente forzaba esa basura como identificador.
+
+`getClientIp()` ahora: toma el **primer salto**, lo **valida** con
+`/^[0-9a-fA-F:.]{3,45}$/`, cae a `x-real-ip` y luego a `cf-connecting-ip`, y
+si nada sirve devuelve `unknown`. Probado con 8 casos (IPv4, IPv6, espacios,
+basura, string de 80 caracteres, sin headers).
+
+**S1 — faltaba el límite por email.** Un bot con IPs rotativas podía inundar
+el mismo buzón. Ahora `/api/contacto` comprueba dos claves en paralelo
+(`contacto:send` por IP y `contacto:email` por email, 5/h) y **ambas deben
+pasar**. El email se normaliza a minúsculas (`Ana@X.com` y `ana@x.com` son la
+misma clave).
+
+Orden corregido: la **validación va antes** del rate limit. Si se limitara
+primero con un valor sin validar, un cliente podría crear filas de rate limit
+con claves arbitrarias sin tope. También un body JSON inválido ahora devuelve
+**400** en vez de 500.
+
+**Nota de despliegue:** esto asume que el proxy de la plataforma (Vercel)
+controla el primer valor de `x-forwarded-for`. Si algún día se pone otro proxy
+delante, ese proxy debe **sobrescribir** el header, no añadirse.
+
+### 2.5 `middleware.ts` → `proxy.ts` (Next 16)
+
+Next 16.2.12 renombra la convención: `src/proxy.ts` con la función exportada
+como `proxy`. Se migró conservando el matcher y el comportamiento (sólo
+routing de next-intl + header de locale). El build lo sigue marcando como
+`ƒ Proxy (Middleware)` y las rutas con prefijo de idioma (`/`, `/en`,
+`/en/catalogo`) responden 200.
 
 ---
 
@@ -226,8 +262,8 @@ Breadcrumb/FAQ, canonical + hreflang por página.
 |---|---|---|
 | 1 | Deploy en Vercel y probar `/catalogo` en un móvil real (o DevTools 3G lento) | El estado de error debe decir «Reintentar», nunca «No hay productos» |
 | 2 | Confirmar en Vercel Logs que `/producto/[slug]` responde `x-nextjs-cache: HIT` | Antes era `MISS`/dinámico siempre |
-| 3 | Renombrar `src/middleware.ts` → `src/proxy.ts` | Next 16 lo marca deprecado; funciona hoy, pero deja de funcionar en la próxima major |
-| 4 | Revisar los hallazgos abiertos de seguridad (§2.2) | ~~S3~~ **hecho** (§2.3). Quedan S1, S2, S4 y S5 |
+| 3 | ~~Renombrar `src/middleware.ts` → `src/proxy.ts`~~ | **Hecho** (§2.5) |
+| 4 | Revisar los hallazgos abiertos de seguridad (§2.2) | ~~S1~~ (§2.4), ~~S2~~ (§2.4), ~~S3~~ (§2.3) **hechos**. Quedan S4 y S5 |
 | 5 | Medir JS inicial con `npm run build:analyze` | Objetivo < 400 KB en páginas públicas |
 
 ---

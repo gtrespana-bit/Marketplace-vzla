@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { revalidatePath } from 'next/cache'
-import { checkRateLimit } from '@/lib/rate-limit'
+import { checkRateLimit, getClientIp } from '@/lib/rate-limit'
 import { createClient } from '@supabase/supabase-js'
 import { validateProductData, sanitizeObject } from '@/lib/validation'
 import { verificarContenido } from '@/lib/moderacion'
@@ -121,7 +121,7 @@ export async function POST(req: NextRequest) {
     sanitizedData.vendido_en = null
     sanitizedData.comprador_id = null
 
-    const ip = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown'
+    const ip = getClientIp(req)
     const rl = await checkRateLimit('producto:create', userId, { ip })
     if (!rl.ok) {
       return NextResponse.json(

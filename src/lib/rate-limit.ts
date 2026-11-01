@@ -17,6 +17,8 @@ const LIMITS: Record<string, { max: number; windowMs: number }> = {
   'auth:reconfirmar': { max: 3, windowMs: 60 * 60 * 1000 },
   'auth:reset': { max: 5, windowMs: 60 * 60 * 1000 },
   'contacto:send': { max: 10, windowMs: 60 * 60 * 1000 },
+  // Por email: un bot con IPs rotativas no puede inundar el mismo buzón.
+  'contacto:email': { max: 5, windowMs: 60 * 60 * 1000 },
   'conversacion:create': { max: 20, windowMs: 60 * 60 * 1000 },
   'favorito:toggle': { max: 100, windowMs: 60 * 60 * 1000 },
   'foto-perfil:update': { max: 10, windowMs: 60 * 60 * 1000 },
@@ -34,10 +36,32 @@ function getSupabaseClient() {
   )
 }
 
+/**
+ * IP del cliente para rate limiting.
+ *
+ * `x-forwarded-for` es una LISTA: "cliente, proxy1, proxy2". Cada proxy añade
+ * su valor al final. Si se usa el header completo como identificador (como se
+ * hacía a mano en login, contacto, publicar y comprar-creditos), la clave del
+ * rate limit deja de agrupar al mismo cliente entre peticiones y el límite se
+ * vuelve esquivo. Aquí siempre se toma el primer salto normalizado.
+ *
+ * ⚠️ En Vercel el primer valor lo controla la plataforma y es fiable. Si algún
+ * día se despliega detrás de otro proxy, ese proxy debe sobrescribir
+ * `x-forwarded-for` (no añadirse), o el cliente podría inyectar su propia IP.
+ */
 export function getClientIp(request: Request): string {
-  return request.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
-    || request.headers.get('x-real-ip')
-    || 'unknown'
+  const forwarded = request.headers.get('x-forwarded-for')
+  if (forwarded) {
+    // [:1] -> primer salto; se valida que sea al menos algo con forma de IP.
+    const first = forwarded.split(',')[0]?.trim()
+    if (first && /^[0-9a-fA-F:.]{3,45}$/.test(first)) return first
+  }
+  const realIp = request.headers.get('x-real-ip')?.trim()
+  if (realIp && /^[0-9a-fA-F:.]{3,45}$/.test(realIp)) return realIp
+  // Cloudflare / proxies habituales
+  const cf = request.headers.get('cf-connecting-ip')?.trim()
+  if (cf && /^[0-9a-fA-F:.]{3,45}$/.test(cf)) return cf
+  return 'unknown'
 }
 
 export function rateLimitResponse(resetIn: number): Response {
