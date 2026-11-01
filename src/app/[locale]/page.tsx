@@ -445,7 +445,14 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
         <div className="absolute bottom-0 left-0 w-64 h-64 bg-brand-accent/5 rounded-full blur-2xl translate-y-1/3 -translate-x-1/4" />
 
         <div className="max-w-7xl mx-auto px-4 relative z-10 grid xl:grid-cols-[1.15fr_0.85fr] gap-8 lg:gap-12 items-center">
-          <div className="flex flex-col items-center text-center xl:items-start xl:text-left">
+          {/*
+            `min-w-0` es obligatorio: como item de grid tiene `min-width: auto`,
+            y con los hijos en `w-full` dentro de una columna flex sin ancho
+            definido, esos porcentajes se resolvían contra el *max-content*
+            (598 px en un móvil de 360). El resultado: el hero se recortaba por
+            la derecha porque la sección tiene `overflow-hidden`.
+          */}
+          <div className="w-full min-w-0 flex flex-col items-center text-center xl:items-start xl:text-left">
             <div className="self-center xl:self-start inline-flex items-center gap-2 bg-white/10 border border-white/20 rounded-full px-4 py-1.5 mb-4">
               <span className="text-xs font-semibold text-white">{t('home.hero.chip')}</span>
             </div>
@@ -458,7 +465,12 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
               {t('home.hero.subtitle')}
             </p>
 
-            {/* Buscador grande: en móvil el del header está oculto, este es el principal */}
+            {/*
+              Buscador grande: en móvil el del header está oculto, este es el
+              principal. Dos textos de placeholder porque el largo
+              ("¿Qué estás buscando? iPhone, moto, sofá…") medía 331 px y sólo
+              hay 142-236 px disponibles en móvil: se cortaba a mitad de palabra.
+            */}
             <form action={searchAction} method="GET" className="relative w-full max-w-xl mb-3">
               <label htmlFor="hero-search" className="sr-only">{t('home.hero.searchPlaceholder')}</label>
               <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
@@ -466,12 +478,12 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
                 id="hero-search"
                 type="text"
                 name="q"
-                placeholder={t('home.hero.searchPlaceholder')}
-                className="w-full py-3.5 pl-11 pr-28 rounded-full text-gray-900 bg-white shadow-lg shadow-black/20 focus:outline-none focus:ring-4 focus:ring-brand-accent/40"
+                placeholder={t('home.hero.searchPlaceholderShort')}
+                className="w-full truncate rounded-full bg-white py-3.5 pl-11 pr-24 text-gray-900 shadow-lg shadow-black/20 focus:outline-none focus:ring-4 focus:ring-brand-accent/40 sm:pr-28"
               />
               <button
                 type="submit"
-                className="absolute right-1.5 top-1/2 -translate-y-1/2 bg-brand-primary text-white px-5 py-2.5 rounded-full font-bold text-sm hover:bg-brand-dark transition"
+                className="absolute right-1.5 top-1/2 -translate-y-1/2 rounded-full bg-brand-primary px-4 py-2.5 text-sm font-bold text-white transition hover:bg-brand-dark sm:px-5"
               >
                 {t('home.hero.searchButton')}
               </button>

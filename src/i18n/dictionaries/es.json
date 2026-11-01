@@ -54,7 +54,8 @@
         "week": "Publicaciones esta semana",
         "cost": "Costo por publicar",
         "open": "Abierto 24/7"
-      }
+      },
+      "searchPlaceholderShort": "¿Qué buscas?"
     },
     "freeBanner": {
       "title": "Publicar es 100% GRATIS",

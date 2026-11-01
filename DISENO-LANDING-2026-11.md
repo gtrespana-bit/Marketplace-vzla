@@ -84,13 +84,43 @@ Se amplió el mock de Supabase (`/mock-supabase`, fuera de Git) para poder ver l
 
 Resultado en el HTML servido: **las 7 secciones se renderizan** (`Explora por categoría`, `Recién publicado`, `Destacados`, `Lo más visto`, `Vendidos recientemente`, `Vende en 3 pasos`, `¿Tienes algo para vender?`), 16 productos enlazados, 0 clases CSS inexistentes, 0 tokens corruptos (`&ldquo;`, `undefined` visible, `NaN`, `{count}`).
 
+## 2.b Corrección posterior: el hero se seguía viendo cortado
+
+Reporte del usuario: *"el Hero se sigue viendo cortado"*. Esta vez se pudo **medir en un navegador real** (Chromium empaquetado vía `@sparticuz/chromium`, con sus `libnspr4`/`libnss3` extraídos del propio paquete; el entorno no las tenía instaladas).
+
+### Diagnóstico (medido, no supuesto)
+
+| Viewport | Ancho del bloque de texto | Ancho disponible | Resultado |
+|---|---|---|---|
+| 360 px | **598 px** | 328 px | recortado por `overflow-hidden` |
+| 390 px | **598 px** | 358 px | recortado |
+| 414 px | **598 px** | 382 px | recortado |
+| 768 px+ | correcto | — | ok |
+
+El `<h1>` medía 600 px de ancho en un móvil de 360, con el chip y los CTAs saliéndose a la derecha hasta 616 px (la sección mide 360 y tiene `overflow-hidden`, así que el exceso **se recortaba** en vez de provocar scroll).
+
+**Causa raíz:** la columna del hero era un ítem de grid con `min-width: auto` y **sin ancho definido**, con los hijos en `w-full`. En una columna `flex`, un porcentaje de ancho contra un contenedor indefinido se resuelve contra el *max-content* del contenido —no contra el espacio disponible—, así que el bloque crecía hasta el ancho de su contenido más ancho y luego se recortaba.
+
+**Arreglo:** `w-full min-w-0` en la columna. `min-w-0` desactiva el `min-width: auto` del ítem de grid y hace que el 100% resuelva contra el ancho real.
+
+### Segundo defecto encontrado al revisar las capturas
+El *placeholder* del buscador se cortaba a mitad de palabra ("iPhone" → "iPhor"). Medido: el texto `"¿Qué estás buscando? iPhone, moto, sofá…"` ocupaba **331 px** y sólo había **142–236 px** disponibles (el botón "Buscar" se come el resto). Se añadió `home.hero.searchPlaceholderShort` ("¿Qué buscas?" / "What are you looking for?", 104 px) y se redujo el padding del botón en móvil.
+
+### Verificación en navegador real (9 anchos)
+
+`320, 360, 390, 414, 768, 1024, 1280, 1440, 1920` → hero = ancho del viewport en todos, `<h1>` y buscador dentro de la sección, **0 elementos desbordando**, `scrollWidth == clientWidth`. Comprobadas además 10 rutas a 360 px y a 1440 px: sin desbordes horizontales. El collage (desde `xl`) no toca el texto ni se sale del viewport a 1280/1440/1920.
+
+Regresión cubierta por `tests/unit/hero-geometria.test.ts` (7 casos).
+
+> Nota sobre las capturas: en este Chromium de pruebas los emojis salen como cuadraditos porque el paquete no incluye fuente de emoji. Es del entorno de verificación, no del sitio (en un dispositivo real se ven).
+
 ## 3. Estado de las comprobaciones
 
 | Comprobación | Resultado |
 |---|---|
 | `tsc --noEmit` | 0 errores |
 | `eslint .` | 0 errores / 5 warnings preexistentes |
-| `npm test` | 17 suites, **108/108** tests |
+| `npm test` | 18 suites, **115/115** tests |
 | `npm run build` | OK, 181 rutas |
 | Rutas servidas | `/`, `/en`, `/caracas`, `/categoria/vehiculos`, `/catalogo`, `/buscar`, `/blog`, `/creditos`, `/como-funciona` → 200 |
 | Contraste | pares corregidos ≥ 4.5:1 |
@@ -98,7 +128,7 @@ Resultado en el HTML servido: **las 7 secciones se renderizan** (`Explora por ca
 
 ## 4. Pendiente / fuera de alcance
 
-- **No se pudo ver con navegador real**: falta `libnss3` y no hay egress a los CDN de Chromium. La comprobación es sobre DOM + CSS compilado; conviene una pasada visual en un dispositivo real (sobre todo el collage en `xl` y el safe-area en iPhone con notch).
+- ~~No se pudo ver con navegador real~~ → **resuelto**: se usa el Chromium empaquetado de `@sparticuz/chromium` con sus librerías. La verificación ahora sí es visual y por medición. Queda pendiente una pasada en dispositivo físico para el `safe-area` de iPhone con notch (no simulable con exactitud).
 - ~710 KB de JS inicial en páginas públicas (documentado en `REVISION-2026-11.md`).
 - `middleware.ts` → `proxy.ts` (deprecación de Next 16).
 - `[ciudad]`, `[ciudad]/[categoria]` y `vendedor/[id]` siguen siendo dinámicas (ƒ).
