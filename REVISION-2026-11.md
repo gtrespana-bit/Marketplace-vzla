@@ -130,7 +130,7 @@ gte/lte/in`, `or=(...)`) y se probaron los dos caminos contra `next build` +
 | S2 | ✅ Resuelto | **Más amplio de lo documentado**: no era sólo `/api/login`, sino **4 endpoints** (login, contacto, publicar, comprar-creditos) que usaban el header `x-forwarded-for` **entero** como identificador. Como es una lista (`cliente, proxy1, proxy2`), dos peticiones del mismo cliente detrás de proxies distintos generaban claves distintas y el límite se podía esquivar. | Todos pasan por `getClientIp()`, que toma el primer salto, **valida formato** y cae a `x-real-ip` / `cf-connecting-ip`. Ver §2.4. |
 | S3 | ✅ Resuelto | `/api/datos-pago` (endpoint huérfano) exponía la cuenta de Pago Móvil del administrador. **Corrección de criterio:** los datos de cobro *deben* ser públicos — son una dirección a la que transferir, y el flujo es pagar → comprobante → aprobación. Ocultarlos rompería la compra y además son visibles en el bundle del cliente. El riesgo real es la **suplantación**, no la visibilidad. | Se **eliminó el endpoint** (no lo llamaba nadie, usaba `SERVICE_ROLE_KEY` y tenía fallback hardcodeado) y se añadió un **aviso antifraude** junto a los datos en el modal de `/creditos`. Ver §2.3. |
 | S4 | ⚪ Baja | CSP con `'unsafe-inline'` y `'unsafe-eval'` en `script-src`. | Migrar a *nonces* (`middleware` ya existe) para endurecerla. |
-| S5 | ⚪ Baja | `/api/tasa-bcv` responde `429` cuando el rate limit se dispara; el cliente no reintenta. | Cachear en cliente 15 min (ya existe `getTasaBCVClient`) y servir la última tasa conocida. |
+| S5 | ✅ Resuelto | `/api/tasa-bcv` devolvía `429` **con uso normal**, no sólo bajo ataque: el límite es de 60/h **por IP** y una IP pública es una oficina entera compartiendo NAT. Además, `actualizarTasaClient()` pedía la tasa en **cada montaje ignorando la caché que tenía al lado** (2 peticiones por visita al dashboard, 1 por ficha de producto). | Un único camino de red (`fetchTasaConCache`), caché real de 15 min, deduplicación de peticiones concurrentes, `Cache-Control` en el endpoint y última tasa conocida como red de seguridad ante 429/5xx. Ver §2.6. |
 
 ### 2.3 Aviso antifraude en la compra de créditos (S3)
 
@@ -186,6 +186,68 @@ como `proxy`. Se migró conservando el matcher y el comportamiento (sólo
 routing de next-intl + header de locale). El build lo sigue marcando como
 `ƒ Proxy (Middleware)` y las rutas con prefijo de idioma (`/`, `/en`,
 `/en/catalogo`) responden 200.
+
+### 2.6 Tasa BCV: caché de cliente y degradación sin 429 (S5)
+
+**El 429 no era un ataque, era arquitectura.** El endpoint tiene un límite de
+60 peticiones por hora **por IP** (`src/lib/rate-limit.ts`). En Venezuela una
+IP pública suele ser un edificio, una oficina o una familia entera saliendo por
+el mismo NAT, así que la cuota se agotaba con tráfico legítimo y el usuario
+veía la tasa de contingencia sin entender por qué.
+
+El tope real no estaba en el servidor, sino en el cliente:
+`actualizarTasaClient()` **siempre** hacía `fetch('/api/tasa-bcv')` en el
+montaje, ignorando el `localStorage` que tenía justo al lado. Resultado: 2
+peticiones por visita al dashboard y 1 por cada ficha de producto, multiplicado
+por cada usuario detrás de esa IP.
+
+**Qué cambió**
+
+- **Un solo camino de red.** Las dos funciones de cliente se colapsaron en
+  `fetchTasaConCache()`; `actualizarTasaClient()` queda como *alias
+  deprecado*, para no tocar a sus consumidores pero garantizando que ya no
+  existe una segunda ruta que se salte la caché.
+- **Caché por antigüedad, no por fuente.** El bug sutil: la comprobación era
+  `cached.fuente === 'api'`. Si el proveedor no respondía en esa petición, la
+  tasa se guardaba con `fuente: 'fallback'`; en el siguiente montaje la caché
+  estaba **fresca** pero la condición fallaba y se pedía de nuevo. Ahora la
+  única pregunta es `edadMs < 15 min`.
+- **Deduplicación.** Un módulo con una única promesa en vuelo
+  (`tasaEnVuelo`) evita que varios componentes montando a la vez disparen
+  peticiones en paralelo.
+- **Red de seguridad.** Ante 429, 5xx, `AbortSignal` o red caída se devuelve
+  **la última tasa conocida**, no el 746 fijo. Mejor una tasa de hace 20
+  minutos (y refrescada justo después) que un número inventado.
+  `getTasaBCVClient()` también devuelve el valor caducado si existe.
+- **Caché de CDN.** El endpoint responde
+  `Cache-Control: public, s-maxage=900, stale-while-revalidate=3600`, de modo
+  que Vercel sirve la tasa desde el borde y las peticiones ni siquiera llegan a
+  contar contra el límite por IP.
+- **Validación del proveedor.** `fetchFromAPI()` acepta tanto la lista de
+  casas como la forma `{ promedio }` y sigue descartando cualquier valor
+  `<= 10` (el bolívar no baja de ahí desde 2021), así un dato corrupto nunca
+  se propaga.
+
+**Verificación**
+
+| Escenario | Resultado |
+|---|---|
+| Primera visita a `/creditos` | 1 petición, caché escrita |
+| Recarga con caché fresca | **0 peticiones** |
+| Caché caducada (16 min) | 1 petición de refresco, `timestamp` renovado |
+| Endpoint en 429 con tasa real caducada (812,50) | muestra **812,50**, no el 746 |
+| 429 / offline | sin mensaje de error visible al usuario |
+| `/dashboard` primera visita | 1 petición (antes 2) |
+| `/dashboard` recarga | **0 peticiones** |
+
+`tests/unit/tasa-bcv-cache.test.ts` cubre los 12 casos (frescura, el bug de la
+fuente, caducidad, 429, 5xx, offline, sin caché previa, concurrencia, JSON
+corrupto y registro sin tasa). Suite total: **23 suites / 153 pruebas**.
+
+> Nota de método: en las trazas del navegador aparecen **dos** entradas por
+> recarga, pero sólo una es `resourceType: 'fetch'`; la otra es `'other'`, un
+> prefetch del propio navegador que no ejecuta código de la aplicación. Contar
+> peticiones sin separar por tipo lleva a diagnosticar un bug inexistente.
 
 ---
 
@@ -263,7 +325,7 @@ Breadcrumb/FAQ, canonical + hreflang por página.
 | 1 | Deploy en Vercel y probar `/catalogo` en un móvil real (o DevTools 3G lento) | El estado de error debe decir «Reintentar», nunca «No hay productos» |
 | 2 | Confirmar en Vercel Logs que `/producto/[slug]` responde `x-nextjs-cache: HIT` | Antes era `MISS`/dinámico siempre |
 | 3 | ~~Renombrar `src/middleware.ts` → `src/proxy.ts`~~ | **Hecho** (§2.5) |
-| 4 | Revisar los hallazgos abiertos de seguridad (§2.2) | ~~S1~~ (§2.4), ~~S2~~ (§2.4), ~~S3~~ (§2.3) **hechos**. Quedan S4 y S5 |
+| 4 | Revisar los hallazgos abiertos de seguridad (§2.2) | ~~S1~~ (§2.4), ~~S2~~ (§2.4), ~~S3~~ (§2.3), ~~S5~~ (§2.6) **hechos**. Queda S4 |
 | 5 | Medir JS inicial con `npm run build:analyze` | Objetivo < 400 KB en páginas públicas |
 
 ---

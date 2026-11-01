@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { CreditCard, Zap, Star, X, CheckCircle, Upload, Loader2 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import Image from 'next/image'
-import { FALLBACK_BCV_RATE } from '@/lib/tasaBCV'
+import { FALLBACK_BCV_RATE, fetchTasaConCache } from '@/lib/tasaBCV'
 
 const metodosPagoCreditos = [
   { id: 'pagomovil', nombre: 'Pago Móvil', emoji: '📱', instrucciones: { telefono: '04126443099', cedula: 'V20794917', banco: 'Banco Provincial BBVA' } },
@@ -17,7 +17,10 @@ export default function TabCreditos({ creditos, tasaBs, refreshCreditos }: { cre
   const [tasaFuente, setTasaFuente] = useState<'api' | 'fallback'>('fallback')
 
   useEffect(() => {
-    fetch('/api/tasa-bcv').then(r => r.json()).then(d => { if (d.tasa) { setTasa(d.tasa); setTasaFuente(d.fuente === 'api' ? 'api' : 'fallback') } }).catch(() => {})
+    // S5: con caché + fallback a la última tasa conocida. Antes, un 429 (que
+    // llega con uso normal: el límite es por IP y una oficina comparte IP)
+    // dejaba la pestaña con la tasa de contingencia.
+    fetchTasaConCache().then(d => { if (d.tasa) { setTasa(d.tasa); setTasaFuente(d.fuente === 'api' ? 'api' : 'fallback') } }).catch(() => {})
   }, [])
 
   return (

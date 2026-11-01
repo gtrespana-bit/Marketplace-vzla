@@ -8,7 +8,7 @@ import {
 import { supabase } from '@/lib/supabase'
 import { useTranslations } from 'next-intl'
 import Image from 'next/image'
-import { FALLBACK_BCV_RATE } from '@/lib/tasaBCV'
+import { FALLBACK_BCV_RATE, fetchTasaConCache } from '@/lib/tasaBCV'
 import { PAQUETES_CREDITO } from '@/lib/creditos'
 
 const paquetesCredito = PAQUETES_CREDITO
@@ -260,7 +260,11 @@ export default function CreditosPage() {
   const [tasaFuente, setTasaFuente] = useState<'api' | 'fallback'>('fallback')
 
   useEffect(() => {
-    fetch('/api/tasa-bcv').then(r => r.json()).then(d => { if (d.tasa) { setTasa(d.tasa); setTasaFuente(d.fuente === 'api' ? 'api' : 'fallback') } }).catch(() => {}).finally(() => setTasaCargando(false))
+    // S5: caché de 15 min + fallback a la última tasa conocida ante 429/5xx.
+    fetchTasaConCache()
+      .then(d => { if (d.tasa) { setTasa(d.tasa); setTasaFuente(d.fuente === 'api' ? 'api' : 'fallback') } })
+      .catch(() => {})
+      .finally(() => setTasaCargando(false))
   }, [])
 
   return (
