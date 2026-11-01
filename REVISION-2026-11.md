@@ -128,9 +128,28 @@ gte/lte/in`, `or=(...)`) y se probaron los dos caminos contra `next build` +
 |---|---|---|---|
 | S1 | 🟡 Media | `/api/contacto` limita por IP pero no valida que el campo `email` sea de un dominio real; un bot con IPs rotativas puede llenar el buzón. | Añadir rate limit también por email + cap diario global; captcha si aparece abuso. |
 | S2 | 🟡 Media | `/api/login` toma la IP de `x-forwarded-for` sin normalizar; en Vercel llega bien, pero aceptar el header tal cual permite *spoofear* la IP si algún día se despliega detrás de otro proxy. | Usar el primer valor de la lista o el `x-real-ip` de la plataforma, y documentar la dependencia. |
-| S3 | 🟡 Media | `/api/datos-pago` es público y expone la cuenta de Pago Móvil del administrador (necesario para cobrar, pero es un objetivo de fraude). | Servir solo para usuarios autenticados, o mostrar los datos parcialmente (…últimos 4 dígitos) hasta que el usuario inicie sesión. |
+| S3 | ✅ Resuelto | `/api/datos-pago` (endpoint huérfano) exponía la cuenta de Pago Móvil del administrador. **Corrección de criterio:** los datos de cobro *deben* ser públicos — son una dirección a la que transferir, y el flujo es pagar → comprobante → aprobación. Ocultarlos rompería la compra y además son visibles en el bundle del cliente. El riesgo real es la **suplantación**, no la visibilidad. | Se **eliminó el endpoint** (no lo llamaba nadie, usaba `SERVICE_ROLE_KEY` y tenía fallback hardcodeado) y se añadió un **aviso antifraude** junto a los datos en el modal de `/creditos`. Ver §2.3. |
 | S4 | ⚪ Baja | CSP con `'unsafe-inline'` y `'unsafe-eval'` en `script-src`. | Migrar a *nonces* (`middleware` ya existe) para endurecerla. |
 | S5 | ⚪ Baja | `/api/tasa-bcv` responde `429` cuando el rate limit se dispara; el cliente no reintenta. | Cachear en cliente 15 min (ya existe `getTasaBCVClient`) y servir la última tasa conocida. |
+
+### 2.3 Aviso antifraude en la compra de créditos (S3)
+
+Los datos de Pago Móvil (`04126443099`) y Binance ID (`204147542`) **siguen
+siendo públicos a propósito**: son la dirección de cobro. Están además en el
+bundle del cliente, así que "protegerlos" en el servidor no aportaría nada.
+
+El vector de ataque real es que un tercero escriba a un usuario por el chat
+diciendo que es del equipo y le dé **su** número. Por eso:
+
+- El aviso va **dentro del mismo bloque** que los datos, antes de la lista de
+  instrucciones: se lee antes de copiar el número, no en otra página.
+- Menciona explícitamente el fraude por chat.
+- Recuerda pagar el monto exacto en Bs (que es lo que se revisa al aprobar).
+- La cuenta va marcada como "Cuenta oficial".
+- `role="note"` + iconos `aria-hidden`: accesible sin ruido para lectores.
+
+Contraste medido: `amber-900` sobre `amber-50` = **8.75:1** (AA y AAA).
+Cubierto por `tests/unit/creditos-aviso-fraude.test.ts` (6 casos).
 
 ---
 
@@ -208,7 +227,7 @@ Breadcrumb/FAQ, canonical + hreflang por página.
 | 1 | Deploy en Vercel y probar `/catalogo` en un móvil real (o DevTools 3G lento) | El estado de error debe decir «Reintentar», nunca «No hay productos» |
 | 2 | Confirmar en Vercel Logs que `/producto/[slug]` responde `x-nextjs-cache: HIT` | Antes era `MISS`/dinámico siempre |
 | 3 | Renombrar `src/middleware.ts` → `src/proxy.ts` | Next 16 lo marca deprecado; funciona hoy, pero deja de funcionar en la próxima major |
-| 4 | Revisar los 5 hallazgos abiertos de seguridad (§2.2) | S3 (datos de pago) es el más sensible |
+| 4 | Revisar los hallazgos abiertos de seguridad (§2.2) | ~~S3~~ **hecho** (§2.3). Quedan S1, S2, S4 y S5 |
 | 5 | Medir JS inicial con `npm run build:analyze` | Objetivo < 400 KB en páginas públicas |
 
 ---

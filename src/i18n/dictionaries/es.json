@@ -560,7 +560,12 @@
     "bank": "Banco",
     "amountPay": "Monto a pagar (Pago Móvil)",
     "removeImage": "Quitar imagen",
-    "notOperational": "No operativo"
+    "notOperational": "No operativo",
+    "antiFraudTitle": "Verifica antes de pagar",
+    "antiFraudBody": "Estos son los <strong>únicos datos oficiales</strong> de VendeT. No pagues a ninguna otra cuenta.",
+    "antiFraudChat": "Si alguien te escribe por el chat diciendo que es del equipo y te da otro número, <strong>no pagues</strong>: escríbenos desde la página de contacto.",
+    "antiFraudAmount": "Paga el monto exacto en bolívares que aparece arriba.",
+    "officialAccount": "Cuenta oficial"
   },
   "publicar": {
     "title": "Publicar algo",

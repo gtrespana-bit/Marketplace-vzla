@@ -560,7 +560,12 @@
     "bank": "Bank",
     "amountPay": "Amount to pay (Pago Móvil)",
     "removeImage": "Remove image",
-    "notOperational": "Not operational"
+    "notOperational": "Not operational",
+    "antiFraudTitle": "Verify before you pay",
+    "antiFraudBody": "These are the <strong>only official VendeT details</strong>. Do not pay any other account.",
+    "antiFraudChat": "If someone messages you in the chat claiming to be from the team and gives you a different number, <strong>do not pay</strong>: reach us from the contact page.",
+    "antiFraudAmount": "Pay the exact amount in bolívares shown above.",
+    "officialAccount": "Official account"
   },
   "publicar": {
     "title": "Post something",

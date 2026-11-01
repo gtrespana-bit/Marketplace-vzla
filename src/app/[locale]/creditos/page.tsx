@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import {
-  CheckCircle, Zap, Star, X, Copy, Upload, Loader2
+  CheckCircle, Zap, Star, X, Copy, Upload, Loader2, ShieldAlert, BadgeCheck
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useTranslations } from 'next-intl'
@@ -158,11 +158,44 @@ function ModalPago({ paquete, tasa, onClose }: { paquete: any; tasa: number; onC
             </div>
           )}
 
-          {/* Datos de pago */}
+          {/* Datos de pago.
+              OJO: estos datos (Pago Móvil / Binance ID) son públicos A PROPÓSITO:
+              son una dirección de cobro, y sin verlos nadie puede pagar. El
+              riesgo real no es que se vean, sino que un estafador dé SU cuenta
+              por el chat. Por eso el aviso de abajo debe ir SIEMPRE pegado a
+              ellos, no en una página aparte. */}
           {selectedMetodo && (
             <div>
               <h4 className="font-bold text-gray-800 mb-3">{t('paymentData')}</h4>
+
+              {/* Aviso antifraude: el dato es público, el riesgo es la suplantación */}
+              <div
+                role="note"
+                className="mb-3 rounded-xl border-2 border-amber-300 bg-amber-50 p-3.5"
+              >
+                <p className="flex items-center gap-2 text-sm font-bold text-amber-900">
+                  <ShieldAlert size={16} aria-hidden="true" />
+                  {t('antiFraudTitle')}
+                </p>
+                <p className="mt-1.5 text-xs leading-relaxed text-amber-900">
+                  {t.rich('antiFraudBody', { strong: (chunks) => <strong>{chunks}</strong> })}
+                </p>
+                <p className="mt-1.5 text-xs leading-relaxed text-amber-900">
+                  {t.rich('antiFraudChat', { strong: (chunks) => <strong>{chunks}</strong> })}
+                </p>
+                {isPagoMovil && (
+                  <p className="mt-1.5 flex items-start gap-1.5 text-xs font-semibold text-amber-900">
+                    <BadgeCheck size={13} className="mt-0.5 shrink-0" aria-hidden="true" />
+                    {t('antiFraudAmount')}
+                  </p>
+                )}
+              </div>
+
               <div className="bg-gray-50 rounded-xl p-4 space-y-3">
+                <p className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wide text-brand-primary">
+                  <BadgeCheck size={13} aria-hidden="true" />
+                  {t('officialAccount')}
+                </p>
                 {Object.entries(selectedMetodo.instrucciones).map(([key, value]) => {
                   const labelMap: Record<string, string> = { telefono: t('phone'), cedula: t('idCard'), banco: t('bank'), id: 'Binance ID' }
                   return (
