@@ -27,8 +27,11 @@ export function Footer() {
   const t = useTranslations()
 
   return (
-    <footer className="bg-brand-dark text-gray-300 mt-auto pb-20 md:pb-0">
-      <div className="hidden md:block">
+    // En móvil el Footer era `hidden md:block` + `pb-20`: una banda oscura
+    // VACÍA de 80px al final de cada página (el padding del bottom nav sin
+    // contenido). Ahora hay footer real en móvil: marca + legales + copyright.
+    <footer className="bg-brand-dark text-gray-300 mt-auto">
+      <div className="hidden md:block pb-0">
         <div className="max-w-7xl mx-auto px-4 py-12">
           <div className="grid grid-cols-1 md:grid-cols-5 gap-8">
             <div>
@@ -89,6 +92,39 @@ export function Footer() {
           <div className="border-t border-gray-700 mt-8 pt-6 text-center text-sm">
             <p>© {new Date().getFullYear()} VendeT-Venezuela. {t('footer.allRightsReserved')}</p>
           </div>
+        </div>
+      </div>
+
+      {/* ============ FOOTER MÓVIL ============ */}
+      <div className="md:hidden px-4 py-8 pb-24">
+        <div className="flex flex-col items-center gap-4 text-center">
+          <LocalLink href="/" className="inline-flex items-center gap-2">
+            <Image
+              src="/logo-vendet.webp"
+              alt="VendeT"
+              width={28}
+              height={28}
+              className="h-7 w-7 object-contain rounded-lg drop-shadow-[0_0_4px_rgba(255,255,255,0.4)] bg-white/80 p-0.5"
+            />
+            <span className="font-black text-lg">
+              <span className="text-yellow-400">Vende</span>
+              <span className="text-white">T</span>
+            </span>
+          </LocalLink>
+
+          <p className="text-xs text-gray-300 max-w-xs">{t('footer.description')}</p>
+
+          <nav aria-label={t('footer.legal')} className="flex flex-wrap justify-center gap-x-5 gap-y-2 text-sm">
+            <LocalLink href="/como-funciona" className="hover:text-brand-accent transition">{t('footer.howItWorks')}</LocalLink>
+            <LocalLink href="/sobre-nosotros" className="hover:text-brand-accent transition">{t('footer.aboutUs')}</LocalLink>
+            <LocalLink href="/faq" className="hover:text-brand-accent transition">FAQ</LocalLink>
+            <LocalLink href="/terminos-y-condiciones" className="hover:text-brand-accent transition">{t('footer.terms')}</LocalLink>
+            <LocalLink href="/politica-de-privacidad" className="hover:text-brand-accent transition">{t('footer.privacy')}</LocalLink>
+          </nav>
+
+          <p className="text-[11px] text-gray-400 mt-1">
+            © {new Date().getFullYear()} VendeT-Venezuela. {t('footer.allRightsReserved')}
+          </p>
         </div>
       </div>
     </footer>

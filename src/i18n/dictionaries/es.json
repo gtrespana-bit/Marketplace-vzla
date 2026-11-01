@@ -52,7 +52,8 @@
         "users": "Personas registradas",
         "commission": "Comisión por vender",
         "week": "Publicaciones esta semana",
-        "cost": "Costo por publicar"
+        "cost": "Costo por publicar",
+        "open": "Abierto 24/7"
       }
     },
     "freeBanner": {
@@ -90,7 +91,8 @@
     "trending": {
       "title": "Lo más visto",
       "period": "Últimos 7 días",
-      "views": "vistas"
+      "views": "vistas",
+      "chip": "Trending"
     },
     "how": {
       "eyebrow": "Publicar es así de fácil",
@@ -130,7 +132,8 @@
       "title": "Vendidos recientemente",
       "subtitle": "Esto se vende en VendeT. El tuyo puede ser el próximo.",
       "badge": "Vendido",
-      "cta": "Publica el tuyo — gratis"
+      "cta": "Publica el tuyo — gratis",
+      "venezuela": "Venezuela"
     }
   },
   "notFound": {
@@ -416,7 +419,11 @@
       "services": "Servicios",
       "others": "Otros"
     },
-    "searchLabel": "Buscar"
+    "searchLabel": "Buscar",
+    "loading": "Cargando productos…",
+    "offlineTitle": "No pudimos cargar el catálogo",
+    "offlineCta": "Reintentar",
+    "retryHint": "Revisa tu conexión e inténtalo de nuevo."
   },
   "productCard": {
     "featured": "Destacado",

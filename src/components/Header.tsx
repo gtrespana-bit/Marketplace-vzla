@@ -181,9 +181,9 @@ export function Header() {
               <button 
                 type="submit" 
                 aria-label={t('header.searchAria')}
-                className="absolute right-2 top-1/2 -translate-y-1/2 bg-brand-accent p-1.5 rounded-full hover:bg-accent/90 transition"
+                className="absolute right-2 top-1/2 -translate-y-1/2 bg-brand-accent p-1.5 rounded-full hover:bg-accent-dark transition"
               >
-                <Search size={18} className="text-brand-primary" />
+                <Search size={18} className="text-brand-dark" />
               </button>
             </form>
 
@@ -239,7 +239,7 @@ export function Header() {
               {!user ? (
                 <>
                   <LocalLink href="/login" className="hidden md:inline px-3 py-2 text-sm font-medium hover:text-brand-accent transition">{t('header.signIn')}</LocalLink>
-                  <LocalLink href="/register" className="hidden md:inline bg-brand-accent text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-accent/90 transition">{t('header.signUp')}</LocalLink>
+                  <LocalLink href="/register" className="hidden md:inline bg-brand-accent text-brand-dark px-4 py-2 rounded-lg text-sm font-bold hover:bg-accent-dark transition">{t('header.signUp')}</LocalLink>
                   {!isPWA && (
                     <button 
                       aria-label={mobileOpen ? t('header.closeMenu') : t('header.openMenu')}
@@ -252,7 +252,7 @@ export function Header() {
                 </>
               ) : (
                 <>
-                  <LocalLink href="/publicar" className="hidden md:flex items-center gap-1 bg-brand-accent text-white px-3 py-2 rounded-lg text-sm font-bold hover:brightness-110 transition">
+                  <LocalLink href="/publicar" className="hidden md:flex items-center gap-1 bg-brand-accent text-brand-dark px-3 py-2 rounded-lg text-sm font-bold hover:brightness-110 transition">
                     <PlusCircle size={16} /> {t('header.publish')}
                   </LocalLink>
                   <LocalLink 
@@ -305,11 +305,11 @@ export function Header() {
                 {!user ? (
                   <>
                     <LocalLink href="/login" onClick={() => setMobileOpen(false)} className="px-3 py-2 rounded-lg hover:bg-white/10 transition">{t('header.signIn')}</LocalLink>
-                    <LocalLink href="/register" onClick={() => setMobileOpen(false)} className="px-3 py-2 rounded-lg bg-brand-accent text-white font-bold text-center transition">{t('header.signUpFree')}</LocalLink>
+                    <LocalLink href="/register" onClick={() => setMobileOpen(false)} className="px-3 py-2 rounded-lg bg-brand-accent text-brand-dark font-bold text-center transition">{t('header.signUpFree')}</LocalLink>
                   </>
                 ) : (
                   <>
-                    <LocalLink href="/publicar" onClick={() => setMobileOpen(false)} className="px-3 py-2 rounded-lg bg-brand-accent text-white font-bold text-center transition">📢 {t('header.publishSomething')}</LocalLink>
+                    <LocalLink href="/publicar" onClick={() => setMobileOpen(false)} className="px-3 py-2 rounded-lg bg-brand-accent text-brand-dark font-bold text-center transition">📢 {t('header.publishSomething')}</LocalLink>
                     <LocalLink href="/chat" onClick={() => setMobileOpen(false)} className="px-3 py-2 rounded-lg hover:bg-white/10 transition">💬 {t('header.messages')}{unreadCount > 0 ? t('header.messagesWithCount').replace('{count}', String(unreadCount)) : ''}</LocalLink>
                     <LocalLink href="/dashboard" onClick={() => setMobileOpen(false)} className="px-3 py-2 rounded-lg hover:bg-white/10 transition">👤 {t('header.myPanel')}</LocalLink>
                     <LocalLink href="/creditos" onClick={() => setMobileOpen(false)} className="px-3 py-2 rounded-lg hover:bg-white/10 transition">⚡ {t('header.credits')}{creditoChecked && creditoBalance !== null && creditoBalance > 0 ? t('header.creditsAvailable').replace('{count}', String(creditoBalance)) : ''}</LocalLink>

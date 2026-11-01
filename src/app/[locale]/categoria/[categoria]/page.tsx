@@ -161,9 +161,10 @@ export default async function CategoriaPage({ params }: Props) {
         dangerouslySetInnerHTML={{ __html: jsonLd(structuredData) }}
       />
 
-      <section className="bg-gradient-to-br from-brand-dark via-brand-primary to-blue-700 text-white">
-        <div className="max-w-7xl mx-auto px-4 py-10 md:py-14">
-          <nav aria-label="Migas de pan" className="text-sm text-blue-100 mb-5">
+      <section className="relative overflow-hidden bg-gradient-to-br from-brand-primary via-brand-primary to-brand-dark text-white">
+        <div className="absolute -top-24 -right-24 h-72 w-72 rounded-full bg-brand-accent/10 blur-3xl" aria-hidden="true" />
+        <div className="relative max-w-7xl mx-auto px-4 py-10 md:py-14">
+          <nav aria-label="Migas de pan" className="text-sm text-white/75 mb-5">
             <LocalLink href="/" className="hover:text-white">Inicio</LocalLink>
             <span aria-hidden="true" className="mx-2">/</span>
             <LocalLink href="/catalogo" className="hover:text-white">Catálogo</LocalLink>
@@ -172,11 +173,11 @@ export default async function CategoriaPage({ params }: Props) {
           </nav>
 
           <div className="max-w-4xl">
-            <span className="text-5xl" aria-hidden="true">{categoria.icono}</span>
+            <span className="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-white/10 ring-1 ring-white/20 text-4xl" aria-hidden="true">{categoria.icono}</span>
             <h1 className="text-3xl md:text-5xl font-black mt-3 mb-4">
               {categoria.nombre} en venta en Venezuela
             </h1>
-            <p className="text-lg md:text-xl text-blue-50 leading-relaxed">
+            <p className="text-lg md:text-xl text-white/85 leading-relaxed">
               {categoria.descripcion}
             </p>
             <div className="flex flex-wrap gap-3 mt-7">
@@ -264,7 +265,7 @@ export default async function CategoriaPage({ params }: Props) {
           </div>
           <div className="flex flex-wrap gap-2 mt-6">
             {categoria.terminos.map((termino) => (
-              <span key={termino} className="bg-blue-50 text-brand-primary px-3 py-1.5 rounded-full text-sm font-medium">
+              <span key={termino} className="bg-brand-primary/10 text-brand-primary px-3 py-1.5 rounded-full text-sm font-medium">
                 {termino}
               </span>
             ))}

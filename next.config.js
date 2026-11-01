@@ -43,7 +43,10 @@ const nextConfig = withNextIntl({
     deviceSizes: [320, 384, 440, 512, 640, 750, 828, 1080, 1200, 1920],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384, 640, 750],
     minimumCacheTTL: 60 * 60 * 24 * 30,
-    dangerouslyAllowSVG: true,
+    // ⚠️ No habilitar: las fotos de producto las sube el vendedor a R2/Supabase.
+    // Con `dangerouslyAllowSVG` el optimizador sirve SVG de origen externo y un
+    // SVG con <script> es XSS almacenado en el dominio del sitio.
+    dangerouslyAllowSVG: false,
     contentDispositionType: 'attachment',
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },

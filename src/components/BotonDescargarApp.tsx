@@ -15,7 +15,10 @@ type BotonDescargarAppProps = {
  */
 export function BotonDescargarApp({ variant = 'default' }: BotonDescargarAppProps = {}) {
   const t = useTranslations('common')
-  const [showButton, setShowButton] = useState(false)
+  // `null` = aún no sabemos (SSR/primer render). Antes ese null hacía que en
+  // el primer paint el botón no existiera y, al aparecer tras hidratar,
+  // empujara la fila de CTAs y los stats del hero (CLS en el primer viewport).
+  const [showButton, setShowButton] = useState<boolean | null>(null)
 
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -30,6 +33,10 @@ export function BotonDescargarApp({ variant = 'default' }: BotonDescargarAppProp
     setShowButton(true)
   }, [])
 
+  if (showButton === null) {
+    // Reserva el espacio sin ser visible ni interactuable.
+    return <span aria-hidden="true" className="invisible pointer-events-none inline-flex items-center gap-2 border-2 border-transparent px-6 py-3 text-base font-bold" />
+  }
   if (!showButton) return null
 
   const className = variant === 'light'

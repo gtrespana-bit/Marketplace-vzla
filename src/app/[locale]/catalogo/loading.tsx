@@ -15,7 +15,10 @@ export default function Loading() {
       </div>
 
       {/* Grid skeleton */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+      {/* Mismas columnas que <OptimizedProductGrid> (2 en móvil, 4 en xl):
+          si el esqueleto y el contenido final usan grids distintos, el paso
+          de uno a otro produce un salto de layout visible en móvil. */}
+      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
         {Array.from({ length: 8 }).map((_, i) => (
           <div key={i} className="bg-white rounded-xl overflow-hidden border border-gray-100">
             <div className="aspect-square bg-gray-200 animate-pulse" />

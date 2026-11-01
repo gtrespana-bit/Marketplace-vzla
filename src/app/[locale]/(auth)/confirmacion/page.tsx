@@ -104,7 +104,7 @@ function ConfirmacionContent() {
             <button
               onClick={handleResend}
               disabled={resending || !email || email === 'tu correo electrónico'}
-              className="w-full bg-yellow-500 text-brand-dark font-bold py-3 rounded-lg hover:bg-accent/90 transition flex items-center justify-center gap-2 disabled:opacity-50"
+              className="w-full bg-brand-accent text-brand-dark font-bold py-3 rounded-lg hover:bg-accent-dark transition flex items-center justify-center gap-2 disabled:opacity-50"
             >
               {resending ? (
                 <>

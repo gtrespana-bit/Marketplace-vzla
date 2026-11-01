@@ -66,7 +66,7 @@ export default function BoostModal({ titulo, onBoost, onClose }: { titulo: strin
           </button>
           <button
             onClick={onBoost}
-            className="flex-1 py-3 bg-brand-accent text-white rounded-lg font-bold hover:bg-accent/90 focus:outline-none focus:ring-2 focus:ring-brand-accent focus:ring-offset-2"
+            className="flex-1 py-3 bg-brand-accent text-brand-dark rounded-lg font-bold hover:bg-accent-dark focus:outline-none focus:ring-2 focus:ring-brand-accent focus:ring-offset-2"
           >
             ⚡ Boost (1 crédito)
           </button>

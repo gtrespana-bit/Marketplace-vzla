@@ -4,6 +4,7 @@ import { supabase } from '@/lib/supabase-server-client'
 import { ChevronRight } from 'lucide-react'
 import { getTranslations } from 'next-intl/server'
 import { productUrl } from '@/lib/product-url'
+import { BLUR_PLACEHOLDER } from '@/lib/image-placeholder'
 
 interface Props {
   ciudadSlug: string
@@ -82,22 +83,30 @@ function ProductosGrid({ productos, categoriaNombre, ciudadNombre, t }: { produc
 
   return (
     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-      {productos.map((p: any) => (
-        <LocalLink key={p.id} href={productUrl(p)} className="bg-white rounded-xl overflow-hidden shadow-sm border hover:shadow-lg transition group block">
+      {productos.map((p: any, index: number) => (
+        <LocalLink key={p.id} href={productUrl(p)} className="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-lg hover:-translate-y-1 transition group block">
           <div className="aspect-square bg-gray-100 relative overflow-hidden">
             {p.destacado && new Date(p.destacado_hasta) > new Date() && (
-              <div className="absolute top-2 left-2 z-10 bg-brand-accent text-white text-[10px] font-bold px-2 py-0.5 rounded-full">⭐ {t('featured')}</div>
+              <div className="absolute top-2 left-2 z-10 bg-brand-accent text-brand-dark text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm">⭐ {t('featured')}</div>
             )}
-            {p.imagen_url ? (
-              <Image src={p.imagen_url} alt={p.titulo} width={300} height={300} className="w-full h-full object-cover group-hover:scale-105 transition-transform" loading="lazy" />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center text-gray-500 text-4xl"></div>
-            )}
+            <Image
+              src={p.imagen_url || '/placeholder-product.webp'}
+              alt={p.titulo}
+              fill
+              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+              className="object-cover group-hover:scale-105 transition-transform duration-300"
+              loading={index < 2 ? 'eager' : 'lazy'}
+              placeholder="blur"
+              blurDataURL={BLUR_PLACEHOLDER}
+            />
           </div>
           <div className="p-3">
             <h3 className="font-semibold text-gray-900 text-sm truncate">{p.titulo}</h3>
-            <p className="text-lg font-black text-brand-primary mt-1">${new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 }).format(Number(p.precio_usd || 0))}</p>
-            <p className="text-xs text-gray-500">{p.estado} · {p.subcategoria}</p>
+            <p className="text-lg font-black text-brand-primary mt-1 truncate">${new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 }).format(Number(p.precio_usd || 0))}</p>
+            {/* Antes: "{estado} · {subcategoria}" -> pintaba "usado · undefined" */}
+            <p className="text-xs text-gray-600 truncate">
+              {[p.estado, p.subcategoria].filter(Boolean).join(' · ') || 'Venezuela'}
+            </p>
           </div>
         </LocalLink>
       ))}
