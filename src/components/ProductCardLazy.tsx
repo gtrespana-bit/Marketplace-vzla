@@ -1,6 +1,5 @@
 'use client';
 
-import { useState, useRef } from 'react';
 import LocalLink from './LocalLink';
 import Image from 'next/image';
 import { productUrl } from '@/lib/product-url'
@@ -34,10 +33,6 @@ const PLACEHOLDER_IMAGE = '/placeholder-product.webp';
 const BLUR_DATA_URL = 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAADAAQDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k='
 
 export const ProductCardLazy = ({ p, t, priority = false }: ProductCardLazyProps) => {
-  // Empezar visible para SSR - el IntersectionObserver solo optimiza imágenes lazy
-  // pero el contenido del producto SIEMPRE se muestra
-  const [imageLoaded, setImageLoaded] = useState(false);
-
   const isBoosted = p.boosteado_en != null;
   // Usar flag pre-computado del servidor para evitar hydration mismatch
   const isFeatured = p._isFeatured !== undefined
@@ -68,16 +63,26 @@ export const ProductCardLazy = ({ p, t, priority = false }: ProductCardLazyProps
           alt={p.titulo}
           width={300}
           height={300}
-          sizes="(max-width: 768px) 50vw, (max-width: 1200px) 25vw, 20vw"
+          // El grid del catálogo es card|card en móvil (50vw), 3 columnas en
+          // tablet y 4 en desktop. Declarar `20vw` en desktop descargaba una
+          // variante MENOS nítida de la necesaria.
+          sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1280px) 33vw, 25vw"
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+          // En móvil, `loading="lazy"` en las primeras tarjetas hace que el
+          // navegador espere a tener layout para pedir la imagen: se ve un hueco
+          // gris justo en el primer scroll (lo único que el usuario ve al
+          // entrar). Las 2 primeras van eager; el resto sigue siendo lazy.
           loading={priority ? 'eager' : 'lazy'}
           decoding="async"
-          fetchPriority={priority ? 'high' : 'low'}
+          fetchPriority={priority ? 'high' : 'auto'}
           placeholder="blur"
           blurDataURL={BLUR_DATA_URL}
           onError={(e) => {
             const target = e.target as HTMLImageElement;
-            if (!target.src.includes(PLACEHOLDER_IMAGE)) {
+            // Comparar contra el pathname: `target.src` es una URL absoluta y
+            // el placeholder también, así que `includes('/...')` funcionaba,
+            // pero dejamos la comprobación explícita para no entrar en bucle.
+            if (!target.src.endsWith(PLACEHOLDER_IMAGE)) {
               target.src = PLACEHOLDER_IMAGE;
             }
           }}

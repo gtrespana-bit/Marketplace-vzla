@@ -65,7 +65,11 @@ const inter = localFont({
 })
 
 export const viewport: Viewport = {
-  themeColor: '#008080',
+  // Debe coincidir con `theme_color` del manifest (#7B2D3B, el color de
+  // marca). Estaba en teal (#008080): la barra de estado de Android/Chrome
+  // móvil salía de un color que no existe en el sitio y, en la PWA instalada,
+  // cambiaba bruscamente al abrir la app (el manifest manda otro color).
+  themeColor: '#7B2D3B',
   width: 'device-width',
   initialScale: 1,
   maximumScale: 5,

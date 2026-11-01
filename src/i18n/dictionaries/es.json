@@ -416,7 +416,11 @@
       "services": "Servicios",
       "others": "Otros"
     },
-    "searchLabel": "Buscar"
+    "searchLabel": "Buscar",
+    "loading": "Cargando productos…",
+    "offlineTitle": "No pudimos cargar el catálogo",
+    "offlineCta": "Reintentar",
+    "retryHint": "Revisa tu conexión e inténtalo de nuevo."
   },
   "productCard": {
     "featured": "Destacado",

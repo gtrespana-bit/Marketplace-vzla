@@ -2,10 +2,10 @@ import type { Metadata } from 'next'
 import Image from 'next/image'
 import { supabase } from '@/lib/supabase-server-client'
 import { routing } from '@/i18n/routing'
-import { Suspense, cache } from 'react'
+import { cache } from 'react'
 import { permanentRedirect, notFound } from 'next/navigation'
 import ProductoPageClient from './ProductoPageClient'
-import { getTranslations } from 'next-intl/server'
+import { getTranslations, setRequestLocale } from 'next-intl/server'
 import Breadcrumbs from '@/components/Breadcrumbs'
 import LocalLink from '@/components/LocalLink'
 import { isUuid } from '@/lib/product-url'
@@ -29,6 +29,7 @@ type Props = {
 // DYNAMIC_SERVER_USAGE → 500). Solo con revalidate se sirve estático y se
 // regenera bajo demanda. Requiere Supabase configurado en el entorno de build.
 export const revalidate = 300
+export const dynamic = 'force-static'
 
 const PRODUCT_COLUMNS = `
   id,
@@ -169,38 +170,65 @@ async function getRelacionados(producto: any) {
       .limit(4)
 
   try {
+    // Cada intento con timeout propio: si Supabase está lento, preferimos una
+    // ficha sin relacionados (y que la página se cachee) antes que un render
+    // de 30 s que termine en error 504 en móvil.
     if (producto.categoria_id) {
-      const { data } = await base().eq('categoria_id', producto.categoria_id)
+      const { data } = await withTimeout(base().eq('categoria_id', producto.categoria_id), 5000)
       if (data && data.length > 0) return data
     }
     if (producto.subcategoria) {
-      const { data } = await base().eq('subcategoria', producto.subcategoria)
+      const { data } = await withTimeout(base().eq('subcategoria', producto.subcategoria), 5000)
       if (data && data.length > 0) return data
     }
     if (producto.marca) {
-      const { data } = await base().eq('marca', producto.marca)
+      const { data } = await withTimeout(base().eq('marca', producto.marca), 5000)
       if (data && data.length > 0) return data
     }
     // Último recurso: lo más reciente de todo el catálogo
-    const { data } = await base()
+    const { data } = await withTimeout(base(), 5000)
     return data || []
   } catch {
     return []
   }
 }
 
-/** Nº de personas que guardaron el producto en favoritos (señal de urgencia). */
+/**
+ * Nº de personas que guardaron el producto en favoritos (señal de urgencia).
+ *
+ * `cache()` NO es opcional: sin él, este dato social volvía la ficha dinámica
+ * (sin caché de página) y cada visita/rastreo pagaba el TTFB completo de la
+ * función serverless + 3-4 queries a Supabase. En móvil venezolano eso se
+ * percibe como "la página no carga". Con `cache()` la ficha se prerenderiza,
+ * se sirve estática y se regenera cada `revalidate` segundos.
+ * Además se limita a 5 s: un contador de favoritos nunca debe bloquear el
+ * render de la página; si Supabase tarda, vale 0 y la ficha sale igual.
+ */
 async function getFavoritosCount(productoId: string) {
   if (!supabase) return 0
   try {
-    const { count } = await supabase
-      .from('favoritos')
-      .select('id', { count: 'exact', head: true })
-      .eq('producto_id', productoId)
+    const { count } = await withTimeout(
+      supabase
+        .from('favoritos')
+        .select('id', { count: 'exact', head: true })
+        .eq('producto_id', productoId),
+      5000,
+    )
     return count || 0
   } catch {
     return 0
   }
+}
+
+/**
+ * Carrera contra un timeout: las promesas de PostgREST son "thenables", así
+ * que basta con Promise.race para no dejar colgada la generación de la página.
+ */
+function withTimeout<T = any>(query: PromiseLike<T> | any, ms: number): Promise<T> {
+  return Promise.race([
+    Promise.resolve(query) as unknown as Promise<T>,
+    new Promise<T>((_, reject) => setTimeout(() => reject(new Error('supabase_timeout')), ms)),
+  ])
 }
 
 /**
@@ -212,11 +240,14 @@ export const getResumenResenas = cache(
   async (productoId: string): Promise<{ count: number; avg: number }> => {
     if (!supabase) return { count: 0, avg: 0 }
     try {
-      const { data } = await supabase
-        .from('resenas')
-        .select('puntuacion')
-        .eq('producto_id', productoId)
-        .limit(50)
+      const { data } = await withTimeout(
+        supabase
+          .from('resenas')
+          .select('puntuacion')
+          .eq('producto_id', productoId)
+          .limit(50),
+        5000,
+      )
       if (!data || data.length === 0) return { count: 0, avg: 0 }
       const count = data.length
       const avg = Math.round((data.reduce((s: number, r: any) => s + r.puntuacion, 0) / count) * 10) / 10
@@ -228,7 +259,8 @@ export const getResumenResenas = cache(
 )
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { slug } = await params
+  const { locale, slug } = await params
+  setRequestLocale(locale)
   const producto = await getProductCached(slug)
 
   if (!producto) {
@@ -292,6 +324,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function ProductoPage({ params }: Props) {
   const { locale, slug } = await params
+  // Fija el locale desde el segmento de URL (sin headers()/cookies()) para que
+  // getTranslations no fuerce render dinámico y la ficha pueda cachearse.
+  setRequestLocale(locale)
   const producto = await getProductCached(slug)
   const t = await getTranslations('productDetail')
 
@@ -391,9 +426,7 @@ export default async function ProductoPage({ params }: Props) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <Breadcrumbs items={breadcrumbItems} />
-      <Suspense fallback={<div className="max-w-7xl mx-auto px-4 py-20 text-center">{t('loading')}</div>}>
-        <ProductoPageClient initialProduct={producto} favoritosCount={favoritosCount} />
-      </Suspense>
+      <ProductoPageClient initialProduct={producto} favoritosCount={favoritosCount} />
 
       {relacionados.length > 0 && (
         <section className="max-w-7xl mx-auto px-4 py-8 border-t border-gray-100 mt-8">

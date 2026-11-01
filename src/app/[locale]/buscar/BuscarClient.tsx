@@ -304,10 +304,10 @@ export default function BuscarClient({ searchParams: searchParamsPromise }: { se
         {query ? (
           <>
             <h1 className="text-2xl font-bold text-gray-900 mb-2">
-              Resultados de búsqueda para &ldquo;{query}&rdquo; en Venezuela
+              Resultados de búsqueda para “{query}” en Venezuela
             </h1>
             <p className="text-gray-600">
-              Encuentra los mejores clasificados y productos relacionados con &ldquo;{query}&rdquo; en VendeT.online. 
+              Encuentra los mejores clasificados y productos relacionados con “{query}” en VendeT.online. 
               Compra y vende de forma segura en todo el país.
             </p>
           </>
@@ -348,7 +348,7 @@ export default function BuscarClient({ searchParams: searchParamsPromise }: { se
         <LocalLink href="/" className="hover:text-brand-primary">Inicio</LocalLink>
         <ChevronRight size={14} />
         <span className="text-gray-800 font-medium">{t('title')}</span>
-        {query && (<><ChevronRight size={14} /><span className="text-gray-900 font-semibold">&ldquo;{query}&rdquo;</span></>)}
+        {query && (<><ChevronRight size={14} /><span className="text-gray-900 font-semibold">“{query}”</span></>)}
       </nav>
 
       <div className="flex flex-col lg:flex-row gap-6">
@@ -499,7 +499,19 @@ export default function BuscarClient({ searchParams: searchParamsPromise }: { se
             <>
               <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
                 <p className="text-sm text-gray-500">
-                  {loading ? 'Buscando...' : `${resultCount} resultado${resultCount !== 1 ? 's' : ''}${query ? ` para &ldquo;<strong>${query}</strong>&rdquo;` : ''}`}
+                  {loading ? (
+                    'Buscando...'
+                  ) : (
+                    <>
+                      {`${resultCount} resultado${resultCount !== 1 ? 's' : ''}`}
+                      {query ? (
+                        <>
+                          {' para '}
+                          <strong className="font-semibold text-gray-700">“{query}”</strong>
+                        </>
+                      ) : null}
+                    </>
+                  )}
                 </p>
                 {tieneFiltros && (
                   <button

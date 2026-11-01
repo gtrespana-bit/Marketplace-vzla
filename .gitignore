@@ -53,3 +53,6 @@ copy-urls-to-gsc.py
 
 # Convert image script
 convert-to-webp.ps1
+
+# Mock local de PostgREST para pruebas (scripts de desarrollo)
+/mock-supabase/

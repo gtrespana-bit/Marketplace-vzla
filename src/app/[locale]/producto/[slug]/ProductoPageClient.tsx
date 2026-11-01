@@ -2,7 +2,7 @@
 
 import { Component, useEffect, useState } from 'react'
 import { getTasaBCVClient, actualizarTasaClient } from '@/lib/tasaBCV'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import LocalLink from '@/components/LocalLink'
 import Image from 'next/image'
 import { supabase } from '@/lib/supabase'
@@ -45,21 +45,24 @@ function ProductoPageClientInner({ initialProduct, favoritosCount = 0 }: Product
   const t = useTranslations('productDetail')
   const router = useRouter()
   const { user, loading: authLoading } = useAuth()
-  const searchParams = useSearchParams()
   // URL canónica para el redirect post-login: slug si existe, UUID si no
   const slug = initialProduct?.slug || initialProduct?.id || ''
-  const esNuevaPublicacion = searchParams.get('nuevo') === '1'
+  // `?nuevo=1` es puramente cosmético (banner "publicado con éxito"). Se lee
+  // en un efecto y no con `useSearchParams()` porque esa llamada obliga a
+  // renderizar la ficha en DYNAMIC (SSR en cada visita/rastreo, sin caché):
+  // TTFB alto en móvil y miles de renders de Googlebot. Con esto la página
+  // puede servirse estática y regenerarse con `revalidate = 300`.
+  const [esNuevaPublicacion, setEsNuevaPublicacion] = useState(false)
 
-  // Auto-remove ?nuevo=1 from URL after showing banner
   useEffect(() => {
-    if (esNuevaPublicacion && window.location.search.includes('nuevo=1')) {
-      if (window.history.replaceState) {
-        setTimeout(() => {
-          window.history.replaceState({}, '', window.location.pathname)
-        }, 5000)
-      }
-    }
-  }, [esNuevaPublicacion])
+    if (!window.location.search.includes('nuevo=1')) return
+    setEsNuevaPublicacion(true)
+    // Auto-remove ?nuevo=1 from URL after showing banner
+    const timer = setTimeout(() => {
+      window.history.replaceState({}, '', window.location.pathname)
+    }, 5000)
+    return () => clearTimeout(timer)
+  }, [])
 
   const [producto] = useState(initialProduct)
   const [vendedor, setVendedor] = useState<any>(null)

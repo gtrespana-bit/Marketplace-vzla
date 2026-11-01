@@ -1,6 +1,5 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
 import { ProductCardLazy } from './ProductCardLazy';
 
 interface Producto {
@@ -36,13 +35,17 @@ export const OptimizedProductGrid = ({
 
   // Renderizar productos con carga diferida
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+    // 2 columnas en móvil (antes 1: las tarjetas ocupaban toda la pantalla y
+    // la primera imagen tardaba en entrar). Es el patrón de los clasificados.
+    <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
       {productos.map((p, index) => (
         <ProductCardLazy
           key={`${p.id}-${currentPage}`}
           p={p}
           t={t}
-          priority={index === 0 && currentPage === 1} // Prioridad solo para el primer producto de la primera página
+          // Las dos primeras tarjetas de la primera página se piden en eager:
+          // son el LCP del catálogo y en móvil determinan la sensación de carga.
+          priority={index < 2 && currentPage === 1}
         />
       ))}
     </div>

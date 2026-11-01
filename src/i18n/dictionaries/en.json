@@ -416,7 +416,11 @@
       "services": "Services",
       "others": "Other Items"
     },
-    "searchLabel": "Search"
+    "searchLabel": "Search",
+    "loading": "Loading products…",
+    "offlineTitle": "We couldn't load the catalog",
+    "offlineCta": "Try again",
+    "retryHint": "Check your connection and try again."
   },
   "productCard": {
     "featured": "Featured",
