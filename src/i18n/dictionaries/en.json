@@ -54,7 +54,8 @@
         "week": "New listings this week",
         "cost": "Cost to post",
         "open": "Open 24/7"
-      }
+      },
+      "searchPlaceholderShort": "What are you looking for?"
     },
     "freeBanner": {
       "title": "100% Free to Post",
