@@ -1,11 +1,20 @@
 import LocalLink from '@/components/LocalLink'
 import Image from 'next/image'
-import { ArrowRight, Star, Eye, Search, Plus, Camera, MessageCircle, HandCoins, Sparkles } from 'lucide-react'
+import { ArrowRight, Star, Eye, Search, Plus, Camera, MessageCircle, HandCoins, Sparkles, TrendingUp } from 'lucide-react'
 import { supabase } from '@/lib/supabase-server-client'
 import { BotonDescargarApp } from '@/components/BotonDescargarApp'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
+import { cache } from 'react'
 import type { Metadata } from 'next'
 import { productUrl } from '@/lib/product-url'
+import { BLUR_PLACEHOLDER } from '@/lib/image-placeholder'
+
+function withTimeout<T = any>(query: PromiseLike<T> | any, ms: number): Promise<T> {
+  return Promise.race([
+    Promise.resolve(query) as unknown as Promise<T>,
+    new Promise<T>((_, reject) => setTimeout(() => reject(new Error('supabase_timeout')), ms)),
+  ])
+}
 
 function generateItemListSchema(products: any[], baseUrl: string) {
   if (!products || products.length === 0) return null
@@ -236,6 +245,25 @@ async function getSemanal() {
   }
 }
 
+/**
+ * Nº de personas registradas. La home mostraba un "+5K" inventado: una cifra
+ * falsa que además contradice a Google/usuarios que ven el catálogo real.
+ * `cache()` para no repetir la query y `withTimeout` para que una Supabase
+ * lenta no bloquee el TTFB de la portada.
+ */
+const getUsuariosRegistrados = cache(async (): Promise<number> => {
+  if (!supabase) return 0
+  try {
+    const { count } = await withTimeout(
+      supabase.from('perfiles').select('id', { count: 'exact', head: true }),
+      4000
+    )
+    return count || 0
+  } catch {
+    return 0
+  }
+})
+
 function ProductCard({ p, highlighted = false, priority = false, t }: { p: any; highlighted?: boolean; priority?: boolean; t: any }) {
   const imgUrl = p.imagen_url || getPlaceholderImage(p.titulo)
   const meta = [p.estado, p.ubicacion_ciudad || '', relativeTime(p.creado_en, t)].filter(Boolean).join(' · ')
@@ -267,7 +295,7 @@ function ProductCard({ p, highlighted = false, priority = false, t }: { p: any; 
           fetchPriority={priority ? 'high' : 'auto'}
           quality={75}
           placeholder="blur"
-          blurDataURL="/placeholder-product.webp"
+          blurDataURL={BLUR_PLACEHOLDER}
         />
       </div>
       <div className="p-4">
@@ -287,7 +315,7 @@ function ProductCard({ p, highlighted = false, priority = false, t }: { p: any; 
  *  desde el primer vistazo y termina con una tarjeta-CTA "Tu producto aquí". */
 function HeroCollage({ items, t }: { items: any[]; t: any }) {
   return (
-    <div className="relative hidden lg:block h-[460px]" aria-hidden="true">
+    <div className="relative hidden xl:block h-[460px]" aria-hidden="true">
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
         <div className="w-80 h-80 bg-brand-accent/15 rounded-full blur-3xl" />
       </div>
@@ -386,18 +414,21 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
   // Stats del hero: actividad (crece siempre) en vez de inventario total.
   // Un "+130 productos activos" revelaba catálogo pequeño; "+9 esta semana"
   // comunica un mercado vivo. Sin actividad aún → beneficios duros.
-  const heroStats =
+  const usuarios = await getUsuariosRegistrados()
+  const fmt = (n: number) => new Intl.NumberFormat(locale === 'en' ? 'en-US' : 'es-VE').format(n)
+
+  // Solo se muestran cifras que la base de datos respalda. Si no hay datos
+  // (o falla la query) se cae a los beneficios duros de la plataforma, nunca a
+  // un número inventado.
+  const heroStats = [
     semanal > 0
-      ? [
-          { v: semanal >= 50 ? '50+' : `+${semanal}`, l: t('home.hero.stats.week') },
-          { v: '+5K', l: t('home.hero.stats.users') },
-          { v: '0%', l: t('home.hero.stats.commission') },
-        ]
-      : [
-          { v: '+5K', l: t('home.hero.stats.users') },
-          { v: '$0', l: t('home.hero.stats.cost') },
-          { v: '0%', l: t('home.hero.stats.commission') },
-        ]
+      ? { v: semanal >= 50 ? '50+' : `+${fmt(semanal)}`, l: t('home.hero.stats.week') }
+      : { v: '$0', l: t('home.hero.stats.cost') },
+    usuarios > 0
+      ? { v: `+${fmt(usuarios)}`, l: t('home.hero.stats.users') }
+      : { v: '24/7', l: t('home.hero.stats.open') },
+    { v: '0%', l: t('home.hero.stats.commission') },
+  ]
 
   return (
     <>
@@ -413,22 +444,22 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
         <div className="absolute top-0 right-0 w-96 h-96 bg-brand-accent/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4" />
         <div className="absolute bottom-0 left-0 w-64 h-64 bg-brand-accent/5 rounded-full blur-2xl translate-y-1/3 -translate-x-1/4" />
 
-        <div className="max-w-7xl mx-auto px-4 relative z-10 grid lg:grid-cols-[1.15fr_0.85fr] gap-8 items-center">
-          <div className="text-center lg:text-left">
-            <div className="inline-flex items-center gap-2 bg-white/10 border border-white/20 rounded-full px-4 py-1.5 mb-4">
+        <div className="max-w-7xl mx-auto px-4 relative z-10 grid xl:grid-cols-[1.15fr_0.85fr] gap-8 lg:gap-12 items-center">
+          <div className="flex flex-col items-center text-center xl:items-start xl:text-left">
+            <div className="self-center xl:self-start inline-flex items-center gap-2 bg-white/10 border border-white/20 rounded-full px-4 py-1.5 mb-4">
               <span className="text-xs font-semibold text-white">{t('home.hero.chip')}</span>
             </div>
 
-            <h1 className="text-3xl md:text-5xl font-black text-white mb-3 leading-tight">
+            <h1 className="w-full max-w-2xl text-3xl md:text-4xl lg:text-5xl font-black text-white mb-3 leading-tight text-balance">
               {t('home.hero.title1')}{' '}
               <span className="text-brand-accent">{t('home.hero.title2')}</span>
             </h1>
-            <p className="text-base md:text-lg text-white/80 mb-6 max-w-xl mx-auto lg:mx-0">
+            <p className="text-base md:text-lg text-white/80 mb-6 w-full max-w-xl">
               {t('home.hero.subtitle')}
             </p>
 
             {/* Buscador grande: en móvil el del header está oculto, este es el principal */}
-            <form action={searchAction} method="GET" className="relative max-w-xl mx-auto lg:mx-0 mb-3">
+            <form action={searchAction} method="GET" className="relative w-full max-w-xl mb-3">
               <label htmlFor="hero-search" className="sr-only">{t('home.hero.searchPlaceholder')}</label>
               <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
               <input
@@ -447,12 +478,12 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
             </form>
 
             {/* Accesos rápidos por categoría */}
-            <div className="flex gap-2 overflow-x-auto sm:flex-wrap sm:justify-center lg:justify-start pb-1 -mx-4 px-4 sm:mx-0 sm:px-0 mb-6 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <div className="flex w-full gap-2 overflow-x-auto sm:flex-wrap sm:justify-center xl:justify-start pb-1 -mx-4 px-4 sm:mx-0 sm:px-0 mb-6 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <LocalLink
                 href="/catalogo"
-                className="shrink-0 text-xs font-bold bg-brand-accent/20 border border-brand-accent/40 text-white px-3 py-1.5 rounded-full hover:bg-brand-accent/30 transition"
+                className="shrink-0 inline-flex items-center gap-1 text-xs font-bold bg-white/15 border border-white/40 text-white px-3 py-1.5 rounded-full hover:bg-white/25 transition"
               >
-                🔍 {t('home.categories.viewAll')}
+                <Search size={12} aria-hidden="true" /> {t('home.categories.viewAll')}
               </LocalLink>
               {CATEGORY_DEFS.map((cat) => (
                 <LocalLink
@@ -465,10 +496,10 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
               ))}
             </div>
 
-            <div className="flex flex-wrap justify-center lg:justify-start gap-3 mb-6">
+            <div className="flex w-full flex-wrap justify-center gap-3 mb-6 xl:justify-start">
               <LocalLink
                 href="/publicar"
-                className="inline-flex items-center gap-2 bg-brand-accent text-gray-900 px-6 py-3 rounded-xl font-bold text-base hover:bg-accent/90 transition shadow-lg shadow-black/20"
+                className="inline-flex items-center gap-2 bg-brand-accent text-gray-900 px-6 py-3 rounded-xl font-bold text-base hover:bg-accent-dark transition shadow-lg shadow-black/20"
               >
                 <span>{t('home.hero.publishFree')}</span>
                 <ArrowRight size={18} />
@@ -483,7 +514,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
               <BotonDescargarApp />
             </div>
 
-            <div className="grid grid-cols-3 gap-4 max-w-md mx-auto lg:mx-0 text-center lg:text-left">
+            <div className="grid w-full max-w-md grid-cols-3 gap-4 text-center xl:text-left">
               {heroStats.map((s) => (
                 <div key={s.l}>
                   <p className="text-2xl md:text-3xl font-black text-brand-accent">{s.v}</p>
@@ -499,7 +530,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
 
       {/* ============ Banner de confianza: publicar es gratis ============ */}
       <div className="bg-gradient-to-r from-green-50 to-emerald-50 border-y border-green-200">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-center gap-3 flex-wrap">
+        <div className="max-w-7xl mx-auto px-4 py-4 flex flex-wrap items-center justify-center gap-x-3 gap-y-2 text-center">
           <div className="flex items-center gap-2">
             <span className="w-7 h-7 bg-green-500 rounded-full flex items-center justify-center shrink-0">
               <svg
@@ -520,14 +551,17 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
           <p className="text-xs text-gray-600 hidden sm:inline">
             {t('home.freeBanner.subtitle')}
           </p>
-          <LocalLink href="/como-funciona" className="text-green-700 text-xs font-bold hover:underline">
+          <LocalLink
+            href="/como-funciona"
+            className="inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-bold text-green-800 hover:bg-green-100 hover:underline"
+          >
             {t('home.freeBanner.compare')}
           </LocalLink>
         </div>
       </div>
 
       {/* ============ Categorías: antes que cualquier mensaje de pago ============ */}
-      <section className="max-w-7xl mx-auto px-4 py-10 md:py-12">
+      <section className="max-w-7xl mx-auto px-4 py-10 md:py-14">
         <div className="flex items-end justify-between mb-6 gap-4">
           <div>
             <h2 className="text-2xl md:text-3xl font-black text-gray-900 mb-2">
@@ -544,31 +578,36 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
           </LocalLink>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
           {CATEGORY_DEFS.map((cat) => (
             <LocalLink
               key={cat.id}
               href={`/categoria/${cat.id}`}
               prefetch={true}
-              className="bg-white rounded-2xl p-6 text-center shadow-sm border hover:border-brand-accent transition hover:shadow-lg group"
+              className="group flex flex-col items-center justify-start rounded-2xl border border-gray-100 bg-white p-4 sm:p-5 text-center shadow-sm transition hover:-translate-y-0.5 hover:border-brand-accent hover:shadow-lg"
             >
-              <span className="text-4xl block mb-3 group-hover:scale-110 transition-transform">
+              <span
+                className="mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-brand-primary/5 text-2xl transition-transform group-hover:scale-110"
+                aria-hidden="true"
+              >
                 {cat.icon}
               </span>
               <span className="font-bold text-gray-900 text-sm">{t(cat.nameKey)}</span>
-              <span className="block text-xs text-gray-600 mt-1 truncate">{t(cat.descKey)}</span>
+              {/* Antes `truncate`: en 180px la descripción se veía "Vehícul…".
+                  line-clamp-2 mantiene la tarjeta pareja sin cortar la palabra. */}
+              <span className="mt-1 line-clamp-2 text-xs leading-snug text-gray-600">{t(cat.descKey)}</span>
             </LocalLink>
           ))}
         </div>
       </section>
 
       {/* ============ Recién publicado: inventario fresco, el gancho del comprador ============ */}
-      <section className="max-w-7xl mx-auto px-4 py-8">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-gray-900">{t('home.recent.title')}</h2>
+      <section className="max-w-7xl mx-auto px-4 py-10 md:py-14">
+        <div className="mb-5 flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
+          <h2 className="text-2xl md:text-3xl font-black text-gray-900">{t('home.recent.title')}</h2>
           <LocalLink
             href="/catalogo"
-            className="text-brand-primary font-semibold text-sm hover:underline flex items-center gap-1"
+            className="inline-flex shrink-0 items-center gap-1 text-sm font-semibold text-brand-primary hover:underline"
             prefetch={true}
           >
             {t('home.recent.viewAll')} <ArrowRight size={14} />
@@ -581,17 +620,20 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
             <p className="text-gray-500 mb-6">{t('home.recent.emptyCta')}</p>
             <LocalLink
               href="/publicar"
-              className="inline-block bg-brand-accent text-gray-900 px-6 py-3 rounded-lg font-bold hover:bg-accent/90 transition"
+              className="inline-block bg-brand-accent text-gray-900 px-6 py-3 rounded-lg font-bold hover:bg-accent-dark transition"
             >
               {t('home.recent.publishFree')}
             </LocalLink>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
             {productos.map((p, index) => {
               const isHighlighted =
                 (p.destacado && p.destacado_hasta > now) || p.boosteado_en
-              return <ProductCard key={p.id} p={p} highlighted={isHighlighted} priority={index < 2} t={t} />
+              // UNA sola imagen prioritaria: el hero no tiene LCP de imagen y
+              // marcar 2 tarjetas con `priority` hacía que el navegador
+              // preloardeara ambas y eligiera mal el LCP.
+              return <ProductCard key={p.id} p={p} highlighted={isHighlighted} priority={index === 0} t={t} />
             })}
           </div>
         )}
@@ -599,23 +641,17 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
 
       {/* ============ Destacados: sin banner de venta, solo productos ============ */}
       {destacados.length > 0 && (
-        <section className="max-w-7xl mx-auto px-4 py-8">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-2xl font-black text-gray-900">{t('home.featured.title')}</h2>
-            <span className="bg-brand-accent/20 text-amber-800 text-xs font-bold px-2.5 py-1 rounded-full flex items-center gap-1">
+        <section className="max-w-7xl mx-auto px-4 py-10 md:py-14">
+          <div className="mb-5 flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
+            <h2 className="text-2xl md:text-3xl font-black text-gray-900">{t('home.featured.title')}</h2>
+            <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-brand-accent/25 px-2.5 py-1 text-xs font-bold text-brand-dark">
               <Star size={12} /> {t('home.productCard.featured')}
             </span>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {destacados.map((p, index) => (
-              <ProductCard
-                key={p.id}
-                p={p}
-                highlighted
-                priority={false}
-                t={t}
-              />
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+            {destacados.map((p) => (
+              <ProductCard key={p.id} p={p} priority={false} t={t} />
             ))}
           </div>
         </section>
@@ -623,13 +659,15 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
 
       {/* ============ Lo más visto ============ */}
       {trending.length > 0 && (
-        <section className="max-w-7xl mx-auto px-4 py-8">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-2xl font-black text-gray-900">{t('home.trending.title')}</h2>
-            <span className="text-xs text-gray-500">{t('home.trending.period')}</span>
+        <section className="max-w-7xl mx-auto px-4 py-10 md:py-14">
+          <div className="mb-5 flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
+            <h2 className="text-2xl md:text-3xl font-black text-gray-900">{t('home.trending.title')}</h2>
+            <span className="shrink-0 rounded-full bg-gray-100 px-2.5 py-1 text-xs font-semibold text-gray-600">
+              {t('home.trending.period')}
+            </span>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
             {trending.map((p, index) => (
               <LocalLink
                 key={p.id}
@@ -648,10 +686,11 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
                     decoding="async"
                     quality={75}
                     placeholder="blur"
-                    blurDataURL="/placeholder-product.webp"
+                    blurDataURL={BLUR_PLACEHOLDER}
                   />
-                  <div className="absolute top-2 left-2 z-10 bg-gradient-to-r from-orange-500 to-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 shadow-sm">
-                    🔥 Trending
+                  <div className="absolute top-2 left-2 z-10 inline-flex items-center gap-1 rounded-full bg-brand-accent px-2 py-0.5 text-[10px] font-bold text-brand-dark shadow-sm">
+                    <TrendingUp size={10} aria-hidden="true" />
+                    {t('home.trending.chip')}
                   </div>
                 </div>
                 <div className="p-4">
@@ -674,8 +713,8 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
 
       {/* ============ Vendidos recientemente: prueba social de que aquí SÍ se vende ============ */}
       {vendidos.length > 0 && (
-        <section className="max-w-7xl mx-auto px-4 py-8">
-          <div className="flex items-center justify-between mb-4 gap-3 flex-wrap">
+        <section className="max-w-7xl mx-auto px-4 py-10 md:py-14">
+          <div className="mb-5 flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
             <div className="flex items-center gap-2.5">
               <span className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center shrink-0">
                 <svg
@@ -692,13 +731,13 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
                 </svg>
               </span>
               <div>
-                <h2 className="text-2xl font-black text-gray-900 leading-tight">{t('home.sold.title')}</h2>
+                <h2 className="text-2xl md:text-3xl font-black text-gray-900 leading-tight">{t('home.sold.title')}</h2>
                 <p className="text-xs text-gray-500">{t('home.sold.subtitle')}</p>
               </div>
             </div>
             <LocalLink
               href="/publicar"
-              className="text-brand-primary font-semibold text-sm hover:underline flex items-center gap-1 shrink-0"
+              className="inline-flex shrink-0 items-center gap-1 text-sm font-semibold text-brand-primary hover:underline"
             >
               {t('home.sold.cta')} <ArrowRight size={14} />
             </LocalLink>
@@ -724,19 +763,19 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
                       decoding="async"
                       quality={75}
                       placeholder="blur"
-                      blurDataURL="/placeholder-product.webp"
+                      blurDataURL={BLUR_PLACEHOLDER}
                     />
-                    <span className="absolute top-2 left-2 z-10 bg-green-600 text-white text-[10px] font-black px-2 py-0.5 rounded-full shadow-sm">
+                    <span className="absolute top-2 left-2 z-10 bg-green-700 text-white text-[10px] font-black px-2 py-0.5 rounded-full shadow-sm">
                       ✓ {t('home.sold.badge')}
                     </span>
                   </div>
                   <div className="p-3.5">
                     <h3 className="font-semibold text-gray-600 truncate text-sm">{p.titulo}</h3>
-                    <p className="text-lg font-black text-gray-400 mt-0.5">
+                    <p className="text-lg font-black text-brand-primary mt-0.5 truncate">
                       {formatPrice(p.precio_usd)}
                     </p>
-                    <p className="text-[11px] text-gray-400 mt-0.5 truncate">
-                      {p.ubicacion_ciudad || 'Venezuela'}
+                    <p className="text-[11px] text-gray-600 mt-0.5 truncate">
+                      {p.ubicacion_ciudad || t('home.sold.venezuela')}
                       {vendidoCuando ? ` · ${vendidoCuando}` : ''}
                     </p>
                   </div>
@@ -748,7 +787,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
       )}
 
       {/* ============ Cómo vender en 3 pasos + mención única y discreta de destacar ============ */}
-      <section className="max-w-7xl mx-auto px-4 py-12">
+      <section className="max-w-7xl mx-auto px-4 py-10 md:py-14">
         <div className="text-center mb-8">
           <p className="text-xs font-black text-brand-primary uppercase tracking-wider mb-2">
             {t('home.how.eyebrow')}
@@ -761,7 +800,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3 md:gap-6">
           {[
             { icon: Camera, title: t('home.how.step1Title'), desc: t('home.how.step1Desc') },
             { icon: MessageCircle, title: t('home.how.step2Title'), desc: t('home.how.step2Desc') },
@@ -771,11 +810,11 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
               key={step.title}
               className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm relative"
             >
-              <span className="absolute top-4 right-5 text-4xl font-black text-gray-100 select-none">
+              <span className="absolute top-4 right-5 select-none text-4xl font-black text-brand-primary/10" aria-hidden="true">
                 {i + 1}
               </span>
-              <div className="w-12 h-12 bg-brand-primary/10 rounded-xl flex items-center justify-center mb-4">
-                <step.icon size={24} className="text-brand-primary" />
+              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-brand-primary/10">
+                <step.icon size={24} className="text-brand-primary" aria-hidden="true" />
               </div>
               <h3 className="font-bold text-gray-900 text-lg mb-1">{step.title}</h3>
               <p className="text-sm text-gray-600">{step.desc}</p>
@@ -802,9 +841,9 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
 
         {/* Único punto de entrada a créditos desde la home: opcional, sin precios */}
         <div className="mt-10 bg-white border border-gray-200 rounded-2xl p-4 md:p-5 flex flex-col md:flex-row items-center gap-4 md:gap-6 justify-between shadow-sm">
-          <div className="flex items-center gap-3 text-center md:text-left flex-col md:flex-row">
+          <div className="flex items-center gap-3 text-center md:text-left flex-col sm:flex-row">
             <span className="w-10 h-10 rounded-full bg-brand-accent/20 flex items-center justify-center shrink-0">
-              <Sparkles size={18} className="text-amber-600" />
+              <Sparkles size={18} className="text-brand-primary" aria-hidden="true" />
             </span>
             <div>
               <p className="font-bold text-gray-900 text-sm md:text-base">{t('home.optional.title')}</p>
@@ -821,9 +860,9 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
       </section>
 
       {/* ============ CTA final: publicar y explorar, no vender créditos ============ */}
-      <section className="bg-brand-accent py-16">
+      <section className="bg-brand-accent pt-14 pb-24 md:py-20">
         <div className="max-w-7xl mx-auto px-4 text-center">
-          <h2 className="text-3xl font-black text-gray-900 mb-4">
+          <h2 className="text-3xl md:text-4xl font-black text-gray-900 mb-4">
             {t('home.cta.title')}
           </h2>
           <p className="text-gray-800 text-lg mb-8">

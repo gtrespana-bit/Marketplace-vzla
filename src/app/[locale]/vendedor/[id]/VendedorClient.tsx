@@ -139,14 +139,14 @@ export default function VendedorClient({
                   </span>
                 </div>
                 {r.producto?.titulo && (
-                  <p className="text-[11px] uppercase tracking-wide text-gray-400 mb-1">
+                  <p className="mb-1 text-[11px] uppercase tracking-wide text-gray-500">
                     📦 {r.producto.titulo}
                   </p>
                 )}
                 {r.comentario ? (
                   <p className="text-sm text-gray-600">{r.comentario}</p>
                 ) : (
-                  <p className="text-sm italic text-gray-400">{t('noComment')}</p>
+                  <p className="text-sm italic text-gray-500">{t('noComment')}</p>
                 )}
               </div>
             ))}

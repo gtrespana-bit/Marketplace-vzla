@@ -1,21 +1,22 @@
 'use client'
 
 import { useState } from 'react'
+import Image from 'next/image'
 import { X, Send, MessageCircle } from 'lucide-react'
 
 export function FloatingChat() {
   const [open, setOpen] = useState(false)
 
   return (
-    <div className="floating-chat">
+    <div className="fixed bottom-24 right-4 z-40 flex flex-col items-end md:bottom-6 md:right-6">
       {open && (
         <div className="bg-white rounded-2xl shadow-2xl border border-gray-200 w-80 mb-4 overflow-hidden animate-fadeIn">
           <div className="bg-brand-primary text-white p-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center font-bold">TA</div>
+              <Image src="/logo-vendet.webp" alt="VendeT" width={32} height={32} className="h-10 w-10 rounded-full bg-white object-contain p-0.5" />
               <div>
-                <p className="font-bold text-sm">VendeT-Venezuela Ayuda</p>
-                <p className="text-xs text-blue-200 flex items-center gap-1">
+                <p className="font-bold text-sm">{'Ayuda VendeT'}</p>
+                <p className="text-xs text-white/80 flex items-center gap-1">
                   <span className="w-2 h-2 bg-green-400 rounded-full inline-block"></span>
                   En línea
                 </p>

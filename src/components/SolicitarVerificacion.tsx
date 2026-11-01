@@ -202,16 +202,16 @@ export default function SolicitarVerificacion() {
           <div className="flex items-center gap-3">
             <Clock size={28} className="text-yellow-900" />
             <div>
-              <h3 className="text-xl font-bold text-yellow-900">Solicitud en revision</h3>
-              <p className="text-yellow-700 text-sm">Estamos verificando tu identificacion</p>
+              <h3 className="text-xl font-bold text-yellow-900">Solicitud en revisión</h3>
+              <p className="text-yellow-800 text-sm">Estamos verificando tu identificación</p>
             </div>
           </div>
         </div>
         <div className="p-6">
           <p className="text-gray-600 mb-4">Tu solicitud fue enviada correctamente. Recibiras una notificacion cuando sea revisada.</p>
           <div className="bg-gray-50 rounded-lg p-4 text-sm text-gray-500 space-y-1">
-            <p><strong>Telefono:</strong> {solicitudActual?.pago_movil_telefono}</p>
-            <p><strong>Cedula:</strong> {solicitudActual?.pago_movil_cedula}</p>
+            <p><strong>Teléfono:</strong> {solicitudActual?.pago_movil_telefono}</p>
+            <p><strong>Cédula:</strong> {solicitudActual?.pago_movil_cedula}</p>
             <p><strong>Banco:</strong> {solicitudActual?.pago_movil_banco}</p>
             <p><strong>Enviada:</strong> {new Date(solicitudActual?.creada_en).toLocaleDateString('es-ES')}</p>
           </div>

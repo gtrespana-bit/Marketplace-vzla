@@ -253,7 +253,7 @@ export default function TabProductos({
         <Package size={48} className="text-gray-500 mx-auto mb-4" />
         <h3 className="text-xl font-bold text-gray-800 mb-2">Aún no tienes publicaciones</h3>
         <p className="text-gray-500 mb-6">Publica tu primer producto en segundos. ¡Es gratis!</p>
-        <LocalLink href="/publicar" className="inline-block bg-brand-accent text-white px-8 py-3 rounded-lg font-bold hover:bg-accent/90 transition">Publicar ahora</LocalLink>
+        <LocalLink href="/publicar" className="inline-block bg-brand-accent text-brand-dark px-8 py-3 rounded-lg font-bold hover:bg-accent-dark transition">Publicar ahora</LocalLink>
       </div>
     )
   }

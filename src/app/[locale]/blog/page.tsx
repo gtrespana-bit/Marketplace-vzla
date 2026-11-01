@@ -97,7 +97,7 @@ export default async function BlogPage({ params }: { params: Promise<{ locale: s
           <h1 className="text-3xl md:text-5xl font-black text-white mb-4">
             {t('title')} <span className="text-brand-accent">VendeT</span>
           </h1>
-          <p className="text-lg text-blue-200 max-w-2xl mx-auto">
+          <p className="text-lg text-white/85 max-w-2xl mx-auto">
             {t('subtitle')}
           </p>
         </div>
@@ -165,7 +165,7 @@ export default async function BlogPage({ params }: { params: Promise<{ locale: s
         <div className="max-w-4xl mx-auto px-4 text-center">
           <h2 className="text-2xl font-black text-white mb-3">{t('ctaTitle')}</h2>
           <p className="text-gray-500 mb-6">{t('ctaDesc')}</p>
-          <LocalLink href="/publicar" className="inline-flex items-center gap-2 bg-brand-accent text-white px-8 py-3 rounded-xl font-bold text-lg hover:bg-accent/90 transition shadow-lg">
+          <LocalLink href="/publicar" className="inline-flex items-center gap-2 bg-brand-accent text-brand-dark px-8 py-3 rounded-xl font-bold text-lg hover:bg-accent-dark transition shadow-lg">
             {t('ctaButton')} <ArrowRight size={20} />
           </LocalLink>
         </div>

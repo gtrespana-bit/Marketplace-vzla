@@ -334,14 +334,14 @@ export default function CatalogoClient({ initialProducts = [], initialCount = 0,
               <p className="text-sm text-gray-600 mb-4">{t('catalog.retryHint')}</p>
               <button
                 onClick={() => loadPage({ page: currentPage, pageSize: itemsPerPage, filters: filtersPayload })}
-                className="inline-block bg-brand-accent text-white px-6 py-3 rounded-lg font-bold hover:bg-accent/90 transition"
+                className="inline-block bg-brand-accent text-brand-dark px-6 py-3 rounded-lg font-bold hover:bg-accent-dark transition"
               >
                 {t('catalog.offlineCta')}
               </button>
               {/* Diagnóstico solo para desarrollo: en producción no exponemos
                   mensajes internos de Supabase al usuario. */}
               {process.env.NODE_ENV !== 'production' && (
-                <p className="mt-3 text-xs text-gray-400 break-words">{error}</p>
+                <p className="mt-3 break-words text-xs text-gray-600">{error}</p>
               )}
             </div>
           )}
@@ -357,7 +357,7 @@ export default function CatalogoClient({ initialProducts = [], initialCount = 0,
               <Search size={48} className="text-gray-500 mx-auto mb-4" />
               <h3 className="text-xl font-bold text-gray-800 mb-2">{t('catalog.empty')}</h3>
               <p className="text-gray-500 mb-4">{t('catalog.emptyCta')}</p>
-              <LocalLink href="/publicar" className="inline-block bg-brand-accent text-white px-6 py-3 rounded-lg font-bold hover:bg-accent/90 transition">
+              <LocalLink href="/publicar" className="inline-block bg-brand-accent text-brand-dark px-6 py-3 rounded-lg font-bold hover:bg-accent-dark transition">
                 {t('catalog.publishFree')}
               </LocalLink>
             </div>

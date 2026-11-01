@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { Download, X, Share, Smartphone } from 'lucide-react'
 import { useTranslations } from 'next-intl'
+import Image from 'next/image'
 
 // Cooldown de 6 horas antes de volver a mostrar el banner tras un "No, gracias"
 const COOLDOWN_MS = 6 * 60 * 60 * 1000
@@ -120,14 +121,14 @@ export default function PWAInstallBanner() {
   return (
     <>
       {mounted && showBanner && (
-        <div className="fixed bottom-4 inset-x-4 z-[60] md:inset-x-auto md:left-4 md:bottom-4 md:max-w-sm animate-fadeIn">
-          <div className="bg-white rounded-2xl shadow-2xl border border-gray-200 p-4">
+        <div className="fixed inset-x-4 bottom-[calc(5rem+env(safe-area-inset-bottom,0px))] z-[60] animate-fadeIn md:inset-x-auto md:bottom-4 md:left-4 md:max-w-sm">
+          <div className="relative bg-white rounded-2xl shadow-2xl border border-gray-200 p-4">
             <button onClick={handleDismiss} aria-label={t('pwa.closeBanner')} className="absolute top-3 right-3 text-gray-500 hover:text-gray-600">
               <X size={16} />
             </button>
             <div className="flex items-start gap-3">
-              <div className="w-12 h-12 bg-brand-primary rounded-xl flex items-center justify-center flex-shrink-0">
-                <span className="text-white font-black text-lg">TA</span>
+              <div className="w-12 h-12 bg-white ring-1 ring-gray-200 rounded-xl flex items-center justify-center flex-shrink-0 overflow-hidden">
+                <Image src="/logo-vendet.webp" alt="VendeT" width={44} height={44} className="h-11 w-11 object-contain" />
               </div>
               <div className="flex-1 pr-6">
                 <p className="font-bold text-gray-900 text-sm">{t('pwa.installTitle')}</p>
@@ -151,8 +152,8 @@ export default function PWAInstallBanner() {
               <X size={20} />
             </button>
             <div className="text-center mb-4">
-              <div className="w-14 h-14 bg-brand-primary rounded-xl flex items-center justify-center mx-auto mb-3">
-                <span className="text-white font-black text-xl">TA</span>
+              <div className="w-14 h-14 bg-white ring-1 ring-gray-200 rounded-xl flex items-center justify-center mx-auto mb-3 overflow-hidden">
+                <Image src="/logo-vendet.webp" alt="VendeT" width={52} height={52} className="h-12 w-12 object-contain" />
               </div>
               <h3 className="font-bold text-lg text-gray-900">{t('pwa.iosTitle')}</h3>
             </div>

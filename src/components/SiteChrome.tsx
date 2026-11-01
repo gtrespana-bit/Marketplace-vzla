@@ -24,13 +24,17 @@ export function SiteChrome({ children }: { children: React.ReactNode }) {
     )
   }
 
+  // `flex min-h-screen flex-col`: el Footer lleva `mt-auto`, que sólo funciona
+  // dentro de un contenedor flex. Antes el <footer> no era hijo directo de
+  // ningún flex y `mt-auto` no hacía nada → en páginas cortas (404, legales)
+  // el footer quedaba pegado al contenido con el resto de la ventana en blanco.
   return (
-    <>
+    <div className="flex min-h-screen flex-col">
       <Header />
-      <main id="main-content" className="min-h-screen bg-white">
+      <main id="main-content" className="flex-1 bg-white">
         {children}
       </main>
       <Footer />
-    </>
+    </div>
   )
 }

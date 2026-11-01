@@ -55,12 +55,12 @@ function ProductCard({ p }: { p: Producto }) {
     >
       <div className="aspect-square bg-gray-100 relative overflow-hidden">
         {isFeatured && (
-          <div className="absolute top-2 left-2 z-10 bg-brand-accent text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm">
+          <div className="absolute top-2 left-2 z-10 bg-brand-accent text-brand-dark text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm">
             ⭐ Destacado
           </div>
         )}
         {isBoosted && !isFeatured && (
-          <div className="absolute top-2 left-2 z-10 bg-green-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm">
+          <div className="absolute top-2 left-2 z-10 bg-green-700 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm">
             ⚡ Boost
           </div>
         )}
@@ -491,7 +491,7 @@ export default function BuscarClient({ searchParams: searchParamsPromise }: { se
                 />
                 <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
               </div>
-              <button type="submit" className="bg-brand-accent text-white px-6 rounded-lg font-bold hover:bg-accent/90 transition shrink-0">Buscar</button>
+              <button type="submit" className="bg-brand-accent text-brand-dark px-6 rounded-lg font-bold hover:bg-accent-dark transition shrink-0">Buscar</button>
             </form>
           </div>
 

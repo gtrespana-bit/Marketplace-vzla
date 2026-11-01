@@ -4,6 +4,7 @@ import Image from 'next/image'
 import { MapPin, ChevronRight } from 'lucide-react'
 import { getCiudadBySlug } from '@/lib/ubicaciones-seo'
 import { productUrl } from '@/lib/product-url'
+import { BLUR_PLACEHOLDER } from '@/lib/image-placeholder'
 
 interface Props {
   slug: string
@@ -58,25 +59,41 @@ export default async function LandingCiudad({ slug, nombre, municipio, estado, d
 
       {productos.length > 0 ? (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {productos.map((p: any) => (
-            <LocalLink key={p.id} href={productUrl(p)} className="bg-white rounded-xl overflow-hidden shadow-sm border hover:shadow-lg transition group block">
+          {productos.map((p: any, index: number) => (
+            <LocalLink key={p.id} href={productUrl(p)} className="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-lg hover:-translate-y-1 transition group block">
               <div className="aspect-square bg-gray-100 relative overflow-hidden">
                 {p.destacado && new Date(p.destacado_hasta) > new Date() && (
-                  <div className="absolute top-2 left-2 z-10 bg-brand-accent text-white text-[10px] font-bold px-2 py-0.5 rounded-full">⭐ Destacado</div>
+                  <div className="absolute top-2 left-2 z-10 bg-brand-accent text-brand-dark text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm">⭐ Destacado</div>
                 )}
                 {p.imagen_url ? (
-                  <Image src={p.imagen_url} alt={p.titulo} width={300} height={300} className="w-full h-full object-cover group-hover:scale-105 transition-transform" loading="lazy" />
+                  <Image
+                    src={p.imagen_url}
+                    alt={p.titulo}
+                    fill
+                    sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                    className="object-cover group-hover:scale-105 transition-transform duration-300"
+                    loading={index < 2 ? 'eager' : 'lazy'}
+                    placeholder="blur"
+                    blurDataURL={BLUR_PLACEHOLDER}
+                  />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-gray-500 text-4xl"></div>
+                  // Antes había un <div> vacío con un emoji fantasma (cadena
+                  // vacía): la tarjeta quedaba en gris sin explicar nada.
+                  <Image
+                    src="/placeholder-product.webp"
+                    alt={p.titulo}
+                    fill
+                    sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                    className="object-cover"
+                  />
                 )}
               </div>
               <div className="p-3">
                 <h3 className="font-semibold text-gray-900 text-sm truncate">{p.titulo}</h3>
-                <p className="text-lg font-black text-brand-primary mt-1">${new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 }).format(Number(p.precio_usd || 0))}</p>
-                <p className="text-xs text-gray-500">{p.estado}</p>
-                {p.ubicacion_ciudad && (
-                  <p className="text-xs text-gray-500 flex items-center gap-1"><MapPin size={10} />{p.ubicacion_ciudad}</p>
-                )}
+                <p className="text-lg font-black text-brand-primary mt-1 truncate">${new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 }).format(Number(p.precio_usd || 0))}</p>
+                <p className="text-xs text-gray-600 mt-0.5 flex items-center gap-1 truncate">
+                  {p.ubicacion_ciudad ? (<><MapPin size={10} aria-hidden="true" />{p.ubicacion_ciudad}{p.estado ? ` · ${p.estado}` : ''}</>) : p.estado}
+                </p>
               </div>
             </LocalLink>
           ))}
