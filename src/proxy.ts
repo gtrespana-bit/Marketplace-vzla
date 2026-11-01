@@ -2,6 +2,10 @@ import createMiddleware from 'next-intl/middleware'
 import { routing } from './i18n/routing'
 import { type NextRequest } from 'next/server'
 
+// Next 16: este archivo se llamaba `middleware.ts` y quedó deprecado. La
+// convención nueva es `proxy.ts` con la función exportada como `proxy`.
+// El comportamiento es idéntico (sólo routing de next-intl + header de locale).
+//
 // REMOVED: Supabase auth middleware was causing Edge Runtime errors
 // because @supabase/ssr uses Node.js APIs not available in Edge Runtime.
 // La sesión la hidrata el AuthProvider en el cliente (supabase.auth.getSession
@@ -10,7 +14,7 @@ import { type NextRequest } from 'next/server'
 
 const nextIntlMiddleware = createMiddleware(routing)
 
-export default async function middleware(request: NextRequest) {
+export default async function proxy(request: NextRequest) {
   // 1. Detect locale from URL pathname FIRST
   const pathnameLocale = request.nextUrl.pathname.split('/')[1]
   const locale = routing.locales.includes(pathnameLocale as any)

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { checkRateLimit } from '@/lib/rate-limit'
+import { checkRateLimit, getClientIp } from '@/lib/rate-limit'
 import { sanitizeString, isValidEmail, isValidLength } from '@/lib/validation'
 import { enviarEmailDetallado, emailConfigurado } from '@/lib/server-email'
 
@@ -8,10 +8,21 @@ const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID
 const CONTACTO_DESTINO =
   process.env.CONTACTO_EMAIL || 'soporte@vendet.online'
 
-/** Rate limiter distribuido vía Supabase */
-async function checkContactRateLimit(ip: string): Promise<boolean> {
-  const rl = await checkRateLimit('contacto:send', ip, { ip })
-  return rl.ok
+/**
+ * Rate limiter distribuido vía Supabase.
+ *
+ * Se comprueban DOS claves independientes:
+ *  - por IP: frena ráfagas desde un mismo origen.
+ *  - por email: frena a un bot con IPs rotativas que machaca el mismo buzón.
+ *    (Sin esto, rotar IP era suficiente para llenar la bandeja.)
+ * Con que una de las dos se pase, se corta.
+ */
+async function checkContactRateLimit(ip: string, email: string): Promise<boolean> {
+  const [byIp, byEmail] = await Promise.all([
+    checkRateLimit('contacto:send', ip, { ip }),
+    checkRateLimit('contacto:email', email.toLowerCase(), { ip }),
+  ])
+  return byIp.ok && byEmail.ok
 }
 
 async function sendTelegramAlert(asunto: string, nombre: string, email: string, mensaje: string) {
@@ -34,13 +45,15 @@ async function sendTelegramAlert(asunto: string, nombre: string, email: string, 
 }
 
 export async function POST(req: NextRequest) {
-  const ip = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown'
+  const ip = getClientIp(req)
 
-  if (!(await checkContactRateLimit(ip))) {
-    return NextResponse.json({ error: 'Demasiados intentos. Espera un momento.' }, { status: 429 })
+  let body: any
+  try {
+    body = await req.json()
+  } catch {
+    return NextResponse.json({ error: 'Solicitud inválida' }, { status: 400 })
   }
 
-  const body = await req.json()
   const { nombre, email, asunto, mensaje } = body as {
     nombre: string
     email: string
@@ -48,7 +61,8 @@ export async function POST(req: NextRequest) {
     mensaje: string
   }
 
-  // Validación
+  // Validación PRIMERO: así la clave del rate limit por email usa un valor ya
+  // validado y no se crean claves basura con cadenas arbitrarias del cliente.
   if (!nombre || !isValidLength(nombre, 2, 100)) {
     return NextResponse.json({ error: 'Nombre inválido' }, { status: 400 })
   }
@@ -57,6 +71,10 @@ export async function POST(req: NextRequest) {
   }
   if (!mensaje || !isValidLength(mensaje, 10, 5000)) {
     return NextResponse.json({ error: 'Mensaje debe tener entre 10 y 5000 caracteres' }, { status: 400 })
+  }
+
+  if (!(await checkContactRateLimit(ip, email))) {
+    return NextResponse.json({ error: 'Demasiados intentos. Espera un momento.' }, { status: 429 })
   }
 
   // Sanitización (anti-XSS)
