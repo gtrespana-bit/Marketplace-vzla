@@ -129,7 +129,7 @@ gte/lte/in`, `or=(...)`) y se probaron los dos caminos contra `next build` +
 | S1 | ✅ Resuelto | `/api/contacto` limitaba sólo por IP: un bot con IPs rotativas llenaba el buzón. | Rate limit **también por email** (`contacto:email`, 5/h, normalizado a minúsculas) y ambas comprobaciones deben pasar. La validación corre **antes** del rate limit para no crear claves basura con valores arbitrarios del cliente. Ver §2.4. |
 | S2 | ✅ Resuelto | **Más amplio de lo documentado**: no era sólo `/api/login`, sino **4 endpoints** (login, contacto, publicar, comprar-creditos) que usaban el header `x-forwarded-for` **entero** como identificador. Como es una lista (`cliente, proxy1, proxy2`), dos peticiones del mismo cliente detrás de proxies distintos generaban claves distintas y el límite se podía esquivar. | Todos pasan por `getClientIp()`, que toma el primer salto, **valida formato** y cae a `x-real-ip` / `cf-connecting-ip`. Ver §2.4. |
 | S3 | ✅ Resuelto | `/api/datos-pago` (endpoint huérfano) exponía la cuenta de Pago Móvil del administrador. **Corrección de criterio:** los datos de cobro *deben* ser públicos — son una dirección a la que transferir, y el flujo es pagar → comprobante → aprobación. Ocultarlos rompería la compra y además son visibles en el bundle del cliente. El riesgo real es la **suplantación**, no la visibilidad. | Se **eliminó el endpoint** (no lo llamaba nadie, usaba `SERVICE_ROLE_KEY` y tenía fallback hardcodeado) y se añadió un **aviso antifraude** junto a los datos en el modal de `/creditos`. Ver §2.3. |
-| S4 | ⚪ Baja | CSP con `'unsafe-inline'` y `'unsafe-eval'` en `script-src`. | Migrar a *nonces* (`middleware` ya existe) para endurecerla. |
+| S4 | 🟡 Parcial (decidido) | CSP con `'unsafe-inline'` y `'unsafe-eval'` en `script-src`. El segundo **sí** se podía quitar; el primero no sin pagar un precio grande. | `'unsafe-eval'` y `vercel.live` **eliminados** (verificado en navegador, 0 bloqueos). `'unsafe-inline'` se conserva **a propósito**: los nonces obligarían a renderizar en cada petición las 25 rutas que hoy son ISR/SSG. Además `connect-src` ahora deriva de `NEXT_PUBLIC_SUPABASE_URL`. Ver §2.7. |
 | S5 | ✅ Resuelto | `/api/tasa-bcv` devolvía `429` **con uso normal**, no sólo bajo ataque: el límite es de 60/h **por IP** y una IP pública es una oficina entera compartiendo NAT. Además, `actualizarTasaClient()` pedía la tasa en **cada montaje ignorando la caché que tenía al lado** (2 peticiones por visita al dashboard, 1 por ficha de producto). | Un único camino de red (`fetchTasaConCache`), caché real de 15 min, deduplicación de peticiones concurrentes, `Cache-Control` en el endpoint y última tasa conocida como red de seguridad ante 429/5xx. Ver §2.6. |
 
 ### 2.3 Aviso antifraude en la compra de créditos (S3)
@@ -249,6 +249,69 @@ corrupto y registro sin tasa). Suite total: **23 suites / 153 pruebas**.
 > prefetch del propio navegador que no ejecuta código de la aplicación. Contar
 > peticiones sin separar por tipo lleva a diagnosticar un bug inexistente.
 
+### 2.7 CSP: qué se endureció y qué se decidió no tocar (S4)
+
+La recomendación original era "migrar a nonces". Al medirlo, resultó que las
+dos mitades del hallazgo tenían costes muy distintos.
+
+**`'unsafe-eval'` → eliminado.** No lo necesitaba nada del proyecto: no hay
+`eval()` ni `new Function()` en `src/`, y todos los manejadores son de React
+(ningún `onclick="..."` en atributo). Se verificó en navegador inyectando una
+CSP sin `unsafe-eval` sobre `/`, `/catalogo`, `/creditos`, `/publicar`,
+`/login` y `/producto`: **cero bloqueos** y las seis rutas siguieron hidratando
+y respondiendo a clicks. También se quitó `vercel.live`, que sirve su script
+con `eval` y sólo aplica al panel de comentarios de Vercel, no a producción.
+Es un cambio de una sola palabra con efecto real: sin `unsafe-eval`, un XSS ya
+no puede ejecutar código a partir de una cadena.
+
+**`'unsafe-inline'` → se conserva, con el motivo escrito.** Quitarlo exige
+`nonce`, y un nonce es distinto en cada respuesta: Next deja de poder generar
+la página una vez y servirla. Las **25 rutas ISR/SSG** (portada, los 38
+artículos del blog, las 16 categorías, `como-funciona`, `chat`…) pasarían a
+renderizarse en cada visita, con su coste en invocaciones y TTFB, además del
+riesgo de romper la hidratación de *todas* las páginas. Para un hallazgo de
+severidad baja, el intercambio no compensa: **se documenta en lugar de
+aplicarse a medias**. Lo que sí queda cerrado es el resto del vector:
+`object-src 'none'`, `base-uri 'self'`, `frame-ancestors 'none'`,
+`form-action 'self'` y `worker-src 'self' blob:`.
+
+**Hallazgo colateral, más grave que S4: `connect-src` estaba atado a
+`*.supabase.co`.** Si el proyecto apuntaba a un Supabase autoalojado o a un
+staging, el comodín no lo cubría y **todas** las consultas del cliente fallaban
+con "Refused to connect" — invisible en el servidor, visible sólo en la consola
+del navegador. Se detectó justamente así, verificando la CSP. Ahora los orígenes
+se derivan de `NEXT_PUBLIC_SUPABASE_URL` (incluye `ws:`/`wss:` para realtime y
+tolera una URL inválida sin romper el build).
+
+**Config huérfano eliminado.** `next.config.optimized.js` era una copia de
+`next.config.js` sin usar por nadie… con una diferencia peligrosa:
+`dangerouslyAllowSVG: true`, justo lo que el config activo documenta como *no
+activar* (un SVG con `<script>` servido por el optimizador es XSS almacenado en
+el dominio del sitio). Un `cp next.config.optimized.js next.config.js` habría
+abierto ese agujero sin que nadie lo notara. Se borró.
+
+**Estructura.** La política vive ahora en `src/lib/security-headers.js` (JS
+puro, sin dependencias de Next) para poder probarla con Jest;
+`next.config.js` sólo la invoca. `tests/unit/seguridad-csp.test.ts` tiene 18
+casos que impiden volver a introducir `unsafe-eval`, `vercel.live`, un
+`connect-src` con comodín fijo o un `dangerouslyAllowSVG: true`.
+
+**Verificación (10 rutas, navegador real):**
+
+| Comprobación | Resultado |
+|---|---|
+| `unsafe-eval` en la CSP servida | ausente |
+| `vercel.live` | ausente |
+| CSP idéntica en `/`, `/catalogo`, `/creditos`, `/en`, `/dashboard` | sí |
+| Violaciones CSP reales | **0** |
+| Errores de aplicación en consola | **0** |
+| Rutas que hidratan y responden a un click | **10 de 10** |
+
+> Nota de método: en local aparecen dos "Refused to execute script" por página
+> sobre `/_vercel/insights/script.js`. No son violaciones de nuestra política:
+> ese script sólo existe cuando el sitio corre en Vercel y aquí devuelve HTML
+> con 404. Se excluyen del conteo para no reportar un problema inexistente.
+
 ---
 
 ## 3. Rendimiento
@@ -325,7 +388,7 @@ Breadcrumb/FAQ, canonical + hreflang por página.
 | 1 | Deploy en Vercel y probar `/catalogo` en un móvil real (o DevTools 3G lento) | El estado de error debe decir «Reintentar», nunca «No hay productos» |
 | 2 | Confirmar en Vercel Logs que `/producto/[slug]` responde `x-nextjs-cache: HIT` | Antes era `MISS`/dinámico siempre |
 | 3 | ~~Renombrar `src/middleware.ts` → `src/proxy.ts`~~ | **Hecho** (§2.5) |
-| 4 | Revisar los hallazgos abiertos de seguridad (§2.2) | ~~S1~~ (§2.4), ~~S2~~ (§2.4), ~~S3~~ (§2.3), ~~S5~~ (§2.6) **hechos**. Queda S4 |
+| 4 | Revisar los hallazgos abiertos de seguridad (§2.2) | ~~S1~~ (§2.4), ~~S2~~ (§2.4), ~~S3~~ (§2.3), ~~S5~~ (§2.6) **hechos**, S4 parcialmente (§2.7)
 | 5 | Medir JS inicial con `npm run build:analyze` | Objetivo < 400 KB en páginas públicas |
 
 ---

@@ -2,6 +2,8 @@ const createNextIntlPlugin = require('next-intl/plugin');
 
 const withNextIntl = createNextIntlPlugin('./src/i18n/request-config.ts');
 
+const { buildCSP } = require('./src/lib/security-headers')
+
 /** @type {import('next').NextConfig} */
 const nextConfig = withNextIntl({
   compiler: {
@@ -111,29 +113,11 @@ const nextConfig = withNextIntl({
         value: 'max-age=63072000; includeSubDomains; preload',
       },
       {
-        // CSP progresiva compatible con Supabase, R2, Vercel, Sentry, fonts, imágenes
+        // CSP progresiva. La política y sus motivos viven en
+        // `src/lib/security-headers.js` para poder probarlos con Jest; hay
+        // tests de regresión en `tests/unit/seguridad-csp.test.ts`.
         key: 'Content-Security-Policy',
-        value: [
-          "default-src 'self'",
-          // Google Analytics 4: gtag.js se sirve desde googletagmanager.com.
-          // Sin este origen en script-src el navegador bloquea GA en silencio
-          // (solo se ve como error de CSP en la consola).
-          "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://vercel.live https://*.vercel-analytics.com https://*.vercel-scripts.com https://va.vercel-scripts.com https://www.googletagmanager.com",
-          "style-src 'self' 'unsafe-inline'",
-          "font-src 'self' data:",
-          "img-src 'self' data: blob: https: ",
-          "media-src 'self' blob: https://*.supabase.co https://*.r2.dev https://*.r2.cloudflarestorage.com",
-          // google-analytics.com / analytics.google.com reciben los hits de GA4
-          // (incluidos los pings sin cookies cuando analytics_storage='denied').
-          "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.r2.dev https://pub-d212837165c545e3956251da001fa37a.r2.dev https://*.r2.cloudflarestorage.com https://vercel.live https://*.vercel-analytics.com https://*.vercel-scripts.com https://va.vercel-scripts.com https://*.sentry.io https://*.ingest.sentry.io https://api.telegram.org https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com",
-          "frame-src 'self'",
-          "frame-ancestors 'none'",
-          "base-uri 'self'",
-          "form-action 'self'",
-          "object-src 'none'",
-          "worker-src 'self' blob:",
-          "manifest-src 'self'",
-        ].join('; '),
+        value: buildCSP(process.env.NEXT_PUBLIC_SUPABASE_URL),
       },
     ]
 
