@@ -46,7 +46,15 @@ ESTADOS.forEach((estado) => {
       estado,
       // Sin marca: el template del layout raíz (%s | VendeT) la agrega una sola vez.
       titulo: `Clasificados en ${municipio.capital}, ${estado}`,
-      descripcion: `Compra y vende en ${municipio.capital}, ${estado}. Miles de anuncios clasificados: carros, casas, celulares, empleo y más. Publica gratis en VendeT.online.`,
+      // ⚠️ Solo se nombran categorías que EXISTEN en el marketplace.
+      // Antes decía "carros, casas, celulares, empleo y más": "casas" y
+      // "empleo" no son categorías de VendeT (las reales son vehículos,
+      // tecnología, moda, hogar, herramientas, materiales, repuestos y otros).
+      // Esa promesa se repetía en la meta description y en el texto visible de
+      // las 330 landings de ciudad → incumplimiento de expectativa en el clic,
+      // rebote alto y una señal de calidad muy negativa para Google (la meta
+      // description es, literalmente, una promesa de relevancia).
+      descripcion: `Compra y vende en ${municipio.capital}, ${estado}. Anuncios clasificados de vehículos, tecnología, moda, hogar, herramientas, materiales y repuestos. Publica gratis en VendeT.`,
       keywords: [
         `clasificados ${municipio.capital}`,
         `compra venta ${municipio.capital}`,

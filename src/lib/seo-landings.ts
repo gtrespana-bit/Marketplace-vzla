@@ -7,6 +7,12 @@
  * con inventario → index; sin inventario → noindex,follow (se rastrea,
  * y se indexa sola cuando aparezca el primer anuncio).
  *
+ * ⚠️ REGLA DE CONSISTENCIA (importante):
+ * `src/app/sitemap.ts` aplica EXACTAMENTE esta misma regla antes de anunciar
+ * una URL. Si cambias el criterio aquí, cámbialo allí: un sitemap que anuncia
+ * URLs noindex entrena a Google a desconfiar del dominio entero, que es peor
+ * que no tener sitemap.
+ *
  * Fail-open: si Supabase falla o no está configurado, se indexa (mejor
  * una página vacía de más que desindexar el sitio entero por un timeout).
  */

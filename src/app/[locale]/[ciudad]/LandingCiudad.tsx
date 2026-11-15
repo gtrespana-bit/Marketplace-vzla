@@ -5,6 +5,16 @@ import { MapPin, ChevronRight } from 'lucide-react'
 import { getCiudadBySlug } from '@/lib/ubicaciones-seo'
 import { productUrl } from '@/lib/product-url'
 import { BLUR_PLACEHOLDER } from '@/lib/image-placeholder'
+import { CATEGORIAS_SEO_LIST } from '@/lib/categorias-seo'
+
+// Categorías reales del marketplace, con su icono, para el bloque de enlaces
+// internos de la página de ciudad. Se deriva de la MISMA fuente que genera las
+// rutas /[ciudad]/[categoria], así que nunca puede apuntar a una URL 404.
+const CATEGORIAS_CIUDAD = CATEGORIAS_SEO_LIST.map((c) => ({
+  slug: c.slug,
+  nombre: c.nombre,
+  icono: c.icono,
+}))
 
 interface Props {
   slug: string
@@ -111,6 +121,35 @@ export default async function LandingCiudad({ slug, nombre, municipio, estado, d
           Ver todos los anuncios en {nombre} ({total})
         </LocalLink>
       </div>
+
+      {/*
+        Enlaces a las landings /ciudad/categoria de ESTA ciudad.
+
+        Antes las páginas ciudad/categoría solo existían en el sitemap: no
+        había ni un enlace interno que apuntara a ellas desde el cuerpo del
+        sitio. Google rastrea por enlaces; una URL que solo vive en el sitemap
+        se rastrea poco y —cuando compite con miles de páginas parecidas— se
+        descarta. Este bloque convierte cada página de ciudad en un hub que
+        reparte autoridad hacia sus 8 categorías locales.
+      */}
+      <nav aria-labelledby="categorias-ciudad" className="mt-12 border-t border-gray-200 pt-8">
+        <h2 id="categorias-ciudad" className="text-xl font-black text-gray-900 mb-3">
+          Explora por categoría en {nombre}
+        </h2>
+        <ul className="flex flex-wrap gap-2">
+          {CATEGORIAS_CIUDAD.map((cat) => (
+            <li key={cat.slug}>
+              <LocalLink
+                href={`/${slug}/${cat.slug}`}
+                className="inline-flex items-center gap-1.5 rounded-full border border-gray-200 bg-white px-3.5 py-1.5 text-sm font-medium text-gray-700 transition hover:border-brand-primary hover:text-brand-primary"
+              >
+                <span aria-hidden="true">{cat.icono}</span>
+                {cat.nombre} en {nombre}
+              </LocalLink>
+            </li>
+          ))}
+        </ul>
+      </nav>
     </div>
   )
 }

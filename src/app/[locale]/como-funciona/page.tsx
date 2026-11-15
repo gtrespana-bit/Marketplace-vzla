@@ -6,6 +6,21 @@ import { getTranslations, setRequestLocale } from 'next-intl/server'
 export const metadata: Metadata = {
   title: '¿Cómo Funciona?',
   description: 'Publica gratis en VendeT en 4 pasos simples. Compra y vende en Venezuela sin comisiones.',
+  alternates: {
+    canonical: 'https://vendet.online/como-funciona',
+    languages: {
+      'es-VE': 'https://vendet.online/como-funciona',
+      'x-default': 'https://vendet.online/como-funciona',
+    },
+  },
+  openGraph: {
+    title: '¿Cómo Funciona?',
+    description: 'Publica gratis en VendeT en 4 pasos simples. Compra y vende en Venezuela sin comisiones.',
+    url: 'https://vendet.online/como-funciona',
+    siteName: 'VendeT',
+    locale: 'es_VE',
+    type: 'website',
+  },
 }
 
 export default async function ComoFuncionaPage({ params }: { params: Promise<{ locale: string }> }) {

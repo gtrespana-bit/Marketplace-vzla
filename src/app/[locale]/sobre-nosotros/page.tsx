@@ -5,27 +5,41 @@ import { getTranslations, setRequestLocale } from 'next-intl/server'
 export const metadata: Metadata = {
   title: 'Sobre Nosotros',
   description: 'Conoce VendeT: el marketplace gratuito para comprar y vender en Venezuela. Sin comisiones, sin intermediarios, contacto directo entre compradores y vendedores.',
+  alternates: {
+    canonical: 'https://vendet.online/sobre-nosotros',
+    languages: {
+      'es-VE': 'https://vendet.online/sobre-nosotros',
+      'x-default': 'https://vendet.online/sobre-nosotros',
+    },
+  },
+  openGraph: {
+    title: 'Sobre Nosotros',
+    description: 'Conoce VendeT: el marketplace gratuito para comprar y vender en Venezuela. Sin comisiones, sin intermediarios.',
+    url: 'https://vendet.online/sobre-nosotros',
+    siteName: 'VendeT',
+    locale: 'es_VE',
+    type: 'website',
+  },
 }
 
 export default async function SobreNosotrosPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params
   setRequestLocale(locale)
   const t = await getTranslations({ locale, namespace: 'about' })
+  // La entidad se declara por `@id` (el mismo del layout) en vez de volver a
+  // escribir el nombre de marca: antes decía "VendeT-Venezuela" aquí, "VendeT"
+  // en el layout y "VendeT.online" en el blog, tres entidades distintas para
+  // Google. Ahora hay UNA y todas las páginas la referencian.
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'AboutPage',
+    '@id': 'https://vendet.online/sobre-nosotros#webpage',
     name: t('title'),
     description: t('subtitle'),
     url: 'https://vendet.online/sobre-nosotros',
-    mainEntity: {
-      '@type': 'Organization',
-      name: 'VendeT-Venezuela',
-      url: 'https://vendet.online',
-      description: t('subtitle'),
-      foundingDate: '2024',
-      areaServed: { '@type': 'Country', name: 'Venezuela' },
-      serviceType: 'Marketplace',
-    },
+    inLanguage: 'es-VE',
+    isPartOf: { '@id': 'https://vendet.online/#website' },
+    mainEntity: { '@id': 'https://vendet.online/#organization' },
   }
 
   return (

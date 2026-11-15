@@ -8,6 +8,7 @@ const AuthProvider = dynamic(() => import('@/components/AuthProvider').then(m =>
 import RootClientEffects from '@/components/RootClientEffects'
 import GoogleAnalytics from '@/components/GoogleAnalytics'
 import { CONSENT_STORAGE_KEY, GA_REQUIRE_CONSENT } from '@/lib/analytics'
+import { SAME_AS } from '@/lib/social'
 
 // Consent Mode v2: los valores por defecto se fijan en un script inline del
 // <head>, es decir, ANTES de que gtag.js se cargue (afterInteractive). Si se
@@ -122,10 +123,10 @@ export const metadata: Metadata = {
     description: 'El marketplace más grande de Venezuela. Compra y vende productos nuevos y usados de forma segura.',
     images: [
       {
-        url: '/og-image.webp',
+        url: '/og-image.jpg',
         width: 1200,
         height: 630,
-        alt: 'VendeT Marketplace',
+        alt: "VendeT — Marketplace de clasificados de Venezuela",
       },
     ],
   },
@@ -133,8 +134,9 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'VendeT - Marketplace de Venezuela',
     description: 'Compra y vende productos nuevos y usados de forma segura en Venezuela.',
-    images: ['/og-image.webp'],
-    creator: '@vendet',
+    images: ['/og-image.jpg'],
+    // Sin `creator`: declaraba @vendet, una cuenta de Twitter que no es del
+    // proyecto. Un handle ajeno en la tarjeta es una señal de identidad falsa.
   },
   robots: {
     index: true,
@@ -207,30 +209,73 @@ export default async function RootLayout({
         <meta name="revisit-after" content="1 days" />
         <meta name="rating" content="General" />
         <meta name="distribution" content="Global" />
+        {/*
+          JSON-LD de entidad del sitio.
+
+          ⚠️ `sameAs` sale de `src/lib/social.ts` (única fuente de verdad) y
+          SOLO contiene perfiles reales. Antes declaraba
+          instagram.com/vendet, twitter.com/vendet y facebook.com/vendet, que no
+          son cuentas del proyecto. Un `sameAs` que apunta a cuentas ajenas le
+          dice a Google que este sitio ES otra entidad — la peor señal posible
+          para consolidar la marca, y la razón de que el dominio no apareciera
+          al buscar "VendeT". Ver docs/SEO-DIAGNOSTICO-2026-11.md §Hallazgo 2.
+
+          Google, Bing y los motores de IA usan este bloque para decidir qué es
+          el sitio, así que debe ser exacto o no estar.
+        */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
             __html: JSON.stringify({
               '@context': 'https://schema.org',
-              '@type': 'WebSite',
-              name: 'VendeT',
-              url: 'https://vendet.online',
-              potentialAction: {
-                '@type': 'SearchAction',
-                target: 'https://vendet.online/buscar?q={search_term_string}',
-                'query-input': 'required name=search_term_string'
-              },
-              publisher: {
-                '@type': 'Organization',
-                name: 'VendeT',
-                url: 'https://vendet.online',
-                logo: 'https://vendet.online/icon-192.png',
-                sameAs: [
-                  'https://instagram.com/vendet',
-                  'https://twitter.com/vendet',
-                  'https://facebook.com/vendet'
-                ]
-              }
+              '@graph': [
+                {
+                  '@type': 'Organization',
+                  '@id': 'https://vendet.online/#organization',
+                  name: 'VendeT',
+                  alternateName: ['VendeT Venezuela', 'VendeT.online'],
+                  url: 'https://vendet.online',
+                  logo: {
+                    '@type': 'ImageObject',
+                    url: 'https://vendet.online/icon-512.png',
+                    width: 512,
+                    height: 512
+                  },
+                  description:
+                    'Marketplace de clasificados de Venezuela para comprar y vender productos nuevos y usados sin comisiones.',
+                  areaServed: {
+                    '@type': 'Country',
+                    name: 'Venezuela',
+                    '@id': 'https://www.wikidata.org/wiki/Q717'
+                  },
+                  knowsLanguage: ['es-VE'],
+                  // Solo se emite si hay al menos un perfil real (ver lib/social).
+                  ...(SAME_AS.length > 0 ? { sameAs: SAME_AS } : {}),
+                  contactPoint: {
+                    '@type': 'ContactPoint',
+                    contactType: 'customer support',
+                    url: 'https://vendet.online/contacto',
+                    availableLanguage: ['Spanish']
+                  }
+                },
+                {
+                  '@type': 'WebSite',
+                  '@id': 'https://vendet.online/#website',
+                  name: 'VendeT',
+                  alternateName: 'VendeT Venezuela',
+                  url: 'https://vendet.online',
+                  inLanguage: 'es-VE',
+                  publisher: { '@id': 'https://vendet.online/#organization' },
+                  potentialAction: {
+                    '@type': 'SearchAction',
+                    target: {
+                      '@type': 'EntryPoint',
+                      urlTemplate: 'https://vendet.online/buscar?q={search_term_string}'
+                    },
+                    'query-input': 'required name=search_term_string'
+                  }
+                }
+              ]
             })
           }}
         />

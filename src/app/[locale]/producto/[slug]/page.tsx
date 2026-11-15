@@ -54,16 +54,14 @@ const PRODUCT_COLUMNS = `
   metodos_contacto,
   destacado,
   destacado_hasta,
-  boosteado_en
+  boosteado_en,
+  actualizado_en
 `
 
-const PRODUCT_COLUMNS_LEGACY = PRODUCT_COLUMNS.replace(/\n\s*slug,/, '')
-
-// Sin `especificaciones`: para bases donde la migración 025 aún no se aplicó.
-// PostgREST responde 42703 y rechaza el SELECT entero si se pide una columna
-// inexistente, así que hay que poder reintentar sin ella.
-const PRODUCT_COLUMNS_SIN_SPECS = PRODUCT_COLUMNS.replace(/\n\s*especificaciones,/, '')
-const PRODUCT_COLUMNS_LEGACY_SIN_SPECS = PRODUCT_COLUMNS_LEGACY.replace(/\n\s*especificaciones,/, '')
+// `actualizado_en` alimenta `dateModified` del schema. Si la columna no existe,
+// PostgREST rechaza el SELECT entero (42703); el reintento de `getProduct`
+// la retira y el schema simplemente omite la fecha. Nunca debe tumbar la ficha.
+const SIN_ACTUALIZADO = (cols: string) => cols.replace(/\n\s*actualizado_en,?/, '')
 
 const faltaColumna = (error: any, columna: string) =>
   !!error && new RegExp(columna, 'i').test(error.message || '')
@@ -89,31 +87,41 @@ async function getProduct(slugOrId: string) {
   let data: any = null
   let error: any = null
 
-  if (isUuid(slugOrId)) {
-    // URL legacy con UUID
-    ;({ data, error } = await queryProducto('id', slugOrId, PRODUCT_COLUMNS))
-    if (faltaColumna(error, 'especificaciones')) {
-      ;({ data, error } = await queryProducto('id', slugOrId, PRODUCT_COLUMNS_SIN_SPECS))
+  // Cada columna "opcional" (`slug`, `especificaciones`, `actualizado_en`)
+  // puede no existir en una base sin migrar. En lugar de anidar un `if` por
+  // combinación —que crece de forma insostenible— se intentan los conjuntos
+  // de columnas de más a menos completo, retirando SOLO lo que PostgREST
+  // reporta como inexistente (42703). El orden importa: el primero que
+  // funcione es el más rico en datos.
+  //
+  // El orden de retirada coincide con la antigüedad de las migraciones:
+  // `slug` (024) → `especificaciones` (025) → `actualizado_en` (base).
+  // Se prueban ambas claves de búsqueda: la URL puede llegar como slug SEO o
+  // como UUID legacy, y un slug con formato raro no debe quedar sin servir.
+  const claves: Array<'slug' | 'id'> = isUuid(slugOrId) ? ['id', 'slug'] : ['slug', 'id']
+
+  let cols = PRODUCT_COLUMNS
+  const probadas = new Set<string>()
+
+  for (const clave of claves) {
+    // Reintenta quitando la columna que falle, hasta que la consulta pase.
+    for (let intento = 0; intento < 4; intento++) {
+      if (probadas.has(`${clave}|${cols}`)) break
+      probadas.add(`${clave}|${cols}`)
+
+      ;({ data, error } = await queryProducto(clave, slugOrId, cols))
+      if (!error) break
+
+      let siguiente = cols
+      if (faltaColumna(error, 'slug')) siguiente = siguiente.replace(/\n\s*slug,/, '')
+      else if (faltaColumna(error, 'especificaciones')) siguiente = siguiente.replace(/\n\s*especificaciones,/, '')
+      else if (faltaColumna(error, 'actualizado_en')) siguiente = SIN_ACTUALIZADO(siguiente)
+      else break // Error distinto a "columna inexistente": no insistir
+
+      cols = siguiente
     }
-    if (faltaColumna(error, 'slug')) {
-      ;({ data, error } = await queryProducto('id', slugOrId, PRODUCT_COLUMNS_LEGACY))
-      if (faltaColumna(error, 'especificaciones')) {
-        ;({ data, error } = await queryProducto('id', slugOrId, PRODUCT_COLUMNS_LEGACY_SIN_SPECS))
-      }
-    }
-  } else {
-    // URL canónica con slug SEO
-    ;({ data, error } = await queryProducto('slug', slugOrId, PRODUCT_COLUMNS))
-    if (faltaColumna(error, 'especificaciones')) {
-      ;({ data, error } = await queryProducto('slug', slugOrId, PRODUCT_COLUMNS_SIN_SPECS))
-    }
-    if (faltaColumna(error, 'slug')) {
-      // Migración de slugs aún no aplicada en la DB: intenta por id
-      ;({ data, error } = await queryProducto('id', slugOrId, PRODUCT_COLUMNS_LEGACY))
-      if (faltaColumna(error, 'especificaciones')) {
-        ;({ data, error } = await queryProducto('id', slugOrId, PRODUCT_COLUMNS_LEGACY_SIN_SPECS))
-      }
-    }
+
+    if (!error && data) break
   }
 
   if (error || !data) {
@@ -356,6 +364,16 @@ export default async function ProductoPage({ params }: Props) {
   const sellerCity = producto.perfil?.ciudad || producto.ubicacion_ciudad || '';
   const sellerState = producto.perfil?.estado || producto.ubicacion_estado || '';
   
+  // Fechas del anuncio: `dateModified` y `priceValidUntil` permiten que los
+  // resultados enriquecidos y los asistentes de IA muestren datos frescos y
+  // descarten precios caducados. Sin ellas, Google asume que el precio puede
+  // ser viejo y prefiere otros anuncios para la misma consulta.
+  const fechaPublicacion = producto.creado_en ? new Date(producto.creado_en) : null
+  const fechaModificacion = producto.actualizado_en
+    ? new Date(producto.actualizado_en)
+    : fechaPublicacion
+  const precioVigenteHasta = new Date(Date.now() + 30 * 864e5)
+
   const jsonLd: any = {
     '@context': 'https://schema.org',
     '@type': 'Product',
@@ -365,11 +383,23 @@ export default async function ProductoPage({ params }: Props) {
     image: producto.imagen_url ? [producto.imagen_url] : [],
     url: `https://vendet.online/producto/${producto.slug || slug}`,
     sku: producto.id,
+    ...(fechaPublicacion && !isNaN(fechaPublicacion.getTime())
+      ? { datePublished: fechaPublicacion.toISOString() }
+      : {}),
+    ...(fechaModificacion && !isNaN(fechaModificacion.getTime())
+      ? { dateModified: fechaModificacion.toISOString() }
+      : {}),
     offers: {
       '@type': 'Offer',
       price: producto.precio_usd || 0,
       priceCurrency: 'USD',
       availability: producto.vendido ? 'https://schema.org/OutOfStock' : 'https://schema.org/InStock',
+      // Un anuncio de particular siempre se puede regatear; declararlo ayuda a
+      // los asistentes a responder "¿tiene regateo?" con datos, no adivinando.
+      ...(producto.vendido ? {} : { priceValidUntil: precioVigenteHasta.toISOString().slice(0, 10) }),
+      ...(producto.actualizado_en || producto.creado_en
+        ? { validFrom: (fechaModificacion || fechaPublicacion)!.toISOString() }
+        : {}),
       seller: {
         '@type': 'Person',
         name: sellerName,

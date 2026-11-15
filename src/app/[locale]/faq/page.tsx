@@ -1,9 +1,25 @@
 import type { Metadata } from 'next'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
 
+// `metadata` estático + `setRequestLocale` no permiten saber el locale aquí,
+// pero SÍ permite emitir canonical absoluta. La necesita: sin canonical, la
+// misma página servida como /faq y /en/faq compite consigo misma y Google
+// elige una al azar.
 export const metadata: Metadata = {
   title: 'Preguntas Frecuentes',
   description: 'Resuelve tus dudas sobre VendeT: cómo publicar, seguridad, créditos, métodos de pago y más.',
+  alternates: {
+    canonical: 'https://vendet.online/faq',
+    languages: { 'es-VE': 'https://vendet.online/faq', 'x-default': 'https://vendet.online/faq' },
+  },
+  openGraph: {
+    title: 'Preguntas Frecuentes',
+    description: 'Resuelve tus dudas sobre VendeT: cómo publicar, seguridad, créditos, métodos de pago y más.',
+    url: 'https://vendet.online/faq',
+    siteName: 'VendeT',
+    locale: 'es_VE',
+    type: 'website',
+  },
 }
 
 export default async function FAQPage({ params }: { params: Promise<{ locale: string }> }) {

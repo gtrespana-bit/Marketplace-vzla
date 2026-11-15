@@ -3,6 +3,14 @@ import { getTranslations, setRequestLocale } from 'next-intl/server'
 
 export const metadata: Metadata = {
   title: 'Política de Privacidad',
+  description: 'Política de privacidad de VendeT, marketplace de clasificados en Venezuela: qué datos recogemos, con quién los compartimos y cómo ejercer tus derechos.',
+  alternates: {
+    canonical: 'https://vendet.online/politica-de-privacidad',
+    languages: {
+      'es-VE': 'https://vendet.online/politica-de-privacidad',
+      'x-default': 'https://vendet.online/politica-de-privacidad',
+    },
+  },
 }
 
 export default async function PrivacidadPage({ params }: { params: Promise<{ locale: string }> }) {

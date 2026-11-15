@@ -5,6 +5,7 @@ import { ChevronRight } from 'lucide-react'
 import { getTranslations } from 'next-intl/server'
 import { productUrl } from '@/lib/product-url'
 import { BLUR_PLACEHOLDER } from '@/lib/image-placeholder'
+import { ContenidoLocal } from './ContenidoLocal'
 
 interface Props {
   ciudadSlug: string
@@ -114,7 +115,7 @@ function ProductosGrid({ productos, categoriaNombre, ciudadNombre, t }: { produc
   )
 }
 
-export default async function LandingCategoria({ ciudadSlug, ciudadNombre, ciudadMunicipio, categoriaSlug, categoriaNombre }: Props) {
+export default async function LandingCategoria({ ciudadSlug, ciudadNombre, ciudadMunicipio, estado, categoriaSlug, categoriaNombre }: Props) {
   // getTranslations (API server de next-intl) en vez de useTranslations:
   // useTranslations dentro de un Server Component async bajo <Suspense>
   // lanzaba "Expected a suspended thenable" en Next 16 → 500.
@@ -156,6 +157,16 @@ export default async function LandingCategoria({ ciudadSlug, ciudadNombre, ciuda
           Suspense alrededor de un Server Component con thenables de next-intl
           causaba "Expected a suspended thenable" en Next 16. */}
       <ProductosGrid productos={productos} categoriaNombre={categoriaNombre} ciudadNombre={ciudadNombre} t={t} />
+
+      {/* Contenido único por ciudad+categoría: rompe la plantilla y da a los
+          buscadores (y a los motores de respuestas) algo que citar. */}
+      <ContenidoLocal
+        ciudadNombre={ciudadNombre}
+        estado={estado}
+        categoriaSlug={categoriaSlug}
+        categoriaNombre={categoriaNombre}
+        total={productos.length}
+      />
     </div>
   )
 }

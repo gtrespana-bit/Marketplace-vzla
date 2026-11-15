@@ -3,6 +3,14 @@ import { getTranslations, setRequestLocale } from 'next-intl/server'
 
 export const metadata: Metadata = {
   title: 'Términos y Condiciones',
+  description: 'Términos y condiciones de uso de VendeT, el marketplace de clasificados de Venezuela: publicación de anuncios, responsabilidades y reglas de la comunidad.',
+  alternates: {
+    canonical: 'https://vendet.online/terminos-y-condiciones',
+    languages: {
+      'es-VE': 'https://vendet.online/terminos-y-condiciones',
+      'x-default': 'https://vendet.online/terminos-y-condiciones',
+    },
+  },
 }
 
 export default async function TerminosPage({ params }: { params: Promise<{ locale: string }> }) {

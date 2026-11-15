@@ -151,6 +151,54 @@ export default async function CategoriaPage({ params }: Props) {
           acceptedAnswer: { '@type': 'Answer', text: item.respuesta },
         })),
       },
+      // Productos reales de la categoría con su Offer. Es lo que permite que
+      // Google y los asistentes de IA entiendan "aquí se venden carros en
+      // Venezuela, a estos precios" en lugar de ver solo una página de enlaces.
+      // Solo se emite si hay productos: un ItemList de ofertas vacío es peor
+      // que no emitir nada.
+      ...(productos.length > 0
+        ? [{
+            '@type': 'ItemList',
+            '@id': `${canonical}#productos`,
+            numberOfItems: productos.length,
+            itemListElement: productos.map((producto, index) => ({
+              '@type': 'ListItem',
+              position: index + 1,
+              item: {
+                '@type': 'Product',
+                name: producto.titulo,
+                url: `${BASE_URL}${productUrl(producto)}`,
+                ...(producto.imagen_url ? { image: producto.imagen_url } : {}),
+                ...(producto.estado ? { itemCondition: producto.estado === 'Nuevo' ? 'https://schema.org/NewCondition' : 'https://schema.org/UsedCondition' } : {}),
+                ...(producto.precio_usd
+                  ? {
+                      offers: {
+                        '@type': 'Offer',
+                        price: producto.precio_usd,
+                        priceCurrency: 'USD',
+                        availability: 'https://schema.org/InStock',
+                        ...(producto.ubicacion_ciudad
+                          ? {
+                              areaServed: producto.ubicacion_ciudad,
+                              availableAtOrFrom: {
+                                '@type': 'Place',
+                                name: producto.ubicacion_ciudad,
+                                address: {
+                                  '@type': 'PostalAddress',
+                                  addressLocality: producto.ubicacion_ciudad,
+                                  ...(producto.ubicacion_estado ? { addressRegion: producto.ubicacion_estado } : {}),
+                                  addressCountry: 'VE',
+                                },
+                              },
+                            }
+                          : {}),
+                      },
+                    }
+                  : {}),
+              },
+            })),
+          }]
+        : []),
     ],
   }
 
