@@ -4,13 +4,48 @@ import fs from 'fs'
 import path from 'path'
 import { CIUDADES_SEO, CATEGORIAS_POPULARES } from '@/lib/ubicaciones-seo'
 import { CATEGORIAS_SEO_LIST } from '@/lib/categorias-seo'
+import {
+  construirInventario,
+  ciudadConInventario,
+  ciudadCategoriaConInventario,
+  MODERACION_FILTRO,
+  type Inventario,
+} from '@/lib/sitemap-inventario'
 
 const BASE_URL = 'https://vendet.online'
 const LAST_MODIFIED_DATE = new Date('2026-08-03')
 
-// ÚNICO sitemap del sitio. No crear otro en [locale]/.
-// El blog vive en src/content/blog/*.md (fs), NO en una tabla de Supabase:
-// la versión anterior consultaba `blog_posts` en la DB y devolvía 0 URLs.
+/**
+ * ⚠️ REGLA DE ORO DEL SITEMAP: aquí solo puede entrar lo que la página
+ * declara `index,follow`.
+ *
+ * Antes se enviaban 2.888 URLs (330 ciudades + 2.640 ciudad/categoría +
+ * productos + vendedores) mientras esas mismas páginas respondían
+ * `noindex,follow` cuando no tenían inventario. Un sitemap lleno de URLs
+ * noindex es una contradicción explícita: Google rastrea, ve "no index", y
+ * aprende que el sitemap del dominio no es fiable. Eso degrada el rastreo de
+ * TODO el sitio, incluidas las URLs buenas.
+ *
+ * Ahora se consulta el inventario real y solo se anuncian las combinaciones
+ * con al menos un anuncio activo. La lógica vive en `lib/sitemap-inventario`
+ * (probada con Jest) y es la misma regla que aplica `lib/seo-landings`.
+ */
+async function getInventario(supabase: any): Promise<Inventario | null> {
+  if (!supabase) return null
+  try {
+    const { data, error } = await supabase
+      .from('productos')
+      .select('ubicacion_ciudad, categoria:categorias(nombre)')
+      .eq('activo', true)
+      .or(MODERACION_FILTRO)
+      .limit(20000)
+
+    if (error || !Array.isArray(data)) return null
+    return construirInventario(data)
+  } catch {
+    return null
+  }
+}
 
 function getBlogSlugs(): { slug: string; lastModified: Date }[] {
   const dir = path.join(process.cwd(), 'src/content/blog')
@@ -61,6 +96,9 @@ async function getProductos(supabase: any) {
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const supabase = getSupabaseServerClient()
 
+  // Inventario real (una consulta). `null` = no se pudo saber → fail-open.
+  const inv = await getInventario(supabase)
+
   // ── URLs estáticas (páginas indexables y públicas) ──────────────────
   const staticPaths: { path: string; changeFrequency: MetadataRoute.Sitemap[number]['changeFrequency']; priority: number }[] = [
     { path: '', changeFrequency: 'daily', priority: 1 },
@@ -95,8 +133,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }))
 
   // ── Landing pages de ciudad (SEO local) ──────────────────────────────
+  // Solo ciudades con anuncios: el resto responde noindex (ver seo-landings).
   const cityUrls: MetadataRoute.Sitemap = []
   CIUDADES_SEO.forEach((ciudad) => {
+    if (!ciudadConInventario(inv, ciudad.nombre, ciudad.municipio)) return
     cityUrls.push({
       url: `${BASE_URL}/${ciudad.slug}`,
       lastModified: LAST_MODIFIED_DATE,
@@ -106,9 +146,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   })
 
   // ── Landing pages ciudad + categoría (SEO programático) ──────────────
+  // Solo las combinaciones con inventario real. Enviar 2.640 URLs de páginas
+  // que se autodeclaran noindex era el mayor desperdicio de crawl del sitio.
   const cityCategoryUrls: MetadataRoute.Sitemap = []
   for (const ciudad of CIUDADES_SEO) {
     for (const categoria of CATEGORIAS_POPULARES) {
+      if (!ciudadCategoriaConInventario(inv, ciudad.nombre, ciudad.municipio, categoria)) continue
       cityCategoryUrls.push({
         url: `${BASE_URL}/${ciudad.slug}/${categoria}`,
         lastModified: LAST_MODIFIED_DATE,

@@ -34,6 +34,32 @@ export default function robots(): MetadataRoute.Robots {
           ...PRIVATE_SEGMENTS.map((s) => `/en${s}`),
         ],
       },
+      // ── Rastreadores de motores de respuesta (IA) ────────────────────────
+      // Regla explícita: el marketplace VIVE de que la gente encuentre sus
+      // anuncios. Estos agentes alimentan ChatGPT, Perplexity, Copilot, Claude
+      // y los resúmenes de Google AI. No se les bloquea nada público.
+      //
+      // La lista es explícita a propósito: si algún día hay que bloquear
+      // entrenamiento en vez de citación, se hace aquí (por ejemplo quitando
+      // `Google-Extended` o `GPTBot` y dejando `OAI-SearchBot`). Documentado en
+      // docs/SEO-DIAGNOSTICO-2026-11.md.
+      ...[
+        'GPTBot',
+        'OAI-SearchBot',
+        'ChatGPT-User',
+        'ClaudeBot',
+        'Claude-User',
+        'PerplexityBot',
+        'Perplexity-User',
+        'Google-Extended',
+        'Applebot-Extended',
+        'CCBot',
+        'Bingbot',
+      ].map((userAgent) => ({
+        userAgent,
+        allow: '/',
+        disallow: ['/api/', ...PRIVATE_SEGMENTS],
+      })),
     ],
     sitemap: [`${BASE_URL}/sitemap.xml`, `${BASE_URL}/sitemap-images.xml`],
     host: BASE_URL,

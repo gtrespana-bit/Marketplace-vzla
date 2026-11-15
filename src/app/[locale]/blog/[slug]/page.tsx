@@ -91,31 +91,26 @@ function generateArticleSchema(post: Post) {
   return {
     "@context": "https://schema.org",
     "@type": "Article",
+    "@id": `https://vendet.online/blog/${post.slug}#article`,
     "headline": post.title,
     "description": post.excerpt,
     "datePublished": post.date,
     "dateModified": post.date,
-    "author": {
-      "@type": "Organization",
-      "name": "VendeT.online",
-      "url": "https://vendet.online"
-    },
-    "publisher": {
-      "@type": "Organization",
-      "name": "VendeT.online",
-      "url": "https://vendet.online",
-      "logo": {
-        "@type": "ImageObject",
-        "url": "https://vendet.online/logo.png"
-      }
-    },
+    // `author` apunta a la Organization por @id: consolida la entidad en vez
+    // de repetir tres variantes del nombre de marca ("VendeT", "VendeT.online",
+    // "VendeT-Venezuela") que diluían las señales de marca.
+    "author": { "@id": "https://vendet.online/#organization" },
+    "publisher": { "@id": "https://vendet.online/#organization" },
+    "isPartOf": { "@id": "https://vendet.online/#website" },
     "mainEntityOfPage": {
       "@type": "WebPage",
       "@id": `https://vendet.online/blog/${post.slug}`
     },
     "articleSection": post.category,
     "keywords": post.tags.join(', '),
-    "inLanguage": "es-VE"
+    "inLanguage": "es-VE",
+    "image": ["https://vendet.online/og-image.jpg"],
+    "url": `https://vendet.online/blog/${post.slug}`
   }
 }
 

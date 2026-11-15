@@ -3,6 +3,18 @@
 import LocalLink from '@/components/LocalLink'
 import Image from 'next/image'
 import { useTranslations } from 'next-intl'
+import { Facebook, Instagram, Youtube, Music2 } from 'lucide-react'
+import { PERFILES_SOCIALES } from '@/lib/social'
+
+// Icono por red. Se centraliza aquí para que añadir un perfil en `lib/social`
+// no obligue a tocar el JSX del footer: si la red no tiene icono, el enlace
+// se renderiza igual, solo con su nombre.
+const ICONOS_SOCIALES: Record<string, typeof Facebook | undefined> = {
+  Facebook,
+  Instagram,
+  YouTube: Youtube,
+  TikTok: Music2,
+}
 
 // Categorías del footer → landing pages SEO con URL canónica propia.
 const CATEGORIAS_FOOTER = [
@@ -86,6 +98,43 @@ export function Footer() {
                 <li><LocalLink href="/terminos-y-condiciones" className="hover:text-brand-accent transition">{t('footer.terms')}</LocalLink></li>
                 <li><LocalLink href="/politica-de-privacidad" className="hover:text-brand-accent transition">{t('footer.privacy')}</LocalLink></li>
               </ul>
+
+              {/*
+                Perfiles sociales oficiales.
+
+                Van aquí (y no solo en el JSON-LD) a propósito: un `sameAs`
+                que no tiene un enlace visible es una afirmación que el sitio
+                no respalda con su propio contenido. Este enlace es la prueba
+                rastreable de que la cuenta es de VendeT, y refuerza la
+                consolidación de entidad que Google usa para las búsquedas de
+                marca. Datos en `@/lib/social` (única fuente de verdad).
+              */}
+              {PERFILES_SOCIALES.filter((p) => !p.pendiente).length > 0 && (
+                <div className="mt-5">
+                  <h3 className="text-white font-bold mb-2 text-sm">Síguenos</h3>
+                  <ul className="flex flex-wrap gap-2">
+                    {PERFILES_SOCIALES.filter((p) => !p.pendiente).map((perfil) => {
+                      const Icono = ICONOS_SOCIALES[perfil.nombre]
+                      return (
+                        <li key={perfil.url}>
+                          <a
+                            href={perfil.url}
+                            target="_blank"
+                            rel="me noopener noreferrer"
+                            aria-label={`VendeT en ${perfil.nombre}`}
+                            title={`VendeT en ${perfil.nombre}`}
+                            className="inline-flex items-center gap-1.5 rounded-lg bg-white/10 px-2.5 py-1.5 text-xs font-medium text-gray-200 transition hover:bg-white/20 hover:text-white"
+                          >
+                            {Icono && <Icono size={14} aria-hidden="true" />}
+                            {perfil.nombre}
+                          </a>
+                        </li>
+                      )
+                    })}
+                  </ul>
+                </div>
+              )}
+
               <p className="text-xs text-gray-300 mt-4">{t('footer.madeWithLove')}</p>
             </div>
           </div>
@@ -121,6 +170,32 @@ export function Footer() {
             <LocalLink href="/terminos-y-condiciones" className="hover:text-brand-accent transition">{t('footer.terms')}</LocalLink>
             <LocalLink href="/politica-de-privacidad" className="hover:text-brand-accent transition">{t('footer.privacy')}</LocalLink>
           </nav>
+
+          {/* Perfiles sociales también en móvil: en Venezuela la mayoría del
+              tráfico es móvil, y un enlace que solo existe en el footer de
+              escritorio no lo rastrea ni lo ve nadie. */}
+          {PERFILES_SOCIALES.filter((p) => !p.pendiente).length > 0 && (
+            <ul className="flex items-center justify-center gap-3">
+              {PERFILES_SOCIALES.filter((p) => !p.pendiente).map((perfil) => {
+                const Icono = ICONOS_SOCIALES[perfil.nombre]
+                return (
+                  <li key={perfil.url}>
+                    <a
+                      href={perfil.url}
+                      target="_blank"
+                      rel="me noopener noreferrer"
+                      aria-label={`VendeT en ${perfil.nombre}`}
+                      title={`VendeT en ${perfil.nombre}`}
+                      className="inline-flex items-center gap-1.5 rounded-lg bg-white/10 px-3 py-2 text-xs font-medium text-gray-200 transition hover:bg-white/20 hover:text-white"
+                    >
+                      {Icono && <Icono size={16} aria-hidden="true" />}
+                      {perfil.nombre}
+                    </a>
+                  </li>
+                )
+              })}
+            </ul>
+          )}
 
           <p className="text-[11px] text-gray-400 mt-1">
             © {new Date().getFullYear()} VendeT-Venezuela. {t('footer.allRightsReserved')}

@@ -72,7 +72,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
       siteName: 'VendeT',
       images: [
         {
-          url: 'https://vendet.online/og-image.webp',
+          url: 'https://vendet.online/og-image.jpg',
           width: 1200,
           height: 630,
           alt: 'VendeT.online - Clasificados Venezuela'
@@ -85,7 +85,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
       card: 'summary_large_image',
       title: 'Clasificados Venezuela — Compra y Venta',
       description: 'El marketplace líder de clasificados en Venezuela. Publica gratis y vende tus productos.',
-      images: ['https://vendet.online/og-image.webp'],
+      images: ['https://vendet.online/og-image.jpg'],
     },
     robots: {
       index: true,

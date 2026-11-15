@@ -9,6 +9,7 @@ import { Menu, X, Search, PlusCircle, MessageCircle, Zap, ChevronLeft, Globe } f
 import { useAuth } from '@/components/AuthProvider'
 import Avatar from '@/components/Avatar'
 import { useTranslations } from 'next-intl'
+import { esPaginaConVersionIngles } from '@/i18n/routing'
 
 export function Header() {
   const { user } = useAuth()
@@ -22,6 +23,16 @@ export function Header() {
   // Locale detection from Next.js pathname (reactive to client-side navigation)
   const pathname = usePathname()
   const isEn = pathname.startsWith('/en')
+
+  // ⚠️ El conmutador solo aparece en páginas con interfaz realmente traducida.
+  // Antes se generaba `/en${pathname}` para TODAS las rutas: en las páginas que
+  // ya se renderizan bajo /en (porque el layout sirve ambos locales sin
+  // redirigir) el pathname llegaba como `/es/catalogo` y el enlace salía
+  // `/en/es/catalogo` → 404. Eso ocurría en la portada (`/en/es`), /faq,
+  // /blog, /categoria/*… Es decir: un 404 enlazado desde el header de todo el
+  // sitio, justo en el enlace que rastrea Google para descubrir la versión
+  // inglesa.
+  const mostrarConmutadorIdioma = esPaginaConVersionIngles(pathname)
   const altLocaleHref = isEn
     ? (pathname.replace(/^\/en(?=\/|$)/, '') || '/')
     : `/en${pathname === '/' ? '' : pathname}`
@@ -190,6 +201,7 @@ export function Header() {
             {/* Actions (desktop) */}
             <div className="flex items-center gap-2">
               {/* Language toggle - full page reload to avoid root layout hydration mismatch */}
+              {mostrarConmutadorIdioma && (
               <a
                 href={altLocaleHref}
                 onClick={(e) => { e.preventDefault(); window.location.href = altLocaleHref; }}
@@ -200,6 +212,7 @@ export function Header() {
                 <Globe size={16} />
                 <span className="text-xs font-medium">{isEn ? 'ES' : 'EN'}</span>
               </a>
+              )}
 
               {/* Credits — solo usuarios con sesión */}
               {user && (
@@ -226,6 +239,7 @@ export function Header() {
               )}
 
               {/* Language toggle for mobile - full page reload */}
+              {mostrarConmutadorIdioma && (
               <a
                 href={altLocaleHref}
                 onClick={(e) => { e.preventDefault(); window.location.href = altLocaleHref; }}
@@ -235,6 +249,7 @@ export function Header() {
               >
                 <span className="text-lg" aria-hidden="true">{isEn ? '🇻🇪' : '🇺🇸'}</span>
               </a>
+              )}
 
               {!user ? (
                 <>

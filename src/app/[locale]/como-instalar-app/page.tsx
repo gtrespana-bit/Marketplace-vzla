@@ -5,7 +5,22 @@ import { getTranslations, setRequestLocale } from 'next-intl/server'
 
 export const metadata: Metadata = {
   title: 'Instala la App',
-  description: 'Aprende cómo instalar VendeT-Venezuela como app en tu teléfono. Guía paso a paso para Android e iPhone.',
+  description: 'Aprende cómo instalar VendeT como app en tu teléfono. Guía paso a paso para Android e iPhone.',
+  alternates: {
+    canonical: 'https://vendet.online/como-instalar-app',
+    languages: {
+      'es-VE': 'https://vendet.online/como-instalar-app',
+      'x-default': 'https://vendet.online/como-instalar-app',
+    },
+  },
+  openGraph: {
+    title: 'Instala la App',
+    description: 'Aprende cómo instalar VendeT como app en tu teléfono. Guía paso a paso para Android e iPhone.',
+    url: 'https://vendet.online/como-instalar-app',
+    siteName: 'VendeT',
+    locale: 'es_VE',
+    type: 'website',
+  },
 }
 
 export default async function ComoInstalarAppPage({ params }: { params: Promise<{ locale: string }> }) {
